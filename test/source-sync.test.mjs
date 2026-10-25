@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, rmSync, realpathSync, symlinkSync } from 'node:fs';
+import { copyFileSync, cpSync, mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, existsSync, rmSync, realpathSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 import { tmpdir } from 'node:os';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -19,8 +19,10 @@ import { releaseManifest } from '../scripts/package-cli-release.mjs';
 import { validateReleaseReports } from '../scripts/publish-cli-release.mjs';
 import { compareVersions, releaseCli } from '../scripts/release-cli.mjs';
 import { compareRuns, exitCodeForStatus, renderReport, spread, validateRun, validateRequest, validateToolOutput, median, selectScenarios } from '../scripts/perf/report.mjs';
-import { copyAlranToolsArtifact, downloadAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
+import { copyAlranToolsArtifact, readAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
 import { checkWindowsSourceLocation, runWindowsSourceLocationCheck } from '../scripts/check-windows-source-location.mjs';
+
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
 test('Windows source preflight accepts local NTFS without parsing fsutil display text', () => {
   for (const fsutilOutput of ['E: - Fixed Drive\r\n', 'E: - Festplatte\r\n', new Error('Error 5: Access is denied')]) {
@@ -118,90 +120,37 @@ test('Windows source preflight reports command, permission and timeout failures 
   }
 });
 
-test('artifact download recovers from TLS reset and interrupted response bodies', async () => {
-  const reset = new TypeError('fetch failed', { cause: Object.assign(new Error('connection reset'), { code: 'ECONNRESET' }) });
-  const interrupted = new TypeError('terminated', { cause: Object.assign(new Error('socket closed'), { code: 'UND_ERR_SOCKET' }) });
-  const signals = [], delays = [], warnings = [];
-  const result = await downloadAlranToolsArtifact(async (url, { signal }) => {
-    assert.equal(url, ALRAN_TOOLS_ARTIFACT.url);
-    assert.ok(signal instanceof AbortSignal);
-    signals.push(signal);
-    if (signals.length === 1) throw reset;
-    if (signals.length === 2) return new Response(new ReadableStream({
-      start(controller) { controller.enqueue(new Uint8Array([1, 2])); },
-      pull(controller) { controller.error(interrupted); },
-    }));
-    return new Response('complete archive');
-  }, { wait: async ms => delays.push(ms), warn: message => warnings.push(message) });
-  assert.equal(result.toString(), 'complete archive');
-  assert.equal(new Set(signals).size, 3);
-  assert.deepEqual(delays, [1000, 2000]);
-  assert.equal(warnings.length, 2);
-  assert.match(warnings[0], /1\/3.*ECONNRESET/);
-  assert.match(warnings[1], /2\/3.*UND_ERR_SOCKET/);
+test('the vendored alran-tools artifact is verified against its pinned hash', async () => {
+  const artifact = await readAlranToolsArtifact(repoRoot);
+  assert.equal(createHash('sha256').update(artifact.cli).digest('hex'), ALRAN_TOOLS_ARTIFACT.sha256);
+  const manifest = JSON.parse(artifact.manifest.toString('utf8'));
+  assert.equal(manifest.packageName, ALRAN_TOOLS_ARTIFACT.packageName);
+  assert.equal(manifest.entry, 'cli.mjs');
+  assert.equal(manifest.buildEnv, 'prod');
+  assert.ok(artifact.notices.includes('alran-tools'));
 });
 
-test('artifact download retries temporary HTTP failures and releases rejected bodies', async () => {
-  for (const status of [408, 429, 500, 502, 503, 504]) {
-    let calls = 0, cancelled = false;
-    const delays = [];
-    const result = await downloadAlranToolsArtifact(async () => {
-      if (++calls > 1) return new Response('ok');
-      return new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status });
-    }, { wait: async ms => delays.push(ms), warn() {} });
-    assert.equal(result.toString(), 'ok');
-    assert.equal(calls, 2);
-    assert.equal(cancelled, true);
-    assert.deepEqual(delays, [1000]);
-  }
+test('a tampered vendored artifact is rejected and never copied into the build output', async (t) => {
+  const staging = mkdtempSync(path.join(tmpdir(), 'alran-artifact-vendored-'));
+  t.after(() => rmSync(staging, { recursive: true, force: true }));
+  cpSync(path.join(repoRoot, ALRAN_TOOLS_ARTIFACT.dir), path.join(staging, ALRAN_TOOLS_ARTIFACT.dir), { recursive: true });
+  const cliPath = path.join(staging, ALRAN_TOOLS_ARTIFACT.dir, 'cli.mjs');
+  const tampered = readFileSync(cliPath);
+  tampered[tampered.length - 1] ^= 1;
+  writeFileSync(cliPath, tampered);
+  await assert.rejects(readAlranToolsArtifact(staging), /integrity mismatch/);
+  await assert.rejects(copyAlranToolsArtifact(staging, path.join(staging, 'dist')), /integrity mismatch/);
+  assert.equal(existsSync(path.join(staging, 'dist')), false);
 });
 
-test('artifact download bounds Retry-After delays and rejects permanent failures immediately', async () => {
-  for (const [header, expectedDelay] of [['5', 5000], ['999999', 30000], ['invalid', 1000], ['0', 1000]]) {
-    let calls = 0;
-    const delays = [];
-    await downloadAlranToolsArtifact(async () => ++calls === 1
-      ? new Response(null, { status: 429, headers: { 'Retry-After': header } }) : new Response('ok'),
-    { wait: async ms => delays.push(ms), warn() {} });
-    assert.deepEqual(delays, [expectedDelay]);
-  }
-  const certificateError = new TypeError('fetch failed', { cause: Object.assign(new Error('certificate expired'), { code: 'CERT_HAS_EXPIRED' }) });
-  for (const failure of [new Response(null, { status: 403 }), new Response(null, { status: 404 }), certificateError]) {
-    let calls = 0;
-    await assert.rejects(downloadAlranToolsArtifact(async () => {
-      calls++;
-      if (failure instanceof Error) throw failure;
-      return failure;
-    }, { wait: async () => assert.fail('permanent failures must not wait'), warn: () => assert.fail('permanent failures must not retry') }));
-    assert.equal(calls, 1);
-  }
-});
-
-test('artifact download stops after three timeouts and preserves the final cause', async () => {
-  const timeout = new DOMException('The operation timed out', 'TimeoutError');
-  let calls = 0;
-  const delays = [];
-  await assert.rejects(downloadAlranToolsArtifact(async () => { calls++; throw timeout; },
-    { wait: async ms => delays.push(ms), warn() {} }), error => {
-    assert.match(error.message, /after 3 attempts/);
-    assert.equal(error.cause, timeout);
-    return true;
-  });
-  assert.equal(calls, 3);
-  assert.deepEqual(delays, [1000, 2000]);
-});
-
-test('artifact download never retries or caches an archive that fails integrity', async t => {
-  const root = mkdtempSync(path.join(tmpdir(), 'alran-artifact-download-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
-  let calls = 0;
-  await assert.rejects(copyAlranToolsArtifact(root, path.join(root, 'dist'), async () => {
-    calls++;
-    return new Response('corrupt archive');
-  }), /integrity mismatch/);
-  assert.equal(calls, 1);
-  assert.equal(existsSync(path.join(root, '.cache', 'artifacts', 'code-0.3.11.tgz')), false);
-  assert.equal(existsSync(path.join(root, 'dist')), false);
+test('copying the vendored artifact writes the CLI, its manifest, and its notices', async (t) => {
+  const staging = mkdtempSync(path.join(tmpdir(), 'alran-artifact-copy-'));
+  t.after(() => rmSync(staging, { recursive: true, force: true }));
+  const outdir = path.join(staging, 'dist');
+  await copyAlranToolsArtifact(repoRoot, outdir);
+  assert.deepEqual(readFileSync(path.join(outdir, 'embedded/alran-tools/cli.mjs')), readFileSync(path.join(repoRoot, ALRAN_TOOLS_ARTIFACT.dir, 'cli.mjs')));
+  assert.ok(existsSync(path.join(outdir, 'embedded/alran-tools/manifest.json')));
+  assert.ok(existsSync(path.join(outdir, 'ALRAN_TOOLS_NOTICES.md')));
 });
 
 test('performance defaults to the 100-round suite; long history requires explicit selection', () => {

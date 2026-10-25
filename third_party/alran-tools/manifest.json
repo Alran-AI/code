@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 3,
+  "packageName": "@alran/alran-tools",
+  "version": "0.0.4",
+  "gitSha": "dc5364ace5719d605980e2dc096cab9eb0ee05f1",
+  "buildEnv": "prod",
+  "bedrockLane": "",
+  "nodeRange": ">=20",
+  "entry": "cli.mjs",
+  "auth": {
+    "mode": "shared-broker",
+    "protocol": {
+      "name": "@mavis/oauth-lease-protocol",
+      "version": "0.1.0-beta.0",
+      "wireVersion": 1
+    }
+  },
+  "nativePackages": [],
+  "resources": [
+    {
+      "path": "cli.mjs",
+      "sha256": "b9c3f9d0f3c6fca314ecee514c2a0a23c280281e4ded743994149b1ddab57499"
+    }
+  ]
+}

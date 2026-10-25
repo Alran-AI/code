@@ -1,108 +1,65 @@
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { Readable } from 'node:stream';
-import { setTimeout as sleep } from 'node:timers/promises';
-import { Parser } from 'tar';
 
+/**
+ * The embedded `alran-tools` CLI.
+ *
+ * The tool is vendored under `third_party/alran-tools` instead of being
+ * downloaded from a published npm archive at build time. Two reasons:
+ *
+ *   - The embedded bytes are a build input, and the build must not depend on a
+ *     registry package that the fork itself publishes. A source build would
+ *     otherwise need the fork's own first release to exist before it can build.
+ *   - The CLI and the in-repo host share a runtime contract: the environment
+ *     variables the CLI reads, the authentication lease socket and capability
+ *     file names, the client id, and the platform base URLs. The vendored copy
+ *     is the rebranded one, so both sides agree.
+ *
+ * The bytes are pinned by hash here and by the resource manifest next to them.
+ */
 export const ALRAN_TOOLS_ARTIFACT = Object.freeze({
-  url: 'https://registry.npmjs.org/@ottili/alran-code/-/code-0.3.11.tgz',
-  integrity: 'sBOd8yvQRVuQNoGvzCDwXKaj5rQxLI3gKnojWS4+0wnMU9IXtxObSqbfBxz30Lze/zitRtSG2v76iJGHOmHRUA==',
+  dir: 'third_party/alran-tools',
   version: '0.0.4',
-  sha256: 'e5a59ec5362e395b519317ad6fecd99f6e92308b9d985be44b64eb2f2b73a722',
+  packageName: '@alran/alran-tools',
+  sha256: 'b9c3f9d0f3c6fca314ecee514c2a0a23c280281e4ded743994149b1ddab57499',
 });
 
-// Extract unchanged artifacts from the public release package without running package scripts or extracting other files to disk.
-export async function extractAlranToolsArtifact(bytes) {
-  if (createHash('sha512').update(bytes).digest('base64') !== ALRAN_TOOLS_ARTIFACT.integrity)
-    throw new Error('Public Alran archive integrity mismatch.');
-  const files = new Map();
-  const prefix = 'package/embedded/alran-tools/';
-  await new Promise((resolve, reject) => {
-    const parser = new Parser({
-      strict: true,
-      onReadEntry(entry) {
-        if (![`${prefix}cli.mjs`, `${prefix}manifest.json`, 'package/THIRD_PARTY_NOTICES.md'].includes(entry.path)) {
-          entry.resume();
-          return;
-        }
-        if (entry.type !== 'File' || files.has(entry.path)) {
-          reject(new Error('Unexpected alran-tools archive entry.'));
-          entry.resume();
-          return;
-        }
-        const chunks = [];
-        entry.on('data', chunk => chunks.push(chunk));
-        entry.on('end', () => files.set(entry.path, Buffer.concat(chunks)));
-      },
-    });
-    parser.on('error', reject);
-    parser.on('end', resolve);
-    Readable.from([bytes]).pipe(parser);
-  });
-  const cli = files.get(`${prefix}cli.mjs`);
-  const manifestBytes = files.get(`${prefix}manifest.json`);
-  const notices = files.get('package/THIRD_PARTY_NOTICES.md');
-  if (!cli || !manifestBytes || !notices) throw new Error('Public archive is missing alran-tools or its notices.');
+const MANIFEST_FIELDS = ['version', 'buildEnv', 'entry', 'packageName'];
+
+/**
+ * Read and verify the vendored artifact.
+ *
+ * The hash of the CLI is checked before the manifest is trusted, so a tampered
+ * file can never select the entry point or the package identity.
+ */
+export async function readAlranToolsArtifact(root) {
+  const dir = path.join(root, ALRAN_TOOLS_ARTIFACT.dir);
+  const cli = await readFile(path.join(dir, 'cli.mjs'));
+  if (createHash('sha256').update(cli).digest('hex') !== ALRAN_TOOLS_ARTIFACT.sha256)
+    throw new Error('Vendored alran-tools artifact integrity mismatch.');
+  const manifestBytes = await readFile(path.join(dir, 'manifest.json'));
+  const notices = await readFile(path.join(dir, 'THIRD_PARTY_NOTICES.md'), 'utf8');
   const manifest = JSON.parse(manifestBytes.toString('utf8'));
-  if (manifest.version !== ALRAN_TOOLS_ARTIFACT.version || manifest.buildEnv !== 'prod' ||
-      manifest.entry !== 'cli.mjs' || manifest.packageName !== '@alran/alran-tools' ||
-      createHash('sha256').update(cli).digest('hex') !== ALRAN_TOOLS_ARTIFACT.sha256)
-    throw new Error('Embedded alran-tools manifest or entry integrity mismatch.');
+  for (const field of MANIFEST_FIELDS) {
+    if (typeof manifest[field] !== 'string' || manifest[field].length === 0)
+      throw new Error(`Vendored alran-tools manifest is missing ${field}.`);
+  }
+  if (
+    manifest.version !== ALRAN_TOOLS_ARTIFACT.version ||
+    manifest.buildEnv !== 'prod' ||
+    manifest.entry !== 'cli.mjs' ||
+    manifest.packageName !== ALRAN_TOOLS_ARTIFACT.packageName
+  )
+    throw new Error('Vendored alran-tools manifest or entry integrity mismatch.');
   return { cli, manifest: manifestBytes, notices };
 }
 
-const transientNetworkCodes = new Set([
-  'ECONNRESET', 'ECONNREFUSED', 'EPIPE', 'ETIMEDOUT', 'EAI_AGAIN', 'ENETUNREACH',
-  'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT', 'UND_ERR_SOCKET',
-]);
-const transientHttpStatuses = new Set([408, 429, 500, 502, 503, 504]);
-
-export async function downloadAlranToolsArtifact(fetchImpl = fetch, { wait = sleep, warn = console.warn } = {}) {
-  const attempts = 3;
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    let retryAfterMs = 0;
-    try {
-      // A new deadline covers both connection setup and the complete response body.
-      const response = await fetchImpl(ALRAN_TOOLS_ARTIFACT.url, { signal: AbortSignal.timeout(120_000) });
-      if (!response.ok) {
-        const retryAfter = response.headers.get('retry-after');
-        if (retryAfter !== null) {
-          const milliseconds = /^\d+$/.test(retryAfter) ? Number(retryAfter) * 1000 : Date.parse(retryAfter) - Date.now();
-          if (!Number.isNaN(milliseconds)) retryAfterMs = Math.min(30_000, Math.max(0, milliseconds));
-        }
-        await response.body?.cancel().catch(() => {});
-        const error = new Error(`Cannot download public alran-tools artifact: HTTP ${response.status}`);
-        error.status = response.status;
-        throw error;
-      }
-      return Buffer.from(await response.arrayBuffer());
-    } catch (error) {
-      const code = error.cause?.code ?? error.code;
-      const retryable = transientHttpStatuses.has(error.status) ||
-        transientNetworkCodes.has(code) || error.name === 'TimeoutError';
-      if (!retryable) throw error;
-      if (attempt === attempts)
-        throw new Error(`Cannot download public alran-tools artifact after ${attempts} attempts`, { cause: error });
-      const delayMs = Math.max(1000 * 2 ** (attempt - 1), retryAfterMs);
-      warn(`[alran-tools] Download attempt ${attempt}/${attempts} failed (${code ?? error.message}); retrying in ${delayMs} ms.`);
-      await wait(delayMs);
-    }
-  }
-}
-
-export async function copyAlranToolsArtifact(root, outdir, fetchImpl = fetch) {
-  const cache = path.join(root, '.cache', 'artifacts', 'code-0.3.11.tgz');
-  let bytes;
-  try { bytes = await readFile(cache); }
-  catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    bytes = await downloadAlranToolsArtifact(fetchImpl);
-  }
-  const artifact = await extractAlranToolsArtifact(bytes);
-  await mkdir(path.dirname(cache), { recursive: true });
-  await writeFile(cache, bytes);
+/** Copy the vendored artifact into the build output. */
+export async function copyAlranToolsArtifact(root, outdir) {
+  const artifact = await readAlranToolsArtifact(root);
   const destination = path.join(outdir, 'embedded', 'alran-tools');
+  const { mkdir, writeFile } = await import('node:fs/promises');
   await mkdir(destination, { recursive: true });
   await writeFile(path.join(destination, 'cli.mjs'), artifact.cli);
   await writeFile(path.join(destination, 'manifest.json'), artifact.manifest);

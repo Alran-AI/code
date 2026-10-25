@@ -59,7 +59,7 @@ pnpm alran
 
 If your Node.js installation does not include Corepack, install the exact pnpm version using your existing package manager. Native dependencies without matching prebuilt binaries require C/C++ build tools and Python: the C++ workload in Visual Studio Build Tools on Windows, Command Line Tools on macOS, or the system build toolchain on Linux.
 
-The build extracts alran-tools from a pinned public `@ottili/alran-code` archive and verifies both archive and CLI hashes. The cache is in `.cache/artifacts`. On integrity failure, check the network or remove that cache and retry; never bypass hash verification.
+The build embeds the vendored `alran-tools` CLI from `third_party/alran-tools` and verifies its pinned hash. The vendored copy is the rebranded upstream tool, so the CLI and the in-repo host agree on their runtime contract (the environment variables the tool reads, the authentication lease socket names, and the platform base URLs). A modified artifact fails the build; never bypass the hash verification.
 
 To use the CLI in another project, open that project's directory and run the built entry point by absolute path:
 

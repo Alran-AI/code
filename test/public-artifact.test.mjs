@@ -3,22 +3,32 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { extractAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
+import { readAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
 
-test('public archive yields the exact embedded production tool artifact', async () => {
-  const archive = readFileSync(new URL('../.cache/artifacts/code-0.3.11.tgz', import.meta.url));
-  const extracted = await extractAlranToolsArtifact(archive);
+const repoRoot = fileURLToPath(new URL('..', import.meta.url));
+
+test('the vendored artifact yields the exact embedded production tool artifact', async () => {
+  const extracted = await readAlranToolsArtifact(repoRoot);
   const built = readFileSync(new URL('../dist/embedded/alran-tools/cli.mjs', import.meta.url));
   assert.deepEqual(extracted.cli, built);
   assert.equal(createHash('sha256').update(built).digest('hex'), ALRAN_TOOLS_ARTIFACT.sha256);
   assert.equal(JSON.parse(extracted.manifest).auth.mode, 'shared-broker');
 });
 
-test('modified public archives fail before any artifact is accepted', async () => {
-  const archive = readFileSync(new URL('../.cache/artifacts/code-0.3.11.tgz', import.meta.url));
-  archive[archive.length - 1] ^= 1;
-  await assert.rejects(extractAlranToolsArtifact(archive), /integrity mismatch/);
+test('a modified vendored artifact is rejected before it can be accepted', async () => {
+  const { writeFile, mkdtemp, cp } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const staging = await mkdtemp(path.join(tmpdir(), 'alran-tools-'));
+  await cp(path.join(repoRoot, ALRAN_TOOLS_ARTIFACT.dir), path.join(staging, ALRAN_TOOLS_ARTIFACT.dir), {
+    recursive: true,
+  });
+  const cliPath = path.join(staging, ALRAN_TOOLS_ARTIFACT.dir, 'cli.mjs');
+  const tampered = readFileSync(cliPath);
+  tampered[tampered.length - 1] ^= 1;
+  await writeFile(cliPath, tampered);
+  await assert.rejects(readAlranToolsArtifact(staging), /integrity mismatch/);
 });
 
 test('the built alran-tools CLI starts independently and exposes its commands', () => {
