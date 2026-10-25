@@ -1,5 +1,5 @@
 // Preserve the attribution value used by the former `/login?sso=1` TUI bridge.
-const TUI_DOWNLOAD_SOURCE = 'mcode-internal';
+const TUI_DOWNLOAD_SOURCE = 'alran-internal';
 
 export function markTuiAuthorizationUrl(verificationUrl: string): string {
   try {

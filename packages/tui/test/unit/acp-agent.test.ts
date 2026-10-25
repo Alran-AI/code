@@ -267,7 +267,7 @@ function createRuntime(
   };
 }
 
-describe('MiniMax Code ACP agent', () => {
+describe('Alran Code ACP agent', () => {
   it.each(['new', 'load', 'resume', 'fork'] as const)(
     'advertises session Skills on %s and forwards Skill instructions to the Runtime',
     async (method) => {
@@ -485,9 +485,9 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, sendMessage, listModels, selectModel } = createRuntime([], {
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
-          displayName: 'MiniMax M3',
+          displayName: 'Alran M3',
           selected: true,
         },
         { providerId: 'custom', modelId: 'coder', displayName: 'Coder' },
@@ -625,7 +625,7 @@ describe('MiniMax Code ACP agent', () => {
               type: 'text',
               text: [
                 'Available models:',
-                '- minimax/m3 (MiniMax M3) [selected]',
+                '- alran/m3 (Alran M3) [selected]',
                 '- custom/coder (Coder)',
                 '',
                 'Use `/model <provider/model[#variant]>` to switch.',
@@ -708,7 +708,7 @@ describe('MiniMax Code ACP agent', () => {
     } = createRuntime([], {
       contextSnapshot: {
         status: 'live',
-        model: { provider: 'minimax', id: 'm3', contextWindow: 10_000 },
+        model: { provider: 'alran', id: 'm3', contextWindow: 10_000 },
         contextUsage: {
           contextWindowTokens: 10_000,
           usedTokens: 4_000,
@@ -783,7 +783,7 @@ describe('MiniMax Code ACP agent', () => {
       expect.arrayContaining([
         [
           'Context: live',
-          'Model: minimax/m3',
+          'Model: alran/m3',
           'Budget: 4,000 / 10,000 tokens (40%)',
           'Compaction: never',
           'Components:',
@@ -822,8 +822,8 @@ describe('MiniMax Code ACP agent', () => {
         status: 'ready',
         configPath: '/workspace/config.yaml',
         configPresent: true,
-        defaultModel: 'minimax/m3',
-        providerId: 'minimax',
+        defaultModel: 'alran/m3',
+        providerId: 'alran',
         authMode: 'managed-login',
         managedTokenPresent: true,
         apiKeyPresent: false,
@@ -864,8 +864,8 @@ describe('MiniMax Code ACP agent', () => {
             'Configuration status: ready',
             'Config path: /workspace/config.yaml',
             'Config file: present',
-            'Default model: minimax/m3',
-            'Provider: minimax',
+            'Default model: alran/m3',
+            'Provider: alran',
             'Authentication: managed-login',
             'Managed token: present',
             'API key: missing',
@@ -887,9 +887,9 @@ describe('MiniMax Code ACP agent', () => {
       },
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
-          displayName: 'MiniMax M3',
+          displayName: 'Alran M3',
           selected: true,
         },
       ],
@@ -928,7 +928,7 @@ describe('MiniMax Code ACP agent', () => {
           type: 'text',
           text: [
             'Account status: ready',
-            'Model: minimax/m3 (MiniMax M3)',
+            'Model: alran/m3 (Alran M3)',
             'Model source: token-plan',
             'Authentication: managed-login',
             'Managed token: present',
@@ -1016,7 +1016,7 @@ describe('MiniMax Code ACP agent', () => {
 
   it('rejects an unknown model locally without starting an Agent turn', async () => {
     const { runtime, sendMessage, selectModel } = createRuntime([], {
-      models: [{ providerId: 'minimax', modelId: 'm3' }],
+      models: [{ providerId: 'alran', modelId: 'm3' }],
     });
     const agent = createTuiAcpAgent({ runtime, version: '1.2.3' });
     const client = acp.client({ name: 'zed' });
@@ -1047,7 +1047,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, sendMessage, selectModel } = createRuntime([], {
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
           supportedVariants: ['low', 'high'],
         },
@@ -1069,9 +1069,9 @@ describe('MiniMax Code ACP agent', () => {
       await expect(
         connection.request(acp.methods.agent.session.prompt, {
           sessionId: session.sessionId,
-          prompt: [{ type: 'text', text: '/model minimax/m3#turbo' }],
+          prompt: [{ type: 'text', text: '/model alran/m3#turbo' }],
         }),
-      ).rejects.toThrow('Unknown variant turbo for minimax/m3');
+      ).rejects.toThrow('Unknown variant turbo for alran/m3');
     });
 
     expect(selectModel).not.toHaveBeenCalled();
@@ -1175,26 +1175,26 @@ describe('MiniMax Code ACP agent', () => {
         authMethods: [
           {
             type: 'terminal',
-            id: 'minimax-code-login',
-            name: 'Sign in to MiniMax Code',
+            id: 'alran-code-login',
+            name: 'Sign in to Alran Code',
             args: ['login'],
           },
         ],
-        agentInfo: { name: 'minimax-code', title: 'MiniMax Code', version: '1.2.3' },
+        agentInfo: { name: 'alran-code', title: 'Alran Code', version: '1.2.3' },
         _meta: {
-          'minimax-code/extensions': {
+          'alran-code/extensions': {
             version: 1,
             methods: expect.arrayContaining([
               'session/activate',
-              'mcode/session/steer',
-              'mcode/session/goal/create',
-              'mcode/session/delegation/get',
+              'alran/session/steer',
+              'alran/session/goal/create',
+              'alran/session/delegation/get',
             ]),
             notifications: [
-              'mcode/session/current_session_update',
-              'mcode/session/queue_update',
-              'mcode/session/goal_update',
-              'mcode/session/delegation_update',
+              'alran/session/current_session_update',
+              'alran/session/queue_update',
+              'alran/session/goal_update',
+              'alran/session/delegation_update',
             ],
           },
         },
@@ -1397,7 +1397,7 @@ describe('MiniMax Code ACP agent', () => {
     });
     getSession.mockResolvedValue({
       sessionId: 'session-existing',
-      agentName: 'mcode',
+      agentName: 'alran',
       workspaceDir: '/workspace',
     });
     listMessagePage
@@ -1784,7 +1784,7 @@ describe('MiniMax Code ACP agent', () => {
         interactionMode: 'default',
       });
       await expect(configuration).resolves.toEqual({
-        _meta: { 'minimax-code/transition': 'next_prompt' },
+        _meta: { 'alran-code/transition': 'next_prompt' },
       });
       await expect(prompt).resolves.toEqual({ stopReason: 'cancelled' });
     });
@@ -1839,7 +1839,7 @@ describe('MiniMax Code ACP agent', () => {
       });
 
       await expect(configuration).resolves.toEqual({
-        _meta: { 'minimax-code/transition': 'next_prompt' },
+        _meta: { 'alran-code/transition': 'next_prompt' },
       });
       await expect(prompt).resolves.toEqual({ stopReason: 'cancelled' });
     });
@@ -2255,8 +2255,8 @@ describe('MiniMax Code ACP agent', () => {
         expect(initialized.authMethods).toEqual([
           {
             type: 'terminal',
-            id: 'minimax-code-login',
-            name: 'Sign in to MiniMax Code',
+            id: 'alran-code-login',
+            name: 'Sign in to Alran Code',
             args: ['login'],
           },
         ]);
@@ -2294,7 +2294,7 @@ describe('MiniMax Code ACP agent', () => {
         request: {
           requestId: 'permission-1',
           sessionId: 'session-1',
-          agentName: 'mcode',
+          agentName: 'alran',
           toolName: 'edit_file',
           toolDescription: 'Edit C:\\workspace\\a.ts',
           toolInput: '{"path":"C:\\\\workspace\\\\a.ts"}',
@@ -2324,7 +2324,7 @@ describe('MiniMax Code ACP agent', () => {
         ],
       },
     ]);
-    expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-1', 'allowOnce');
+    expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-1', 'allowOnce');
   });
 
   it('denies a forged allow-always decision when Runtime did not offer it', async () => {
@@ -2355,7 +2355,7 @@ describe('MiniMax Code ACP agent', () => {
     expect(permissionRequests[0]?.options).not.toContainEqual(
       expect.objectContaining({ optionId: 'allow-always' }),
     );
-    expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-forged-always', 'deny');
+    expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-forged-always', 'deny');
   });
 
   it('routes descendant interactions to their attached root and ignores unrelated Sessions', async () => {
@@ -2395,12 +2395,12 @@ describe('MiniMax Code ACP agent', () => {
         sessionId: 'session-unrelated',
         request: {
           ...unrelatedQuestionnaire.request,
-          requester: { sessionId: 'session-unrelated', agentName: 'mcode' },
+          requester: { sessionId: 'session-unrelated', agentName: 'alran' },
         },
       });
 
       await vi.waitFor(() =>
-        expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-child', 'allowOnce'),
+        expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-child', 'allowOnce'),
       );
       await new Promise<void>((resolve) => setImmediate(resolve));
     });
@@ -2408,11 +2408,11 @@ describe('MiniMax Code ACP agent', () => {
     expect(permissionRequests).toHaveLength(1);
     expect(permissionRequests[0]?.sessionId).toBe('session-1');
     expect(replyPermission).not.toHaveBeenCalledWith(
-      'mcode',
+      'alran',
       'permission-unrelated',
       expect.anything(),
     );
-    expect(dismissQuestionnaire).not.toHaveBeenCalledWith('mcode', 'questionnaire-unrelated');
+    expect(dismissQuestionnaire).not.toHaveBeenCalledWith('alran', 'questionnaire-unrelated');
   });
 
   it('hydrates existing descendant ownership when attaching a persisted root Session', async () => {
@@ -2452,7 +2452,7 @@ describe('MiniMax Code ACP agent', () => {
 
       await vi.waitFor(() =>
         expect(replyPermission).toHaveBeenCalledWith(
-          'mcode',
+          'alran',
           'permission-existing-child',
           'allowOnce',
         ),
@@ -2498,7 +2498,7 @@ describe('MiniMax Code ACP agent', () => {
       await vi.waitFor(() => expect(replyPermission).toHaveBeenCalledOnce());
     });
 
-    expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-close-race', 'deny');
+    expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-close-race', 'deny');
   });
 
   it('keeps ingesting another Session while one permission request is unanswered', async () => {
@@ -2547,7 +2547,7 @@ describe('MiniMax Code ACP agent', () => {
       emitRuntimeEvent(permissionEvent('permission-b', 'session-2'));
 
       await vi.waitFor(() =>
-        expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-b', 'deny'),
+        expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-b', 'deny'),
       );
       await vi.waitFor(() =>
         expect(updates).toContainEqual({
@@ -2601,7 +2601,7 @@ describe('MiniMax Code ACP agent', () => {
       })
       .catch(() => undefined);
 
-    expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-72', 'deny');
+    expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-72', 'deny');
   });
 
   it('keeps watching interactions after one Runtime permission reply fails', async () => {
@@ -2630,7 +2630,7 @@ describe('MiniMax Code ACP agent', () => {
       await vi.waitFor(() => expect(replyPermission).toHaveBeenCalledTimes(2));
     });
 
-    expect(replyPermission).toHaveBeenLastCalledWith('mcode', 'permission-2', 'deny');
+    expect(replyPermission).toHaveBeenLastCalledWith('alran', 'permission-2', 'deny');
   });
 
   it('bridges Runtime questionnaires through ACP form elicitation when the client supports it', async () => {
@@ -2666,12 +2666,12 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-1',
           title: 'Choose settings',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -2758,7 +2758,7 @@ describe('MiniMax Code ACP agent', () => {
         },
       },
     ]);
-    expect(replyQuestionnaire).toHaveBeenCalledWith('mcode', 'questionnaire-1', [
+    expect(replyQuestionnaire).toHaveBeenCalledWith('alran', 'questionnaire-1', [
       { stepId: 'approach', selectedOptionIds: ['safe'] },
       {
         stepId: 'checks',
@@ -2804,11 +2804,11 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-identities',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -2907,7 +2907,7 @@ describe('MiniMax Code ACP agent', () => {
         description: 'Custom tags',
       },
     });
-    expect(replyQuestionnaire).toHaveBeenCalledWith('mcode', 'questionnaire-identities', [
+    expect(replyQuestionnaire).toHaveBeenCalledWith('alran', 'questionnaire-identities', [
       { stepId: 'channel', selectedOptionIds: ['Shared'] },
       { stepId: 'delivery', selectedOther: true, otherText: 'Custom delivery' },
       { stepId: 'legacy', skipped: true },
@@ -2946,7 +2946,7 @@ describe('MiniMax Code ACP agent', () => {
       await connection.request(acp.methods.agent.session.close, { sessionId: session.sessionId });
       answerQuestionnaire?.({ action: 'accept', content: { approach: 'Safe' } });
       await vi.waitFor(() =>
-        expect(dismissQuestionnaire).toHaveBeenCalledWith('mcode', 'questionnaire-close-race'),
+        expect(dismissQuestionnaire).toHaveBeenCalledWith('alran', 'questionnaire-close-race'),
       );
     });
 
@@ -3050,12 +3050,12 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-continuation',
           title: 'Choose an approach',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -3076,7 +3076,7 @@ describe('MiniMax Code ACP agent', () => {
       });
       await vi.waitFor(() => expect(replyQuestionnaire).toHaveBeenCalledOnce());
       await expect(
-        connection.request('mcode/session/steer', {
+        connection.request('alran/session/steer', {
           sessionId: session.sessionId,
           text: 'Do not activate another turn',
         }),
@@ -3130,11 +3130,11 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-form-fallback',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -3158,7 +3158,7 @@ describe('MiniMax Code ACP agent', () => {
     });
 
     expect(permissionRequests).toHaveLength(1);
-    expect(replyQuestionnaire).toHaveBeenCalledWith('mcode', 'questionnaire-form-fallback', [
+    expect(replyQuestionnaire).toHaveBeenCalledWith('alran', 'questionnaire-form-fallback', [
       { stepId: 'approach', selectedOptionIds: ['safe'] },
     ]);
   });
@@ -3193,11 +3193,11 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-2',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -3259,7 +3259,7 @@ describe('MiniMax Code ACP agent', () => {
         ],
       },
     ]);
-    expect(replyQuestionnaire).toHaveBeenCalledWith('mcode', 'questionnaire-2', [
+    expect(replyQuestionnaire).toHaveBeenCalledWith('alran', 'questionnaire-2', [
       { stepId: 'approach', selectedOptionIds: ['fast'] },
       { stepId: 'depth', skipped: true },
     ]);
@@ -3326,7 +3326,7 @@ describe('MiniMax Code ACP agent', () => {
           cwd: '/workspace',
           mcpServers: [],
         }),
-      ).rejects.toThrow('mcode login');
+      ).rejects.toThrow('alran login');
     });
 
     expect(createSession).not.toHaveBeenCalled();
@@ -3528,9 +3528,9 @@ describe('MiniMax Code ACP agent', () => {
         {
           models: [
             {
-              providerId: 'minimax',
+              providerId: 'alran',
               modelId: 'm3',
-              displayName: 'MiniMax M3',
+              displayName: 'Alran M3',
               selected: true,
               effortOptions: ['low', 'high'],
               thinkingConfig: { defaultValue: 'low' },
@@ -3545,18 +3545,18 @@ describe('MiniMax Code ACP agent', () => {
       .mockResolvedValueOnce({
         sessionId: 'session-1',
         workspaceDir: '/workspace',
-        model: { providerId: 'minimax', modelId: 'm3', thinking: { effort: 'low' } },
+        model: { providerId: 'alran', modelId: 'm3', thinking: { effort: 'low' } },
       })
       .mockResolvedValueOnce({
         sessionId: 'session-1',
         workspaceDir: '/workspace',
-        model: { providerId: 'minimax', modelId: 'm3', thinking: { effort: 'high' } },
+        model: { providerId: 'alran', modelId: 'm3', thinking: { effort: 'high' } },
       })
       .mockResolvedValue({
         sessionId: 'session-1',
         workspaceDir: '/workspace',
         interactionMode: 'plan',
-        model: { providerId: 'minimax', modelId: 'm3', thinking: { effort: 'low' } },
+        model: { providerId: 'alran', modelId: 'm3', thinking: { effort: 'low' } },
       });
     const updates: acp.SessionNotification[] = [];
     const agent = createTuiAcpAgent({ runtime, version: '1.2.3', createTurnId: () => 'turn-1' });
@@ -3586,7 +3586,7 @@ describe('MiniMax Code ACP agent', () => {
           sessionId: session.sessionId,
           modeId: 'plan',
         }),
-      ).resolves.toEqual({ _meta: { 'minimax-code/transition': 'next_prompt' } });
+      ).resolves.toEqual({ _meta: { 'alran-code/transition': 'next_prompt' } });
       await expect(
         connection.request(acp.methods.agent.session.setConfigOption, {
           sessionId: session.sessionId,
@@ -3598,7 +3598,7 @@ describe('MiniMax Code ACP agent', () => {
         connection.request(acp.methods.agent.session.setConfigOption, {
           sessionId: session.sessionId,
           configId: 'model',
-          value: 'm:minimax:m3:u',
+          value: 'm:alran:m3:u',
         }),
       ).resolves.toEqual(expect.objectContaining({ configOptions: expect.any(Array) }));
       await expect(
@@ -3619,12 +3619,12 @@ describe('MiniMax Code ACP agent', () => {
 
     expect(setPermissionMode).toHaveBeenCalledWith('auto');
     expect(selectSessionModel).toHaveBeenCalledWith(
-      { providerId: 'minimax', modelId: 'm3' },
+      { providerId: 'alran', modelId: 'm3' },
       'session-1',
     );
     expect(selectSessionModel).toHaveBeenCalledWith(
       {
-        providerId: 'minimax',
+        providerId: 'alran',
         modelId: 'm3',
         thinking: { effort: 'high' },
       },
@@ -3813,7 +3813,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, getPermissionMode, getSession, selectSessionModel } = createRuntime([], {
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
           selected: true,
           effortOptions: ['low', 'high'],
@@ -3824,7 +3824,7 @@ describe('MiniMax Code ACP agent', () => {
     getSession.mockResolvedValue({
       sessionId: 'session-1',
       workspaceDir: '/workspace',
-      model: { providerId: 'minimax', modelId: 'm3', thinking: { effort: 'low' } },
+      model: { providerId: 'alran', modelId: 'm3', thinking: { effort: 'low' } },
     });
     const agent = createTuiAcpAgent({ runtime, version: '1.2.3' });
     const client = acp.client({ name: 'test-client' });
@@ -3846,7 +3846,7 @@ describe('MiniMax Code ACP agent', () => {
         connection.request(acp.methods.agent.session.setConfigOption, {
           sessionId: session.sessionId,
           configId: 'model',
-          value: 'm:minimax:unknown:u',
+          value: 'm:alran:unknown:u',
         }),
       ).rejects.toThrow('Model selection is not advertised');
       await expect(
@@ -3865,7 +3865,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, selectSessionModel } = createRuntime([], {
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
           selected: true,
           variant: '',
@@ -3889,10 +3889,10 @@ describe('MiniMax Code ACP agent', () => {
         expect.arrayContaining([
           expect.objectContaining({
             id: 'model',
-            currentValue: 'm:minimax:m3:v:',
+            currentValue: 'm:alran:m3:v:',
             options: expect.arrayContaining([
-              expect.objectContaining({ value: 'm:minimax:m3:v:' }),
-              expect.objectContaining({ value: 'm:minimax:m3:v:thinking' }),
+              expect.objectContaining({ value: 'm:alran:m3:v:' }),
+              expect.objectContaining({ value: 'm:alran:m3:v:thinking' }),
             ]),
           }),
         ]),
@@ -3902,13 +3902,13 @@ describe('MiniMax Code ACP agent', () => {
         connection.request(acp.methods.agent.session.setConfigOption, {
           sessionId: session.sessionId,
           configId: 'model',
-          value: 'm:minimax:m3:v:',
+          value: 'm:alran:m3:v:',
         }),
       ).resolves.toEqual(expect.objectContaining({ configOptions: expect.any(Array) }));
     });
 
     expect(selectSessionModel).toHaveBeenCalledWith(
-      { providerId: 'minimax', modelId: 'm3', variant: '' },
+      { providerId: 'alran', modelId: 'm3', variant: '' },
       'session-1',
     );
   });
@@ -3917,7 +3917,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, selectSessionModel } = createRuntime([], {
       models: [
         {
-          providerId: 'minimax',
+          providerId: 'alran',
           modelId: 'm3',
           selected: true,
           variant: '',
@@ -3940,19 +3940,19 @@ describe('MiniMax Code ACP agent', () => {
       });
       expect(session.configOptions).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ id: 'model', currentValue: 'm:minimax:m3:v:' }),
+          expect.objectContaining({ id: 'model', currentValue: 'm:alran:m3:v:' }),
           expect.objectContaining({ id: 'thinkingEffort', currentValue: 'low' }),
         ]),
       );
       await connection.request(acp.methods.agent.session.setConfigOption, {
         sessionId: session.sessionId,
         configId: 'model',
-        value: 'm:minimax:m3:v:',
+        value: 'm:alran:m3:v:',
       });
     });
 
     expect(selectSessionModel).toHaveBeenCalledWith(
-      { providerId: 'minimax', modelId: 'm3', variant: '' },
+      { providerId: 'alran', modelId: 'm3', variant: '' },
       'session-1',
     );
   });
@@ -4212,7 +4212,7 @@ describe('MiniMax Code ACP agent', () => {
       .client({ name: 'test-client' })
       .onNotification(acp.methods.client.session.update, ({ params }) => activeUpdates.push(params))
       .onNotification(
-        'mcode/session/current_session_update',
+        'alran/session/current_session_update',
         (value) => value as { sessionId: string | null },
         ({ params }) => currentSessionUpdates.push(params),
       );
@@ -4221,7 +4221,7 @@ describe('MiniMax Code ACP agent', () => {
       await connection.request(acp.methods.agent.initialize, {
         protocolVersion: acp.PROTOCOL_VERSION,
         clientCapabilities: {
-          _meta: { 'minimax-code/extensions': { version: 1, notifications: true } },
+          _meta: { 'alran-code/extensions': { version: 1, notifications: true } },
         },
       });
       const session = await connection.request(acp.methods.agent.session.new, {
@@ -4234,7 +4234,7 @@ describe('MiniMax Code ACP agent', () => {
         }),
       ).resolves.toEqual({ sessionId: 'session-1' });
       await expect(
-        connection.request<{ sessionId: string }, { sessionId: string }>('mcode/session/activate', {
+        connection.request<{ sessionId: string }, { sessionId: string }>('alran/session/activate', {
           sessionId: session.sessionId,
         }),
       ).resolves.toEqual({ sessionId: 'session-1' });
@@ -4243,14 +4243,14 @@ describe('MiniMax Code ACP agent', () => {
         connection.request<
           { itemId: string; position: number },
           { sessionId: string; text: string }
-        >('mcode/session/queue/enqueue', {
+        >('alran/session/queue/enqueue', {
           sessionId: session.sessionId,
           text: '\n  Run checks next  \n',
         }),
       ).resolves.toEqual({ itemId: 'queue-1', position: 1 });
       await expect(
         connection.request<{ items: unknown[] }, { sessionId: string }>(
-          'mcode/session/queue/list',
+          'alran/session/queue/list',
           { sessionId: session.sessionId },
         ),
       ).resolves.toEqual({ items: [] });
@@ -4258,7 +4258,7 @@ describe('MiniMax Code ACP agent', () => {
         connection.request<
           { item: { content: string } },
           { sessionId: string; itemId: string; text: string }
-        >('mcode/session/queue/update', {
+        >('alran/session/queue/update', {
           sessionId: session.sessionId,
           itemId: 'queue-1',
           text: '\n    Run focused checks  \n',
@@ -4266,7 +4266,7 @@ describe('MiniMax Code ACP agent', () => {
       ).resolves.toMatchObject({ item: { content: 'Run focused checks' } });
       await expect(
         connection.request<{ item: { status: string } }, { sessionId: string; itemId: string }>(
-          'mcode/session/queue/delete',
+          'alran/session/queue/delete',
           {
             sessionId: session.sessionId,
             itemId: 'queue-1',
@@ -4277,14 +4277,14 @@ describe('MiniMax Code ACP agent', () => {
         connection.request<
           { queueItemId: string; turnId: string },
           { sessionId: string; itemId: string }
-        >('mcode/session/queue/steer', {
+        >('alran/session/queue/steer', {
           sessionId: session.sessionId,
           itemId: 'queue-1',
         }),
       ).resolves.toEqual({ queueItemId: 'queue-1', turnId: 'turn-2' });
       await expect(
         connection.request<{ goal: unknown | null }, { sessionId: string }>(
-          'mcode/session/goal/get',
+          'alran/session/goal/get',
           {
             sessionId: session.sessionId,
           },
@@ -4294,7 +4294,7 @@ describe('MiniMax Code ACP agent', () => {
         connection.request<
           { goal: { goalId: string; objective: string } },
           { sessionId: string; objective: string; tokenBudget: number }
-        >('mcode/session/goal/create', {
+        >('alran/session/goal/create', {
           sessionId: session.sessionId,
           objective: 'Ship ACP',
           tokenBudget: 8_000,
@@ -4302,7 +4302,7 @@ describe('MiniMax Code ACP agent', () => {
       ).resolves.toMatchObject({ goal: { goalId: 'goal-1', objective: 'Ship ACP' } });
       await expect(
         connection.request<{ goal: { status: string } }, { sessionId: string; status: string }>(
-          'mcode/session/goal/patch',
+          'alran/session/goal/patch',
           {
             sessionId: session.sessionId,
             status: 'paused',
@@ -4311,19 +4311,19 @@ describe('MiniMax Code ACP agent', () => {
       ).resolves.toMatchObject({ goal: { status: 'paused' } });
       await expect(
         connection.request<{ cleared: boolean }, { sessionId: string }>(
-          'mcode/session/goal/clear',
+          'alran/session/goal/clear',
           { sessionId: session.sessionId },
         ),
       ).resolves.toEqual({ cleared: true });
       await expect(
         connection.request<{ snapshot: { rootSessionId: string } }, { sessionId: string }>(
-          'mcode/session/delegation/get',
+          'alran/session/delegation/get',
           { sessionId: session.sessionId },
         ),
       ).resolves.toMatchObject({ snapshot: { rootSessionId: 'session-1' } });
       await expect(
         connection.request<{ receipt: { rootStopped: boolean } }, { sessionId: string }>(
-          'mcode/session/delegation/stop',
+          'alran/session/delegation/stop',
           { sessionId: session.sessionId },
         ),
       ).resolves.toMatchObject({ receipt: { rootStopped: true } });
@@ -4346,7 +4346,7 @@ describe('MiniMax Code ACP agent', () => {
         connection.request<
           { turnId: string; mode: string },
           { sessionId: string; text: string; clientRequestId: string }
-        >('mcode/session/steer', {
+        >('alran/session/steer', {
           sessionId: session.sessionId,
           text: '\n  Prioritize protocol tests  \n',
           clientRequestId: 'client-steer-1',
@@ -4388,7 +4388,7 @@ describe('MiniMax Code ACP agent', () => {
         sessionId: 'session-1',
         source: 'api',
         message: { content: '\n  Prioritize protocol tests  \n' },
-        producerId: 'mcode-acp',
+        producerId: 'alran-acp',
         idempotencyKey: 'client-steer-1',
         preDelivery: { accept: expect.any(Function) },
       }),
@@ -4421,7 +4421,7 @@ describe('MiniMax Code ACP agent', () => {
       await vi.waitFor(() => expect(sendMessage).toHaveBeenCalledOnce());
 
       await expect(
-        connection.request('mcode/session/steer', {
+        connection.request('alran/session/steer', {
           sessionId: session.sessionId,
           text: 'Must not become a new Turn',
         }),
@@ -4485,7 +4485,7 @@ describe('MiniMax Code ACP agent', () => {
         return { turnId: 'turn-new', mode: 'steered' };
       });
       await expect(
-        connection.request('mcode/session/steer', {
+        connection.request('alran/session/steer', {
           sessionId: session.sessionId,
           text: 'Do not activate',
         }),
@@ -4496,7 +4496,7 @@ describe('MiniMax Code ACP agent', () => {
         return { turnId: 'turn-other', mode: 'steered' };
       });
       await expect(
-        connection.request('mcode/session/steer', {
+        connection.request('alran/session/steer', {
           sessionId: session.sessionId,
           text: 'Do not steer another Turn',
         }),
@@ -4515,7 +4515,7 @@ describe('MiniMax Code ACP agent', () => {
     const agent = createTuiAcpAgent({ runtime, version: '1.2.3' });
     const goalUpdates: unknown[] = [];
     const client = acp.client({ name: 'test-client' }).onNotification(
-      'mcode/session/goal_update',
+      'alran/session/goal_update',
       (value) => value as { sessionId: string; goal: unknown },
       ({ params }) => goalUpdates.push(params),
     );
@@ -4524,29 +4524,29 @@ describe('MiniMax Code ACP agent', () => {
       const initialized = await connection.request(acp.methods.agent.initialize, {
         protocolVersion: acp.PROTOCOL_VERSION,
         clientCapabilities: {
-          _meta: { 'minimax-code/extensions': { version: 1, notifications: true } },
+          _meta: { 'alran-code/extensions': { version: 1, notifications: true } },
         },
       });
-      const extensions = initialized._meta?.['minimax-code/extensions'] as {
+      const extensions = initialized._meta?.['alran-code/extensions'] as {
         methods: string[];
         notifications: string[];
       };
       expect(extensions.methods).not.toEqual(
         expect.arrayContaining([
-          'mcode/session/goal/get',
-          'mcode/session/goal/create',
-          'mcode/session/goal/patch',
-          'mcode/session/goal/clear',
+          'alran/session/goal/get',
+          'alran/session/goal/create',
+          'alran/session/goal/patch',
+          'alran/session/goal/clear',
         ]),
       );
-      expect(extensions.notifications).not.toContain('mcode/session/goal_update');
+      expect(extensions.notifications).not.toContain('alran/session/goal_update');
 
       const session = await connection.request(acp.methods.agent.session.new, {
         cwd: '/workspace',
         mcpServers: [],
       });
       await expect(
-        connection.request('mcode/session/goal/create', {
+        connection.request('alran/session/goal/create', {
           sessionId: session.sessionId,
           objective: 'Should not persist',
         }),
@@ -4594,7 +4594,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, emitRuntimeEvent, listQueuedMessages } = createRuntime([], {
       contextSnapshot: {
         status: 'live',
-        model: { provider: 'minimax', id: 'm3', contextWindow: 10_000 },
+        model: { provider: 'alran', id: 'm3', contextWindow: 10_000 },
         contextUsage: {
           contextWindowTokens: 10_000,
           usedTokens: 4_000,
@@ -4626,7 +4626,7 @@ describe('MiniMax Code ACP agent', () => {
         updates.push(params);
       })
       .onNotification(
-        'mcode/session/queue_update',
+        'alran/session/queue_update',
         (value) => value as { sessionId: string; items: unknown[] },
         ({ params }) => queueUpdates.push(params),
       )
@@ -4639,7 +4639,7 @@ describe('MiniMax Code ACP agent', () => {
           plan: {},
           elicitation: { form: {} },
           _meta: {
-            'minimax-code/extensions': { version: 1, notifications: true },
+            'alran-code/extensions': { version: 1, notifications: true },
           },
         },
       });
@@ -4677,7 +4677,7 @@ describe('MiniMax Code ACP agent', () => {
           schemaVersion: 1,
           id: 'plan-review-1',
           title: 'Review the plan',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -5011,12 +5011,12 @@ describe('MiniMax Code ACP agent', () => {
         timestampMs: 1,
         source: 'runtime',
         sessionId: 'session-1',
-        agentName: 'mcode',
+        agentName: 'alran',
         request: {
           schemaVersion: 1,
           id: 'questionnaire-with-stalled-projection',
           title: 'Choose settings',
-          requester: { sessionId: 'session-1', agentName: 'mcode' },
+          requester: { sessionId: 'session-1', agentName: 'alran' },
           presentation: {
             replaceComposer: false,
             showProgress: false,
@@ -5038,7 +5038,7 @@ describe('MiniMax Code ACP agent', () => {
 
       await vi.waitFor(() =>
         expect(replyQuestionnaire).toHaveBeenCalledWith(
-          'mcode',
+          'alran',
           'questionnaire-with-stalled-projection',
           [{ stepId: 'approach', selectedOptionIds: ['safe'] }],
         ),
@@ -5101,12 +5101,12 @@ describe('MiniMax Code ACP agent', () => {
       timestampMs: 1,
       source: 'runtime',
       sessionId: 'session-1',
-      agentName: 'mcode',
+      agentName: 'alran',
       request: {
         schemaVersion: 1,
         id,
         title: 'Choose settings',
-        requester: { sessionId: 'session-1', agentName: 'mcode' },
+        requester: { sessionId: 'session-1', agentName: 'alran' },
         presentation: {
           replaceComposer: false,
           showProgress: false,
@@ -5131,7 +5131,7 @@ describe('MiniMax Code ACP agent', () => {
         protocolVersion: acp.PROTOCOL_VERSION,
         clientCapabilities: {
           elicitation: { form: {} },
-          _meta: { 'minimax-code/extensions': { version: 1, notifications: true } },
+          _meta: { 'alran-code/extensions': { version: 1, notifications: true } },
         },
       });
       await connection.request(acp.methods.agent.session.new, {
@@ -5305,7 +5305,7 @@ describe('MiniMax Code ACP agent', () => {
     const { runtime, emitRuntimeEvent, getSession } = createRuntime([], {
       contextSnapshot: {
         status: 'live',
-        model: { provider: 'minimax', id: 'm3', contextWindow: 10_000 },
+        model: { provider: 'alran', id: 'm3', contextWindow: 10_000 },
         contextUsage: {
           contextWindowTokens: 10_000,
           usedTokens: 2_000,
@@ -5574,7 +5574,7 @@ describe('MiniMax Code ACP agent', () => {
     const delegationUpdates: unknown[] = [];
     const agent = createTuiAcpAgent({ runtime, version: '1.2.3' });
     const client = acp.client({ name: 'test-client' }).onNotification(
-      'mcode/session/delegation_update',
+      'alran/session/delegation_update',
       (params) => params,
       ({ params }) => delegationUpdates.push(params),
     );
@@ -5583,7 +5583,7 @@ describe('MiniMax Code ACP agent', () => {
       await connection.request(acp.methods.agent.initialize, {
         protocolVersion: acp.PROTOCOL_VERSION,
         clientCapabilities: {
-          _meta: { 'minimax-code/extensions': { version: 1, notifications: true } },
+          _meta: { 'alran-code/extensions': { version: 1, notifications: true } },
         },
       });
       for (let index = 0; index < 3; index += 1) {
@@ -5678,12 +5678,12 @@ describe('MiniMax Code ACP agent', () => {
       });
       emitRuntimeEvent(permissionEvent('permission-next'));
       await vi.waitFor(() =>
-        expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-next', 'allowOnce'),
+        expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-next', 'allowOnce'),
       );
     });
 
     expect(replyPermission).not.toHaveBeenCalledWith(
-      'mcode',
+      'alran',
       'permission-stale',
       expect.anything(),
     );
@@ -5769,7 +5769,7 @@ describe('MiniMax Code ACP agent', () => {
       });
       answers[1]?.({ outcome: { outcome: 'selected', optionId: 'allow-once' } });
       await vi.waitFor(() =>
-        expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-reused', 'allowOnce'),
+        expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-reused', 'allowOnce'),
       );
     });
   });
@@ -5809,7 +5809,7 @@ describe('MiniMax Code ACP agent', () => {
       await vi.waitFor(() => expect(answers).toHaveLength(2));
       answers[1]?.({ outcome: { outcome: 'selected', optionId: 'allow-once' } });
       await vi.waitFor(() =>
-        expect(replyPermission).toHaveBeenCalledWith('mcode', 'permission-duplicate', 'allowOnce'),
+        expect(replyPermission).toHaveBeenCalledWith('alran', 'permission-duplicate', 'allowOnce'),
       );
     });
   });
@@ -5880,7 +5880,7 @@ describe('MiniMax Code ACP agent', () => {
       await expect(prompt).resolves.toEqual({ stopReason: 'end_turn' });
     });
 
-    expect(dismissQuestionnaire).not.toHaveBeenCalledWith('mcode', 'questionnaire-expired');
+    expect(dismissQuestionnaire).not.toHaveBeenCalledWith('alran', 'questionnaire-expired');
   });
 
   it('stops a Questionnaire continuation when Runtime aborts its Turn', async () => {
@@ -5947,7 +5947,7 @@ describe('MiniMax Code ACP agent', () => {
           sessionId: session.sessionId,
           modeId: 'default',
         }),
-      ).resolves.toEqual({ _meta: { 'minimax-code/transition': 'next_prompt' } });
+      ).resolves.toEqual({ _meta: { 'alran-code/transition': 'next_prompt' } });
       releaseFirst();
       await expect(firstPrompt).resolves.toEqual({ stopReason: 'end_turn' });
       await expect(
@@ -6195,7 +6195,7 @@ describe('MiniMax Code ACP agent', () => {
           additionalDirectories: ['/other'],
           mcpServers: [],
         }),
-      ).rejects.toThrow('Additional directories are not supported by MiniMax Code ACP');
+      ).rejects.toThrow('Additional directories are not supported by Alran Code ACP');
     });
 
     expect(createSession).not.toHaveBeenCalled();
@@ -6211,7 +6211,7 @@ function permissionEvent(requestId: string, sessionId = 'session-1'): TuiRuntime
     request: {
       requestId,
       sessionId,
-      agentName: 'mcode',
+      agentName: 'alran',
       toolName: 'edit_file',
       allowAlwaysSupported: false,
     },
@@ -6224,11 +6224,11 @@ function questionnaireEvent(requestId: string): TuiRuntimeEvent {
     timestampMs: 1,
     source: 'runtime',
     sessionId: 'session-1',
-    agentName: 'mcode',
+    agentName: 'alran',
     request: {
       schemaVersion: 1,
       id: requestId,
-      requester: { sessionId: 'session-1', agentName: 'mcode' },
+      requester: { sessionId: 'session-1', agentName: 'alran' },
       presentation: {
         replaceComposer: false,
         showProgress: false,
@@ -6256,11 +6256,11 @@ function planReviewEvent(index: number): TuiRuntimeEvent {
     timestampMs: index,
     source: 'runtime',
     sessionId,
-    agentName: 'mcode',
+    agentName: 'alran',
     request: {
       schemaVersion: 1,
       id: `plan-${index}`,
-      requester: { sessionId, agentName: 'mcode' },
+      requester: { sessionId, agentName: 'alran' },
       presentation: {
         replaceComposer: false,
         showProgress: false,

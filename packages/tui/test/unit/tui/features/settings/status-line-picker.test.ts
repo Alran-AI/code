@@ -8,7 +8,7 @@ function fixture(overrides: Partial<TuiStatusLinePickerOptions> = {}) {
   const options = {
     items: ['model', 'current-dir'] as const,
     preview: (items, width, height) => ({
-      lines: new TuiStatusLine({ version: '0.1', workspace: '/repo', runtimeStatus: 'ready', model: 'MiniMax', statusLineItems: items }).renderViewport(width, height),
+      lines: new TuiStatusLine({ version: '0.1', workspace: '/repo', runtimeStatus: 'ready', model: 'Alran', statusLineItems: items }).renderViewport(width, height),
       unavailable: [],
     }),
     save: vi.fn(async () => undefined),
@@ -43,7 +43,7 @@ describe('status line picker', () => {
   it('previews reordering and toggles locally, persisting the selected order only on Enter', async () => {
     const { picker, options } = fixture();
     picker.handleInput('\x1b[C');
-    expect(picker.render(100).join('\n')).toMatch(/\/repo.*MiniMax/);
+    expect(picker.render(100).join('\n')).toMatch(/\/repo.*Alran/);
     expect(options.save).not.toHaveBeenCalled();
     picker.handleInput('\r');
     await vi.waitFor(() => expect(options.onClose).toHaveBeenCalledOnce());

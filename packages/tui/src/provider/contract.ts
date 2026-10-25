@@ -1,38 +1,38 @@
 import type { ModelConfig } from '@mavis/config';
 
-export const MCODE_PROVIDER_API_FORMATS = [
+export const ALRAN_PROVIDER_API_FORMATS = [
   'anthropic-messages',
   'openai-completions',
   'openai-responses',
   'google-generative-ai',
 ] as const;
-export type McodeProviderApiFormat = (typeof MCODE_PROVIDER_API_FORMATS)[number];
+export type AlranProviderApiFormat = (typeof ALRAN_PROVIDER_API_FORMATS)[number];
 
-const MCODE_PROVIDER_API_FORMAT_SET = new Set<string>(MCODE_PROVIDER_API_FORMATS);
+const ALRAN_PROVIDER_API_FORMAT_SET = new Set<string>(ALRAN_PROVIDER_API_FORMATS);
 
-export function isModelProviderApiFormat(value: unknown): value is McodeProviderApiFormat {
-  return typeof value === 'string' && MCODE_PROVIDER_API_FORMAT_SET.has(value);
+export function isModelProviderApiFormat(value: unknown): value is AlranProviderApiFormat {
+  return typeof value === 'string' && ALRAN_PROVIDER_API_FORMAT_SET.has(value);
 }
-export type McodeMiniMaxModelSource = 'token_plan' | 'minimax_api_key';
-export type McodeProviderKind = 'codex-oauth' | 'minimax-oauth' | 'minimax-api-key' | 'custom';
+export type AlranAlranModelSource = 'token_plan' | 'alran_api_key';
+export type AlranProviderKind = 'codex-oauth' | 'alran-oauth' | 'alran-api-key' | 'custom';
 
-export interface McodeProviderStatus {
+export interface AlranProviderStatus {
   readonly state: string;
   readonly lastTestedAt?: number;
   readonly lastErrorCode?: string;
   readonly lastErrorMessage?: string;
 }
 
-export interface McodeProviderModel {
+export interface AlranProviderModel {
   readonly modelId: string;
   readonly displayName?: string;
   readonly selected?: boolean;
   readonly contextLimit?: number;
   readonly maxOutputTokens?: number;
-  readonly status?: McodeProviderStatus;
+  readonly status?: AlranProviderStatus;
 }
 
-export interface McodeRuntimeProviderView {
+export interface AlranRuntimeProviderView {
   readonly providerId: string;
   readonly name?: string;
   readonly kind?: string;
@@ -43,32 +43,32 @@ export interface McodeRuntimeProviderView {
   readonly maskedApiKey?: string;
   readonly rawApiKey?: string;
   readonly configRevision?: string;
-  readonly models?: readonly McodeProviderModel[];
-  readonly status?: McodeProviderStatus;
+  readonly models?: readonly AlranProviderModel[];
+  readonly status?: AlranProviderStatus;
 }
 
-export interface McodeProviderView {
+export interface AlranProviderView {
   readonly providerId: string;
   readonly name: string;
-  readonly kind: McodeProviderKind;
+  readonly kind: AlranProviderKind;
   readonly active: boolean;
   readonly enabled: boolean;
   readonly readOnly: boolean;
   readonly configRevision?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
+  readonly apiFormat?: AlranProviderApiFormat;
   readonly baseUrl?: string;
   readonly hasApiKey: boolean;
   readonly maskedApiKey?: string;
-  readonly models: readonly McodeProviderModel[];
-  readonly status?: McodeProviderStatus;
+  readonly models: readonly AlranProviderModel[];
+  readonly status?: AlranProviderStatus;
 }
 
-export interface McodeProviderSnapshot {
-  readonly minimaxModelSource: McodeMiniMaxModelSource;
-  readonly providers: readonly McodeProviderView[];
+export interface AlranProviderSnapshot {
+  readonly alranModelSource: AlranAlranModelSource;
+  readonly providers: readonly AlranProviderView[];
 }
 
-export interface McodeProviderModelInput {
+export interface AlranProviderModelInput {
   readonly modelId: string;
   readonly displayName?: string;
   readonly configurationSource?: 'manual' | 'discovered';
@@ -82,26 +82,26 @@ export interface McodeProviderModelInput {
   readonly limit?: { readonly context?: number; readonly output?: number };
 }
 
-export interface McodeProviderTemplate {
+export interface AlranProviderTemplate {
   readonly providerId: string;
   readonly name: string;
   readonly baseUrl: string;
-  readonly apiFormat: McodeProviderApiFormat;
-  readonly models: readonly McodeProviderModelInput[];
+  readonly apiFormat: AlranProviderApiFormat;
+  readonly models: readonly AlranProviderModelInput[];
 }
 
-export type McodeCodexOAuthState = 'hidden' | 'disconnected' | 'pending' | 'connected' | 'failed';
+export type AlranCodexOAuthState = 'hidden' | 'disconnected' | 'pending' | 'connected' | 'failed';
 
-export type McodeCodexOAuthLoginMethod = 'browser' | 'device_code';
-export interface McodeCodexOAuthLoginOptions {
-  readonly method?: McodeCodexOAuthLoginMethod;
+export type AlranCodexOAuthLoginMethod = 'browser' | 'device_code';
+export interface AlranCodexOAuthLoginOptions {
+  readonly method?: AlranCodexOAuthLoginMethod;
 }
-export interface McodeCodexOAuthStatus {
-  readonly state: McodeCodexOAuthState;
+export interface AlranCodexOAuthStatus {
+  readonly state: AlranCodexOAuthState;
   readonly providerId: 'openai-codex';
   readonly error?: string;
   readonly loginId?: string;
-  readonly method?: McodeCodexOAuthLoginMethod;
+  readonly method?: AlranCodexOAuthLoginMethod;
   readonly authUrl?: string;
   readonly deviceCode?: {
     readonly userCode: string;
@@ -110,88 +110,88 @@ export interface McodeCodexOAuthStatus {
   };
 }
 
-export interface McodeCodexOAuthStartResult extends McodeCodexOAuthStatus {
+export interface AlranCodexOAuthStartResult extends AlranCodexOAuthStatus {
   readonly authUrl?: string;
 }
 
-export interface McodeCreateProviderInput {
+export interface AlranCreateProviderInput {
   readonly name?: string;
   readonly baseUrl: string;
   readonly apiKey: string;
-  readonly apiFormat: McodeProviderApiFormat;
-  readonly models: readonly McodeProviderModelInput[];
+  readonly apiFormat: AlranProviderApiFormat;
+  readonly models: readonly AlranProviderModelInput[];
   readonly saveAndUse?: boolean;
 }
 
-export interface McodeUpdateProviderInput {
+export interface AlranUpdateProviderInput {
   readonly providerId: string;
   readonly name?: string;
   readonly baseUrl?: string;
   readonly apiKey?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
+  readonly apiFormat?: AlranProviderApiFormat;
   readonly enabled?: boolean;
-  readonly models?: readonly McodeProviderModelInput[];
+  readonly models?: readonly AlranProviderModelInput[];
   readonly saveAndUse?: boolean;
 }
 
-export interface McodeSaveProviderCandidateInput extends Omit<
-  McodeCreateProviderInput,
+export interface AlranSaveProviderCandidateInput extends Omit<
+  AlranCreateProviderInput,
   'apiKey' | 'apiFormat' | 'models'
 > {
   readonly providerId?: string;
   readonly expectedRevision?: string;
   readonly apiKey?: string;
-  readonly apiFormat?: McodeProviderApiFormat;
-  readonly models?: readonly McodeProviderModelInput[];
+  readonly apiFormat?: AlranProviderApiFormat;
+  readonly models?: readonly AlranProviderModelInput[];
   readonly modelId: string;
   readonly skipConnectionTest?: boolean;
 }
 
-export type McodeDiscoverProviderModelsInput = {
+export type AlranDiscoverProviderModelsInput = {
   readonly baseUrl: string;
 } & (
   | { readonly providerId: string; readonly expectedRevision: string }
-  | { readonly name: string; readonly apiKey: string; readonly apiFormat: McodeProviderApiFormat }
+  | { readonly name: string; readonly apiKey: string; readonly apiFormat: AlranProviderApiFormat }
 );
 
-export interface McodeSaveProviderCandidateResult {
+export interface AlranSaveProviderCandidateResult {
   readonly success: boolean;
-  readonly status?: McodeProviderStatus;
-  readonly provider?: McodeRuntimeProviderView;
+  readonly status?: AlranProviderStatus;
+  readonly provider?: AlranRuntimeProviderView;
 }
 
-export interface McodeProviderTestResult {
+export interface AlranProviderTestResult {
   readonly success: boolean;
-  readonly status: McodeProviderStatus;
+  readonly status: AlranProviderStatus;
 }
 
-export interface McodeProviderRuntimePort {
+export interface AlranProviderRuntimePort {
   discoverUserModelsCandidate(
-    input: McodeDiscoverProviderModelsInput,
-  ): Promise<readonly McodeProviderModel[]>;
-  listProviderPresets(): Promise<readonly McodeProviderTemplate[]>;
-  getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus>;
-  startCodexOAuthLogin(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult>;
-  cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus>;
-  listUserModelProviders(): Promise<readonly McodeRuntimeProviderView[]>;
-  getMiniMaxApiKeyStatus(): Promise<{
+    input: AlranDiscoverProviderModelsInput,
+  ): Promise<readonly AlranProviderModel[]>;
+  listProviderPresets(): Promise<readonly AlranProviderTemplate[]>;
+  getCodexOAuthStatus(): Promise<AlranCodexOAuthStatus>;
+  startCodexOAuthLogin(options?: AlranCodexOAuthLoginOptions): Promise<AlranCodexOAuthStartResult>;
+  cancelCodexOAuthLogin(loginId: string): Promise<AlranCodexOAuthStatus>;
+  listUserModelProviders(): Promise<readonly AlranRuntimeProviderView[]>;
+  getAlranApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
     readonly rawApiKey?: string;
-    readonly cachedStatus?: McodeProviderStatus;
+    readonly cachedStatus?: AlranProviderStatus;
   }>;
-  getMiniMaxModelSource(): Promise<McodeMiniMaxModelSource>;
-  setMiniMaxModelSource(source: McodeMiniMaxModelSource): Promise<McodeMiniMaxModelSource>;
-  upsertMiniMaxApiKey(input: {
+  getAlranModelSource(): Promise<AlranAlranModelSource>;
+  setAlranModelSource(source: AlranAlranModelSource): Promise<AlranAlranModelSource>;
+  upsertAlranApiKey(input: {
     readonly apiKey: string;
     readonly saveAndUse?: boolean;
   }): Promise<void>;
-  createUserModelProvider(input: McodeCreateProviderInput): Promise<void>;
+  createUserModelProvider(input: AlranCreateProviderInput): Promise<void>;
   saveUserModelProviderCandidate(
-    input: McodeSaveProviderCandidateInput,
-  ): Promise<McodeSaveProviderCandidateResult>;
-  updateUserModelProvider(input: McodeUpdateProviderInput): Promise<void>;
+    input: AlranSaveProviderCandidateInput,
+  ): Promise<AlranSaveProviderCandidateResult>;
+  updateUserModelProvider(input: AlranUpdateProviderInput): Promise<void>;
   deleteUserModelProvider(providerId: string): Promise<void>;
-  testUserModelProvider(providerId: string): Promise<McodeProviderTestResult>;
-  testUserModel(providerId: string, modelId: string): Promise<McodeProviderTestResult>;
+  testUserModelProvider(providerId: string): Promise<AlranProviderTestResult>;
+  testUserModel(providerId: string, modelId: string): Promise<AlranProviderTestResult>;
 }

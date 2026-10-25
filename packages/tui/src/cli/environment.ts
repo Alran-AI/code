@@ -7,10 +7,10 @@ import {
 } from '@mavis/config';
 
 import {
-  resolveMcodeAuthEnvironment,
-  setMcodeStartupBuildEnvironment,
-  type McodeAuthEnvironment,
-  type ResolveMcodeAuthEnvironmentOptions,
+  resolveAlranAuthEnvironment,
+  setAlranStartupBuildEnvironment,
+  type AlranAuthEnvironment,
+  type ResolveAlranAuthEnvironmentOptions,
   type TuiBuildEnvironment,
 } from '../auth/environment.js';
 import { readTuiRegionPreference } from '../auth/region-preference.js';
@@ -35,7 +35,7 @@ const STARTUP_ENVIRONMENT_ALIASES: Readonly<Record<string, TuiBuildEnvironment>>
   prod: 'prod',
 });
 
-export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveMcodeAuthEnvironmentOptions {
+export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveAlranAuthEnvironmentOptions {
   readonly target?: Record<string, string | undefined>;
   readonly dataDir?: string;
   readonly startupBuildEnvironment?: TuiBuildEnvironment;
@@ -43,12 +43,12 @@ export interface ConfigureTuiRuntimeEnvironmentOptions extends ResolveMcodeAuthE
 
 export function configureTuiRuntimeEnvironment(
   options: ConfigureTuiRuntimeEnvironmentOptions = {},
-): McodeAuthEnvironment {
+): AlranAuthEnvironment {
   setLegacyByokProviderMigrationEnabled(false);
   setManagedPresetBaseUrlSyncEnabled(false);
   const { target = process.env, dataDir, startupBuildEnvironment, ...environmentOptions } = options;
-  if (startupBuildEnvironment) setMcodeStartupBuildEnvironment(startupBuildEnvironment);
-  const buildEnvironment = resolveMcodeAuthEnvironment(environmentOptions);
+  if (startupBuildEnvironment) setAlranStartupBuildEnvironment(startupBuildEnvironment);
+  const buildEnvironment = resolveAlranAuthEnvironment(environmentOptions);
   const preferredRegion = dataDir
     ? readTuiRegionPreference(dataDir, buildEnvironment.buildEnv)
     : undefined;
@@ -56,7 +56,7 @@ export function configureTuiRuntimeEnvironment(
     ? readSharedAuthScope(dataDir, buildEnvironment.buildEnv)
     : undefined;
   const inheritedRegion = readRuntimeRegion(target.MAVIS_REGION);
-  const environment = resolveMcodeAuthEnvironment({
+  const environment = resolveAlranAuthEnvironment({
     ...environmentOptions,
     runtimeRegion:
       environmentOptions.runtimeRegion ??
@@ -66,7 +66,7 @@ export function configureTuiRuntimeEnvironment(
       'cn',
   });
   if (dataDir) {
-    target.MINIMAX_DATA_DIR = dataDir;
+    target.ALRAN_DATA_DIR = dataDir;
     target.MAVIS_DATA_DIR = dataDir;
   }
   target.MAVIS_REGION = environment.region;
@@ -115,7 +115,7 @@ export function resolveTuiStartupEnvironmentOption(
   }
   if (values.length === 0) return undefined;
   if (!internalPackage) {
-    throw new Error('--env is only available in the internal MCode package.');
+    throw new Error('--env is only available in the internal Alran package.');
   }
   if (values.length > 1) throw new Error('--env may only be specified once.');
   return parseTuiStartupEnvironment(values[0] ?? '');
@@ -123,7 +123,7 @@ export function resolveTuiStartupEnvironmentOption(
 
 export function resolveTuiManagedBackendLane(
   value: string | undefined,
-  buildEnv: McodeAuthEnvironment['buildEnv'] = resolveMcodeAuthEnvironment().buildEnv,
+  buildEnv: AlranAuthEnvironment['buildEnv'] = resolveAlranAuthEnvironment().buildEnv,
 ): string | undefined {
   if (value === undefined) return undefined;
   if (buildEnv !== 'test' && buildEnv !== 'staging') {
@@ -138,8 +138,8 @@ export function resolveTuiManagedBackendLane(
 
 function readSharedAuthScope(
   dataDir: string,
-  buildEnv: McodeAuthEnvironment['buildEnv'],
-): McodeAuthEnvironment | undefined {
+  buildEnv: AlranAuthEnvironment['buildEnv'],
+): AlranAuthEnvironment | undefined {
   const authenticatedRegions = (['cn', 'en'] as const).filter((region) => {
     try {
       const namespace = createAuthNamespace({ dataDir, buildEnv, region });
@@ -168,6 +168,6 @@ function isReusableAuthStatus(value: unknown): value is AuthStatus {
   );
 }
 
-function readRuntimeRegion(value: string | undefined): McodeAuthEnvironment['region'] | undefined {
+function readRuntimeRegion(value: string | undefined): AlranAuthEnvironment['region'] | undefined {
   return value === 'cn' || value === 'en' ? value : undefined;
 }

@@ -46,8 +46,8 @@ export interface LocalProviderConfig {
 
 export type LocalModelsConfig = Record<string, LocalProviderConfig>;
 
-/** BYOK: user's own MiniMax API key (mirrors `MinimaxApiConfig` in @mavis/config). */
-export interface LocalMinimaxApiConfig {
+/** BYOK: user's own Alran API key (mirrors `AlranApiConfig` in @mavis/config). */
+export interface LocalAlranApiConfig {
   apiKey?: string;
   baseURL?: string;
   modelContextLimits?: Record<string, number>;
@@ -68,9 +68,9 @@ export type LocalBetaConfig = Partial<Config['beta']>;
 export interface LocalRuntimeConfig {
   provider: LocalModelsConfig;
   /** BYOK trees — read-only here; written only via the ModelProvider API. */
-  minimax_api?: LocalMinimaxApiConfig;
+  alran_api?: LocalAlranApiConfig;
   custom_provider?: LocalCustomProvidersConfig;
-  minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  alranModelSource?: 'token_plan' | 'alran_api_key';
   defaultModel?: string;
   defaultModelVariant?: string;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'auto' | 'off';

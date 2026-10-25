@@ -83,8 +83,8 @@ function mirroredCatalogRedirectFetch() {
     if (requests === 1) {
       return new Response(
         JSON.stringify({
-          catalog_url: `https://filecdn.minimax.chat/public/models-dev/catalog/${TEST_RELEASE_SHA}/api.json`,
-          icon_base_url: `https://filecdn.minimax.chat/public/models-dev/catalog/${TEST_RELEASE_SHA}/logos/`,
+          catalog_url: `https://cdn.ottili.one/public/models-dev/catalog/${TEST_RELEASE_SHA}/api.json`,
+          icon_base_url: `https://cdn.ottili.one/public/models-dev/catalog/${TEST_RELEASE_SHA}/logos/`,
         }),
       );
     }
@@ -227,13 +227,13 @@ describe('models.dev Provider Presets', () => {
     expect(preset?.iconUrl).toBe('https://cdn.example/catalog/release/logos/vendor.with.dots.svg');
   });
 
-  it('excludes MiniMax providers from the preset catalog', async () => {
+  it('excludes Alran providers from the preset catalog', async () => {
     const presets = await parsePresetsForTest(
       providerCatalog([
-        'minimax',
-        'minimax-cn',
-        'minimax-coding-plan',
-        'minimax-cn-coding-plan',
+        'alran',
+        'alran-cn',
+        'alran-coding-plan',
+        'alran-cn-coding-plan',
         'compatible',
       ]),
     );
@@ -582,8 +582,8 @@ describe('models.dev Provider Preset snapshots', () => {
           if (requests === 1) {
             return new Response(
               JSON.stringify({
-                catalog_url: `https://filecdn.minimax.chat/public/models-dev/catalog/${TEST_RELEASE_SHA}/api.json`,
-                icon_base_url: `https://filecdn.minimax.chat/public/models-dev/catalog/${TEST_RELEASE_SHA}/logos/`,
+                catalog_url: `https://cdn.ottili.one/public/models-dev/catalog/${TEST_RELEASE_SHA}/api.json`,
+                icon_base_url: `https://cdn.ottili.one/public/models-dev/catalog/${TEST_RELEASE_SHA}/logos/`,
               }),
             );
           }
@@ -725,7 +725,7 @@ describe('models.dev Provider Preset snapshots', () => {
 describe('Provider Preset ordering', () => {
   it('uses the region-local CN and Global pin order when Apollo is unavailable', async () => {
     const cnIds = [
-      'minimax-cn',
+      'alran-cn',
       'zhipuai-coding-plan',
       'zhipuai',
       'deepseek',
@@ -745,7 +745,7 @@ describe('Provider Preset ordering', () => {
     ).resolves.toEqual(cnIds.slice(1));
 
     const globalIds = [
-      'minimax',
+      'alran',
       'zai-coding-plan',
       'zai',
       'deepseek',

@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { homedir } from "os";
 import * as path from "path";
@@ -38,8 +38,8 @@ export function getDangerousDirectories(): string[] {
     ...DANGEROUS_DIRECTORIES.filter((d) => d !== ".git"),
     ".claude/commands",
     ".claude/agents",
-    ".mcode/commands",
-    ".mcode/agents",
+    ".alran/commands",
+    ".alran/agents",
   ];
 }
 

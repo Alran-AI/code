@@ -60,7 +60,7 @@ export type LocalRuntimeTurnRunnerInput<
   readonly toolContext?: TContext;
   readonly reviewUserInput?: string;
   readonly promptMetadata?: Readonly<Record<string, unknown>>;
-  /** MiniMax-managed turns require the product content-review gateway; BYOK turns do not. */
+  /** Alran-managed turns require the product content-review gateway; BYOK turns do not. */
   readonly contentReviewRequired?: boolean;
   /** TUI-only direct streaming for turns that do not require content review. */
   readonly streamUnreviewedOutput?: boolean;
@@ -313,7 +313,7 @@ export interface LocalRuntimeTurnExecutorOptions<
   readonly cliProductPolicy?: boolean;
   /** Immutable policy selected only by the new TUI Runtime composition. */
   readonly tuiProductPolicy?: boolean;
-  /** TUI-only region policy: only CN TUI hosts review MiniMax-managed turns. */
+  /** TUI-only region policy: only CN TUI hosts review Alran-managed turns. */
   readonly contentReviewEnabled?: boolean;
   readonly disableTools?: boolean;
   /** Creates isolated safety state once for each admitted product Turn. */

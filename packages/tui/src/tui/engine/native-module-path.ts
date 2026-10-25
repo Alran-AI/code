@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const moduleRequire = createRequire(import.meta.url);
-const MCODE_PACKAGE_JSON = '@minimax/code/package.json';
+const ALRAN_PACKAGE_JSON = '@ottili/alran-code/package.json';
 
 export interface NativeModuleCandidateOptions {
   moduleUrl?: string;
@@ -19,10 +19,10 @@ export function getNativeModuleCandidates(
   const candidates: string[] = [];
 
   try {
-    const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(MCODE_PACKAGE_JSON);
+    const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(ALRAN_PACKAGE_JSON);
     candidates.push(join(dirname(packageJson), nativePath));
   } catch {
-    // Standalone binaries do not have an installed @minimax/code package.
+    // Standalone binaries do not have an installed @ottili/alran-code package.
   }
 
   candidates.push(

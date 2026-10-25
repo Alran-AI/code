@@ -188,14 +188,14 @@ describe("QueueRepository", () => {
 
   it.each([
     {
-      provider_id: "minimax",
-      model_id: "MiniMax-M3.1",
+      provider_id: "alran",
+      model_id: "Alran-M3.1",
       reasoning: false,
       context_limit: 1_000_000,
     },
     {
-      provider_id: "minimax",
-      model_id: "MiniMax-M3.1",
+      provider_id: "alran",
+      model_id: "Alran-M3.1",
       reasoning: true,
       context_limit: 1_000_000,
       thinking: { effort: "max" },

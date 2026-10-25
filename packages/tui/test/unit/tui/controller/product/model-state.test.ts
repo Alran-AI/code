@@ -5,7 +5,7 @@ import { TuiModelState } from '../../../../../src/tui/controller/product/model-s
 
 function model(modelId: string, selected = false): TuiModel {
   return {
-    providerId: 'minimax',
+    providerId: 'alran',
     modelId,
     displayName: modelId,
     selected,
@@ -34,12 +34,12 @@ describe('TuiModelState', () => {
 
   it('shows a recovered official model without inheriting legacy Session effort or saving the selection', async () => {
     const runtime = {
-      listModels: vi.fn(async () => [model('MiniMax-M3', true)]),
+      listModels: vi.fn(async () => [model('Alran-M3', true)]),
       selectModel: vi.fn(async () => true),
       getSession: vi.fn(async () => ({
         sessionId: 'session-a',
         model: {
-          providerId: 'custom_provider:minimax-legacy',
+          providerId: 'custom_provider:alran-legacy',
           modelId: 'retired',
           thinking: { effort: 'high' },
         },
@@ -51,7 +51,7 @@ describe('TuiModelState', () => {
       onChanged: vi.fn(),
     });
     await state.refresh('session-a');
-    expect(state.selected()).toMatchObject({ providerId: 'minimax', modelId: 'MiniMax-M3' });
+    expect(state.selected()).toMatchObject({ providerId: 'alran', modelId: 'Alran-M3' });
     expect(state.selectedEffort()).toBeUndefined();
     expect(runtime.selectModel).not.toHaveBeenCalled();
   });
@@ -74,13 +74,13 @@ describe('TuiModelState', () => {
 
     const hydration = state.refresh('session-a');
     await vi.waitFor(() => expect(resolveHydration).toBeTypeOf('function'));
-    await expect(state.select(model('MiniMax-M3'), 'session-a')).resolves.toMatchObject({
+    await expect(state.select(model('Alran-M3'), 'session-a')).resolves.toMatchObject({
       status: 'selected',
     });
-    resolveHydration?.([model('MiniMax-M2.7', true)]);
+    resolveHydration?.([model('Alran-M2.7', true)]);
     await hydration;
 
-    expect(state.selected()).toMatchObject({ modelId: 'MiniMax-M3', selected: true });
+    expect(state.selected()).toMatchObject({ modelId: 'Alran-M3', selected: true });
   });
 
   it('serializes rapid selections so Runtime and the status rail finish on the latest choice', async () => {
@@ -104,16 +104,16 @@ describe('TuiModelState', () => {
       onChanged: vi.fn(),
     });
 
-    const first = state.select(model('MiniMax-M2.7'), 'session-a');
-    const second = state.select(model('MiniMax-M3'), 'session-a');
+    const first = state.select(model('Alran-M2.7'), 'session-a');
+    const second = state.select(model('Alran-M3'), 'session-a');
     await vi.waitFor(() => expect(releases).toHaveLength(1));
     releases[0]?.();
     await vi.waitFor(() => expect(releases).toHaveLength(2));
     releases[1]?.();
     await Promise.all([first, second]);
 
-    expect(applied).toEqual(['MiniMax-M2.7', 'MiniMax-M3']);
-    expect(state.selected()).toMatchObject({ modelId: 'MiniMax-M3', selected: true });
+    expect(applied).toEqual(['Alran-M2.7', 'Alran-M3']);
+    expect(state.selected()).toMatchObject({ modelId: 'Alran-M3', selected: true });
   });
 
   it('sends the chosen think effort and keeps it as the optimistic value', async () => {
@@ -181,7 +181,7 @@ describe('TuiModelState', () => {
     });
 
     await state.select(
-      { providerId: 'minimax', modelId: 'byok-large-5', thinking: { effort: 'high' } },
+      { providerId: 'alran', modelId: 'byok-large-5', thinking: { effort: 'high' } },
       'session-a',
     );
     await state.refresh('session-a');
@@ -202,7 +202,7 @@ describe('TuiModelState', () => {
     });
 
     await state.select(
-      { providerId: 'minimax', modelId: 'MiniMax-M3', thinking: { effort: 'low' } },
+      { providerId: 'alran', modelId: 'Alran-M3', thinking: { effort: 'low' } },
       'session-a',
     );
     state.reset();

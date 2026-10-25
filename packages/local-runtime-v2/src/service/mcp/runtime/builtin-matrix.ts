@@ -20,13 +20,13 @@ import { getRawRuntimeBuildEnv } from './routing-context.js';
 export const BUILTIN_MATRIX_SERVER_NAME = 'matrix';
 const BUILTIN_MATRIX_MCP_VERSION = 2;
 const LEGACY_MATRIX_MCP_VERSION = 1;
-// web_search is the only Matrix tool that mcode-tools does NOT provide, so when
-// mcode-tools owns the media/generation Matrix tools the built-in Matrix MCP is
+// web_search is the only Matrix tool that alran-tools does NOT provide, so when
+// alran-tools owns the media/generation Matrix tools the built-in Matrix MCP is
 // narrowed to expose exactly this one tool (see `webSearchOnly`).
 export const BUILTIN_MATRIX_WEB_SEARCH_TOOL_NAME = 'web_search';
 
 const BUILTIN_MATRIX_TIMEOUT_MS = 1_500_000;
-// Same stdio child, two layouts: packaged mcode resolves next to package/cli.js,
+// Same stdio child, two layouts: packaged alran resolves next to package/cli.js,
 // workspace/dev resolves from local-runtime-v2/dist/service/mcp/runtime/builtin-matrix.js.
 const MATRIX_MCP_STDIO_BUNDLED_RELATIVE_PATH = 'matrix-mcp-stdio.js';
 const MATRIX_MCP_STDIO_WORKSPACE_RELATIVE_PATH =
@@ -204,7 +204,7 @@ function getBuiltinMatrixTools(
       inputSchema: tool.inputSchema,
     }));
   }
-  // mcode-tools provides every Matrix media/generation tool except web_search,
+  // alran-tools provides every Matrix media/generation tool except web_search,
   // so in web-search-only mode the built-in Matrix MCP is narrowed to that one
   // tool while the stdio child (web_search backend) stays alive.
   if (webSearchOnly) {

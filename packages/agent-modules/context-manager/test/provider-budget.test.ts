@@ -39,7 +39,7 @@ describe('resolveCompactionTokenBudget', () => {
     ['512K context', 512_000, 128_000, 486_400, 364_800],
     ['roomy 400K context', 400_000, 128_000, 380_000, 285_000],
     ['gpt-5.4 output floor', 272_000, 128_000, 253_568, 193_800],
-    ['MiniMax-M2.7 window', 200_000, 128_000, 181_568, 142_500],
+    ['Alran-M2.7 window', 200_000, 128_000, 181_568, 142_500],
     ['256K relay window', 256_000, 128_000, 237_568, 182_400],
     ['Spark dynamic fallback', 128_000, 128_000, 109_568, 91_200],
     ['1M context with a small output limit', 1_000_000, 32_000, 950_000, 919_600],

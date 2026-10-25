@@ -482,12 +482,12 @@ describe("Thread Goal verifier host contract", () => {
         verifier,
         configuredVerification: "none",
         routeConfig: {
-          provider: { minimax: { options: { authMode: "managed-login" } } },
+          provider: { alran: { options: { authMode: "managed-login" } } },
         },
       },
       async (harness) => {
         await proposeCompletion(harness);
-        await harness.settle({ workerModelKey: "minimax/MiniMax-M3" });
+        await harness.settle({ workerModelKey: "alran/Alran-M3" });
         await expect(
           harness.integration.store.getById(harness.initialGoal.goalId),
         ).resolves.toMatchObject({
@@ -523,15 +523,15 @@ describe("Thread Goal verifier host contract", () => {
   it.each([
     [
       "managed token plan",
-      "minimax/MiniMax-M3",
+      "alran/Alran-M3",
       {
         provider: {
-          minimax: { options: { authMode: "managed-login" as const } },
+          alran: { options: { authMode: "managed-login" as const } },
         },
       },
       "subagent",
     ],
-    ["MiniMax API key", "minimax_api/MiniMax-M3", {}, "subagent"],
+    ["Alran API key", "alran_api/Alran-M3", {}, "subagent"],
     ["custom provider", "custom_provider:work/worker-model", {}, "none"],
     ["configured provider", "openai/worker-model", {}, "none"],
   ] as const)(

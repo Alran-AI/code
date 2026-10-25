@@ -22,7 +22,7 @@
     "packages/config",
     "packages/local-runtime",
     "packages/local-runtime-v2",
-    "packages/mcode-tools-host",
+    "packages/alran-tools-host",
     "packages/oauth-core",
     "packages/oauth-lease-protocol",
     "packages/protocol",

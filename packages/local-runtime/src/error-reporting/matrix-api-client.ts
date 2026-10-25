@@ -3,8 +3,8 @@
  *
  * Transport requirements (design §4): Authentication matches existing local-runtime managed-cloud
  * calls, including content-safety `/mavis/api/v1/content` and connectors under skill-hub
- * `/minimax-cloud/api/v1/skill-hub`:
- * - POST `/minimax-cloud/api/v1/observability/desktop-errors/batch`.
+ * `/alran-cloud/api/v1/skill-hub`:
+ * - POST `/alran-cloud/api/v1/observability/desktop-errors/batch`.
  * - Like other Shared OAuth managed-cloud calls, put the access token in `Authorization: Bearer`,
  *   never query parameters; put the real user ID in the `user_id` query parameter. Excluding the
  *   token from URLs prevents Gateway, Ingress, and proxy access logs from recording it. An earlier
@@ -37,7 +37,7 @@ import type { DesktopErrorLog } from './types.js';
 const DESKTOP_ERROR_BATCH_TIMEOUT_MS = 10_000;
 
 /** Fixed API path required by the current design, appended to the region host. */
-const DESKTOP_ERROR_BATCH_PATH = '/minimax-cloud/api/v1/observability/desktop-errors/batch';
+const DESKTOP_ERROR_BATCH_PATH = '/alran-cloud/api/v1/observability/desktop-errors/batch';
 
 /**
  * Map region/build environment to Matrix hosts, aligned with Electron, content-safety, and
@@ -48,13 +48,13 @@ const DESKTOP_ERROR_API_HOST: Record<MavisRegion, Record<MavisBuildEnv, string>>
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimax.cn',
+    prod: 'https://api.ottili.one',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
     test: 'https://matrix-overseas-test.example.invalid',
     staging: 'https://matrix-overseas-pre.example.invalid',
-    prod: 'https://agent.minimax.io',
+    prod: 'https://api.ottili.one',
   },
 };
 
@@ -101,7 +101,7 @@ export async function sendDesktopErrorBatch(params: SendDesktopErrorBatchParams)
     const response = await params.fetchImpl(requestUrl, {
       method: 'POST',
       headers: {
-        'User-Agent': 'MiniMaxAgent',
+        'User-Agent': 'AlranAgent',
         'Content-Type': 'application/json',
         // Shared OAuth credential header, consistent with model-resolver and content-safety.
         Authorization: `Bearer ${accessToken}`,

@@ -36,7 +36,7 @@ Example invocations (substitute the launcher above for `<py>`):
 
 ```bash
 <py> <skill_dir>/scripts/llm_call.py --model gemini/gemini-2.5-pro --system "Be brief" --prompt "Summarize this"
-<py> <skill_dir>/scripts/llm_call.py --model minimax-test/MiniMax-M3 --timeout 600 --stream --prompt "Long planning task"
+<py> <skill_dir>/scripts/llm_call.py --model alran-test/Alran-M3 --timeout 600 --stream --prompt "Long planning task"
 <py> <skill_dir>/scripts/llm_call.py --list
 ```
 

@@ -21,11 +21,11 @@ function palette(
 }
 
 /**
- * Default MCode palette. The values are frozen in place so a theme switch can
+ * Default Alran palette. The values are frozen in place so a theme switch can
  * never mutate a palette another theme still references.
  */
-export const MINIMAX_CODE_DARK_THEME = palette(
-  'minimax',
+export const ALRAN_CODE_DARK_THEME = palette(
+  'alran',
   'dark',
   {
     brand: '#68C0FF',
@@ -52,8 +52,8 @@ export const MINIMAX_CODE_DARK_THEME = palette(
   CATPPUCCIN_SYNTAX_TONES.dark,
 );
 
-export const MINIMAX_CODE_LIGHT_THEME = palette(
-  'minimax',
+export const ALRAN_CODE_LIGHT_THEME = palette(
+  'alran',
   'light',
   {
     brand: '#0094FC',
@@ -82,7 +82,7 @@ export const MINIMAX_CODE_LIGHT_THEME = palette(
 
 /** Default palette for the active appearance. */
 export function defaultPalette(appearance: TuiResolvedAppearance) {
-  return appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
+  return appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ export function defaultPalette(appearance: TuiResolvedAppearance) {
 // ---------------------------------------------------------------------------
 
 /**
- * Midnight keeps the MCode blue but deepens the background toward a blue-black
+ * Midnight keeps the Alran blue but deepens the background toward a blue-black
  * and lifts foreground contrast, which suits high-DPI and OLED terminals.
  */
 const MIDNIGHT: TuiThemeDefinition = Object.freeze({
@@ -362,19 +362,19 @@ const AURORA: TuiThemeDefinition = Object.freeze({
   ),
 });
 
-export const DEFAULT_THEME_ID = 'minimax';
+export const DEFAULT_THEME_ID = 'alran';
 
 /**
  * The theme every lookup falls back to. Exported as a concrete value so callers
  * never have to assert a built-in exists.
  */
 export const DEFAULT_THEME: TuiThemeDefinition = Object.freeze({
-  id: MINIMAX_CODE_DARK_THEME.id,
-  label: 'MCode',
-  description: 'The default MCode blue palette',
+  id: ALRAN_CODE_DARK_THEME.id,
+  label: 'Alran',
+  description: 'The default Alran blue palette',
   source: 'builtin',
-  dark: MINIMAX_CODE_DARK_THEME,
-  light: MINIMAX_CODE_LIGHT_THEME,
+  dark: ALRAN_CODE_DARK_THEME,
+  light: ALRAN_CODE_LIGHT_THEME,
 });
 
 export const BUILT_IN_THEMES: readonly TuiThemeDefinition[] = Object.freeze([

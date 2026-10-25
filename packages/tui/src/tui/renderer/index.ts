@@ -1,5 +1,5 @@
 export {
   createActiveTuiReference,
-  McodeInteractiveRenderer,
-  type McodeInteractiveRendererOptions,
+  AlranInteractiveRenderer,
+  type AlranInteractiveRendererOptions,
 } from './interactive-renderer.js';

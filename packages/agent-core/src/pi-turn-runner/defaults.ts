@@ -43,10 +43,10 @@ export const LLM_FIRST_EVENT_TIMEOUT_MS = 300 * 1000;
 export const LLM_STREAM_IDLE_TIMEOUT_MS = 300 * 1000;
 
 /** Environment override (milliseconds) for {@link LLM_FIRST_EVENT_TIMEOUT_MS}. */
-export const LLM_FIRST_EVENT_TIMEOUT_ENV = 'MCODE_LLM_FIRST_EVENT_TIMEOUT_MS';
+export const LLM_FIRST_EVENT_TIMEOUT_ENV = 'ALRAN_LLM_FIRST_EVENT_TIMEOUT_MS';
 
 /** Environment override (milliseconds) for {@link LLM_STREAM_IDLE_TIMEOUT_MS}. */
-export const LLM_STREAM_IDLE_TIMEOUT_ENV = 'MCODE_LLM_STREAM_IDLE_TIMEOUT_MS';
+export const LLM_STREAM_IDLE_TIMEOUT_ENV = 'ALRAN_LLM_STREAM_IDLE_TIMEOUT_MS';
 
 export const defaultMessageIdAllocator: PiMessageIdAllocator = {
   async allocateAssistantMessageId() {

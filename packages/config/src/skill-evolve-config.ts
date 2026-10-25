@@ -54,7 +54,7 @@ export interface SkillEvolveConfig {
    * Also used to auto-derive the global `enabled` flag when it is not
    * explicitly set: if all configured model IDs match one of these prefixes
    * (or no models are configured), `enabled` defaults to `false`.
-   * Default: ['MiniMax-M2'].
+   * Default: ['Alran-M2'].
    */
   disableModelPrefixes: string[];
   /**
@@ -80,7 +80,7 @@ export interface SkillEvolveConfig {
   /**
    * Optional absolute path to the source repository used for built-in skill
    * evolution MRs. Runtime built-in skills usually live under the dataDir copy
-   * (`.minimax/.builtin-skills`), so walking up from that directory cannot find
+   * (`.alran/.builtin-skills`), so walking up from that directory cannot find
    * the repo in packaged/dev-profile installs. When set, the internal nightly
    * scheduler validates this path and uses it as the MR source repo.
    */

@@ -24,7 +24,7 @@ const EXTERNAL_SOURCE_KINDS = [
   'user-cc',
   'user-codex',
   'user-agents',
-  'workspace-minimax',
+  'workspace-alran',
   'workspace-cc',
   'workspace-agents',
 ] as const;
@@ -65,7 +65,7 @@ export const DEFAULT_SKILLS_CONFIG: SkillsConfig = {
     walkUp: true,
     duplicateWarn: true,
     sources: {
-      'workspace-minimax': { enabled: true, priority: 65 },
+      'workspace-alran': { enabled: true, priority: 65 },
       'workspace-cc': { enabled: true, priority: 60 },
       'workspace-agents': { enabled: true, priority: 55 },
       'user-cc': { enabled: true, priority: 40 },

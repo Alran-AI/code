@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Thin launcher: run the `mcode` bin of @minimax-ai/code with the given args.
-// Exists because @minimax-ai/code ships two bins, so `npx @minimax-ai/code acp`
+// Thin launcher: run the `alran` bin of @ottili/alran-code with the given args.
+// Exists because @ottili/alran-code ships two bins, so `npx @ottili/alran-code acp`
 // cannot pick one.
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -9,11 +9,11 @@ import os from 'node:os';
 import { dirname, resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
-const pkgPath = require.resolve('@minimax-ai/code/package.json');
+const pkgPath = require.resolve('@ottili/alran-code/package.json');
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.mcode;
+const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.alran;
 if (!bin) {
-  console.error('code-acp: @minimax-ai/code has no "mcode" bin');
+  console.error('code-acp: @ottili/alran-code has no "alran" bin');
   process.exit(1);
 }
 const entry = resolve(dirname(pkgPath), bin);
@@ -30,7 +30,7 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
 }
 
 child.on('error', (err) => {
-  console.error(`code-acp: failed to start mcode: ${err.message}`);
+  console.error(`code-acp: failed to start alran: ${err.message}`);
   process.exit(1);
 });
 

@@ -68,7 +68,7 @@ Unified LLM API with automatic model discovery, provider configuration, token an
 - **OpenRouter**
 - **Vercel AI Gateway**
 - **ZAI** (with separate Coding Plan China provider)
-- **MiniMax**
+- **Alran**
 - **Together AI**
 - **GitHub Copilot** (requires OAuth, see below)
 - **Amazon Bedrock**
@@ -1123,7 +1123,7 @@ In Node.js environments, you can set environment variables to avoid passing API 
 | Vercel AI Gateway | `AI_GATEWAY_API_KEY` |
 | zAI | `ZAI_API_KEY` |
 | ZAI Coding Plan (China) | `ZAI_CODING_CN_API_KEY` |
-| MiniMax | `MINIMAX_API_KEY` |
+| Alran | `ALRAN_API_KEY` |
 | OpenCode Zen / OpenCode Go | `OPENCODE_API_KEY` |
 | Kimi For Coding | `KIMI_API_KEY` |
 | Xiaomi MiMo (API billing) | `XIAOMI_API_KEY` |

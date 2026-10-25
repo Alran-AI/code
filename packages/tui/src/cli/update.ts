@@ -1,37 +1,37 @@
 import { createInterface } from 'node:readline/promises';
 import { stripVTControlCharacters } from 'node:util';
-import { McodeUpdateApplication, type McodeUpdatePlan } from '../update/application.js';
+import { AlranUpdateApplication, type AlranUpdatePlan } from '../update/application.js';
 import {
-  mcodePrefixActivationScheduledMessage,
-  mcodePrefixJournalScheduleFailedMessage,
+  alranPrefixActivationScheduledMessage,
+  alranPrefixJournalScheduleFailedMessage,
 } from '../update/messages.js';
-import { schedulePendingMcodePrefixUpdate } from '../update/prefix-update.js';
-import type { McodeUpdatePhase } from '../update/progress.js';
+import { schedulePendingAlranPrefixUpdate } from '../update/prefix-update.js';
+import type { AlranUpdatePhase } from '../update/progress.js';
 
 const UPDATE_ANIMATION_INTERVAL_MS = 80;
 const UPDATE_ACTIVITY_INTERVAL_MS = 15_000;
 const UPDATE_SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
 const UPDATE_OUTPUT_MAX_LENGTH = 72;
 
-export interface RunMcodeUpdateOptions {
-  readonly application?: McodeUpdateApplication;
+export interface RunAlranUpdateOptions {
+  readonly application?: AlranUpdateApplication;
   readonly interactive?: boolean;
   readonly confirm?: (message: string) => Promise<boolean>;
   readonly write?: (value: string) => void;
   readonly schedulePendingPrefixUpdate?: () => Promise<boolean>;
 }
 
-export async function runMcodeUpdate(
+export async function runAlranUpdate(
   currentVersion: string,
-  options: RunMcodeUpdateOptions = {},
+  options: RunAlranUpdateOptions = {},
 ): Promise<void> {
-  const application = options.application ?? new McodeUpdateApplication({ currentVersion });
+  const application = options.application ?? new AlranUpdateApplication({ currentVersion });
   const interactive = options.interactive ?? Boolean(process.stdin.isTTY && process.stdout.isTTY);
   const write = options.write ?? ((value: string) => process.stdout.write(value));
   const schedulePendingPrefixUpdate =
-    options.schedulePendingPrefixUpdate ?? (() => schedulePendingMcodePrefixUpdate());
+    options.schedulePendingPrefixUpdate ?? (() => schedulePendingAlranPrefixUpdate());
   if (await schedulePendingPrefixUpdate()) {
-    write(`${mcodePrefixActivationScheduledMessage()}\n`);
+    write(`${alranPrefixActivationScheduledMessage()}\n`);
     return;
   }
   const plan = await application.inspect();
@@ -39,14 +39,14 @@ export async function runMcodeUpdate(
   if (plan.kind === 'current') {
     write(
       plan.source === 'managed-installer'
-        ? `MCode ${plan.currentVersion} is current on ${plan.channel}.\n`
-        : `MCode ${plan.currentVersion} is current on @${plan.packageTag}.\n`,
+        ? `Alran ${plan.currentVersion} is current on ${plan.channel}.\n`
+        : `Alran ${plan.currentVersion} is current on @${plan.packageTag}.\n`,
     );
     return;
   }
   if (plan.kind === 'ahead') {
     write(
-      `MCode ${plan.currentVersion} is newer than ${
+      `Alran ${plan.currentVersion} is newer than ${
         plan.source === 'managed-installer' ? plan.channel : `@${plan.packageTag}`
       } ${plan.latestVersion}; no update was applied.\n`,
     );
@@ -54,7 +54,7 @@ export async function runMcodeUpdate(
   }
   if (plan.kind === 'manual') {
     write(
-      'MCode could not identify the owner of this installation. ' +
+      'Alran could not identify the owner of this installation. ' +
         `Update manually with:\n  ${plan.command}\n`,
     );
     return;
@@ -72,7 +72,7 @@ export async function runMcodeUpdate(
     return;
   }
 
-  const progress = new McodeUpdateCliProgress(write, updateProcessLabel(plan));
+  const progress = new AlranUpdateCliProgress(write, updateProcessLabel(plan));
   progress.start();
   try {
     const outcome = await application.apply(plan, {
@@ -82,7 +82,7 @@ export async function runMcodeUpdate(
     progress.stop();
     write(`${outcome.message}\n`);
     if (outcome.restartRequired && !(await schedulePendingPrefixUpdate())) {
-      throw new Error(mcodePrefixJournalScheduleFailedMessage());
+      throw new Error(alranPrefixJournalScheduleFailedMessage());
     }
   } catch (error) {
     progress.stop();
@@ -90,11 +90,11 @@ export async function runMcodeUpdate(
   }
 }
 
-class McodeUpdateCliProgress {
+class AlranUpdateCliProgress {
   private frameIndex = 0;
   private latestOutput = '';
   private latestOutputAtMs: number | undefined;
-  private phase: McodeUpdatePhase | undefined;
+  private phase: AlranUpdatePhase | undefined;
   private startedAtMs = 0;
   private animationTimer: ReturnType<typeof setInterval> | undefined;
   private activityTimer: ReturnType<typeof setInterval> | undefined;
@@ -117,7 +117,7 @@ class McodeUpdateCliProgress {
     this.activityTimer.unref?.();
   }
 
-  acceptPhase(phase: McodeUpdatePhase): void {
+  acceptPhase(phase: AlranUpdatePhase): void {
     this.phase = phase;
     if (phase === 'completed') {
       this.render();
@@ -153,7 +153,7 @@ class McodeUpdateCliProgress {
     const outputActivity = this.latestOutputAtMs
       ? `; last output ${Math.max(0, Math.floor((Date.now() - this.latestOutputAtMs) / 1000))}s ago`
       : '; waiting for output';
-    const phase = this.phase ? phaseLabel(this.phase) : 'Updating MCode';
+    const phase = this.phase ? phaseLabel(this.phase) : 'Updating Alran';
     this.writePersistent(
       `${this.processLabel} is still running (${elapsedSeconds}s elapsed${outputActivity}) · ${phase}.`,
     );
@@ -170,11 +170,11 @@ class McodeUpdateCliProgress {
     const elapsed = elapsedSeconds > 0 ? ` · ${elapsedSeconds}s` : '';
     const phase = this.phase ? ` · ${phaseLabel(this.phase)}` : '';
     const output = this.latestOutput ? ` · ${this.latestOutput}` : '';
-    this.write(`\r\u001B[2K${frame} Updating MCode${phase}${elapsed}${output}`);
+    this.write(`\r\u001B[2K${frame} Updating Alran${phase}${elapsed}${output}`);
   }
 }
 
-function phaseLabel(phase: McodeUpdatePhase): string {
+function phaseLabel(phase: AlranUpdatePhase): string {
   if (phase === 'checking') return 'Checking for updates';
   if (phase === 'downloading') return 'Downloading release';
   if (phase === 'staging') return 'Preparing isolated update';
@@ -185,7 +185,7 @@ function phaseLabel(phase: McodeUpdatePhase): string {
 }
 
 function updateProcessLabel(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<AlranUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   if (plan.kind === 'available') return 'installer';
   if (plan.source === 'npm-prefix') return 'npm';
@@ -198,27 +198,27 @@ function truncateOutput(value: string): string {
 }
 
 function renderAvailableUpdate(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<AlranUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   if (plan.kind === 'available') {
     return (
-      `MCode ${plan.latestVersion} is available on ${plan.channel} ` +
+      `Alran ${plan.latestVersion} is available on ${plan.channel} ` +
       `(current ${plan.currentVersion}).\n`
     );
   }
   return (
-    `MCode ${plan.latestVersion} is available on @${plan.packageTag} ` +
+    `Alran ${plan.latestVersion} is available on @${plan.packageTag} ` +
     `(current ${plan.currentVersion}, installed through ${plan.source.replace('-global', '')}).\n` +
     `Command: ${plan.command.display}\n`
   );
 }
 
 function renderNonInteractiveInstruction(
-  plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+  plan: Extract<AlranUpdatePlan, { kind: 'available' | 'package-manager' }>,
 ): string {
   return plan.kind === 'package-manager'
     ? `No interactive confirmation is available. Run: ${plan.command.display}`
-    : 'No interactive confirmation is available. Run `mcode update` from a terminal to install it.';
+    : 'No interactive confirmation is available. Run `alran update` from a terminal to install it.';
 }
 
 async function confirmInTerminal(message: string): Promise<boolean> {

@@ -97,16 +97,16 @@ const REMOTE_SKILL_HUB_TIMEOUT_MS = 10_000;
 const AGENT_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/u;
 const SKILL_HUB_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
   cn: {
-    dev: 'https://agent.minimax.cn/minimax-cloud/api/v1/skill-hub',
-    test: 'https://agent.minimax.cn/minimax-cloud/api/v1/skill-hub',
-    staging: 'https://agent.minimax.cn/minimax-cloud/api/v1/skill-hub',
-    prod: 'https://agent.minimax.cn/minimax-cloud/api/v1/skill-hub',
+    dev: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    test: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    staging: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    prod: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
   },
   en: {
-    dev: 'https://agent.minimax.io/minimax-cloud/api/v1/skill-hub',
-    test: 'https://agent.minimax.io/minimax-cloud/api/v1/skill-hub',
-    staging: 'https://agent.minimax.io/minimax-cloud/api/v1/skill-hub',
-    prod: 'https://agent.minimax.io/minimax-cloud/api/v1/skill-hub',
+    dev: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    test: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    staging: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
+    prod: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
   },
 };
 
@@ -458,7 +458,7 @@ export class LocalSkillHubStore {
       response = await (this.options.fetch ?? fetch)(requestUrl, {
         method: 'GET',
         headers: {
-          'User-Agent': 'MiniMaxAgent',
+          'User-Agent': 'AlranAgent',
           ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           ...managedBackendRoutingHeaders(
             this.options.routingContextGetter?.(),

@@ -12,6 +12,15 @@ import {
 } from './keybindings.js';
 import { TUI_TIPS, selectTuiTipAt, type TuiTip } from './tips.js';
 
+/** Visible prompt prefix rendered in front of the composer input. */
+const COMPOSER_PROMPT_PREFIX = 'alran > ';
+/**
+ * Columns the prompt prefix needs before the editor can still show a text
+ * cursor. A narrower terminal renders the editor alone, because the prefix
+ * would otherwise swallow the whole input area.
+ */
+const COMPOSER_PROMPT_MIN_WIDTH = COMPOSER_PROMPT_PREFIX.length + 3;
+
 export type TuiComposerMode = 'message' | 'goal' | 'working' | 'follow-up' | 'blocked';
 
 export interface TuiComposerState {
@@ -67,7 +76,9 @@ export class TuiComposer implements Component {
       this.state.placeholder === undefined
         ? undefined
         : sanitizeTerminalText(this.state.placeholder);
-    if (safeWidth <= 2) return [...this.editor.render(safeWidth, placeholder)];
+    if (safeWidth < COMPOSER_PROMPT_MIN_WIDTH) {
+      return [...this.editor.render(safeWidth, placeholder)];
+    }
 
     const innerWidth = safeWidth - 2;
     const body = this.editor.render(innerWidth, placeholder);
@@ -105,7 +116,7 @@ export class TuiComposer implements Component {
       const prefix = border
         ? chalk.hex(colors.dim)('  ')
         : !renderedPrompt
-          ? chalk.bold.hex(resolveTuiComposerColor(this.state))('› ')
+          ? chalk.bold.hex(resolveTuiComposerColor(this.state))(COMPOSER_PROMPT_PREFIX)
           : chalk.hex(colors.dim)('  ');
       if (!border) renderedPrompt = true;
       return truncateToWidth(`${prefix}${content}`, safeWidth, chalk.hex(colors.dim)('…'));

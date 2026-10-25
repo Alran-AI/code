@@ -554,14 +554,14 @@ const LocalTaskSchema = Type.Object(
       Type.String({
         minLength: 1,
         description:
-          'Set only when the user explicitly specifies a model; otherwise omit to use the target Agent or inherited model. Do not choose or guess a model or send an empty string. Use an exact source-qualified model key (e.g. minimax/MiniMax-M3). Setting model resets inherited effort; do not also set effort unless the user explicitly specifies it.',
+          'Set only when the user explicitly specifies a model; otherwise omit to use the target Agent or inherited model. Do not choose or guess a model or send an empty string. Use an exact source-qualified model key (e.g. alran/Alran-M3). Setting model resets inherited effort; do not also set effort unless the user explicitly specifies it.',
       }),
     ),
     effort: Type.Optional(
       Type.String({
         minLength: 1,
         description:
-          'Set only when the user explicitly specifies an effort level; otherwise omit to use the resolved default. Do not infer effort from the selected model or task complexity, or send an empty string. The value must be supported by the resolved model (MiniMax M3: on/off); do not assume high is supported. May be supplied alone to override inherited effort.',
+          'Set only when the user explicitly specifies an effort level; otherwise omit to use the resolved default. Do not infer effort from the selected model or task complexity, or send an empty string. The value must be supported by the resolved model (Alran M3: on/off); do not assume high is supported. May be supplied alone to override inherited effort.',
       }),
     ),
     run_in_background: Type.Optional(

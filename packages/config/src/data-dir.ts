@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const NEW_DATA_DIR_BASENAME = '.minimax';
+export const NEW_DATA_DIR_BASENAME = '.alran';
 export const LEGACY_DATA_DIR_BASENAME = '.mavis';
 
 export type DataDirMigrationLogger = Pick<Console, 'error' | 'info' | 'warn'>;

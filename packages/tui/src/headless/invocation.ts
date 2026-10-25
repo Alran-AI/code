@@ -7,7 +7,7 @@ import { assertValidOutputSchema } from './contract.js';
 import { prepareDiagnosticsDirectory } from './diagnostics.js';
 import {
   findTuiAttachmentLimitViolation,
-  MINIMAX_CODE_MAX_ATTACHMENT_COUNT,
+  ALRAN_CODE_MAX_ATTACHMENT_COUNT,
 } from '../application/attachment-policy.js';
 import { inferTuiNativeVideoMimeType } from '../application/video-mime.js';
 import { resolveWslPath } from '../host/wsl-path.js';
@@ -18,13 +18,13 @@ import {
   type SystemPromptOverrides,
 } from '../cli/system-prompt-options.js';
 import type { TuiExecFormat } from './output.js';
-import type { McodeContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@mavis/protocol/local';
 
 export type TuiInputFormat = 'text' | 'json';
 export type TuiPermissionPolicy = 'smart' | 'full' | 'off';
 
 export interface RawTuiExecOptions extends RawSystemPromptOptions {
-  /** Internal command identity set by `mcode exec review`. */
+  /** Internal command identity set by `alran exec review`. */
   review?: true;
   input?: string;
   inputFormat?: string;
@@ -53,7 +53,7 @@ export interface ResolvedTuiExecInvocation {
   attachments: TuiAttachment[];
   model?: string;
   effort?: string;
-  contextMode?: McodeContextMode;
+  contextMode?: AlranContextMode;
   promptMode?: 'tui' | 'coding' | 'work';
   sessionId?: string;
   continueSession: boolean;
@@ -152,7 +152,7 @@ export async function resolveTuiExecInvocation(
   const attachmentLimitViolation = findTuiAttachmentLimitViolation(attachments);
   if (attachmentLimitViolation === 'count') {
     throw invocationError(
-      `You can attach up to ${String(MINIMAX_CODE_MAX_ATTACHMENT_COUNT)} files.`,
+      `You can attach up to ${String(ALRAN_CODE_MAX_ATTACHMENT_COUNT)} files.`,
     );
   }
   if (attachmentLimitViolation === 'total-bytes') {

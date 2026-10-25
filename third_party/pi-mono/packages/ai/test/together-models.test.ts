@@ -63,10 +63,10 @@ describe("Together models", () => {
 			thinkingFormat: "together",
 		});
 
-		const minimax = getModel("together", "MiniMaxAI/MiniMax-M2.7");
-		expect(minimax.thinkingLevelMap).toEqual({ off: null, minimal: null, low: null, medium: null });
-		expect(minimax.compat?.thinkingFormat).toBeUndefined();
-		expect(minimax.compat?.supportsReasoningEffort).toBe(false);
+		const alran = getModel("together", "AlranAI/Alran-M2.7");
+		expect(alran.thinkingLevelMap).toEqual({ off: null, minimal: null, low: null, medium: null });
+		expect(alran.compat?.thinkingFormat).toBeUndefined();
+		expect(alran.compat?.supportsReasoningEffort).toBe(false);
 	});
 
 	it("resolves TOGETHER_API_KEY from the environment", () => {

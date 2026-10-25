@@ -1,89 +1,89 @@
 import {
-  McodeUpdateService,
-  resolveMcodeInstallRoot,
-  type McodeUpdateApplyResult,
-  type McodeUpdateCheckResult,
-  type McodeUpdateRequest,
+  AlranUpdateService,
+  resolveAlranInstallRoot,
+  type AlranUpdateApplyResult,
+  type AlranUpdateCheckResult,
+  type AlranUpdateRequest,
 } from './service.js';
 import {
-  buildMcodePackageManagerCommand,
-  bindMcodeNpmCommandToRuntime,
-  createMcodeNpmRuntimeEnvironment,
-  detectMcodeInstallSource,
-  resolveMcodeNpmDistribution,
-  resolveMcodeNpmDistTag,
-  resolveMcodeNpmPrefixInstall,
-  resolveInstalledMcodePackageVersion,
-  resolveLatestMcodeRegistryVersion,
-  runMcodePackageManagerCommand,
-  type McodeInstallSource,
-  type McodeNpmDistTag,
-  type McodeNpmDistribution,
-  type McodeNpmPackageName,
-  type McodeNpmPrefixInstall,
-  type McodePackageManagerCommand,
-  type McodePackageManagerInstallSource,
-  type McodePackageManagerRunOptions,
+  buildAlranPackageManagerCommand,
+  bindAlranNpmCommandToRuntime,
+  createAlranNpmRuntimeEnvironment,
+  detectAlranInstallSource,
+  resolveAlranNpmDistribution,
+  resolveAlranNpmDistTag,
+  resolveAlranNpmPrefixInstall,
+  resolveInstalledAlranPackageVersion,
+  resolveLatestAlranRegistryVersion,
+  runAlranPackageManagerCommand,
+  type AlranInstallSource,
+  type AlranNpmDistTag,
+  type AlranNpmDistribution,
+  type AlranNpmPackageName,
+  type AlranNpmPrefixInstall,
+  type AlranPackageManagerCommand,
+  type AlranPackageManagerInstallSource,
+  type AlranPackageManagerRunOptions,
 } from './install-source.js';
-import { compareMcodeVersions } from './release.js';
-import { reportMcodeUpdatePhase } from './progress.js';
+import { compareAlranVersions } from './release.js';
+import { reportAlranUpdatePhase } from './progress.js';
 import {
-  mcodePrefixNonPrefixPlanMessage,
-  mcodePrefixNotStagedMessage,
-  mcodePrefixOwnershipMissingMessage,
-  mcodePrefixPendingActivationMessage,
-  mcodePrefixPendingCleanupMessage,
-  mcodePrefixVersionedInstalledMessage,
-  mcodePrefixStagedVersionMismatchMessage,
+  alranPrefixNonPrefixPlanMessage,
+  alranPrefixNotStagedMessage,
+  alranPrefixOwnershipMissingMessage,
+  alranPrefixPendingActivationMessage,
+  alranPrefixPendingCleanupMessage,
+  alranPrefixVersionedInstalledMessage,
+  alranPrefixStagedVersionMismatchMessage,
 } from './messages.js';
 import {
-  countMcodePrefixUpdateBlockers,
-  inspectPendingMcodePrefixUpdate,
-  readMcodePrefixPackageMetadata,
-  removeMcodePrefixUpdateStaging,
-  validateMcodePrefixPackage,
-  type McodePrefixPackageMetadata,
+  countAlranPrefixUpdateBlockers,
+  inspectPendingAlranPrefixUpdate,
+  readAlranPrefixPackageMetadata,
+  removeAlranPrefixUpdateStaging,
+  validateAlranPrefixPackage,
+  type AlranPrefixPackageMetadata,
 } from './prefix-update.js';
 import {
-  acquireMcodeVersionedPrefixUpdateLock,
-  activateMcodeVersionedPrefixInstall,
-  createMcodeVersionedPrefixStagingPrefix,
-  prepareMcodeVersionedPrefixStaging,
-  type McodeVersionedPrefixActivation,
+  acquireAlranVersionedPrefixUpdateLock,
+  activateAlranVersionedPrefixInstall,
+  createAlranVersionedPrefixStagingPrefix,
+  prepareAlranVersionedPrefixStaging,
+  type AlranVersionedPrefixActivation,
 } from './versioned-prefix.js';
 
 interface ManagedUpdateService {
-  check(request?: McodeUpdateRequest): Promise<McodeUpdateCheckResult>;
-  apply(request?: McodeUpdateRequest): Promise<McodeUpdateApplyResult>;
+  check(request?: AlranUpdateRequest): Promise<AlranUpdateCheckResult>;
+  apply(request?: AlranUpdateRequest): Promise<AlranUpdateApplyResult>;
 }
 
-interface McodeManagedUpdatePlan {
+interface AlranManagedUpdatePlan {
   readonly source: 'managed-installer';
   readonly currentVersion: string;
   readonly latestVersion: string;
   readonly channel: 'stable' | 'preview';
 }
 
-interface McodePackageManagerVersionPlan {
-  readonly source: McodePackageManagerInstallSource;
+interface AlranPackageManagerVersionPlan {
+  readonly source: AlranPackageManagerInstallSource;
   readonly currentVersion: string;
   readonly latestVersion: string;
-  readonly packageTag: McodeNpmDistTag;
+  readonly packageTag: AlranNpmDistTag;
 }
 
-export type McodeUpdatePlan =
-  | (McodeManagedUpdatePlan & { readonly kind: 'current' })
-  | (McodeManagedUpdatePlan & { readonly kind: 'ahead' })
-  | (McodeManagedUpdatePlan & { readonly kind: 'available' })
-  | (McodePackageManagerVersionPlan & { readonly kind: 'current' })
-  | (McodePackageManagerVersionPlan & { readonly kind: 'ahead' })
+export type AlranUpdatePlan =
+  | (AlranManagedUpdatePlan & { readonly kind: 'current' })
+  | (AlranManagedUpdatePlan & { readonly kind: 'ahead' })
+  | (AlranManagedUpdatePlan & { readonly kind: 'available' })
+  | (AlranPackageManagerVersionPlan & { readonly kind: 'current' })
+  | (AlranPackageManagerVersionPlan & { readonly kind: 'ahead' })
   | {
       readonly kind: 'package-manager';
-      readonly source: McodePackageManagerInstallSource;
+      readonly source: AlranPackageManagerInstallSource;
       readonly currentVersion: string;
       readonly latestVersion: string;
-      readonly packageTag: McodeNpmDistTag;
-      readonly command: McodePackageManagerCommand;
+      readonly packageTag: AlranNpmDistTag;
+      readonly command: AlranPackageManagerCommand;
     }
   | {
       readonly kind: 'manual';
@@ -92,86 +92,86 @@ export type McodeUpdatePlan =
       readonly command: string;
     };
 
-export interface McodeUpdateOutcome {
+export interface AlranUpdateOutcome {
   readonly applied: boolean;
   readonly message: string;
   readonly restartRequired?: boolean;
 }
 
-export type McodeUpdateApplyOptions = McodePackageManagerRunOptions;
+export type AlranUpdateApplyOptions = AlranPackageManagerRunOptions;
 
-export interface McodeUpdateApplicationOptions {
+export interface AlranUpdateApplicationOptions {
   readonly currentVersion: string;
   readonly installRoot?: string;
   readonly environment?: NodeJS.ProcessEnv;
   readonly platform?: NodeJS.Platform;
-  readonly packageTag?: McodeNpmDistTag;
-  readonly packageName?: McodeNpmPackageName;
-  readonly prefixInstall?: McodeNpmPrefixInstall;
+  readonly packageTag?: AlranNpmDistTag;
+  readonly packageName?: AlranNpmPackageName;
+  readonly prefixInstall?: AlranNpmPrefixInstall;
   readonly entryFile?: string;
   readonly runtimeExecutable?: string;
 }
 
-export interface McodeUpdateApplicationDependencies {
-  readonly detectInstallSource: () => Promise<McodeInstallSource>;
+export interface AlranUpdateApplicationDependencies {
+  readonly detectInstallSource: () => Promise<AlranInstallSource>;
   readonly createManagedService: () => ManagedUpdateService;
-  readonly resolveLatestPackageVersion: (tag: McodeNpmDistTag) => Promise<string>;
+  readonly resolveLatestPackageVersion: (tag: AlranNpmDistTag) => Promise<string>;
   readonly runPackageManager: (
-    command: McodePackageManagerCommand,
-    options?: McodePackageManagerRunOptions,
+    command: AlranPackageManagerCommand,
+    options?: AlranPackageManagerRunOptions,
   ) => Promise<void>;
   readonly readInstalledPackageVersion: () => string | undefined;
   readonly readPrefixPackageMetadata: (
     prefix: string,
-    packageName: McodeNpmPackageName,
-  ) => McodePrefixPackageMetadata;
+    packageName: AlranNpmPackageName,
+  ) => AlranPrefixPackageMetadata;
   readonly validatePrefixPackage: (
     prefix: string,
-    metadata: McodePrefixPackageMetadata,
+    metadata: AlranPrefixPackageMetadata,
     expectedVersion: string,
   ) => Promise<void>;
   readonly countPrefixUpdateBlockers: (activePrefix: string) => number | undefined;
   readonly removePrefixStaging: (stagingPrefix: string) => void;
   readonly createVersionedPrefixStaging: (prefix: string, version: string) => string;
   readonly prepareVersionedPrefixStaging: (stagingPrefix: string) => void;
-  readonly activateVersionedPrefix: (activation: McodeVersionedPrefixActivation) => string;
+  readonly activateVersionedPrefix: (activation: AlranVersionedPrefixActivation) => string;
   readonly acquirePrefixUpdateLock: (activePrefix: string) => () => void;
 }
 
-export class McodeUpdateApplication {
+export class AlranUpdateApplication {
   private readonly currentVersion: string;
-  private readonly packageTag: McodeNpmDistTag;
-  private readonly distribution: McodeNpmDistribution;
+  private readonly packageTag: AlranNpmDistTag;
+  private readonly distribution: AlranNpmDistribution;
   private readonly platform: NodeJS.Platform;
-  private readonly prefixInstall?: McodeNpmPrefixInstall;
+  private readonly prefixInstall?: AlranNpmPrefixInstall;
   private readonly entryFile?: string;
   private readonly runtimeExecutable: string;
   private readonly environment: NodeJS.ProcessEnv;
-  private readonly dependencies: McodeUpdateApplicationDependencies;
+  private readonly dependencies: AlranUpdateApplicationDependencies;
 
   constructor(
-    options: McodeUpdateApplicationOptions,
-    dependencies: Partial<McodeUpdateApplicationDependencies> = {},
+    options: AlranUpdateApplicationOptions,
+    dependencies: Partial<AlranUpdateApplicationDependencies> = {},
   ) {
     this.currentVersion = options.currentVersion;
     const environment = options.environment ?? process.env;
-    const installRoot = options.installRoot ?? resolveMcodeInstallRoot(environment);
+    const installRoot = options.installRoot ?? resolveAlranInstallRoot(environment);
     const platform = options.platform ?? process.platform;
     this.platform = platform;
     this.environment = environment;
     this.entryFile = options.entryFile ?? process.argv[1];
     this.prefixInstall =
-      options.prefixInstall ?? resolveMcodeNpmPrefixInstall(this.entryFile, platform);
+      options.prefixInstall ?? resolveAlranNpmPrefixInstall(this.entryFile, platform);
     // Keep updates on the Node executable recorded in the install receipt. On
     // macOS process.execPath resolves Homebrew's stable bin/node symlink into a
     // versioned Cellar path that `brew upgrade` removes.
     this.runtimeExecutable =
       options.runtimeExecutable ?? this.prefixInstall?.nodeExecutable ?? process.execPath;
     const packageManagerEnvironment = this.prefixInstall
-      ? createMcodeNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
+      ? createAlranNpmRuntimeEnvironment(environment, this.runtimeExecutable, platform)
       : environment;
-    this.packageTag = options.packageTag ?? resolveMcodeNpmDistTag();
-    this.distribution = resolveMcodeNpmDistribution(
+    this.packageTag = options.packageTag ?? resolveAlranNpmDistTag();
+    this.distribution = resolveAlranNpmDistribution(
       options.packageName,
       this.prefixInstall?.registry,
     );
@@ -179,7 +179,7 @@ export class McodeUpdateApplication {
       detectInstallSource:
         dependencies.detectInstallSource ??
         (() =>
-          detectMcodeInstallSource({
+          detectAlranInstallSource({
             installRoot,
             platform,
             prefixInstall: () => this.prefixInstall,
@@ -187,7 +187,7 @@ export class McodeUpdateApplication {
       createManagedService:
         dependencies.createManagedService ??
         (() =>
-          new McodeUpdateService({
+          new AlranUpdateService({
             currentVersion: options.currentVersion,
             installRoot,
             environment,
@@ -195,7 +195,7 @@ export class McodeUpdateApplication {
       resolveLatestPackageVersion:
         dependencies.resolveLatestPackageVersion ??
         ((tag) =>
-          resolveLatestMcodeRegistryVersion(tag, {
+          resolveLatestAlranRegistryVersion(tag, {
             platform,
             distribution: this.distribution,
             environment: packageManagerEnvironment,
@@ -209,39 +209,39 @@ export class McodeUpdateApplication {
       runPackageManager:
         dependencies.runPackageManager ??
         ((command, progress) =>
-          runMcodePackageManagerCommand(
+          runAlranPackageManagerCommand(
             this.prefixInstall
-              ? bindMcodeNpmCommandToRuntime(command, this.runtimeExecutable)
+              ? bindAlranNpmCommandToRuntime(command, this.runtimeExecutable)
               : command,
             packageManagerEnvironment,
             progress,
           )),
       readInstalledPackageVersion:
-        dependencies.readInstalledPackageVersion ?? resolveInstalledMcodePackageVersion,
+        dependencies.readInstalledPackageVersion ?? resolveInstalledAlranPackageVersion,
       readPrefixPackageMetadata:
         dependencies.readPrefixPackageMetadata ??
-        ((prefix, packageName) => readMcodePrefixPackageMetadata(prefix, packageName, platform)),
+        ((prefix, packageName) => readAlranPrefixPackageMetadata(prefix, packageName, platform)),
       validatePrefixPackage:
         dependencies.validatePrefixPackage ??
         ((prefix, metadata, expectedVersion) =>
-          validateMcodePrefixPackage(prefix, metadata, this.runtimeExecutable, expectedVersion)),
+          validateAlranPrefixPackage(prefix, metadata, this.runtimeExecutable, expectedVersion)),
       countPrefixUpdateBlockers:
-        dependencies.countPrefixUpdateBlockers ?? countMcodePrefixUpdateBlockers,
-      removePrefixStaging: dependencies.removePrefixStaging ?? removeMcodePrefixUpdateStaging,
+        dependencies.countPrefixUpdateBlockers ?? countAlranPrefixUpdateBlockers,
+      removePrefixStaging: dependencies.removePrefixStaging ?? removeAlranPrefixUpdateStaging,
       createVersionedPrefixStaging:
         dependencies.createVersionedPrefixStaging ??
-        ((prefix, version) => createMcodeVersionedPrefixStagingPrefix(prefix, version, platform)),
+        ((prefix, version) => createAlranVersionedPrefixStagingPrefix(prefix, version, platform)),
       prepareVersionedPrefixStaging:
-        dependencies.prepareVersionedPrefixStaging ?? prepareMcodeVersionedPrefixStaging,
+        dependencies.prepareVersionedPrefixStaging ?? prepareAlranVersionedPrefixStaging,
       activateVersionedPrefix:
         dependencies.activateVersionedPrefix ??
-        ((activation) => activateMcodeVersionedPrefixInstall(activation, platform)),
+        ((activation) => activateAlranVersionedPrefixInstall(activation, platform)),
       acquirePrefixUpdateLock:
-        dependencies.acquirePrefixUpdateLock ?? acquireMcodeVersionedPrefixUpdateLock,
+        dependencies.acquirePrefixUpdateLock ?? acquireAlranVersionedPrefixUpdateLock,
     };
   }
 
-  async inspect(): Promise<McodeUpdatePlan> {
+  async inspect(): Promise<AlranUpdatePlan> {
     const source = await this.dependencies.detectInstallSource();
     if (source === 'managed-installer') {
       const result = await this.dependencies.createManagedService().check();
@@ -258,7 +258,7 @@ export class McodeUpdateApplication {
         kind: 'manual',
         source,
         currentVersion: this.currentVersion,
-        command: buildMcodePackageManagerCommand(
+        command: buildAlranPackageManagerCommand(
           'npm-global',
           this.packageTag,
           this.platform,
@@ -267,7 +267,7 @@ export class McodeUpdateApplication {
       };
     }
     const pendingUpdate =
-      source === 'npm-prefix' ? inspectPendingMcodePrefixUpdate(this.entryFile) : undefined;
+      source === 'npm-prefix' ? inspectPendingAlranPrefixUpdate(this.entryFile) : undefined;
     if (pendingUpdate) {
       const latestVersion = pendingUpdate.activation.expectedVersion;
       return {
@@ -276,7 +276,7 @@ export class McodeUpdateApplication {
         currentVersion: this.currentVersion,
         latestVersion,
         packageTag: this.packageTag,
-        command: buildMcodePackageManagerCommand(
+        command: buildAlranPackageManagerCommand(
           source,
           latestVersion,
           this.platform,
@@ -286,7 +286,7 @@ export class McodeUpdateApplication {
       };
     }
     const latestVersion = await this.dependencies.resolveLatestPackageVersion(this.packageTag);
-    const comparison = compareMcodeVersions(this.currentVersion, latestVersion);
+    const comparison = compareAlranVersions(this.currentVersion, latestVersion);
     const followsRollingTag = this.packageTag !== 'latest';
     if (comparison === 0) {
       return {
@@ -312,7 +312,7 @@ export class McodeUpdateApplication {
       currentVersion: this.currentVersion,
       latestVersion,
       packageTag: this.packageTag,
-      command: buildMcodePackageManagerCommand(
+      command: buildAlranPackageManagerCommand(
         source,
         latestVersion,
         this.platform,
@@ -323,11 +323,11 @@ export class McodeUpdateApplication {
   }
 
   async apply(
-    plan: McodeUpdatePlan,
-    options: McodeUpdateApplyOptions = {},
-  ): Promise<McodeUpdateOutcome> {
+    plan: AlranUpdatePlan,
+    options: AlranUpdateApplyOptions = {},
+  ): Promise<AlranUpdateOutcome> {
     if (plan.kind === 'manual' || plan.kind === 'current' || plan.kind === 'ahead') {
-      throw new Error(`MCode update plan ${plan.kind} cannot be applied automatically.`);
+      throw new Error(`Alran update plan ${plan.kind} cannot be applied automatically.`);
     }
     if (plan.kind === 'available') {
       const result = await this.dependencies.createManagedService().apply({
@@ -339,12 +339,12 @@ export class McodeUpdateApplication {
         ? {
             applied: true,
             message:
-              `MCode ${result.latestVersion} is installed. ` +
-              'Restart running MCode sessions to use it.',
+              `Alran ${result.latestVersion} is installed. ` +
+              'Restart running Alran sessions to use it.',
           }
         : {
             applied: false,
-            message: `MCode ${result.currentVersion} is already active.`,
+            message: `Alran ${result.currentVersion} is already active.`,
           };
     }
 
@@ -352,35 +352,35 @@ export class McodeUpdateApplication {
       return this.applyNpmPrefixUpdate(plan, options);
     }
 
-    reportMcodeUpdatePhase(options, 'installing', false);
+    reportAlranUpdatePhase(options, 'installing', false);
     await this.dependencies.runPackageManager(plan.command, options);
     const installedVersion = this.dependencies.readInstalledPackageVersion();
     if (installedVersion !== plan.latestVersion) {
       throw new Error(
-        `MCode update installed ${installedVersion || '<unknown>'}; expected ${plan.latestVersion}.`,
+        `Alran update installed ${installedVersion || '<unknown>'}; expected ${plan.latestVersion}.`,
       );
     }
-    reportMcodeUpdatePhase(options, 'completed', false);
+    reportAlranUpdatePhase(options, 'completed', false);
     return {
       applied: true,
       message:
-        `MCode ${plan.latestVersion} was installed through ${packageManagerName(plan.source)}. ` +
-        'Restart MCode to use the installed version.',
+        `Alran ${plan.latestVersion} was installed through ${packageManagerName(plan.source)}. ` +
+        'Restart Alran to use the installed version.',
     };
   }
 
   private async applyNpmPrefixUpdate(
-    plan: Extract<McodeUpdatePlan, { kind: 'package-manager' }>,
-    options: McodeUpdateApplyOptions,
-  ): Promise<McodeUpdateOutcome> {
+    plan: Extract<AlranUpdatePlan, { kind: 'package-manager' }>,
+    options: AlranUpdateApplyOptions,
+  ): Promise<AlranUpdateOutcome> {
     if (plan.source !== 'npm-prefix') {
-      throw new Error(mcodePrefixNonPrefixPlanMessage(this.environment));
+      throw new Error(alranPrefixNonPrefixPlanMessage(this.environment));
     }
     const prefixInstall = this.prefixInstall;
     if (!prefixInstall) {
-      throw new Error(mcodePrefixOwnershipMissingMessage(this.environment));
+      throw new Error(alranPrefixOwnershipMissingMessage(this.environment));
     }
-    const pendingUpdate = inspectPendingMcodePrefixUpdate(this.entryFile);
+    const pendingUpdate = inspectPendingAlranPrefixUpdate(this.entryFile);
     if (pendingUpdate) {
       const blockingSessionCount = this.dependencies.countPrefixUpdateBlockers(
         pendingUpdate.activation.activePrefix,
@@ -390,11 +390,11 @@ export class McodeUpdateApplication {
         restartRequired: true,
         message:
           pendingUpdate.state === 'activated'
-            ? mcodePrefixPendingCleanupMessage(pendingUpdate.activation.expectedVersion, {
+            ? alranPrefixPendingCleanupMessage(pendingUpdate.activation.expectedVersion, {
                 blockingSessionCount,
                 environment: this.environment,
               })
-            : mcodePrefixPendingActivationMessage(pendingUpdate.activation.expectedVersion, {
+            : alranPrefixPendingActivationMessage(pendingUpdate.activation.expectedVersion, {
                 blockingSessionCount,
                 environment: this.environment,
               }),
@@ -407,25 +407,25 @@ export class McodeUpdateApplication {
         prefixInstall.prefix,
         plan.latestVersion,
       );
-      const stagedCommand = buildMcodePackageManagerCommand(
+      const stagedCommand = buildAlranPackageManagerCommand(
         'npm-prefix',
         plan.latestVersion,
         this.platform,
         this.distribution,
         { ...prefixInstall, prefix: stagingPrefix },
       );
-      reportMcodeUpdatePhase(options, 'staging', true);
+      reportAlranUpdatePhase(options, 'staging', true);
       this.dependencies.prepareVersionedPrefixStaging(stagingPrefix);
-      reportMcodeUpdatePhase(options, 'installing', false);
+      reportAlranUpdatePhase(options, 'installing', false);
       await this.dependencies.runPackageManager(stagedCommand, options);
-      reportMcodeUpdatePhase(options, 'validating', false);
+      reportAlranUpdatePhase(options, 'validating', false);
       const stagedPackage = this.dependencies.readPrefixPackageMetadata(
         stagingPrefix,
         prefixInstall.packageName,
       );
       if (stagedPackage.version !== plan.latestVersion) {
         throw new Error(
-          mcodePrefixStagedVersionMismatchMessage(
+          alranPrefixStagedVersionMismatchMessage(
             stagedPackage.version,
             plan.latestVersion,
             this.environment,
@@ -437,7 +437,7 @@ export class McodeUpdateApplication {
         stagedPackage,
         plan.latestVersion,
       );
-      reportMcodeUpdatePhase(options, 'activating', false);
+      reportAlranUpdatePhase(options, 'activating', false);
       this.dependencies.activateVersionedPrefix({
         stagingPrefix,
         activePrefix: prefixInstall.prefix,
@@ -447,16 +447,16 @@ export class McodeUpdateApplication {
         npmExecutable: prefixInstall.executable,
         registry: prefixInstall.registry,
       });
-      reportMcodeUpdatePhase(options, 'completed', false);
+      reportAlranUpdatePhase(options, 'completed', false);
       return {
         applied: true,
         restartRequired: false,
-        message: mcodePrefixVersionedInstalledMessage(plan.latestVersion, this.environment),
+        message: alranPrefixVersionedInstalledMessage(plan.latestVersion, this.environment),
       };
     } catch (error) {
       if (stagingPrefix) this.dependencies.removePrefixStaging(stagingPrefix);
       throw new Error(
-        mcodePrefixNotStagedMessage(plan.latestVersion, errorMessage(error), this.environment),
+        alranPrefixNotStagedMessage(plan.latestVersion, errorMessage(error), this.environment),
         { cause: error },
       );
     } finally {
@@ -469,7 +469,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function packageManagerName(source: McodePackageManagerInstallSource): string {
+function packageManagerName(source: AlranPackageManagerInstallSource): string {
   if (source === 'npm-prefix') return 'npm';
   return source.replace('-global', '');
 }

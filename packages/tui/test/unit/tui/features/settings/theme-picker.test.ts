@@ -24,7 +24,7 @@ function build(overrides: Partial<ConstructorParameters<typeof TuiThemePicker>[0
   const requestRender = vi.fn();
   const picker = new TuiThemePicker({
     themes: THEMES,
-    currentThemeId: 'minimax',
+    currentThemeId: 'alran',
     currentAppearance: 'dark',
     appearanceOverride: undefined,
     preview,
@@ -44,13 +44,13 @@ describe('TuiThemePicker', () => {
     const rendered = stripAnsi(picker.render(100).join('\n'));
 
     expect(rendered).toContain('Theme');
-    expect(rendered).toContain('MCode');
+    expect(rendered).toContain('Alran');
     expect(rendered).toContain('Midnight');
     expect(rendered).toContain('Aurora');
     expect(rendered).toContain('Mine');
     expect(rendered).toContain('current');
     // The cursor starts on the theme that is already active.
-    expect(rendered).toContain('› MCode');
+    expect(rendered).toContain('› Alran');
   });
 
   it('previews the focused theme while navigating', () => {
@@ -61,7 +61,7 @@ describe('TuiThemePicker', () => {
     expect(requestRender).toHaveBeenCalled();
 
     picker.handleInput('\u001b[A');
-    expect(preview).toHaveBeenLastCalledWith('minimax');
+    expect(preview).toHaveBeenLastCalledWith('alran');
   });
 
   it('wraps around at both ends of the list', () => {
@@ -71,7 +71,7 @@ describe('TuiThemePicker', () => {
     expect(preview).toHaveBeenLastCalledWith(CUSTOM.id);
 
     picker.handleInput('\u001b[B');
-    expect(preview).toHaveBeenLastCalledWith('minimax');
+    expect(preview).toHaveBeenLastCalledWith('alran');
   });
 
   it('selects light, auto, and dark with the left and right arrows', () => {
@@ -138,7 +138,7 @@ describe('TuiThemePicker', () => {
     preview.mockClear();
     picker.handleInput('\u001b');
 
-    expect(preview).toHaveBeenCalledWith('minimax');
+    expect(preview).toHaveBeenCalledWith('alran');
     expect(setAppearance).toHaveBeenLastCalledWith('auto');
     expect(save).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();

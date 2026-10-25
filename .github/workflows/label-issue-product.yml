@@ -15,7 +15,7 @@ jobs:
   label-product:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    if: ${{ github.repository == 'MiniMax-AI/minimax-code' && github.event.repository.private == false && !github.event.issue.pull_request }}
+    if: ${{ github.repository == 'Alran-AI/alran-code' && github.event.repository.private == false && !github.event.issue.pull_request }}
     steps:
       - name: Synchronize product labels
         env:

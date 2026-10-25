@@ -157,13 +157,13 @@ function registerCanonicalConfigParsingTests(): void {
   });
 
   it.each(["on", "off"] as const)(
-    "reads an unquoted MiniMax M3 thinking mode %s as a string and preserves it through serialization",
+    "reads an unquoted Alran M3 thinking mode %s as a string and preserves it through serialization",
     (effort) => {
       const parsed = parseCanonicalAgentMarkdown(
-        `---\nname: researcher\ndescription: Evidence first.\nmodel: minimax/MiniMax-M3\neffort: ${effort}\n---\n`,
+        `---\nname: researcher\ndescription: Evidence first.\nmodel: alran/Alran-M3\neffort: ${effort}\n---\n`,
         "researcher",
       );
-      expect(parsed.model).toBe("minimax/MiniMax-M3");
+      expect(parsed.model).toBe("alran/Alran-M3");
       expect(parsed.effort).toBe(effort);
       expect(typeof parsed.effort).toBe("string");
 
@@ -179,7 +179,7 @@ function registerCanonicalConfigParsingTests(): void {
       expect(
         parseCanonicalAgentMarkdown(serialized, "researcher"),
       ).toMatchObject({
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         effort,
       });
     },
@@ -204,7 +204,7 @@ function registerCanonicalConfigParsingTests(): void {
     ],
     [
       "invalid model shape",
-      "---\nname: researcher\ndescription: desc\nmodel: MiniMax-M3\n---\n",
+      "---\nname: researcher\ndescription: desc\nmodel: Alran-M3\n---\n",
       "model",
     ],
     [
@@ -912,14 +912,14 @@ describe("canonical Agent directory safety", () => {
     const markdown = "---\nname: researcher\ndescription: desc\n---\nPrompt\n";
     const warnSpy = vi.spyOn(logger, "warn");
 
-    const minimaxRoot = join(parentDir, ".minimax-profile");
+    const alranRoot = join(parentDir, ".alran-profile");
     const mavisRoot = join(parentDir, ".mavis-profile");
-    await mkdir(join(minimaxRoot, "agents", "researcher"), { recursive: true });
+    await mkdir(join(alranRoot, "agents", "researcher"), { recursive: true });
     await writeFile(
-      join(minimaxRoot, "agents", "researcher", "agent.md"),
+      join(alranRoot, "agents", "researcher", "agent.md"),
       markdown,
     );
-    await symlink(minimaxRoot, mavisRoot);
+    await symlink(alranRoot, mavisRoot);
 
     await expect(
       readCanonicalAgentConfig({
@@ -929,7 +929,7 @@ describe("canonical Agent directory safety", () => {
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
-    const agentsRoot = join(parentDir, ".minimax-agents");
+    const agentsRoot = join(parentDir, ".alran-agents");
     const agentsTarget = join(outsideDir, "agents-target");
     await mkdir(agentsRoot, { recursive: true });
     await mkdir(join(agentsTarget, "researcher"), { recursive: true });
@@ -944,7 +944,7 @@ describe("canonical Agent directory safety", () => {
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
-    const builtinRoot = join(parentDir, ".minimax-builtin");
+    const builtinRoot = join(parentDir, ".alran-builtin");
     const builtinTarget = join(outsideDir, "builtin-target");
     await mkdir(join(builtinRoot, "agents"), { recursive: true });
     await mkdir(join(builtinTarget, "explore"), { recursive: true });
@@ -958,7 +958,7 @@ describe("canonical Agent directory safety", () => {
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
-    const agentRoot = join(parentDir, ".minimax-agent");
+    const agentRoot = join(parentDir, ".alran-agent");
     const agentTarget = join(outsideDir, "agent-target");
     await mkdir(join(agentRoot, "agents"), { recursive: true });
     await mkdir(agentTarget, { recursive: true });
@@ -972,7 +972,7 @@ describe("canonical Agent directory safety", () => {
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
-    const insideRoot = join(parentDir, ".minimax-inside");
+    const insideRoot = join(parentDir, ".alran-inside");
     const insideTarget = join(insideRoot, "managed-agent");
     await mkdir(join(insideRoot, "agents"), { recursive: true });
     await mkdir(insideTarget, { recursive: true });
@@ -986,7 +986,7 @@ describe("canonical Agent directory safety", () => {
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
-    const nestedRoot = join(parentDir, ".minimax-nested");
+    const nestedRoot = join(parentDir, ".alran-nested");
     const nestedTarget = join(outsideDir, "nested-target");
     const nestedLink = join(
       nestedRoot,
@@ -1012,8 +1012,8 @@ describe("canonical Agent directory safety", () => {
         data_dir_source: "mavis_env",
         segment: "data_dir",
         logical_link_path: mavisRoot,
-        readlink_raw_target: minimaxRoot,
-        realpath_resolved_target: await realpath(minimaxRoot),
+        readlink_raw_target: alranRoot,
+        realpath_resolved_target: await realpath(alranRoot),
         resolved_target_kind: "directory",
         target_scope: "expected_default_target",
         root_kind: ".mavis",
@@ -1030,7 +1030,7 @@ describe("canonical Agent directory safety", () => {
         realpath_resolved_target: await realpath(agentsTarget),
         resolved_target_kind: "directory",
         target_scope: "data_dir_outside",
-        root_kind: ".minimax",
+        root_kind: ".alran",
       },
       "Following linked Agent directory",
     );
@@ -1044,7 +1044,7 @@ describe("canonical Agent directory safety", () => {
         realpath_resolved_target: await realpath(builtinTarget),
         resolved_target_kind: "directory",
         target_scope: "data_dir_outside",
-        root_kind: ".minimax",
+        root_kind: ".alran",
       },
       "Following linked Agent directory",
     );
@@ -1058,7 +1058,7 @@ describe("canonical Agent directory safety", () => {
         realpath_resolved_target: await realpath(agentTarget),
         resolved_target_kind: "directory",
         target_scope: "data_dir_outside",
-        root_kind: ".minimax",
+        root_kind: ".alran",
       },
       "Following linked Agent directory",
     );
@@ -1072,7 +1072,7 @@ describe("canonical Agent directory safety", () => {
         realpath_resolved_target: await realpath(insideTarget),
         resolved_target_kind: "directory",
         target_scope: "data_dir_inside",
-        root_kind: ".minimax",
+        root_kind: ".alran",
       },
       "Following linked Agent directory",
     );
@@ -1086,7 +1086,7 @@ describe("canonical Agent directory safety", () => {
         realpath_resolved_target: await realpath(nestedTarget),
         resolved_target_kind: "directory",
         target_scope: "data_dir_outside",
-        root_kind: ".minimax",
+        root_kind: ".alran",
       },
       "Following linked Agent directory",
     );

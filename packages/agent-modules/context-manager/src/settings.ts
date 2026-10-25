@@ -11,7 +11,7 @@ export const DEFAULT_CONTEXT_MANAGER_SETTINGS = {
 } satisfies ContextManagerSettings;
 
 /**
- * Shared compaction trigger threshold. MiniMax-M3's 512K and 1M context modes
+ * Shared compaction trigger threshold. Alran-M3's 512K and 1M context modes
  * use the product-defined 90% line. Other models reserve the greater of the
  * configured reserve and one turn's output budget plus the safety margin.
  */
@@ -23,7 +23,7 @@ export function computeCompactionTriggerAt(input: {
   safetyMarginTokens: number;
 }): number {
   if (
-    input.modelId === 'MiniMax-M3' &&
+    input.modelId === 'Alran-M3' &&
     (input.contextWindow === 512_000 || input.contextWindow === 1_000_000)
   ) {
     return Math.floor(input.contextWindow * 0.9);

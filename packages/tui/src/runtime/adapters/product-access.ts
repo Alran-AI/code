@@ -1,4 +1,4 @@
-import { isLegacyManagedMinimaxProvider } from "@mavis/config";
+import { isLegacyManagedAlranProvider } from "@mavis/config";
 import {
   normalizeTuiPermissionMode,
   type TuiPermissionMode,
@@ -21,17 +21,17 @@ import type {
 } from "../port.js";
 import type { TuiRuntimeAccessContext } from "./access-context.js";
 import type {
-  McodeCreateProviderInput,
-  McodeCodexOAuthStartResult,
-  McodeCodexOAuthLoginOptions,
-  McodeCodexOAuthStatus,
-  McodeMiniMaxModelSource,
-  McodeProviderTemplate,
-  McodeProviderTestResult,
-  McodeRuntimeProviderView,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
-  McodeUpdateProviderInput,
+  AlranCreateProviderInput,
+  AlranCodexOAuthStartResult,
+  AlranCodexOAuthLoginOptions,
+  AlranCodexOAuthStatus,
+  AlranAlranModelSource,
+  AlranProviderTemplate,
+  AlranProviderTestResult,
+  AlranRuntimeProviderView,
+  AlranSaveProviderCandidateInput,
+  AlranSaveProviderCandidateResult,
+  AlranUpdateProviderInput,
 } from "../../provider/contract.js";
 import {
   normalizeAccountStatus,
@@ -130,81 +130,81 @@ export class TuiProductAccess {
     });
   }
 
-  async listUserModelProviders(): Promise<readonly McodeRuntimeProviderView[]> {
+  async listUserModelProviders(): Promise<readonly AlranRuntimeProviderView[]> {
     const providers = (await this.context
       .service("provider.list")
-      .listUserModelProviders()) as unknown as readonly McodeRuntimeProviderView[];
+      .listUserModelProviders()) as unknown as readonly AlranRuntimeProviderView[];
     return providers.filter(
       (provider) =>
-        !isLegacyManagedMinimaxProvider(provider.providerId, provider.baseUrl),
+        !isLegacyManagedAlranProvider(provider.providerId, provider.baseUrl),
     );
   }
 
-  async listProviderPresets(): Promise<readonly McodeProviderTemplate[]> {
+  async listProviderPresets(): Promise<readonly AlranProviderTemplate[]> {
     return (await this.context
       .service("provider.presets")
-      .listProviderPresets()) as readonly McodeProviderTemplate[];
+      .listProviderPresets()) as readonly AlranProviderTemplate[];
   }
 
-  async getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus> {
+  async getCodexOAuthStatus(): Promise<AlranCodexOAuthStatus> {
     return (await this.context
       .service("provider.codex-oauth.status")
-      .getCodexOAuthStatus()) as McodeCodexOAuthStatus;
+      .getCodexOAuthStatus()) as AlranCodexOAuthStatus;
   }
 
   async startCodexOAuthLogin(
-    options?: McodeCodexOAuthLoginOptions,
-  ): Promise<McodeCodexOAuthStartResult> {
+    options?: AlranCodexOAuthLoginOptions,
+  ): Promise<AlranCodexOAuthStartResult> {
     return (await this.context
       .service("provider.codex-oauth.start")
-      .startCodexOAuthLogin(options)) as McodeCodexOAuthStartResult;
+      .startCodexOAuthLogin(options)) as AlranCodexOAuthStartResult;
   }
 
-  async cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus> {
+  async cancelCodexOAuthLogin(loginId: string): Promise<AlranCodexOAuthStatus> {
     return (await this.context
       .service("provider.codex-oauth.cancel")
-      .cancelCodexOAuthLogin(loginId)) as McodeCodexOAuthStatus;
+      .cancelCodexOAuthLogin(loginId)) as AlranCodexOAuthStatus;
   }
 
-  async getMiniMaxApiKeyStatus(): Promise<{
+  async getAlranApiKeyStatus(): Promise<{
     readonly hasApiKey: boolean;
     readonly maskedApiKey?: string;
-    readonly cachedStatus?: McodeProviderTestResult["status"];
+    readonly cachedStatus?: AlranProviderTestResult["status"];
   }> {
     return (await this.context
-      .service("provider.minimax.status")
-      .getMiniMaxApiKeyStatus()) as {
+      .service("provider.alran.status")
+      .getAlranApiKeyStatus()) as {
       hasApiKey: boolean;
       maskedApiKey?: string;
-      cachedStatus?: McodeProviderTestResult["status"];
+      cachedStatus?: AlranProviderTestResult["status"];
     };
   }
 
-  getMiniMaxModelSource(): Promise<McodeMiniMaxModelSource> {
+  getAlranModelSource(): Promise<AlranAlranModelSource> {
     return this.context
-      .service("provider.minimax.source")
-      .getMiniMaxModelSource();
+      .service("provider.alran.source")
+      .getAlranModelSource();
   }
 
-  setMiniMaxModelSource(
-    source: McodeMiniMaxModelSource,
-  ): Promise<McodeMiniMaxModelSource> {
+  setAlranModelSource(
+    source: AlranAlranModelSource,
+  ): Promise<AlranAlranModelSource> {
     return this.context
-      .service("provider.minimax.source")
-      .setMiniMaxModelSource({ source });
+      .service("provider.alran.source")
+      .setAlranModelSource({ source });
   }
 
-  async upsertMiniMaxApiKey(input: {
+  async upsertAlranApiKey(input: {
     readonly apiKey: string;
     readonly saveAndUse?: boolean;
   }): Promise<void> {
     await this.context
-      .service("provider.minimax.upsert")
-      .upsertMiniMaxApiKey(input);
+      .service("provider.alran.upsert")
+      .upsertAlranApiKey(input);
   }
 
   async createUserModelProvider(
-    input: McodeCreateProviderInput,
+    input: AlranCreateProviderInput,
   ): Promise<void> {
     await this.context.service("provider.create").createUserModelProvider({
       ...input,
@@ -213,7 +213,7 @@ export class TuiProductAccess {
   }
 
   discoverUserModelsCandidate(
-    input: import("../../provider/contract.js").McodeDiscoverProviderModelsInput,
+    input: import("../../provider/contract.js").AlranDiscoverProviderModelsInput,
   ) {
     return this.context
       .service("provider.discover")
@@ -225,7 +225,7 @@ export class TuiProductAccess {
     saveAndUse,
     skipConnectionTest,
     ...candidate
-  }: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult> {
+  }: AlranSaveProviderCandidateInput): Promise<AlranSaveProviderCandidateResult> {
     return (await this.context
       .service("provider.save-candidate")
       .saveUserModelProviderCandidate({
@@ -238,11 +238,11 @@ export class TuiProductAccess {
         modelId,
         ...(skipConnectionTest !== undefined ? { skipConnectionTest } : {}),
         ...(saveAndUse !== undefined ? { saveAndUse } : {}),
-      })) as McodeSaveProviderCandidateResult;
+      })) as AlranSaveProviderCandidateResult;
   }
 
   async updateUserModelProvider(
-    input: McodeUpdateProviderInput,
+    input: AlranUpdateProviderInput,
   ): Promise<void> {
     await this.context.service("provider.update").updateUserModelProvider({
       ...input,
@@ -258,19 +258,19 @@ export class TuiProductAccess {
 
   async testUserModelProvider(
     providerId: string,
-  ): Promise<McodeProviderTestResult> {
+  ): Promise<AlranProviderTestResult> {
     return (await this.context
       .service("provider.test")
-      .testUserModelProvider({ providerId })) as McodeProviderTestResult;
+      .testUserModelProvider({ providerId })) as AlranProviderTestResult;
   }
 
   async testUserModel(
     providerId: string,
     modelId: string,
-  ): Promise<McodeProviderTestResult> {
+  ): Promise<AlranProviderTestResult> {
     return (await this.context
       .service("provider.test-model")
-      .testUserModel({ providerId, modelId })) as McodeProviderTestResult;
+      .testUserModel({ providerId, modelId })) as AlranProviderTestResult;
   }
 
   async getSessionUsage(sessionId: string): Promise<TuiSessionUsage> {

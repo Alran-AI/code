@@ -83,8 +83,8 @@ function readExternalWorkspaceSkillRoots(
     const nearestPriorityBonus = (rootCount - index) / 1000;
     return [
       externalSkillRoot(
-        'workspace-minimax',
-        join(rootPath, '.minimax', 'skills'),
+        'workspace-alran',
+        join(rootPath, '.alran', 'skills'),
         'workspace',
         skillsConfig,
         nearestPriorityBonus,

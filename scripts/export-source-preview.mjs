@@ -64,19 +64,19 @@ let extractor;
 try {
   receiptFd = openSync(sidecar, "wx", 0o600);
   await measure("archive", () =>
-    git(["archive", "--format=tar.gz", "--prefix=minimax-code/", revision], {
+    git(["archive", "--format=tar.gz", "--prefix=alran-code/", revision], {
       stdio: ["ignore", fd, "pipe"],
     }),
   );
-  snapshot = mkdtempSync(path.join(tmpdir(), "mcode-source-export-"));
+  snapshot = mkdtempSync(path.join(tmpdir(), "alran-source-export-"));
   extractor = await measure("extract", () =>
     extractSourceArchive(
       destination,
       snapshot,
-      process.env.MCODE_SOURCE_EXTRACTOR,
+      process.env.ALRAN_SOURCE_EXTRACTOR,
     ),
   );
-  const snapshotRoot = path.join(snapshot, "minimax-code");
+  const snapshotRoot = path.join(snapshot, "alran-code");
   const check = await measure("inventory", () =>
     spawnSync(
       process.execPath,
@@ -109,10 +109,10 @@ try {
     await measure("cleanup", () =>
       rmSync(snapshot, { recursive: true, force: true }),
     );
-  if (process.env.MCODE_VERIFY_REPORT_DIR) {
-    mkdirSync(process.env.MCODE_VERIFY_REPORT_DIR, { recursive: true });
+  if (process.env.ALRAN_VERIFY_REPORT_DIR) {
+    mkdirSync(process.env.ALRAN_VERIFY_REPORT_DIR, { recursive: true });
     writeFileSync(
-      path.join(process.env.MCODE_VERIFY_REPORT_DIR, "export.json"),
+      path.join(process.env.ALRAN_VERIFY_REPORT_DIR, "export.json"),
       `${JSON.stringify({ revision, extractor, stages }, null, 2)}\n`,
     );
   }

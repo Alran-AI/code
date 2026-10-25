@@ -1,41 +1,41 @@
 import path from 'node:path';
 
-import { McodePluginApplication } from '../plugin/application.js';
+import { AlranPluginApplication } from '../plugin/application.js';
 import type {
-  McodePluginCatalog,
-  McodePluginCliRequest,
-  McodePluginMarketplace,
-  McodePluginView,
+  AlranPluginCatalog,
+  AlranPluginCliRequest,
+  AlranPluginMarketplace,
+  AlranPluginView,
 } from '../plugin/contract.js';
 import { prepareTuiDataDir } from '../runtime/data-dir.js';
 import { createTuiRuntime, shutdownTuiRuntime } from '../runtime/lifecycle.js';
 
-interface McodePluginCommandApplication {
+interface AlranPluginCommandApplication {
   catalog(input: {
     readonly includeAvailable: boolean;
-    readonly marketplace?: McodePluginMarketplace;
-  }): Promise<McodePluginCatalog>;
-  install(plugin: McodePluginView): Promise<McodePluginView>;
-  remove(plugin: McodePluginView): Promise<McodePluginView>;
-  setEnabled(plugin: McodePluginView, enabled: boolean): Promise<McodePluginView>;
+    readonly marketplace?: AlranPluginMarketplace;
+  }): Promise<AlranPluginCatalog>;
+  install(plugin: AlranPluginView): Promise<AlranPluginView>;
+  remove(plugin: AlranPluginView): Promise<AlranPluginView>;
+  setEnabled(plugin: AlranPluginView, enabled: boolean): Promise<AlranPluginView>;
   refresh(): Promise<void>;
 }
 
-interface McodePluginCommandContext {
-  readonly application: McodePluginCommandApplication;
+interface AlranPluginCommandContext {
+  readonly application: AlranPluginCommandApplication;
   readonly dataDir: string;
   shutdown(): Promise<void>;
 }
 
-export interface RunMcodePluginCommandOptions {
+export interface RunAlranPluginCommandOptions {
   readonly version: string;
-  readonly request: McodePluginCliRequest;
+  readonly request: AlranPluginCliRequest;
   readonly lane?: string;
-  readonly createContext?: (lane?: string) => Promise<McodePluginCommandContext>;
+  readonly createContext?: (lane?: string) => Promise<AlranPluginCommandContext>;
 }
 
-export async function runMcodePluginCommand(
-  options: RunMcodePluginCommandOptions,
+export async function runAlranPluginCommand(
+  options: RunAlranPluginCommandOptions,
 ): Promise<string> {
   const context = options.createContext
     ? await options.createContext(options.lane)
@@ -99,7 +99,7 @@ export async function runMcodePluginCommand(
   }
 }
 
-function toCliPlugin(plugin: McodePluginView) {
+function toCliPlugin(plugin: AlranPluginView) {
   return {
     pluginId: plugin.pluginId,
     name: plugin.name,
@@ -114,7 +114,7 @@ function toCliPlugin(plugin: McodePluginView) {
   };
 }
 
-function formatPluginRows(catalog: McodePluginCatalog): string {
+function formatPluginRows(catalog: AlranPluginCatalog): string {
   return [...catalog.installed, ...catalog.available]
     .map((plugin) => {
       const marker = plugin.enabled ? '[*]' : plugin.installed ? '[-]' : '[ ]';
@@ -124,7 +124,7 @@ function formatPluginRows(catalog: McodePluginCatalog): string {
     .join('\n');
 }
 
-function formatPlugin(plugin: McodePluginView): string {
+function formatPlugin(plugin: AlranPluginView): string {
   return formatPluginRows({
     installed: plugin.installed ? [plugin] : [],
     available: plugin.installed ? [] : [plugin],
@@ -133,11 +133,11 @@ function formatPlugin(plugin: McodePluginView): string {
 
 function parseSelector(
   selector: string,
-  explicitMarketplace?: McodePluginMarketplace,
-): { readonly name: string; readonly marketplace?: McodePluginMarketplace } {
+  explicitMarketplace?: AlranPluginMarketplace,
+): { readonly name: string; readonly marketplace?: AlranPluginMarketplace } {
   const match = /^([^@]+?)(?:@(official|local))?$/.exec(selector.trim());
   if (!match?.[1]) throw new Error(`Invalid Plugin selector: ${selector}`);
-  const marketplace = match[2] as McodePluginMarketplace | undefined;
+  const marketplace = match[2] as AlranPluginMarketplace | undefined;
   if (marketplace && explicitMarketplace && marketplace !== explicitMarketplace) {
     throw new Error(
       `Plugin selector marketplace conflicts with --marketplace ${explicitMarketplace}.`,
@@ -147,10 +147,10 @@ function parseSelector(
 }
 
 function selectPlugin(
-  plugins: readonly McodePluginView[],
+  plugins: readonly AlranPluginView[],
   name: string,
-  marketplace?: McodePluginMarketplace,
-): McodePluginView {
+  marketplace?: AlranPluginMarketplace,
+): AlranPluginView {
   const matches = plugins.filter(
     (plugin) =>
       plugin.name === name && (marketplace === undefined || plugin.marketplace === marketplace),
@@ -162,13 +162,13 @@ function selectPlugin(
       `Plugin ${name} matches multiple marketplaces; use ${name}@official or ${name}@local.`,
     );
   }
-  return matches[0] as McodePluginView;
+  return matches[0] as AlranPluginView;
 }
 
 async function createPluginCommandContext(
   version: string = 'unknown',
   lane?: string,
-): Promise<McodePluginCommandContext> {
+): Promise<AlranPluginCommandContext> {
   const dataDir = await prepareTuiDataDir();
   const runtime = await createTuiRuntime({
     dataDir,
@@ -178,7 +178,7 @@ async function createPluginCommandContext(
     ...(lane ? { lane } : {}),
   });
   return {
-    application: new McodePluginApplication(runtime.adapter),
+    application: new AlranPluginApplication(runtime.adapter),
     dataDir,
     shutdown: async () => {
       await shutdownTuiRuntime(runtime);

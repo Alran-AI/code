@@ -31,11 +31,11 @@ describe.skipIf(process.platform === "win32")(
   "credential-bearing config permissions",
   () => {
     beforeEach(() => {
-      root = fs.mkdtempSync(join(os.tmpdir(), "mcode-config-permissions-"));
+      root = fs.mkdtempSync(join(os.tmpdir(), "alran-config-permissions-"));
       dataDir = join(root, "profile");
       fs.mkdirSync(dataDir);
       vi.spyOn(os, "homedir").mockReturnValue(root);
-      vi.stubEnv("MINIMAX_DATA_DIR", dataDir);
+      vi.stubEnv("ALRAN_DATA_DIR", dataDir);
       vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "0");
       resetConfig();
       setLegacyByokProviderMigrationEnabled(false);
@@ -58,14 +58,14 @@ describe.skipIf(process.platform === "win32")(
         "BYOK",
         () =>
           updateLocalByokConfig((draft) => {
-            draft.minimax_api = { apiKey: secret };
+            draft.alran_api = { apiKey: secret };
           }),
       ],
       [
         "legacy BYOK",
         () =>
           updateLegacyByok((draft) => {
-            draft.minimax_api = { apiKey: secret };
+            draft.alran_api = { apiKey: secret };
           }),
       ],
       [
@@ -183,7 +183,7 @@ describe.skipIf(process.platform === "win32")(
     });
 
     it("copies default-profile credentials into a private config", () => {
-      const defaults = join(root, ".minimax");
+      const defaults = join(root, ".alran");
       fs.mkdirSync(defaults);
       fs.writeFileSync(join(defaults, "config.yaml"), document, {
         mode: 0o644,

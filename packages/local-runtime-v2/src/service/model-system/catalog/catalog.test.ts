@@ -112,18 +112,18 @@ describe('listLocalRuntimeModels', () => {
     ]);
   });
 
-  it('reports the resolved managed MiniMax API protocol without model-name inference', () => {
+  it('reports the resolved managed Alran API protocol without model-name inference', () => {
     const entries = listLocalRuntimeModels(
       config({
-        minimaxModelSource: 'minimax_api_key',
-        provider: { minimax: { models: { 'MiniMax-M3': {} } } },
+        alranModelSource: 'alran_api_key',
+        provider: { alran: { models: { 'Alran-M3': {} } } },
       }),
     );
 
     expect(entries).toContainEqual(
       expect.objectContaining({
-        providerId: 'minimax',
-        modelId: 'MiniMax-M3',
+        providerId: 'alran',
+        modelId: 'Alran-M3',
         apiFormat: 'anthropic-messages',
       }),
     );
@@ -140,36 +140,36 @@ describe('listLocalRuntimeModels', () => {
 describe('resolveLocalRuntimeModelKey', () => {
   const modelConfig = config({
     provider: {
-      minimax: {
-        name: 'MiniMax',
+      alran: {
+        name: 'Alran',
         options: { authMode: 'api-key' },
         models: {
-          'MiniMax-M2.7': { name: 'MiniMax-M2.7' },
-          'MiniMax-M2.7-highspeed': { name: 'MiniMax-M2.7-highspeed' },
-          'MiniMax-M3': { name: 'MiniMax-M3' },
+          'Alran-M2.7': { name: 'Alran-M2.7' },
+          'Alran-M2.7-highspeed': { name: 'Alran-M2.7-highspeed' },
+          'Alran-M3': { name: 'Alran-M3' },
         },
       },
     },
   });
 
   it('keeps an exact source-qualified model key', () => {
-    expect(resolveLocalRuntimeModelKey(modelConfig, 'minimax/MiniMax-M3')).toEqual({
+    expect(resolveLocalRuntimeModelKey(modelConfig, 'alran/Alran-M3')).toEqual({
       kind: 'resolved',
-      modelKey: 'minimax/MiniMax-M3',
+      modelKey: 'alran/Alran-M3',
     });
   });
 
   it('normalizes a unique model shorthand to its source-qualified key', () => {
     expect(resolveLocalRuntimeModelKey(modelConfig, 'M3')).toEqual({
       kind: 'resolved',
-      modelKey: 'minimax/MiniMax-M3',
+      modelKey: 'alran/Alran-M3',
     });
   });
 
   it('returns every candidate instead of guessing when shorthand is ambiguous', () => {
     expect(resolveLocalRuntimeModelKey(modelConfig, '2.7')).toEqual({
       kind: 'ambiguous',
-      candidates: ['minimax/MiniMax-M2.7', 'minimax/MiniMax-M2.7-highspeed'],
+      candidates: ['alran/Alran-M2.7', 'alran/Alran-M2.7-highspeed'],
     });
   });
 

@@ -4,7 +4,7 @@
 import { maskSecret } from '../secret.js';
 import {
   CUSTOM_PROVIDER_ID_PREFIX,
-  MINIMAX_API_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
   formatModelKey,
   parseSourceQualifiedModelKey,
 } from '../resolution/model-key.js';
@@ -18,14 +18,14 @@ import type {
 } from '../contracts.js';
 import { modelConnectionTestFingerprint } from './config-fingerprint.js';
 import {
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
+  ALRAN_API_FORMAT,
+  ALRAN_API_PROVIDER_NAME,
   builtinProviderKind,
   buildModelEntry,
   cacheStatusView,
   customProviderKind,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
+  alranApiBaseUrl,
+  alranApiModels,
   type ModelCacheStatusView,
   type ModelProviderKind,
   type ModelProviderModelEntry,
@@ -54,8 +54,8 @@ export function buildBuiltinProviderView(
   const providerName = provider.name ?? providerId;
   const providerKind = builtinProviderKind(config, providerId, provider);
   const models =
-    providerId === 'minimax' && config.minimaxModelSource === 'minimax_api_key'
-      ? minimaxApiModels(config)
+    providerId === 'alran' && config.alranModelSource === 'alran_api_key'
+      ? alranApiModels(config)
       : (provider.models ?? {});
   return {
     providerId,
@@ -79,29 +79,29 @@ export function buildBuiltinProviderView(
   };
 }
 
-export function buildMinimaxProviderView(
+export function buildAlranProviderView(
   config: LocalRuntimeConfig,
   cache: ModelCacheData,
 ): ModelProviderView {
-  const apiKey = config.minimax_api?.apiKey?.trim();
+  const apiKey = config.alran_api?.apiKey?.trim();
   return {
-    providerId: MINIMAX_API_PROVIDER_ID,
-    name: MINIMAX_API_PROVIDER_NAME,
-    source: 'minimax_api',
-    kind: 'minimax-api-key',
+    providerId: ALRAN_API_PROVIDER_ID,
+    name: ALRAN_API_PROVIDER_NAME,
+    source: 'alran_api',
+    kind: 'alran-api-key',
     enabled: true,
-    baseUrl: minimaxApiBaseUrl(config),
-    apiFormat: MINIMAX_API_FORMAT,
+    baseUrl: alranApiBaseUrl(config),
+    apiFormat: ALRAN_API_FORMAT,
     hasApiKey: Boolean(apiKey),
     ...(apiKey ? { maskedApiKey: maskSecret(apiKey) } : {}),
     models: providerModelEntries(config, cache, {
-      providerId: MINIMAX_API_PROVIDER_ID,
-      models: minimaxApiModels(config),
-      providerSource: 'minimax_api',
-      providerKind: 'minimax-api-key',
-      providerName: MINIMAX_API_PROVIDER_NAME,
+      providerId: ALRAN_API_PROVIDER_ID,
+      models: alranApiModels(config),
+      providerSource: 'alran_api',
+      providerKind: 'alran-api-key',
+      providerName: ALRAN_API_PROVIDER_NAME,
     }),
-    ...(statusOf(cache, MINIMAX_API_PROVIDER_ID) ?? {}),
+    ...(statusOf(cache, ALRAN_API_PROVIDER_ID) ?? {}),
   };
 }
 
@@ -228,9 +228,9 @@ function customModelFingerprint(
   );
 }
 
-// Unvalidated read, reserved for the MiniMax API view returned straight after a
+// Unvalidated read, reserved for the Alran API view returned straight after a
 // key write. The badge the settings UI renders comes from
-// `getMinimaxApiKeyStatus`, which does check the fingerprint. BYOK provider
+// `getAlranApiKeyStatus`, which does check the fingerprint. BYOK provider
 // views must use `fingerprintedProviderStatus` instead.
 function statusOf(
   cache: ModelCacheData,

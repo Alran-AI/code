@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   firstBuiltinModel,
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planAlranApiResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 
@@ -24,10 +24,10 @@ const MESSAGES_API_COMPAT_PATH = String.fromCodePoint(
   0x63,
 );
 
-describe('MiniMax API BYOK planning', () => {
+describe('Alran API BYOK planning', () => {
   it('returns absent when the source is not configured and fails closed without a key', () => {
     expect(
-      planMinimaxApiResolution({
+      planAlranApiResolution({
         byok: undefined,
         providerConfig: undefined,
         modelId: 'model',
@@ -35,8 +35,8 @@ describe('MiniMax API BYOK planning', () => {
       }),
     ).toBeUndefined();
     expect(() =>
-      planMinimaxApiResolution({
-        byok: { minimax_api: { apiKey: '   ' } },
+      planAlranApiResolution({
+        byok: { alran_api: { apiKey: '   ' } },
         providerConfig: undefined,
         modelId: 'model',
         catalog: FALLBACK_CATALOG,
@@ -45,8 +45,8 @@ describe('MiniMax API BYOK planning', () => {
   });
 
   it('uses configured catalog limits and valid user-owned context overrides', () => {
-    const fallback = planMinimaxApiResolution({
-      byok: { minimax_api: { apiKey: ' key ' } },
+    const fallback = planAlranApiResolution({
+      byok: { alran_api: { apiKey: ' key ' } },
       providerConfig: undefined,
       modelId: 'model',
       catalog: FALLBACK_CATALOG,
@@ -57,13 +57,13 @@ describe('MiniMax API BYOK planning', () => {
       maxTokens: 16_384,
     });
     expect([
-      `https://api.minimaxi.com/${MESSAGES_API_COMPAT_PATH}`,
-      `https://api.minimax.io/${MESSAGES_API_COMPAT_PATH}`,
+      `https://api.ottili.one/${MESSAGES_API_COMPAT_PATH}`,
+      `https://api.ottili.one/${MESSAGES_API_COMPAT_PATH}`,
     ]).toContain(fallback?.baseUrl);
 
     expect(
-      planMinimaxApiResolution({
-        byok: { minimax_api: { apiKey: 'key', baseURL: ' https://byok.example ' } },
+      planAlranApiResolution({
+        byok: { alran_api: { apiKey: 'key', baseURL: ' https://byok.example ' } },
         providerConfig: undefined,
         modelId: 'model',
         catalog: { contextWindow: 10, maxTokens: 20, fromCatalog: true },
@@ -75,24 +75,24 @@ describe('MiniMax API BYOK planning', () => {
     });
 
     expect(
-      planMinimaxApiResolution({
+      planAlranApiResolution({
         byok: {
-          minimax_api: {
+          alran_api: {
             apiKey: 'key',
-            modelContextLimits: { 'MiniMax-M3': 1_000_000 },
+            modelContextLimits: { 'Alran-M3': 1_000_000 },
           },
         },
         providerConfig: {
-          minimax: {
+          alran: {
             models: {
-              'MiniMax-M3': {
+              'Alran-M3': {
                 limit: { context: 30, output: 40 },
                 contextWindowOptions: [30, 1_000_000],
               },
             },
           },
         },
-        modelId: 'MiniMax-M3',
+        modelId: 'Alran-M3',
         catalog: { contextWindow: 10, maxTokens: 20, fromCatalog: true },
       }),
     ).toMatchObject({ contextWindow: 1_000_000, maxTokens: 40 });
@@ -210,13 +210,13 @@ describe('custom BYOK planning', () => {
 });
 
 describe('BYOK config helpers', () => {
-  it('selects MiniMax first, then another configured provider', () => {
+  it('selects Alran first, then another configured provider', () => {
     expect(
       firstBuiltinModel({
-        minimax: { models: { mini: {} } },
+        alran: { models: { mini: {} } },
         other: { models: { other: {} } },
       }),
-    ).toEqual({ provider: 'minimax', modelId: 'mini' });
+    ).toEqual({ provider: 'alran', modelId: 'mini' });
     expect(firstBuiltinModel({ other: { models: { other: {} } } })).toEqual({
       provider: 'other',
       modelId: 'other',

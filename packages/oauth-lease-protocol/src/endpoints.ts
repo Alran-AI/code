@@ -3,9 +3,9 @@ import path from 'node:path';
 
 import { AuthLeaseProtocolError } from './contracts.js';
 
-const SOCKET_FILE = 'mcode-auth-lease-v1.sock';
-const CAPABILITY_FILE = 'mcode-auth-lease-v1.cap';
-const WINDOWS_PIPE_PREFIX = '\\\\.\\pipe\\mcode-auth-lease-';
+const SOCKET_FILE = 'alran-auth-lease-v1.sock';
+const CAPABILITY_FILE = 'alran-auth-lease-v1.cap';
+const WINDOWS_PIPE_PREFIX = '\\\\.\\pipe\\alran-auth-lease-';
 
 export interface AuthLeaseEndpoint {
   transport: 'unix' | 'pipe';

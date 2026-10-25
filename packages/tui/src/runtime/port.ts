@@ -16,8 +16,8 @@ import type {
 import type { TuiRuntimeEvent } from '../types/runtime-events.js';
 import type { TuiPermissionMode } from '../application/permission-mode.js';
 import type { TuiMessage, TuiStreamEvent } from './stream-events.js';
-import type { McodeProviderRuntimePort } from '../provider/contract.js';
-import type { McodePluginRuntimeAccess } from '../plugin/contract.js';
+import type { AlranProviderRuntimePort } from '../provider/contract.js';
+import type { AlranPluginRuntimeAccess } from '../plugin/contract.js';
 import type { TuiDailyCheckinOutcome } from '../checkin/application.js';
 import type {
   AbortSessionReq,
@@ -261,7 +261,7 @@ export interface TuiSessionForkPort {
   forkSession(input: ForkTuiSessionInput): Promise<TuiSessionForkResult>;
 }
 
-export interface TuiConfigurationPort extends McodeProviderRuntimePort {
+export interface TuiConfigurationPort extends AlranProviderRuntimePort {
   getRuntimeDiagnostics(): Promise<TuiRuntimeDiagnostics>;
   getInstructionSources(workspaceDir: string): Promise<readonly TuiInstructionSource[]>;
   getAccountStatus(
@@ -280,7 +280,7 @@ export interface TuiConfigurationPort extends McodeProviderRuntimePort {
 export interface TuiAccountStatusOptions {
   /** Inspect the model selected for this invocation without changing saved configuration. */
   readonly model?: TuiModelSelection;
-  /** Validate the MiniMax account even when the selected model uses an API key. */
+  /** Validate the Alran account even when the selected model uses an API key. */
   readonly requireManagedAuth?: boolean;
   includeMembership?: boolean;
   /** Bypass completed account/membership caches while still coalescing in-flight work. */
@@ -608,7 +608,7 @@ export interface TuiActiveRunControlPort {
 }
 
 /**
- * Product-facing Runtime surface required by the interactive MCode TUI.
+ * Product-facing Runtime surface required by the interactive Alran TUI.
  *
  * Headless run lifecycle is intentionally excluded: commands and application
  * services should depend on the narrow domain ports above instead of this
@@ -629,7 +629,7 @@ export type TuiRuntime = TuiSessionPort &
   TuiBackgroundTaskCapability &
   TuiActiveRunControlPort &
   TuiWorkspaceGitPort &
-  McodePluginRuntimeAccess &
+  AlranPluginRuntimeAccess &
   Partial<TuiSessionForkPort> &
   Partial<TuiWorkspaceFilePort>;
 

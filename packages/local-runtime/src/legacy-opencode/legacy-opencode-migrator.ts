@@ -1698,7 +1698,7 @@ export class LegacyOpencodeMigrator {
       // the native scan saw tool-call parts but conversion produced zero
       // pi-agent toolCall blocks, the runtime would replay a
       // conversation full of "let me check X" prefaces with no tool
-      // actions — the exact shape that starved MiniMax-M3 into
+      // actions — the exact shape that starved Alran-M3 into
       // one-sentence stops. Rather than accept `native-degraded` with a
       // silent loss, we mark the result as retryable so
       // `buildPiHistory` falls through to `display-seed-*` (which at

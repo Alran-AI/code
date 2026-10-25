@@ -190,7 +190,7 @@ interface LocalMcpBuiltinMatrixOptions {
   enabled?: boolean;
   /**
    * When true, the built-in Matrix MCP server exposes only `web_search`. Used
-   * when mcode-tools owns the Matrix media/generation tools but does NOT
+   * when alran-tools owns the Matrix media/generation tools but does NOT
    * provide web search, so the Matrix stdio child must stay alive to keep
    * `web_search` available while the redundant media tools are hidden.
    */

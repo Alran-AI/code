@@ -140,13 +140,13 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   },
   {
     name: 'update',
-    description: 'Check for and install an MCode update',
+    description: 'Check for and install an Alran update',
     category: 'Application',
     discoverability: 'search-only',
   },
   {
     name: 'changelog',
-    description: 'Show the packaged MCode update history',
+    description: 'Show the packaged Alran update history',
     category: 'Application',
   },
   {
@@ -315,7 +315,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   },
   {
     name: 'login',
-    description: 'Sign in to use MiniMax Code Agent features',
+    description: 'Sign in to use Alran Code Agent features',
     category: 'Runtime',
     discoverability: 'contextual',
     visibleWhen: (context) => !context.managedTokenPresent,
@@ -326,7 +326,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     category: 'Runtime',
     discoverability: 'contextual',
     visibleWhen: (context) => context.managedTokenPresent,
-    unavailableReason: 'No managed MiniMax account is signed in.',
+    unavailableReason: 'No managed Alran account is signed in.',
   },
   {
     ...TUI_COMMAND_DESCRIPTORS.doctor,
@@ -363,14 +363,14 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   },
   {
     name: 'checkin',
-    description: 'Claim the daily MiniMax account reward',
+    description: 'Claim the daily Alran account reward',
     category: 'Application',
     readiness: 'controller',
     preparingHint: 'Checking daily reward…',
   },
   {
     name: 'settings',
-    description: 'Configure the MCode terminal interface',
+    description: 'Configure the Alran terminal interface',
     category: 'Application',
   },
   {
@@ -383,7 +383,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   },
   {
     name: 'theme',
-    description: 'Choose the MCode color theme and terminal appearance',
+    description: 'Choose the Alran color theme and terminal appearance',
     category: 'Application',
     // Reachable by typing, but kept out of the default slash list: theme
     // selection is a preference, not a primary verb.
@@ -411,7 +411,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   },
   {
     name: 'provider',
-    description: 'View providers and edit MiniMax credentials',
+    description: 'View providers and edit Alran credentials',
     category: 'Runtime',
   },
   {
@@ -520,7 +520,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
   {
     name: 'quit',
     aliases: ['exit'],
-    description: 'Exit Minimax Code',
+    description: 'Exit Alran Code',
     category: 'Application',
     readiness: 'immediate',
   },
@@ -785,10 +785,10 @@ export function isTuiCommandAvailable(command: TuiCommand, context: TuiCommandCo
 
 const DEFAULT_COMMAND_CATALOG = createTuiCommandCatalog();
 
-export const MINIMAX_CODE_COMMANDS: readonly TuiCommand[] = DEFAULT_COMMAND_CATALOG.commands;
-export const MINIMAX_CODE_ACTIVE_RUN_COMMANDS: readonly TuiCommand[] =
+export const ALRAN_CODE_COMMANDS: readonly TuiCommand[] = DEFAULT_COMMAND_CATALOG.commands;
+export const ALRAN_CODE_ACTIVE_RUN_COMMANDS: readonly TuiCommand[] =
   DEFAULT_COMMAND_CATALOG.activeRunCommands;
-export const MINIMAX_CODE_DISCOVERABLE_COMMANDS: readonly TuiCommand[] =
+export const ALRAN_CODE_DISCOVERABLE_COMMANDS: readonly TuiCommand[] =
   DEFAULT_COMMAND_CATALOG.discoverableCommands;
 
 export function formatTuiCommandUsage(command: TuiCommand): string {

@@ -11,7 +11,7 @@ import { expect, it } from "vitest";
 import { whichSync } from "../third_party/sandbox-runtime/src/utils/which.js";
 
 it("finds executable files without starting an external command", () => {
-  const dir = mkdtempSync(path.join(tmpdir(), "mcode-executable-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "alran-executable-"));
   try {
     const name = process.platform === "win32" ? "fixture.EXE" : "fixture";
     const executable = path.join(dir, name);

@@ -1,12 +1,12 @@
 # Publication scope
 
-This repository publishes the reviewed MiniMax Code TUI, headless CLI, and ACP source listed in `release/public-source.json`. First-party code defaults to MIT. Third-party and file-level declarations continue to apply to their own material, including Apache-2.0 for `third_party/sandbox-runtime` and the retained notices for Pi and bundled skills.
+This repository publishes the reviewed Alran Code TUI, headless CLI, and ACP source listed in `release/public-source.json`. First-party code defaults to MIT. Third-party and file-level declarations continue to apply to their own material, including Apache-2.0 for `third_party/sandbox-runtime` and the retained notices for Pi and bundled skills.
 
 ## Included material
 
 - First-party source in the reviewed package roots, build and release scripts, tests, prompts, agents, skills, templates, examples, and documentation.
-- MiniMax names and the specific brand assets committed to this repository.
-- Vendored components and the model catalog under their existing terms. The repository also records pinned versions, integrity checks, and license metadata for the `mcode-tools` artifact and npm dependencies downloaded during installation or build.
+- Alran names and the specific brand assets committed to this repository.
+- Vendored components and the model catalog under their existing terms. The repository also records pinned versions, integrity checks, and license metadata for the `alran-tools` artifact and npm dependencies downloaded during installation or build.
 
 The source inventory is the machine-readable boundary. Adding a path to that inventory does not replace review of its content, provenance, license, or user-data risk.
 

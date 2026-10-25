@@ -10,30 +10,30 @@ import {
   writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import type { McodeNpmPackageName } from './install-source.js';
+import type { AlranNpmPackageName } from './install-source.js';
 import {
-  readMcodePrefixPackageMetadata,
-  type McodePrefixPackageMetadata,
+  readAlranPrefixPackageMetadata,
+  type AlranPrefixPackageMetadata,
 } from './prefix-update.js';
 
 const RELEASES_DIRECTORY = 'releases';
 const CURRENT_FILE = 'current';
-const UPDATE_LOCK_DIRECTORY = '.mcode-update.lock';
+const UPDATE_LOCK_DIRECTORY = '.alran-update.lock';
 const LAYOUT_VERSION = 2;
 
-type McodePlatformPath = typeof path.posix | typeof path.win32;
+type AlranPlatformPath = typeof path.posix | typeof path.win32;
 
-export interface McodeVersionedPrefixActivation {
+export interface AlranVersionedPrefixActivation {
   readonly stagingPrefix: string;
   readonly activePrefix: string;
-  readonly packageName: McodeNpmPackageName;
+  readonly packageName: AlranNpmPackageName;
   readonly expectedVersion: string;
   readonly runtimeExecutable: string;
   readonly npmExecutable: string;
   readonly registry: string;
 }
 
-export function createMcodeVersionedPrefixStagingPrefix(
+export function createAlranVersionedPrefixStagingPrefix(
   activePrefix: string,
   version: string,
   platform: NodeJS.Platform = process.platform,
@@ -46,11 +46,11 @@ export function createMcodeVersionedPrefixStagingPrefix(
   );
 }
 
-export function prepareMcodeVersionedPrefixStaging(stagingPrefix: string): void {
+export function prepareAlranVersionedPrefixStaging(stagingPrefix: string): void {
   mkdirSync(stagingPrefix, { recursive: true, mode: 0o700 });
 }
 
-export function acquireMcodeVersionedPrefixUpdateLock(activePrefix: string): () => void {
+export function acquireAlranVersionedPrefixUpdateLock(activePrefix: string): () => void {
   const lockDirectory = path.join(activePrefix, UPDATE_LOCK_DIRECTORY);
   mkdirSync(lockDirectory, { recursive: true, mode: 0o700 });
   const claimName = `${String(process.pid)}-${randomUUID()}.claim`;
@@ -69,7 +69,7 @@ export function acquireMcodeVersionedPrefixUpdateLock(activePrefix: string): () 
             (claim.pid < process.pid ||
               (claim.pid === process.pid && claim.name.localeCompare(claimName) < 0)))),
     );
-    if (blocked) throw new Error('Another MCode update is already running.');
+    if (blocked) throw new Error('Another Alran update is already running.');
   } catch (error) {
     rmSync(claimFile, { force: true });
     throw error;
@@ -83,8 +83,8 @@ export function acquireMcodeVersionedPrefixUpdateLock(activePrefix: string): () 
   };
 }
 
-export function activateMcodeVersionedPrefixInstall(
-  activation: McodeVersionedPrefixActivation,
+export function activateAlranVersionedPrefixInstall(
+  activation: AlranVersionedPrefixActivation,
   platform: NodeJS.Platform = process.platform,
 ): string {
   const platformPath = platformPathFor(platform);
@@ -128,13 +128,13 @@ export function activateMcodeVersionedPrefixInstall(
 
 function readExpectedMetadata(
   prefix: string,
-  activation: McodeVersionedPrefixActivation,
+  activation: AlranVersionedPrefixActivation,
   platform: NodeJS.Platform,
-): McodePrefixPackageMetadata {
-  const metadata = readMcodePrefixPackageMetadata(prefix, activation.packageName, platform);
+): AlranPrefixPackageMetadata {
+  const metadata = readAlranPrefixPackageMetadata(prefix, activation.packageName, platform);
   if (metadata.version !== activation.expectedVersion) {
     throw new Error(
-      `MCode release contains ${metadata.version}; expected ${activation.expectedVersion}.`,
+      `Alran release contains ${metadata.version}; expected ${activation.expectedVersion}.`,
     );
   }
   return metadata;
@@ -142,7 +142,7 @@ function readExpectedMetadata(
 
 function assertVersionedRelease(
   releasePrefix: string,
-  activation: McodeVersionedPrefixActivation,
+  activation: AlranVersionedPrefixActivation,
   platform: NodeJS.Platform,
 ): void {
   const metadata = readExpectedMetadata(releasePrefix, activation, platform);
@@ -154,14 +154,14 @@ function assertVersionedRelease(
   );
   for (const [file, contents] of expected) {
     if (readFileSync(file, 'utf8') !== contents) {
-      throw new Error(`MCode release launcher is invalid: ${file}`);
+      throw new Error(`Alran release launcher is invalid: ${file}`);
     }
   }
 }
 
 function writeVersionedReleaseLaunchers(
   releasePrefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: AlranPrefixPackageMetadata,
   runtimeExecutable: string,
   platform: NodeJS.Platform,
 ): void {
@@ -177,18 +177,18 @@ function writeVersionedReleaseLaunchers(
 
 function versionedReleaseLauncherContents(
   releasePrefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: AlranPrefixPackageMetadata,
   runtimeExecutable: string,
   platform: NodeJS.Platform,
 ): ReadonlyMap<string, string> {
   const platformPath = platformPathFor(platform);
   const launchers = new Map<string, string>();
   if (!existsSync(runtimeExecutable)) {
-    throw new Error('MCode versioned launcher runtime is missing.');
+    throw new Error('Alran versioned launcher runtime is missing.');
   }
   for (const command of versionedCommands(metadata)) {
     if (!command.binEntry) {
-      throw new Error(`MCode versioned ${command.name} package entry is missing.`);
+      throw new Error(`Alran versioned ${command.name} package entry is missing.`);
     }
     const entryFile = platformPath.join(metadata.packageRoot, ...command.binEntry.split('/'));
     const relativeEntry = platformPath.relative(releasePrefix, entryFile);
@@ -198,7 +198,7 @@ function versionedReleaseLauncherContents(
       platformPath.isAbsolute(relativeEntry) ||
       !existsSync(entryFile)
     ) {
-      throw new Error(`MCode versioned ${command.name} launcher path is invalid.`);
+      throw new Error(`Alran versioned ${command.name} launcher path is invalid.`);
     }
 
     if (platform === 'win32') {
@@ -215,7 +215,7 @@ function versionedReleaseLauncherContents(
 
     launchers.set(
       platformPath.join(releasePrefix, command.releaseLauncher),
-      `#!/bin/sh\nset -eu\nroot=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)\nnode=${quoteShell(runtimeExecutable)}\nif [ ! -x "$node" ]; then\n  printf "%s\\n" "MCode: Node runtime is missing: $node" "MCode: a system upgrade such as brew upgrade may have removed it." "MCode: re-run the MCode installer to repair this installation." >&2\n  exit 127\nfi\nexec "$node" "$root/${escapeDoubleQuoted(relativeEntry)}" "$@"\n`,
+      `#!/bin/sh\nset -eu\nroot=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)\nnode=${quoteShell(runtimeExecutable)}\nif [ ! -x "$node" ]; then\n  printf "%s\\n" "Alran: Node runtime is missing: $node" "Alran: a system upgrade such as brew upgrade may have removed it." "Alran: re-run the Alran installer to repair this installation." >&2\n  exit 127\nfi\nexec "$node" "$root/${escapeDoubleQuoted(relativeEntry)}" "$@"\n`,
     );
   }
   return launchers;
@@ -248,11 +248,11 @@ function versionedRootLauncherContents(
     for (const command of versionedCommands()) {
       launchers.set(
         platformPath.join(activePrefix, `${command.name}.cmd`),
-        `@ECHO off\r\nSETLOCAL\r\nSET /P MCODE_RELEASE=<"%~dp0current"\r\nECHO(%MCODE_RELEASE%| %SystemRoot%\\System32\\findstr.exe /R /X "[0-9A-Za-z][0-9A-Za-z._-]*" >NUL || EXIT /B 1\r\nCALL "%~dp0releases\\%MCODE_RELEASE%\\${command.releaseLauncher}.cmd" %*\r\nEXIT /B %ERRORLEVEL%\r\n`,
+        `@ECHO off\r\nSETLOCAL\r\nSET /P ALRAN_RELEASE=<"%~dp0current"\r\nECHO(%ALRAN_RELEASE%| %SystemRoot%\\System32\\findstr.exe /R /X "[0-9A-Za-z][0-9A-Za-z._-]*" >NUL || EXIT /B 1\r\nCALL "%~dp0releases\\%ALRAN_RELEASE%\\${command.releaseLauncher}.cmd" %*\r\nEXIT /B %ERRORLEVEL%\r\n`,
       );
       launchers.set(
         platformPath.join(activePrefix, `${command.name}.ps1`),
-        `#!/usr/bin/env pwsh\r\n$release = (Get-Content -LiteralPath (Join-Path $PSScriptRoot 'current') -Raw).Trim()\r\nif ($release -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]*$') { throw 'Invalid MCode current release pointer.' }\r\n& (Join-Path $PSScriptRoot "releases\\$release\\${command.releaseLauncher}.ps1") @args\r\nexit $LASTEXITCODE\r\n`,
+        `#!/usr/bin/env pwsh\r\n$release = (Get-Content -LiteralPath (Join-Path $PSScriptRoot 'current') -Raw).Trim()\r\nif ($release -notmatch '^[0-9A-Za-z][0-9A-Za-z._-]*$') { throw 'Invalid Alran current release pointer.' }\r\n& (Join-Path $PSScriptRoot "releases\\$release\\${command.releaseLauncher}.ps1") @args\r\nexit $LASTEXITCODE\r\n`,
       );
     }
     return launchers;
@@ -260,43 +260,43 @@ function versionedRootLauncherContents(
   for (const command of versionedCommands()) {
     launchers.set(
       platformPath.join(activePrefix, 'bin', command.name),
-      `#!/bin/sh\nset -eu\nroot=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)\nrelease=$(tr -d "\\r\\n" < "$root/current")\ncase "$release" in ""|*[!0-9A-Za-z._-]*) echo "Invalid MCode current release pointer." >&2; exit 1;; esac\nexec "$root/releases/$release/${command.releaseLauncher}" "$@"\n`,
+      `#!/bin/sh\nset -eu\nroot=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)\nrelease=$(tr -d "\\r\\n" < "$root/current")\ncase "$release" in ""|*[!0-9A-Za-z._-]*) echo "Invalid Alran current release pointer." >&2; exit 1;; esac\nexec "$root/releases/$release/${command.releaseLauncher}" "$@"\n`,
     );
   }
   return launchers;
 }
 
-interface McodeVersionedCommand {
-  readonly name: 'mcode' | 'mcode-tools';
-  readonly releaseLauncher: '.mcode-launcher' | '.mcode-tools-launcher';
+interface AlranVersionedCommand {
+  readonly name: 'alran' | 'alran-tools';
+  readonly releaseLauncher: '.alran-launcher' | '.alran-tools-launcher';
   readonly binEntry?: string;
 }
 
 function versionedCommands(
-  metadata?: McodePrefixPackageMetadata,
-): readonly McodeVersionedCommand[] {
+  metadata?: AlranPrefixPackageMetadata,
+): readonly AlranVersionedCommand[] {
   return [
     {
-      name: 'mcode',
-      releaseLauncher: '.mcode-launcher',
+      name: 'alran',
+      releaseLauncher: '.alran-launcher',
       ...(metadata ? { binEntry: metadata.binEntry } : {}),
     },
     {
-      name: 'mcode-tools',
-      releaseLauncher: '.mcode-tools-launcher',
-      ...(metadata ? { binEntry: metadata.mcodeToolsBinEntry } : {}),
+      name: 'alran-tools',
+      releaseLauncher: '.alran-tools-launcher',
+      ...(metadata ? { binEntry: metadata.alranToolsBinEntry } : {}),
     },
   ];
 }
 
 function writeVersionedInstallReceipt(
-  activation: McodeVersionedPrefixActivation,
+  activation: AlranVersionedPrefixActivation,
   platform: NodeJS.Platform,
 ): void {
   const platformPath = platformPathFor(platform);
   const receipt = {
     schemaVersion: 2,
-    product: 'minimax-code',
+    product: 'alran-code',
     updateOwner: 'npm-prefix',
     packageManager: 'npm',
     packageName: activation.packageName,
@@ -358,7 +358,7 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-function platformPathFor(platform: NodeJS.Platform): McodePlatformPath {
+function platformPathFor(platform: NodeJS.Platform): AlranPlatformPath {
   return platform === 'win32' ? path.win32 : path.posix;
 }
 

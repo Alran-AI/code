@@ -56,7 +56,7 @@ export const AGENT_BUILTIN_SKILL_IDS = [
   'init',
   'lark-tools',
   'llm-call',
-  'mcode-tools-master',
+  'alran-tools-master',
   'mavis-doctor',
   'pdf',
   'plugin-creator',
@@ -76,7 +76,7 @@ export const AGENT_CAPABILITY_OWNED_SKILL_IDS = [
   'resume-codex',
   'mavis',
   'create-agent',
-  'minimax-code-product',
+  'alran-code-product',
   'miniapp-creator',
 ] as const;
 

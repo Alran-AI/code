@@ -13,11 +13,11 @@ import type {
 } from '../contracts.js';
 import { planCustomProviderResolution } from '../resolution/model-resolver-byok.js';
 import { LocalModelCache } from '../catalog/model-cache.js';
-import { MINIMAX_API_DEFAULT_BASE_URL, minimaxApiModels } from '../catalog/minimax-api.js';
+import { ALRAN_API_DEFAULT_BASE_URL, alranApiModels } from '../catalog/alran-api.js';
 import { listLocalRuntimeModels } from '../catalog/catalog.js';
 import { LocalModelProviderError, LocalModelProviderService } from './service.js';
 
-const RAW_KEY = 'sk-user-minimax-key-12345678';
+const RAW_KEY = 'sk-user-alran-key-12345678';
 const CUSTOM_KEY = 'sk-custom-key-abcdefgh';
 
 let dataDir: string;
@@ -45,19 +45,19 @@ function makeHarness(
   const config: LocalRuntimeConfig = {
     dataDir,
     provider: {
-      minimax: {
+      alran: {
         options: { authMode: 'managed-login', baseURL: 'https://managed.example/v1' },
         models: {
-          'MiniMax-M3': {
-            name: 'MiniMax M3',
+          'Alran-M3': {
+            name: 'Alran M3',
             limit: { context: 200_000, output: 32_000 },
             contextWindowOptions: [512_000, 1_000_000],
           },
-          'MiniMax-M2.5': { name: 'MiniMax M2.5' },
+          'Alran-M2.5': { name: 'Alran M2.5' },
         },
       },
     },
-    defaultModel: 'minimax/MiniMax-M3',
+    defaultModel: 'alran/Alran-M3',
     ...initial,
   };
   let testResult: ModelConnectionTestResult = { ok: true };
@@ -79,13 +79,13 @@ function makeHarness(
     updateByokConfig: (mutate) => {
       const update = configUpdateTail.then(async () => {
         const draft: LocalByokConfigDraft = {
-          minimax_api: config.minimax_api ? { ...config.minimax_api } : undefined,
+          alran_api: config.alran_api ? { ...config.alran_api } : undefined,
           custom_provider: nextRawCustomProviders
             ? (JSON.parse(JSON.stringify(nextRawCustomProviders)) as Record<string, unknown>)
             : config.custom_provider
               ? (JSON.parse(JSON.stringify(config.custom_provider)) as Record<string, unknown>)
               : undefined,
-          minimaxModelSource: config.minimaxModelSource,
+          alranModelSource: config.alranModelSource,
           defaultModel: config.defaultModel,
           defaultModelVariant: config.defaultModelVariant,
         };
@@ -96,9 +96,9 @@ function makeHarness(
           configWriteError = undefined;
           throw error;
         }
-        config.minimax_api = draft.minimax_api as LocalRuntimeConfig['minimax_api'];
+        config.alran_api = draft.alran_api as LocalRuntimeConfig['alran_api'];
         config.custom_provider = draft.custom_provider as LocalRuntimeConfig['custom_provider'];
-        config.minimaxModelSource = draft.minimaxModelSource;
+        config.alranModelSource = draft.alranModelSource;
         config.defaultModel = draft.defaultModel;
         config.defaultModelVariant = draft.defaultModelVariant;
         return { config };
@@ -126,8 +126,8 @@ function makeHarness(
     compareAndSetModelContext: (input, beforeCommit) => {
       const update = configUpdateTail.then(async () => {
         const model =
-          input.providerId === 'minimax_api'
-            ? minimaxApiModels(config)[input.modelId]
+          input.providerId === 'alran_api'
+            ? alranApiModels(config)[input.modelId]
             : config.provider?.[input.providerId]?.models?.[input.modelId];
         if (model?.limit?.context !== input.expectedContextLimit) return false;
         if (!(await beforeCommit(config))) return false;
@@ -136,11 +136,11 @@ function makeHarness(
           configWriteError = undefined;
           throw error;
         }
-        if (input.providerId === 'minimax_api') {
-          config.minimax_api = {
-            ...(config.minimax_api ?? {}),
+        if (input.providerId === 'alran_api') {
+          config.alran_api = {
+            ...(config.alran_api ?? {}),
             modelContextLimits: {
-              ...(config.minimax_api?.modelContextLimits ?? {}),
+              ...(config.alran_api?.modelContextLimits ?? {}),
               [input.modelId]: input.contextLimit,
             },
           };
@@ -193,23 +193,23 @@ afterEach(async () => {
   await rm(dataDir, { recursive: true, force: true });
 });
 
-describe('MiniMax api key', () => {
+describe('Alran api key', () => {
   it('reports no key before upsert and a masked key after', async () => {
     const h = makeHarness();
-    expect(h.service.getMinimaxApiKeyStatus()).toEqual({ hasApiKey: false });
+    expect(h.service.getAlranApiKeyStatus()).toEqual({ hasApiKey: false });
 
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    const status = h.service.getMinimaxApiKeyStatus();
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    const status = h.service.getAlranApiKeyStatus();
     expect(status.hasApiKey).toBe(true);
     expect(status.maskedApiKey).toBe(`${RAW_KEY.slice(0, 4)}****${RAW_KEY.slice(-4)}`);
     expect(status.maskedApiKey).not.toBe(RAW_KEY);
-    expect(h.config.minimax_api?.apiKey).toBe(RAW_KEY);
+    expect(h.config.alran_api?.apiKey).toBe(RAW_KEY);
   });
 
-  it('uses remote-only models from the shared official catalog for MiniMax API', async () => {
+  it('uses remote-only models from the shared official catalog for Alran API', async () => {
     const h = makeHarness({
       provider: {
-        minimax: {
+        alran: {
           models: {
             'Remote-B': { name: 'Remote B' },
             'Remote-C': { name: 'Remote C' },
@@ -218,7 +218,7 @@ describe('MiniMax api key', () => {
       },
     });
 
-    const provider = await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    const provider = await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
 
     expect(provider.models.map((model) => model.modelId)).toEqual(['Remote-B', 'Remote-C']);
   });
@@ -226,79 +226,79 @@ describe('MiniMax api key', () => {
   it('rejects empty, whitespace-only, and masked placeholder keys', async () => {
     const h = makeHarness();
     for (const bad of ['', '   ', 'sk-u****5678', '****']) {
-      await expect(h.service.upsertMinimaxApiKey({ apiKey: bad })).rejects.toBeInstanceOf(
+      await expect(h.service.upsertAlranApiKey({ apiKey: bad })).rejects.toBeInstanceOf(
         LocalModelProviderError,
       );
     }
-    expect(h.config.minimax_api).toBeUndefined();
+    expect(h.config.alran_api).toBeUndefined();
   });
 
   it('upsert preserves an existing baseURL override and never writes one', async () => {
-    const h = makeHarness({ minimax_api: { apiKey: 'sk-old', baseURL: 'https://custom.example' } });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    expect(h.config.minimax_api).toEqual({ apiKey: RAW_KEY, baseURL: 'https://custom.example' });
+    const h = makeHarness({ alran_api: { apiKey: 'sk-old', baseURL: 'https://custom.example' } });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    expect(h.config.alran_api).toEqual({ apiKey: RAW_KEY, baseURL: 'https://custom.example' });
 
     const h2 = makeHarness();
-    await h2.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    expect(h2.config.minimax_api).toEqual({ apiKey: RAW_KEY });
+    await h2.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    expect(h2.config.alran_api).toEqual({ apiKey: RAW_KEY });
   });
 
-  it('save_and_use sets minimaxModelSource without calling selectModel', async () => {
+  it('save_and_use sets alranModelSource without calling selectModel', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY, saveAndUse: true });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY, saveAndUse: true });
     expect(h.selectModel).not.toHaveBeenCalled();
     expect(h.testCalls).toEqual([]);
-    expect(h.config.minimax_api?.apiKey).toBe(RAW_KEY);
-    expect(h.config.minimaxModelSource).toBe('minimax_api_key');
+    expect(h.config.alran_api?.apiKey).toBe(RAW_KEY);
+    expect(h.config.alranModelSource).toBe('alran_api_key');
   });
 
-  it('save_and_use sets minimaxModelSource when default model is unknown', async () => {
+  it('save_and_use sets alranModelSource when default model is unknown', async () => {
     const h = makeHarness({ defaultModel: 'other/unknown-model' });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY, saveAndUse: true });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY, saveAndUse: true });
     expect(h.selectModel).not.toHaveBeenCalled();
-    expect(h.config.minimaxModelSource).toBe('minimax_api_key');
+    expect(h.config.alranModelSource).toBe('alran_api_key');
   });
 
-  it('switches to the MiniMax API source without a prior connection test', async () => {
+  it('switches to the Alran API source without a prior connection test', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
 
-    await expect(h.service.setMinimaxModelSource('minimax_api_key')).resolves.toBe(
-      'minimax_api_key',
+    await expect(h.service.setAlranModelSource('alran_api_key')).resolves.toBe(
+      'alran_api_key',
     );
     expect(h.testCalls).toEqual([]);
-    expect(h.config.minimaxModelSource).toBe('minimax_api_key');
-    expect(() => h.service.assertModelSelectable('minimax', 'MiniMax-M3')).not.toThrow();
+    expect(h.config.alranModelSource).toBe('alran_api_key');
+    expect(() => h.service.assertModelSelectable('alran', 'Alran-M3')).not.toThrow();
 
-    const m3 = h.config.provider?.minimax?.models?.['MiniMax-M3'];
-    if (!m3?.limit) throw new Error('invalid MiniMax-M3 test fixture');
+    const m3 = h.config.provider?.alran?.models?.['Alran-M3'];
+    if (!m3?.limit) throw new Error('invalid Alran-M3 test fixture');
     m3.limit.context = 1_000_000;
-    expect(() => h.service.assertModelSelectable('minimax', 'MiniMax-M3')).not.toThrow();
+    expect(() => h.service.assertModelSelectable('alran', 'Alran-M3')).not.toThrow();
   });
 
-  it('switches to the MiniMax API source after a failed connection test', async () => {
+  it('switches to the Alran API source after a failed connection test', async () => {
     const h = makeHarness();
     h.setTestResult({
       ok: false,
       errorCode: 'UPSTREAM_REJECTED',
       errorMessage: 'provider rejected the test request',
     });
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    await h.service.testProvider('minimax_api');
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    await h.service.testProvider('alran_api');
 
-    await expect(h.service.setMinimaxModelSource('minimax_api_key')).resolves.toBe(
-      'minimax_api_key',
+    await expect(h.service.setAlranModelSource('alran_api_key')).resolves.toBe(
+      'alran_api_key',
     );
-    expect(h.config.minimaxModelSource).toBe('minimax_api_key');
+    expect(h.config.alranModelSource).toBe('alran_api_key');
   });
 
-  it('still requires a saved key before switching to the MiniMax API source', async () => {
+  it('still requires a saved key before switching to the Alran API source', async () => {
     const h = makeHarness();
 
-    await expect(h.service.setMinimaxModelSource('minimax_api_key')).rejects.toMatchObject({
+    await expect(h.service.setAlranModelSource('alran_api_key')).rejects.toMatchObject({
       code: 'NO_API_KEY',
     });
-    expect(h.config.minimaxModelSource).toBeUndefined();
+    expect(h.config.alranModelSource).toBeUndefined();
   });
 
   it('allows selecting a configured custom model without a prior connectivity test', () => {
@@ -421,15 +421,15 @@ describe('MiniMax api key', () => {
   });
 });
 
-describe('MiniMax model context', () => {
+describe('Alran model context', () => {
   it('updates a managed model using its current dynamic context options', async () => {
     const h = makeHarness({
-      minimaxModelSource: 'token_plan',
+      alranModelSource: 'token_plan',
       provider: {
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M4': {
-              name: 'MiniMax M4',
+            'Alran-M4': {
+              name: 'Alran M4',
               limit: { context: 256_000, output: 64_000 },
               contextWindowOptions: [256_000, 768_000],
             },
@@ -439,26 +439,26 @@ describe('MiniMax model context', () => {
     });
 
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M4',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M4',
         contextLimit: 768_000,
         expectedContextLimit: 256_000,
       }),
     ).resolves.toEqual({ ok: true });
-    expect(h.config.provider.minimax?.models?.['MiniMax-M4']?.limit?.context).toBe(768_000);
+    expect(h.config.provider.alran?.models?.['Alran-M4']?.limit?.context).toBe(768_000);
   });
 
   it('tests a Paygo M3 context candidate before committing config and cache together', async () => {
     const h = makeHarness({
-      minimax_api: { apiKey: RAW_KEY },
-      minimaxModelSource: 'minimax_api_key',
+      alran_api: { apiKey: RAW_KEY },
+      alranModelSource: 'alran_api_key',
     });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
 
-    const outcome = await h.service.updateMinimaxModelContext({
-      modelId: 'MiniMax-M3',
+    const outcome = await h.service.updateAlranModelContext({
+      modelId: 'Alran-M3',
       contextLimit: 1_000_000,
       expectedContextLimit: 512_000,
     });
@@ -468,54 +468,54 @@ describe('MiniMax model context', () => {
     expect(h.testCalls[0]?.target).toMatchObject({
       api: 'anthropic-messages',
       apiKey: RAW_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
     expect(m3.limit?.context).toBe(512_000);
-    expect(h.config.minimax_api?.modelContextLimits).toEqual({ 'MiniMax-M3': 1_000_000 });
-    expect(minimaxApiModels(h.config)['MiniMax-M3']?.limit?.context).toBe(1_000_000);
-    h.config.provider.minimax = {
+    expect(h.config.alran_api?.modelContextLimits).toEqual({ 'Alran-M3': 1_000_000 });
+    expect(alranApiModels(h.config)['Alran-M3']?.limit?.context).toBe(1_000_000);
+    h.config.provider.alran = {
       models: { 'Remote-Only-M4': { limit: { context: 256_000 } } },
     };
-    expect(minimaxApiModels(h.config)['MiniMax-M3']).toBeUndefined();
-    expect(() => h.service.assertModelSelectable('minimax', 'MiniMax-M3')).toThrowError(
+    expect(alranApiModels(h.config)['Alran-M3']).toBeUndefined();
+    expect(() => h.service.assertModelSelectable('alran', 'Alran-M3')).toThrowError(
       expect.objectContaining({ code: 'MODEL_NOT_FOUND' }),
     );
   });
 
   it('keeps the current Paygo M3 context and cache when its candidate test fails', async () => {
     const h = makeHarness({
-      minimax_api: { apiKey: RAW_KEY },
-      minimaxModelSource: 'minimax_api_key',
+      alran_api: { apiKey: RAW_KEY },
+      alranModelSource: 'alran_api_key',
     });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
     h.setTestResult({ ok: false, errorCode: 'rejected', errorMessage: 'Rejected' });
 
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M3',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
       }),
     ).resolves.toMatchObject({ ok: false, status: { state: 'failed' } });
     expect(m3.limit?.context).toBe(512_000);
-    expect(h.cache.load().model_status['minimax_api/MiniMax-M3']).toBeUndefined();
+    expect(h.cache.load().model_status['alran_api/Alran-M3']).toBeUndefined();
   });
 
   it('ignores an unsupported stored BYOK context and rejects selecting it', async () => {
     const h = makeHarness({
-      minimax_api: {
+      alran_api: {
         apiKey: RAW_KEY,
-        modelContextLimits: { 'MiniMax-M3': 768_000 },
+        modelContextLimits: { 'Alran-M3': 768_000 },
       },
-      minimaxModelSource: 'minimax_api_key',
+      alranModelSource: 'alran_api_key',
     });
 
-    expect(minimaxApiModels(h.config)['MiniMax-M3']?.limit?.context).toBe(200_000);
+    expect(alranApiModels(h.config)['Alran-M3']?.limit?.context).toBe(200_000);
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M3',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M3',
         contextLimit: 768_000,
         expectedContextLimit: 200_000,
       }),
@@ -524,27 +524,27 @@ describe('MiniMax model context', () => {
   });
 });
 
-describe('MiniMax model context transactions', () => {
+describe('Alran model context transactions', () => {
   it.each([
     [
       'source',
       (h: Harness) => {
-        h.config.minimaxModelSource = 'token_plan';
+        h.config.alranModelSource = 'token_plan';
       },
     ],
     [
       'api key',
       (h: Harness) => {
-        h.config.minimax_api = { apiKey: 'sk-changed-key' };
+        h.config.alran_api = { apiKey: 'sk-changed-key' };
       },
     ],
-  ])('rejects the M3 commit when the MiniMax %s changes during testing', async (_name, change) => {
+  ])('rejects the M3 commit when the Alran %s changes during testing', async (_name, change) => {
     const h = makeHarness({
-      minimax_api: { apiKey: RAW_KEY },
-      minimaxModelSource: 'minimax_api_key',
+      alran_api: { apiKey: RAW_KEY },
+      alranModelSource: 'alran_api_key',
     });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
     h.setTestHandler(async () => {
       change(h);
@@ -552,23 +552,23 @@ describe('MiniMax model context transactions', () => {
     });
 
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M3',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
       }),
     ).rejects.toMatchObject({ code: 'CONFIG_CHANGED', status: 409 });
     expect(m3.limit?.context).toBe(512_000);
-    expect(h.cache.load().model_status['minimax_api/MiniMax-M3']).toBeUndefined();
+    expect(h.cache.load().model_status['alran_api/Alran-M3']).toBeUndefined();
   });
 
-  it('serializes an older MiniMax test ahead of an M3 context transaction', async () => {
+  it('serializes an older Alran test ahead of an M3 context transaction', async () => {
     const h = makeHarness({
-      minimax_api: { apiKey: RAW_KEY },
-      minimaxModelSource: 'minimax_api_key',
+      alran_api: { apiKey: RAW_KEY },
+      alranModelSource: 'alran_api_key',
     });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
     let releaseFirst: (() => void) | undefined;
     const firstBlocked = new Promise<void>((resolve) => {
@@ -588,10 +588,10 @@ describe('MiniMax model context transactions', () => {
       return { ok: true };
     });
 
-    const olderTest = h.service.testModel('minimax_api', 'MiniMax-M3');
+    const olderTest = h.service.testModel('alran_api', 'Alran-M3');
     await started;
-    const contextUpdate = h.service.updateMinimaxModelContext({
-      modelId: 'MiniMax-M3',
+    const contextUpdate = h.service.updateAlranModelContext({
+      modelId: 'Alran-M3',
       contextLimit: 1_000_000,
       expectedContextLimit: 512_000,
     });
@@ -605,20 +605,20 @@ describe('MiniMax model context transactions', () => {
 
     expect(calls).toBe(3);
     expect(m3.limit?.context).toBe(512_000);
-    expect(h.config.minimax_api?.modelContextLimits).toEqual({ 'MiniMax-M3': 1_000_000 });
-    expect(minimaxApiModels(h.config)['MiniMax-M3']?.limit?.context).toBe(1_000_000);
-    expect(() => h.service.assertModelSelectable('minimax', 'MiniMax-M3')).not.toThrow();
+    expect(h.config.alran_api?.modelContextLimits).toEqual({ 'Alran-M3': 1_000_000 });
+    expect(alranApiModels(h.config)['Alran-M3']?.limit?.context).toBe(1_000_000);
+    expect(() => h.service.assertModelSelectable('alran', 'Alran-M3')).not.toThrow();
   });
 
   it('updates token-plan M3 context directly without a connection test', async () => {
-    const h = makeHarness({ minimaxModelSource: 'token_plan' });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const h = makeHarness({ alranModelSource: 'token_plan' });
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
 
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M3',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
       }),
@@ -629,18 +629,18 @@ describe('MiniMax model context transactions', () => {
 
   it('restores the cache state observed inside the M3 config transaction', async () => {
     const h = makeHarness({
-      minimax_api: { apiKey: RAW_KEY },
-      minimaxModelSource: 'minimax_api_key',
+      alran_api: { apiKey: RAW_KEY },
+      alranModelSource: 'alran_api_key',
     });
-    const m3 = h.config.provider.minimax?.models?.['MiniMax-M3'];
-    if (!m3) throw new Error('missing MiniMax-M3 fixture');
+    const m3 = h.config.provider.alran?.models?.['Alran-M3'];
+    if (!m3) throw new Error('missing Alran-M3 fixture');
     m3.limit = { ...m3.limit, context: 512_000 };
-    await h.cache.setModelStatus('minimax_api/MiniMax-M3', {
+    await h.cache.setModelStatus('alran_api/Alran-M3', {
       state: 'available',
       config_fingerprint: 'sha256:old',
     });
     h.setTestHandler(async () => {
-      await h.cache.setModelStatus('minimax_api/MiniMax-M3', {
+      await h.cache.setModelStatus('alran_api/Alran-M3', {
         state: 'failed',
         last_error_code: 'intervening',
         config_fingerprint: 'sha256:intervening',
@@ -650,14 +650,14 @@ describe('MiniMax model context transactions', () => {
     h.failNextConfigWrite(new Error('config disk full'));
 
     await expect(
-      h.service.updateMinimaxModelContext({
-        modelId: 'MiniMax-M3',
+      h.service.updateAlranModelContext({
+        modelId: 'Alran-M3',
         contextLimit: 1_000_000,
         expectedContextLimit: 512_000,
       }),
     ).rejects.toThrow('config disk full');
     expect(m3.limit?.context).toBe(512_000);
-    expect(h.cache.load().model_status['minimax_api/MiniMax-M3']).toMatchObject({
+    expect(h.cache.load().model_status['alran_api/Alran-M3']).toMatchObject({
       state: 'failed',
       last_error_code: 'intervening',
       config_fingerprint: 'sha256:intervening',
@@ -665,18 +665,18 @@ describe('MiniMax model context transactions', () => {
   });
 });
 
-describe('MiniMax api key response', () => {
+describe('Alran api key response', () => {
   it('upsert response contains only the masked key', async () => {
     const h = makeHarness();
-    const provider = await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    const provider = await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
     expect(provider.hasApiKey).toBe(true);
     expect(provider.maskedApiKey).toContain('****');
     expect(provider.maskedApiKey).not.toBe(RAW_KEY);
     expect(provider).not.toHaveProperty('rawApiKey');
     expect(JSON.stringify(provider)).not.toContain(RAW_KEY);
-    expect(provider.providerId).toBe('minimax_api');
-    expect(provider.kind).toBe('minimax-api-key');
-    expect(provider.source).toBe('minimax_api');
+    expect(provider.providerId).toBe('alran_api');
+    expect(provider.kind).toBe('alran-api-key');
+    expect(provider.source).toBe('alran_api');
   });
 
   it('accepts OpenAI Responses and passes custom headers to the connection test', async () => {
@@ -740,19 +740,19 @@ describe('custom provider API key reveal', () => {
     expect(() =>
       service.revealModelProviderApiKey({ providerId: 'custom_provider:missing' }),
     ).toThrow('Model provider not found');
-    expect(() => service.revealModelProviderApiKey({ providerId: 'builtin:minimax' })).toThrow(
+    expect(() => service.revealModelProviderApiKey({ providerId: 'builtin:alran' })).toThrow(
       'Model provider not found',
     );
   });
 
-  it('reads only the user MiniMax API key and never falls back to the managed provider key', () => {
+  it('reads only the user Alran API key and never falls back to the managed provider key', () => {
     const { service, config } = makeHarness();
-    expect(() => service.revealModelProviderApiKey({ providerId: 'minimax_api' })).toThrow(
-      'MiniMax API key is not configured',
+    expect(() => service.revealModelProviderApiKey({ providerId: 'alran_api' })).toThrow(
+      'Alran API key is not configured',
     );
-    config.minimax_api = { apiKey: CUSTOM_KEY };
-    expect(service.revealModelProviderApiKey({ providerId: 'minimax_api' })).toBe(CUSTOM_KEY);
-    expect(JSON.stringify(service.getMinimaxApiKeyStatus())).not.toContain(CUSTOM_KEY);
+    config.alran_api = { apiKey: CUSTOM_KEY };
+    expect(service.revealModelProviderApiKey({ providerId: 'alran_api' })).toBe(CUSTOM_KEY);
+    expect(JSON.stringify(service.getAlranApiKeyStatus())).not.toContain(CUSTOM_KEY);
   });
 
   it.each([
@@ -883,7 +883,7 @@ describe('custom providers', () => {
     expect(new Set(h.testCalls.map((call) => call.key)).size).toBe(3);
   });
 
-  it('tests every configured MiniMax-M3 Think Effort and reports the failing level', async () => {
+  it('tests every configured Alran-M3 Think Effort and reports the failing level', async () => {
     const h = makeHarness();
     h.setTestHandler(async (_key, target) =>
       target.effort === 'off'
@@ -893,13 +893,13 @@ describe('custom providers', () => {
 
     const outcome = await h.service.testUserModelCandidate(
       {
-        name: 'MiniMax Work',
-        baseUrl: 'https://api.minimax.io/v1',
+        name: 'Alran Work',
+        baseUrl: 'https://api.ottili.one/v1',
         apiKey: CUSTOM_KEY,
         apiFormat: 'openai-completions',
-        models: [{ modelId: 'MiniMax-M3', effortOptions: ['on', 'off'] }],
+        models: [{ modelId: 'Alran-M3', effortOptions: ['on', 'off'] }],
       },
-      'MiniMax-M3',
+      'Alran-M3',
     );
 
     expect(outcome).toMatchObject({
@@ -913,18 +913,18 @@ describe('custom providers', () => {
     expect(h.testCalls.map((call) => call.target.effort)).toEqual(['on', 'off']);
   });
 
-  it('probes a custom MiniMax-M3 with the default output limit when none is configured', async () => {
+  it('probes a custom Alran-M3 with the default output limit when none is configured', async () => {
     const h = makeHarness();
 
     await h.service.testUserModelCandidate(
       {
-        name: 'MiniMax Work',
-        baseUrl: 'https://api.minimax.io/v1',
+        name: 'Alran Work',
+        baseUrl: 'https://api.ottili.one/v1',
         apiKey: CUSTOM_KEY,
         apiFormat: 'openai-completions',
-        models: [{ modelId: 'MiniMax-M3', effortOptions: ['on', 'off'] }],
+        models: [{ modelId: 'Alran-M3', effortOptions: ['on', 'off'] }],
       },
-      'MiniMax-M3',
+      'Alran-M3',
     );
 
     // A real turn sends 16_384 here. A smaller probe budget fails the thinking
@@ -1062,7 +1062,7 @@ describe('custom provider candidate persistence', () => {
       });
       expect(failed.ok).toBe(false);
       expect(h.config.custom_provider).toBeUndefined();
-      expect(h.config.defaultModel).toBe('minimax/MiniMax-M3');
+      expect(h.config.defaultModel).toBe('alran/Alran-M3');
       expect(h.testCalls.map(({ target }) => target.baseUrl)).toEqual([generalUrl]);
 
       h.setTestResult({ ok: true });
@@ -1121,7 +1121,7 @@ describe('custom provider candidate persistence', () => {
     );
     expect(h.testCalls).toEqual([]);
     expect(h.selectModel).not.toHaveBeenCalled();
-    expect(h.config.defaultModel).toBe('minimax/MiniMax-M3');
+    expect(h.config.defaultModel).toBe('alran/Alran-M3');
   });
 
   it('saves an untested candidate without selecting it when skipConnectionTest is true', async () => {
@@ -1149,7 +1149,7 @@ describe('custom provider candidate persistence', () => {
     expect(outcome).toMatchObject({ ok: true, skippedTest: true });
     expect(outcome.status).toBeUndefined();
     expect(h.testCalls).toEqual([]);
-    expect(h.config.defaultModel).toBe('minimax/MiniMax-M3');
+    expect(h.config.defaultModel).toBe('alran/Alran-M3');
     const savedProviderKey = outcome.provider?.providerId.replace('custom_provider:', '');
     expect(savedProviderKey).toBeTruthy();
     expect(
@@ -1196,7 +1196,7 @@ describe('custom provider candidate persistence', () => {
     expect(outcome.provider?.models).toEqual([]);
     expect(h.config.custom_provider?.work?.models).toEqual({});
     expect(h.testCalls).toEqual([]);
-    expect(h.config.defaultModel).toBe('minimax/MiniMax-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 
@@ -2061,33 +2061,33 @@ describe('custom provider thinking configuration', () => {
     });
   });
 
-  it('stores MiniMax-M3 Think Effort choices like every other custom model', async () => {
+  it('stores Alran-M3 Think Effort choices like every other custom model', async () => {
     const h = makeHarness();
     await h.service.createUserProvider({
-      name: 'MiniMax Work',
-      baseUrl: 'https://api.minimax.example.com/messages',
+      name: 'Alran Work',
+      baseUrl: 'https://api.alran.example.com/messages',
       apiKey: CUSTOM_KEY,
       apiFormat: 'anthropic-messages',
       models: [
         {
-          modelId: 'MiniMax-M3',
+          modelId: 'Alran-M3',
           effortOptions: ['off', 'on'],
         },
       ],
     });
 
-    expect(h.config.custom_provider?.['minimax-work']?.models?.['MiniMax-M3']).toMatchObject({
+    expect(h.config.custom_provider?.['alran-work']?.models?.['Alran-M3']).toMatchObject({
       reasoning: true,
       thinking: { effortOptions: ['off', 'on'] },
     });
-    expect(h.config.custom_provider?.['minimax-work']?.models?.['MiniMax-M3']).not.toHaveProperty(
+    expect(h.config.custom_provider?.['alran-work']?.models?.['Alran-M3']).not.toHaveProperty(
       'thinking_config',
     );
-    expect(h.config.custom_provider?.['minimax-work']?.models?.['MiniMax-M3']).not.toHaveProperty(
+    expect(h.config.custom_provider?.['alran-work']?.models?.['Alran-M3']).not.toHaveProperty(
       'variants',
     );
     expect(h.service.listUserProviders()[0]?.models[0]).toMatchObject({
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
       effortOptions: ['off', 'on'],
     });
   });
@@ -2225,7 +2225,7 @@ describe('custom provider default model recovery', () => {
       models: [{ modelId: 'kept' }],
     });
 
-    expect(h.config.defaultModel).toBe('minimax/MiniMax-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 });
@@ -2397,7 +2397,7 @@ describe('custom provider deletion', () => {
     await h.service.deleteUserProvider({ providerId: 'custom_provider:work' });
     expect(h.config.custom_provider?.work).toBeUndefined();
     expect(h.cache.load().provider_status['custom_provider:work']).toBeUndefined();
-    expect(h.config.defaultModel).toBe('minimax/MiniMax-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 
@@ -2412,14 +2412,14 @@ describe('custom provider deletion', () => {
 describe('provider listings', () => {
   it('uses the active API catalog and context overrides in both model lists', () => {
     const h = makeHarness({
-      minimaxModelSource: 'minimax_api_key',
-      minimax_api: { apiKey: RAW_KEY, modelContextLimits: { 'MiniMax-M3': 1_000_000 } },
+      alranModelSource: 'alran_api_key',
+      alran_api: { apiKey: RAW_KEY, modelContextLimits: { 'Alran-M3': 1_000_000 } },
       provider: {
-        minimax: {
+        alran: {
           options: { authMode: 'managed-login' },
           models: {
             'remote-only': { name: 'Remote Only' },
-            'MiniMax-M3': {
+            'Alran-M3': {
               limit: { context: 512_000, output: 128_000 },
               contextWindowOptions: [512_000, 1_000_000],
             },
@@ -2429,14 +2429,14 @@ describe('provider listings', () => {
     });
     const provider = h.service
       .listEffectiveProviders()
-      .find((item) => item.providerId === 'minimax');
-    const listed = listLocalRuntimeModels(h.config).filter((item) => item.providerId === 'minimax');
+      .find((item) => item.providerId === 'alran');
+    const listed = listLocalRuntimeModels(h.config).filter((item) => item.providerId === 'alran');
 
     expect(provider?.models.map((model) => model.modelId)).toEqual(
       listed.map((model) => model.modelId),
     );
     expect(provider?.models.some((model) => model.modelId === 'remote-only')).toBe(true);
-    expect(provider?.models.find((model) => model.modelId === 'MiniMax-M3')).toMatchObject({
+    expect(provider?.models.find((model) => model.modelId === 'Alran-M3')).toMatchObject({
       contextLimit: 1_000_000,
       contextWindowOptions: [512_000, 1_000_000],
     });
@@ -2444,7 +2444,7 @@ describe('provider listings', () => {
 
   it('lists builtin and custom providers, excludes disabled custom providers', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
     await h.service.createUserProvider({
       name: 'On',
       baseUrl: 'https://on.example.com',
@@ -2461,16 +2461,16 @@ describe('provider listings', () => {
 
     const effective = h.service.listEffectiveProviders();
     const ids = effective.map((p) => p.providerId);
-    expect(ids).toContain('minimax');
+    expect(ids).toContain('alran');
     expect(ids).toContain('custom_provider:on');
     expect(ids).not.toContain('custom_provider:off');
-    // minimax_api is no longer listed as a separate provider — source routing
+    // alran_api is no longer listed as a separate provider — source routing
     // is handled by the resolver at inference time.
-    expect(ids).not.toContain('minimax_api');
+    expect(ids).not.toContain('alran_api');
 
-    const minimax = effective.find((p) => p.providerId === 'minimax');
-    expect(minimax?.source).toBe('provider');
-    expect(minimax?.kind).toBe('minimax-managed');
+    const alran = effective.find((p) => p.providerId === 'alran');
+    expect(alran?.source).toBe('provider');
+    expect(alran?.kind).toBe('alran-managed');
 
     // user list still shows disabled providers with their config retained
     const user = h.service.listUserProviders();
@@ -2481,15 +2481,15 @@ describe('provider listings', () => {
     expect(user.find((p) => p.providerId === 'custom_provider:off')?.enabled).toBe(false);
   });
 
-  it('hides minimax_api when no key is saved', () => {
+  it('hides alran_api when no key is saved', () => {
     const h = makeHarness();
     const ids = h.service.listEffectiveProviders().map((p) => p.providerId);
-    expect(ids).not.toContain('minimax_api');
+    expect(ids).not.toContain('alran_api');
   });
 
   it('returns only masked keys in listings', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
     await h.service.createUserProvider({
       name: 'Work',
       baseUrl: 'https://api.example.com',
@@ -2497,7 +2497,7 @@ describe('provider listings', () => {
     });
     const effective = h.service.listEffectiveProviders();
     const user = h.service.listUserProviders();
-    const status = h.service.getMinimaxApiKeyStatus();
+    const status = h.service.getAlranApiKeyStatus();
 
     for (const provider of [...effective, ...user]) {
       if (provider.hasApiKey) {
@@ -2608,22 +2608,22 @@ describe('connection tests', () => {
     });
   });
 
-  it('tests the minimax_api provider against the derived base url and models', async () => {
+  it('tests the alran_api provider against the derived base url and models', async () => {
     const h = makeHarness();
-    await h.service.upsertMinimaxApiKey({ apiKey: RAW_KEY });
-    await h.service.testProvider('minimax_api');
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    await h.service.testProvider('alran_api');
     expect(h.testCalls[0]?.target).toMatchObject({
       api: 'anthropic-messages',
-      baseUrl: MINIMAX_API_DEFAULT_BASE_URL,
+      baseUrl: ALRAN_API_DEFAULT_BASE_URL,
       apiKey: RAW_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
-    expect(h.testCalls.map((call) => call.target.minimaxM3ThinkingMode)).toEqual(['on', 'off']);
+    expect(h.testCalls.map((call) => call.target.alranM3ThinkingMode)).toEqual(['on', 'off']);
   });
 
   it('rejects testing providers without a key or unknown providers', async () => {
     const h = makeHarness();
-    await expect(h.service.testProvider('minimax_api')).rejects.toMatchObject({ status: 400 });
+    await expect(h.service.testProvider('alran_api')).rejects.toMatchObject({ status: 400 });
     await expect(h.service.testProvider('custom_provider:nope')).rejects.toMatchObject({
       status: 404,
     });

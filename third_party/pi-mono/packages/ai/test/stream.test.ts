@@ -994,8 +994,8 @@ describe("Generate E2E Tests", () => {
 		});
 	});
 
-	describe.skipIf(!process.env.MINIMAX_API_KEY)("MiniMax Provider (MiniMax-M2.7 via Anthropic Messages)", () => {
-		const llm = getModel("minimax", "MiniMax-M2.7");
+	describe.skipIf(!process.env.ALRAN_API_KEY)("Alran Provider (Alran-M2.7 via Anthropic Messages)", () => {
+		const llm = getModel("alran", "Alran-M2.7");
 
 		it("should complete basic text generation", { retry: 3 }, async () => {
 			await basicTextGeneration(llm);

@@ -1,6 +1,6 @@
 import type { LocalModelConfig, LocalRuntimeConfig } from '../contracts.js';
-import { MINIMAX_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
-import { minimaxApiBaseUrl, minimaxApiModels } from './minimax-api.js';
+import { ALRAN_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
+import { alranApiBaseUrl, alranApiModels } from './alran-api.js';
 import {
   modelCacheStatusFor,
   modelConfigFingerprint,
@@ -20,8 +20,8 @@ export function byokModelTestStatus(
   modelId: string,
 ): ModelCacheStatusEntry | undefined {
   const parsed = parseProviderId(providerId);
-  if (parsed?.source === 'minimax_api') {
-    return minimaxModelTestStatus(config, cache, modelId);
+  if (parsed?.source === 'alran_api') {
+    return alranModelTestStatus(config, cache, modelId);
   }
   if (parsed?.source !== 'custom_provider') return undefined;
   return customModelTestStatus({
@@ -33,24 +33,24 @@ export function byokModelTestStatus(
   });
 }
 
-function minimaxModelTestStatus(
+function alranModelTestStatus(
   config: LocalRuntimeConfig,
   cache: ModelCacheData,
   modelId: string,
 ): ModelCacheStatusEntry | undefined {
-  const apiKey = config.minimax_api?.apiKey?.trim();
-  const model = minimaxApiModels(config)[modelId];
+  const apiKey = config.alran_api?.apiKey?.trim();
+  const model = alranApiModels(config)[modelId];
   if (!apiKey || !model) return undefined;
   const fingerprint = modelConnectionTestFingerprint(
     {
       api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', minimaxApiBaseUrl(config)),
+      baseUrl: normalizeProviderBaseUrl('anthropic-messages', alranApiBaseUrl(config)),
       apiKey,
       modelId,
     },
     model,
   );
-  return modelCacheStatusFor(cache, MINIMAX_API_PROVIDER_ID, modelId, fingerprint);
+  return modelCacheStatusFor(cache, ALRAN_API_PROVIDER_ID, modelId, fingerprint);
 }
 
 function customModelTestStatus(input: {

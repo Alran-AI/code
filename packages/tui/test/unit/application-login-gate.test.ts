@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
-  MINIMAX_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
+  ALRAN_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
   TuiLoginRequiredError,
   requireTuiAccountLogin,
   requireTuiAgentAccess,
   tuiAccountNeedsLoginPrompt,
 } from '../../src/application/login-gate.js';
 
-describe('MiniMax login gate', () => {
+describe('Alran login gate', () => {
   it.each([
     { authMode: 'byok', modelSource: 'byok' as const, managedTokenPresent: false },
     { authMode: 'byok', modelSource: 'byok' as const, managedTokenPresent: undefined },
@@ -62,12 +62,12 @@ describe('MiniMax login gate', () => {
       category: 'config',
       code: 'auth.login_required',
       retryable: false,
-      message: MINIMAX_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
+      message: ALRAN_CODE_HEADLESS_LOGIN_REQUIRED_MESSAGE,
       account,
     } satisfies Partial<TuiLoginRequiredError>);
   });
 
-  it('still requires MiniMax login for account-backed services while BYOK is selected', async () => {
+  it('still requires Alran login for account-backed services while BYOK is selected', async () => {
     const account = {
       status: 'ready' as const,
       authMode: 'byok',

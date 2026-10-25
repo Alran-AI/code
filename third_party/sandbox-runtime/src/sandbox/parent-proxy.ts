@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 /**
  * Parent/upstream HTTP proxy support.

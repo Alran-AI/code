@@ -1,8 +1,8 @@
 # 插件详情 Showcase
 
-每个插件可添加 `.minimax-plugin/showcases.json` 和 `showcase/` 原始媒体文件。
+每个插件可添加 `.alran-plugin/showcases.json` 和 `showcase/` 原始媒体文件。
 配置属于插件包版本；增加、修改、排序、清空、删除配置或更换素材都必须升级
-`.minimax-plugin/plugin.json` 的 `version`。manifest schema v1 和 `exampleQueries` 保持原契约。
+`.alran-plugin/plugin.json` 的 `version`。manifest schema v1 和 `exampleQueries` 保持原契约。
 两区仓库分别维护当地语言文案，不增加语言字段，也不通过管理后台修改 Showcase。
 
 ```json

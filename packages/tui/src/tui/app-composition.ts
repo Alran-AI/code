@@ -12,7 +12,7 @@ import { TuiComposerImagePreview } from './features/composer/image-preview.js';
 import { createTuiExternalTargetOpener } from '../host/open-external.js';
 import { readTuiClipboardText, writeTuiClipboardText } from '../host/clipboard-text.js';
 import { formatTuiActionFailure } from '../user-facing-failure.js';
-import type { McodeBusinessTelemetry } from '../analytics/business-telemetry.js';
+import type { AlranBusinessTelemetry } from '../analytics/business-telemetry.js';
 import type { TuiBackgroundTask } from '../runtime/port.js';
 import { TuiBusinessEventTracker } from '../analytics/tui-business-event-tracker.js';
 import type {
@@ -64,7 +64,7 @@ import {
   type TUI,
   type TuiMode,
 } from './engine/public.js';
-import { McodeInteractiveRenderer } from './renderer/index.js';
+import { AlranInteractiveRenderer } from './renderer/index.js';
 import type { TuiRunProjection } from './state/run-projection.js';
 import type { TuiStateStore } from './state/index.js';
 import { TuiThemeController } from './theme/controller.js';
@@ -75,9 +75,9 @@ import type { LocalTranscriptCellKind } from './transcript/local-appender.js';
 import type { TranscriptView } from './transcript/view.js';
 import type { CreateTuiAppOptions } from '../types/tui-app.js';
 import { Editor } from './widgets/editor/editor.js';
-import { MINIMAX_CODE_DEFAULT_AGENT_NAME } from '../product-context.js';
+import { ALRAN_CODE_DEFAULT_AGENT_NAME } from '../product-context.js';
 import { createTuiAutomationResultWriter } from './automation/result-writer.js';
-import { MINIMAX_CODE_WELCOME_DESIGN } from './shell/welcome/design.js';
+import { ALRAN_CODE_WELCOME_DESIGN } from './shell/welcome/design.js';
 
 // ---------------------------------------------------------------------------
 // Small numeric / utility helpers
@@ -97,7 +97,7 @@ export function createTuiChatControllerComposition(options: CreateTuiAppOptions)
   readonly writeAutomationResult?: CreateTuiChatControllerOptions['writeAutomationResult'];
   readonly workspaceRoots: TuiWorkspaceRoots;
 } {
-  const defaultAgentName = options.defaultAgentName ?? MINIMAX_CODE_DEFAULT_AGENT_NAME;
+  const defaultAgentName = options.defaultAgentName ?? ALRAN_CODE_DEFAULT_AGENT_NAME;
   const writer = createTuiAutomationResultWriter({
     statusLineItems: options.statusLineItems,
     resultPath: options.automationResultPath,
@@ -114,9 +114,9 @@ export function createTuiChatControllerComposition(options: CreateTuiAppOptions)
 // ---------------------------------------------------------------------------
 
 /**
- * Build the `ProcessTerminal` + `McodeInteractiveRenderer` + `TuiThemeController`
+ * Build the `ProcessTerminal` + `AlranInteractiveRenderer` + `TuiThemeController`
  * triad. Returned `themeController` is held by the caller so that
- * `McodeInteractiveRenderer.onRendererChanged` can rebind it after a
+ * `AlranInteractiveRenderer.onRendererChanged` can rebind it after a
  * main/fullscreen mode switch.
  */
 export function createTuiApplicationRenderer(options: CreateTuiAppOptions) {
@@ -134,7 +134,7 @@ export function createTuiApplicationRenderer(options: CreateTuiAppOptions) {
   const readClipboardText = options.readClipboardText ?? readTuiClipboardText;
   let themeController: TuiThemeController | undefined;
   const styleSearchMatch = (text: string): string => tuiChalk.hex(tuiColors.signal)(text);
-  const renderer = new McodeInteractiveRenderer({
+  const renderer = new AlranInteractiveRenderer({
     terminal,
     initialMode: options.tuiMode ?? 'regular',
     clearScrollbackOnStart: options.clearScrollbackOnStart,
@@ -346,7 +346,7 @@ export function createTuiApplicationWidgets(options: {
     },
     options.app.keybindings,
     {
-      tips: selectRandomTuiItems(MINIMAX_CODE_WELCOME_DESIGN.tipPool, 3),
+      tips: selectRandomTuiItems(ALRAN_CODE_WELCOME_DESIGN.tipPool, 3),
       ...(changelog
         ? {
             changelogEntries: selectRandomTuiItems(
@@ -509,7 +509,7 @@ export function createTuiApplicationSurface(options: {
  * sink was provided so the caller can skip wiring.
  */
 export function createTuiBusinessEventTracker(options: {
-  readonly telemetry?: McodeBusinessTelemetry;
+  readonly telemetry?: AlranBusinessTelemetry;
   readonly workspaceDir: string;
   readonly controller: TuiChatController;
   readonly featureFlow: TuiFeatureFlow;

@@ -646,7 +646,7 @@ vi.mock("./service/session-system/index.js", async (importOriginal) => {
 
 vi.mock("@mavis/config", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@mavis/config")>()),
-  allowsManagedMinimaxProviderOverride: () => false,
+  allowsManagedAlranProviderOverride: () => false,
   getRuntimeRegion: () => mocked.runtimeRegion,
 }));
 
@@ -2376,7 +2376,7 @@ describe("production Session title policy wiring", () => {
     review.mockClear();
     await expect(policy.blocks("Local rename", session)).resolves.toBe(false);
     expect(review).not.toHaveBeenCalled();
-    await expect(policy.blocks("Managed rename", { ...session, effectiveModel: "minimax/MiniMax-M3" })).resolves.toBe(true);
+    await expect(policy.blocks("Managed rename", { ...session, effectiveModel: "alran/Alran-M3" })).resolves.toBe(true);
     expect(review).toHaveBeenCalledWith("Managed rename", 205);
   });
 });
@@ -4214,7 +4214,7 @@ describe("runtime services primary family execution identity", () => {
             skills: [],
             extensionSkills: [],
           },
-          model: { providerId: "minimax", modelId: "MiniMax-M3" },
+          model: { providerId: "alran", modelId: "Alran-M3" },
           project: { workspaceDir: "/workspace", isDefaultWorkspace: false },
         },
       },

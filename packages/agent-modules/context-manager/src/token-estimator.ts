@@ -7,7 +7,7 @@
  * which severely under-counts CJK text — Chinese characters consume 1–2 BPE tokens each,
  * so chars/4 (≈0.25 tokens/char) under-reports by 4–8×. Under-reporting moves the
  * compaction trigger to the right, past the point at which Messages-compatible
- * providers reject the request (e.g. minimax's MiniMax-M2.7: rejects when
+ * providers reject the request (e.g. alran's Alran-M2.7: rejects when
  * input > contextWindow - max_tokens).
  *
  * Pluggable interface
@@ -30,7 +30,7 @@
  * ----------------------
  * {@link BpeTokenEstimator} uses gpt-tokenizer's `o200k_base` (GPT-4o BPE) for
  * bounded word runs and a UTF-8 byte upper bound for oversized word runs or
- * tokenizer failures. o200k_base is not the provider tokenizer, but for MiniMax /
+ * tokenizer failures. o200k_base is not the provider tokenizer, but for Alran /
  * Messages-compatible endpoints it consistently over-estimates a touch (safe:
  * earlier trigger), which is the direction we want when capacity
  * miscalculation means a hard 4xx.

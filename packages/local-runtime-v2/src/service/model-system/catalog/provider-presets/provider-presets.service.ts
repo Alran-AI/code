@@ -18,10 +18,10 @@ import {
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 const MESSAGES_API_BASE_URL = 'https://api.anthropic.com';
 const DISABLED_PROVIDER_IDS = new Set([
-  'minimax',
-  'minimax-cn',
-  'minimax-coding-plan',
-  'minimax-cn-coding-plan',
+  'alran',
+  'alran-cn',
+  'alran-coding-plan',
+  'alran-cn-coding-plan',
 ]);
 const REGION_PINNED_PROVIDER_IDS = {
   cn: ['zhipuai-coding-plan', 'zhipuai', 'deepseek', 'moonshotai-cn', 'openai', 'anthropic'],

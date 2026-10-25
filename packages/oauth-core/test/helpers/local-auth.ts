@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { MCodeOAuthCore } from '../../src/auth-core.js';
+import { AlranOAuthCore } from '../../src/auth-core.js';
 import { FileStore } from '../../src/credential-store/file-store.js';
 import { createAuthNamespace } from '../../src/namespace.js';
 import { HttpOAuthClient } from '../../src/oauth-client.js';
@@ -12,7 +12,7 @@ import { createAuthManager } from '../../src/token-provider.js';
 export async function createLocalAuthFixture(options: {
   beforeDeviceTokenResponse?: () => Promise<void>;
 } = {}) {
-  const dataDir = await mkdtemp(join(tmpdir(), 'mcode-auth-recovery-'));
+  const dataDir = await mkdtemp(join(tmpdir(), 'alran-auth-recovery-'));
   const namespace = createAuthNamespace({ dataDir, buildEnv: 'test', region: 'cn' });
   let now = 1_800_000_000_000;
   let serial = 0;
@@ -26,7 +26,7 @@ export async function createLocalAuthFixture(options: {
     | undefined;
   const calls = { device: 0, refresh: 0 };
   const createCore = () =>
-    new MCodeOAuthCore({
+    new AlranOAuthCore({
       namespace,
       credentialStore: new FileStore({ authHome: namespace.namespaceHome }),
       now: () => now,

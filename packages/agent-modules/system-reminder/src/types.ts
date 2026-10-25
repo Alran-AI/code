@@ -152,7 +152,7 @@ export interface AgentEnv {
   platform: string;
   /** User/system locale resolved by the host data collector (e.g. "zh-CN"). */
   systemLocale?: string | undefined;
-  /** Trusted MiniMax deployment/account region used for regional product docs. */
+  /** Trusted Alran deployment/account region used for regional product docs. */
   region?: "cn" | "en" | undefined;
   /**
    * Runtime scene the env was produced in.
@@ -173,7 +173,7 @@ export interface AgentEnv {
   runtimePort?: number | undefined;
   /** Active profile name (e.g. "dev"), null when running the default profile. */
   profile?: string | null | undefined;
-  /** Local runtime data directory (e.g. ~/.minimax-dev). */
+  /** Local runtime data directory (e.g. ~/.alran-dev). */
   dataDir?: string | undefined;
   /**
    * Absolute path to the shared root-session scratchpad file. Inherited by

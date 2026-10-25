@@ -30,10 +30,10 @@ describe('LocalModelResolver', () => {
   it('uses the frozen M3 1M context in the resolved executor model', async () => {
     const resolver = new LocalModelResolver({
       providerConfig: {
-        minimax: { models: { 'MiniMax-M3': { limit: { context: 512_000, output: 128_000 } } } },
+        alran: { models: { 'Alran-M3': { limit: { context: 512_000, output: 128_000 } } } },
       },
       byokConfigGetter: () => ({
-        minimax_api: { apiKey: 'test-key', baseURL: 'https://example.invalid' },
+        alran_api: { apiKey: 'test-key', baseURL: 'https://example.invalid' },
       }),
     });
     const resolved = await resolver.resolveModel({
@@ -41,7 +41,7 @@ describe('LocalModelResolver', () => {
       turnId: 'm3-turn',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: { provider: 'minimax_api', model_id: 'MiniMax-M3', context_window: 1_000_000 },
+        model: { provider: 'alran_api', model_id: 'Alran-M3', context_window: 1_000_000 },
       },
     });
     expect(resolved.model.contextWindow).toBe(1_000_000);
@@ -186,11 +186,11 @@ describe('LocalModelResolver', () => {
     const resolver = new LocalModelResolver({
       authContextGetter,
       providerConfig: {
-        minimax: {
+        alran: {
           options: {
             authMode: 'managed-login',
             apiKey: 'sk-xxx',
-            baseURL: 'https://agent.minimax.io/mavis/api/v1/llm/v1',
+            baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
           },
         },
       },
@@ -202,8 +202,8 @@ describe('LocalModelResolver', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: 'minimax',
-          model_id: 'MiniMax-M2.7',
+          provider: 'alran',
+          model_id: 'Alran-M2.7',
         },
       },
     });
@@ -211,11 +211,11 @@ describe('LocalModelResolver', () => {
     expect(authContextGetter).toHaveBeenCalledOnce();
     expect(resolved.apiKey).toBe('sk-xxx');
     expect(resolved.managedProvider).toBe(true);
-    expect(resolved.model.baseUrl).toBe('https://agent.minimax.io/mavis/api/v1/llm');
+    expect(resolved.model.baseUrl).toBe('https://api.ottili.one/mavis/api/v1/llm');
     expect(resolved.model.compat?.supportsLongCacheRetention).toBe(false);
     expect(resolved.headers).toMatchObject({
       Authorization: 'Bearer managed-token',
-      'User-Agent': 'MiniMaxAgent',
+      'User-Agent': 'AlranAgent',
       'X-Mavis-Session-Id': 'session-managed',
     });
     expect(resolved.fileApiGatewayAuth).toMatchObject({
@@ -253,11 +253,11 @@ describe('LocalModelResolver', () => {
         authContextGetter: () => authContext,
         authContextInvalidator,
         providerConfig: {
-          minimax: {
+          alran: {
             options: {
               authMode: 'managed-login',
               apiKey: 'sk-xxx',
-              baseURL: 'https://agent.minimax.io/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
             },
           },
         },
@@ -267,7 +267,7 @@ describe('LocalModelResolver', () => {
         turnId: 'turn-managed-refresh',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: { provider: 'minimax', model_id: 'MiniMax-M2.7' },
+          model: { provider: 'alran', model_id: 'Alran-M2.7' },
         },
       });
 
@@ -275,7 +275,7 @@ describe('LocalModelResolver', () => {
       for (acceptedVersion = 2; acceptedVersion <= 7; acceptedVersion += 1) {
         // Each expiry is followed by another LLM step using the same resolved headers.
         for (let step = 0; step < 2; step += 1) {
-          const response = await resolved.fetch?.('https://agent.minimax.io/mavis/api/v1/llm', {
+          const response = await resolved.fetch?.('https://api.ottili.one/mavis/api/v1/llm', {
             method: 'POST',
             headers: resolved.headers,
             body: '{}',
@@ -315,11 +315,11 @@ describe('LocalModelResolver managed auth continuity', () => {
         fetchImpl,
         authContextGetter: () => authContext,
         providerConfig: {
-          minimax: {
+          alran: {
             options: {
               authMode: 'managed-login',
               apiKey: 'sk-xxx',
-              baseURL: 'https://agent.minimax.io/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
             },
           },
         },
@@ -329,7 +329,7 @@ describe('LocalModelResolver managed auth continuity', () => {
         turnId: 'turn-managed-rotation',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: { provider: 'minimax', model_id: 'MiniMax-M2.7' },
+          model: { provider: 'alran', model_id: 'Alran-M2.7' },
         },
       });
       Object.assign(authContext, {
@@ -337,7 +337,7 @@ describe('LocalModelResolver managed auth continuity', () => {
         loginEpoch: transition === 'same-login' ? 'login-A' : 'login-B',
       });
       const resolved = await resolving;
-      const response = await resolved.fetch?.('https://agent.minimax.io/mavis/api/v1/llm', {
+      const response = await resolved.fetch?.('https://api.ottili.one/mavis/api/v1/llm', {
         headers: resolved.headers,
       });
 
@@ -365,20 +365,20 @@ describe('LocalModelResolver model routing', () => {
     });
   });
 
-  it('resolves source-qualified MiniMax API models from BYOK facts', async () => {
+  it('resolves source-qualified Alran API models from BYOK facts', async () => {
     const resolver = new LocalModelResolver({
       providerConfig: {
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M3': {
+            'Alran-M3': {
               limit: { context: 400_000, output: 128_000 },
             },
           },
         },
       },
       byokConfigGetter: () => ({
-        minimax_api: {
-          apiKey: 'minimax-user-key',
+        alran_api: {
+          apiKey: 'alran-user-key',
           baseURL: 'https://byok.example/messages-api',
         },
       }),
@@ -390,19 +390,19 @@ describe('LocalModelResolver model routing', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: 'minimax_api',
-          model_id: 'MiniMax-M3',
+          provider: 'alran_api',
+          model_id: 'Alran-M3',
         },
       },
     });
 
     expect(resolved).toMatchObject({
       managedProvider: false,
-      apiKey: 'minimax-user-key',
+      apiKey: 'alran-user-key',
       maxTokens: 128_000,
       model: {
-        provider: 'minimax_api',
-        id: 'MiniMax-M3',
+        provider: 'alran_api',
+        id: 'Alran-M3',
         api: 'anthropic-messages',
         baseUrl: 'https://byok.example/messages-api',
         contextWindow: 400_000,
@@ -463,23 +463,23 @@ describe('LocalModelResolver request-body byte authority', () => {
 });
 
 describe('LocalModelResolver BYOK routing and fallback', () => {
-  it('honors the MiniMax BYOK source switch and the injected stream implementation', async () => {
+  it('honors the Alran BYOK source switch and the injected stream implementation', async () => {
     const streamFn = vi.fn();
     const resolver = new LocalModelResolver({
       streamFn: streamFn as never,
       providerConfig: {
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M3': {
+            'Alran-M3': {
               limit: { context: 400_000, output: 128_000 },
             },
           },
         },
       },
       byokConfigGetter: () => ({
-        minimaxModelSource: 'minimax_api_key',
-        minimax_api: {
-          apiKey: 'minimax-user-key',
+        alranModelSource: 'alran_api_key',
+        alran_api: {
+          apiKey: 'alran-user-key',
           baseURL: 'https://byok.example/messages-api',
         },
       }),
@@ -491,17 +491,17 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: 'minimax',
-          model_id: 'MiniMax-M3',
+          provider: 'alran',
+          model_id: 'Alran-M3',
         },
       },
     });
 
     expect(resolved).toMatchObject({
-      apiKey: 'minimax-user-key',
+      apiKey: 'alran-user-key',
       model: {
-        provider: 'minimax_api',
-        id: 'MiniMax-M3',
+        provider: 'alran_api',
+        id: 'Alran-M3',
         api: 'anthropic-messages',
       },
     });
@@ -560,7 +560,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
     });
   });
 
-  it('attributes OpenRouter inference requests to MiniMax Code', async () => {
+  it('attributes OpenRouter inference requests to Alran Code', async () => {
     const resolver = new LocalModelResolver({
       byokConfigGetter: () => ({
         custom_provider: {
@@ -590,8 +590,8 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
     });
 
     expect(resolved.headers).toMatchObject({
-      'HTTP-Referer': 'https://agent.minimax.io/',
-      'X-OpenRouter-Title': 'MiniMax Code',
+      'HTTP-Referer': 'https://api.ottili.one/',
+      'X-OpenRouter-Title': 'Alran Code',
       'X-OpenRouter-Categories': 'cli-agent',
       'X-Mavis-Session-Id': 'session-openrouter',
     });
@@ -651,13 +651,13 @@ describe('LocalModelResolver BYOK fallback', () => {
     const warn = vi.fn();
     const resolver = new LocalModelResolver({
       providerConfig: {
-        minimax: {
+        alran: {
           options: {
             apiKey: 'builtin-key',
             baseURL: 'https://builtin.example/messages-api',
           },
           models: {
-            'MiniMax-M3': {
+            'Alran-M3': {
               reasoning: true,
               modalities: { input: ['text', 'image'], output: ['text'] },
               capabilities: { max_request_body_bytes: '67108864' },
@@ -698,8 +698,8 @@ describe('LocalModelResolver BYOK fallback', () => {
     });
 
     expect(resolved.model).toMatchObject({
-      provider: 'minimax',
-      id: 'MiniMax-M3',
+      provider: 'alran',
+      id: 'Alran-M3',
       contextWindow: 400_000,
       maxTokens: 128_000,
       reasoning: true,
@@ -1042,10 +1042,10 @@ describe('LocalModelResolver credentials and thinking', () => {
   it('fails closed when managed login has no synced access token', async () => {
     const resolver = new LocalModelResolver({
       providerConfig: {
-        minimax: {
+        alran: {
           options: {
             apiKey: 'sk-xxx',
-            baseURL: 'https://agent.minimax.io/mavis/api/v1/llm/v1',
+            baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
           },
         },
       },
@@ -1058,8 +1058,8 @@ describe('LocalModelResolver credentials and thinking', () => {
         agentConfig: {
           ...AGENT_CONFIG,
           model: {
-            provider: 'minimax',
-            model_id: 'MiniMax-M2.7',
+            provider: 'alran',
+            model_id: 'Alran-M2.7',
           },
         },
       }),
@@ -1119,10 +1119,10 @@ describe('LocalModelResolver credentials and thinking', () => {
     });
     const resolver = new LocalModelResolver({
       providerConfig: {
-        minimax: {
+        alran: {
           options: {
             apiKey: 'provider-key',
-            baseURL: 'https://api.minimaxi.com/messages-api',
+            baseURL: 'https://api.ottili.one/messages-api',
           },
         },
       },
@@ -1134,8 +1134,8 @@ describe('LocalModelResolver credentials and thinking', () => {
       agentConfig: {
         ...AGENT_CONFIG,
         model: {
-          provider: 'minimax',
-          model_id: 'MiniMax-M2.7',
+          provider: 'alran',
+          model_id: 'Alran-M2.7',
           thinking_level: ThinkingLevel.MEDIUM,
           capabilities,
         },
@@ -1151,7 +1151,7 @@ describe('LocalModelResolver credentials and thinking', () => {
     ['on', 'medium', true],
     ['off', undefined, false],
   ] as const)(
-    'normalizes managed MiniMax M3 switch %s to a legal Pi thinking level',
+    'normalizes managed Alran M3 switch %s to a legal Pi thinking level',
     async (effort, expectedThinkingLevel, expectedReasoning) => {
       const modelConfig: LocalModelConfig = {
         reasoning: true,
@@ -1164,12 +1164,12 @@ describe('LocalModelResolver credentials and thinking', () => {
       };
       const resolver = new LocalModelResolver({
         providerConfig: {
-          minimax: {
+          alran: {
             options: {
               apiKey: 'provider-key',
-              baseURL: 'https://api.minimaxi.com/messages-api',
+              baseURL: 'https://api.ottili.one/messages-api',
             },
-            models: { 'MiniMax-M3': modelConfig },
+            models: { 'Alran-M3': modelConfig },
           },
         },
       });
@@ -1179,7 +1179,7 @@ describe('LocalModelResolver credentials and thinking', () => {
         turnId: 'turn-m3-switch',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: modelRefForModel('minimax', 'MiniMax-M3', modelConfig, {
+          model: modelRefForModel('alran', 'Alran-M3', modelConfig, {
             thinking: { effort },
           }),
         },
@@ -1278,7 +1278,7 @@ describe('OpenCode Go conversation identity', () => {
         });
         const headers = new Headers(resolved.headers);
         expect(headers.get('x-opencode-session')).toBe(sessionId);
-        expect(headers.get('user-agent')).toBe('MiniMaxCode');
+        expect(headers.get('user-agent')).toBe('AlranCode');
         expect(resolved.model.provider).toBe('custom_provider:renamed');
       }
     },
@@ -1550,7 +1550,7 @@ describe('LocalModelResolver custom provider session affinity', () => {
           relay: {
             api: 'anthropic-messages',
             options: { apiKey: 'relay-key', baseURL: 'https://relay.example' },
-            models: { 'MiniMax-M2': modelConfig },
+            models: { 'Alran-M2': modelConfig },
           },
         },
       }),
@@ -1560,7 +1560,7 @@ describe('LocalModelResolver custom provider session affinity', () => {
       turnId: 'turn-affinity-wire',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: modelRefForModel('custom_provider:relay', 'MiniMax-M2', modelConfig),
+        model: modelRefForModel('custom_provider:relay', 'Alran-M2', modelConfig),
       },
     });
 

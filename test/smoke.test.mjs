@@ -11,7 +11,7 @@ import { withoutProxyEnvironment } from "./offline-environment.mjs";
 import { cliBuildVersion } from '../scripts/lib/cli-release.mjs';
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const cli = process.env.MCODE_TEST_CLI ?? path.join(root, "dist/cli.js");
+const cli = process.env.ALRAN_TEST_CLI ?? path.join(root, "dist/cli.js");
 // Full runtime startup can exceed 15s on Windows CI (ACP took 22s).
 // Match the ACP startup budget; lightweight help/validation stays at 15s.
 const runtimeTimeoutMs = process.platform === "win32" ? 30000 : 15000;
@@ -22,7 +22,7 @@ function assertSuccessfulChild(result) {
 }
 const version = cliBuildVersion(root);
 function fixture(t, environment = process.env) {
-  const dataDir = mkdtempSync(path.join(tmpdir(), "minimax-code-smoke-"));
+  const dataDir = mkdtempSync(path.join(tmpdir(), "alran-code-smoke-"));
   const audit = path.join(dataDir, "network-attempts.log");
   t.after(() => {
     try {
@@ -41,11 +41,11 @@ function fixture(t, environment = process.env) {
     cwd: dataDir,
     env: {
       ...withoutProxyEnvironment(environment),
-      MINIMAX_DATA_DIR: dataDir,
+      ALRAN_DATA_DIR: dataDir,
       MAVIS_DATA_DIR: dataDir,
-      MCODE_TEST_NETWORK_AUDIT: audit,
-      MCODE_TEST_MANAGED_OFFLINE: "1",
-      MCODE_TEST_PROCESS_PROBE: "1",
+      ALRAN_TEST_NETWORK_AUDIT: audit,
+      ALRAN_TEST_MANAGED_OFFLINE: "1",
+      ALRAN_TEST_PROCESS_PROBE: "1",
       NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
     },
   };
@@ -69,8 +69,8 @@ test("CLI version and command help work outside the source directory", (t) => {
 test("CLI defaults to the shared user config without migrating the old source directory", (t) => {
   const options = fixture(t);
   const home = options.cwd;
-  const config = path.join(home, ".minimax", "config.yaml");
-  const oldConfig = path.join(home, ".minimax-code", "config.yaml");
+  const config = path.join(home, ".alran", "config.yaml");
+  const oldConfig = path.join(home, ".alran-code", "config.yaml");
   for (const file of [config, oldConfig]) mkdirSync(path.dirname(file));
   writeFileSync(config, "telemetry:\n  enabled: true\n", { mode: 0o600 });
   const oldContents = "telemetry:\n  enabled: false\n";
@@ -78,12 +78,12 @@ test("CLI defaults to the shared user config without migrating the old source di
   for (const name of Object.keys(options.env)) {
     if (name.startsWith("__MAVIS_RUNTIME")) delete options.env[name];
   }
-  delete options.env.MINIMAX_DATA_DIR;
+  delete options.env.ALRAN_DATA_DIR;
   delete options.env.MAVIS_DATA_DIR;
   Object.assign(options.env, {
     HOME: home,
     USERPROFILE: home,
-    MCODE_DISABLE_TELEMETRY: "1",
+    ALRAN_DISABLE_TELEMETRY: "1",
   });
   const result = spawnSync(process.execPath, [cli, "telemetry", "status"], {
     ...options,
@@ -103,7 +103,7 @@ test("provider configuration loads from an isolated data directory", (t) => {
     timeout: runtimeTimeoutMs,
   });
   assertSuccessfulChild(result);
-  assert.match(result.stdout, /minimax/);
+  assert.match(result.stdout, /alran/);
 
   assert.doesNotMatch(result.stdout, /custom_provider:/);
 });
@@ -111,7 +111,7 @@ test("config permission failures preserve private reads and terminate unsafe sta
   skip: process.platform !== "darwin",
 }, (t) => {
   const options = fixture(t);
-  const config = path.join(options.env.MINIMAX_DATA_DIR, "config.yaml");
+  const config = path.join(options.env.ALRAN_DATA_DIR, "config.yaml");
   const backup = `${config}.bak.byok-legacy-provider.smoke`;
   const flag = (file, value) => {
     const result = spawnSync("chflags", [value, file], { encoding: "utf8" });
@@ -189,7 +189,7 @@ test("offline smoke children ignore ambient proxy variables", async (t) => {
         timeout: runtimeTimeoutMs,
       });
       assertSuccessfulChild(result);
-      assert.match(result.stdout, /minimax/);
+      assert.match(result.stdout, /alran/);
       // Catalog requests are optional; the fixture still rejects any real network access.
       assert.equal(environment[name], proxyValue);
     });
@@ -257,14 +257,14 @@ test(
           params: {
             protocolVersion: 1,
             clientCapabilities: { _meta: { "terminal-auth": true } },
-            clientInfo: { name: "minimax-code-smoke", version: "1" },
+            clientInfo: { name: "alran-code-smoke", version: "1" },
           },
         }) + "\n",
       );
     });
     assert.equal(response.error, undefined, JSON.stringify(response));
     assert.equal(response.result.protocolVersion, 1);
-    assert.equal(response.result.authMethods[0].id, "minimax-code-login");
+    assert.equal(response.result.authMethods[0].id, "alran-code-login");
     assert.equal(response.result.agentInfo.version, version);
     child.stdin.end();
     await new Promise((resolve, reject) => {
@@ -339,10 +339,10 @@ test("provider add rejects invalid token limits without saving a provider", asyn
       // Keep data separate from cwd so assertions must use the CLI's config location.
       const dataDir = path.join(options.cwd, "data");
       mkdirSync(dataDir);
-      options.env.MINIMAX_DATA_DIR = dataDir;
+      options.env.ALRAN_DATA_DIR = dataDir;
       options.env.MAVIS_DATA_DIR = dataDir;
       const configPath = path.join(dataDir, "config.yaml");
-      if (seeded) writeFileSync(configPath, "logLevel: info\ndefaultModel: minimax/MiniMax-M3\n", { mode: 0o600 });
+      if (seeded) writeFileSync(configPath, "logLevel: info\ndefaultModel: alran/Alran-M3\n", { mode: 0o600 });
       for (const flag of ["--context-limit", "--output-limit"]) {
         for (const value of ["0", "-1", "1.5", "NaN", "Infinity", "9007199254740992"]) {
           const result = spawnSync(process.execPath, [cli, ...args, `${flag}=${value}`], {

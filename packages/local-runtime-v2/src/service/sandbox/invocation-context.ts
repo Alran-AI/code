@@ -18,7 +18,7 @@ import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import type { SandboxEffectivePolicy, SandboxPolicyPathRoot } from './backend/types.js';
 import { SandboxError } from './sandbox-errors.js';
 
-const TEMP_MARKER = '.mcode-sandbox-owner.json';
+const TEMP_MARKER = '.alran-sandbox-owner.json';
 const TEMP_MARKER_SCHEMA_VERSION = 1;
 const INSTANCE_DIRECTORY_PATTERN = /^runtime-[a-f0-9]{32}$/;
 const DEFAULT_ORPHAN_GRACE_MS = 24 * 60 * 60 * 1_000;
@@ -436,7 +436,7 @@ export class SandboxSessionTempManager {
   #instanceRealPath?: string;
 
   constructor(options: SandboxSessionTempManagerOptions = {}) {
-    this.#requestedRoot = options.totalRoot ?? join(tmpdir(), 'mcode-sandbox');
+    this.#requestedRoot = options.totalRoot ?? join(tmpdir(), 'alran-sandbox');
     this.#now = options.now ?? Date.now;
     this.#pidIsAlive = options.pidIsAlive ?? defaultPidIsAlive;
     this.#orphanGraceMs = options.orphanGraceMs ?? DEFAULT_ORPHAN_GRACE_MS;

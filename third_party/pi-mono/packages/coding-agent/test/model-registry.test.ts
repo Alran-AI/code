@@ -502,7 +502,7 @@ describe("ModelRegistry", () => {
 					apiKey: "TEST_KEY",
 					models: [
 						{
-							id: "minimax-m2.5",
+							id: "alran-m2.5",
 							api: "anthropic-messages",
 							baseUrl: "https://opencode.ai/zen/go",
 							reasoning: true,
@@ -525,7 +525,7 @@ describe("ModelRegistry", () => {
 			});
 
 			const registry = ModelRegistry.create(authStorage, modelsJsonPath);
-			const m25 = registry.find("opencode-go", "minimax-m2.5");
+			const m25 = registry.find("opencode-go", "alran-m2.5");
 			const glm5 = registry.find("opencode-go", "glm-5");
 
 			expect(m25?.baseUrl).toBe("https://opencode.ai/zen/go");

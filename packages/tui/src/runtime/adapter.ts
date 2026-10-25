@@ -6,7 +6,7 @@ import type {
   ConversationSteerInput,
   ConversationSteerResult,
 } from "@mavis/local-runtime-v2/cli-service";
-import { MINIMAX_CODE_DEFAULT_AGENT_NAME } from "../product-context.js";
+import { ALRAN_CODE_DEFAULT_AGENT_NAME } from "../product-context.js";
 import { TuiEventAccess } from "./adapters/event-access.js";
 import { TuiRuntimeAccessContext } from "./adapters/access-context.js";
 import { TuiWorkspaceAccess } from "./adapters/workspace-access.js";
@@ -78,7 +78,7 @@ import type { TuiTokenPlanAccountStatus } from "../account/matrix-account-client
 import type { TuiDailyCheckinOutcome } from "../checkin/application.js";
 import {
   LIGHTWEIGHT_SESSION_PURPOSE,
-  type McodeContextMode,
+  type AlranContextMode,
 } from "@mavis/protocol/local";
 
 export * from "./port.js";
@@ -91,7 +91,7 @@ export interface TuiRuntimeAdapterOptions {
   synchronizeAuth?: () => Promise<void>;
   accountIdentityGetter?: () => TuiAccountStatus["identity"];
   observability?: TuiObservability;
-  contextMode?: McodeContextMode;
+  contextMode?: AlranContextMode;
   tokenPlanAccountStatusGetter?: (options?: {
     readonly forceRefresh?: boolean;
   }) => Promise<TuiTokenPlanAccountStatus>;
@@ -132,12 +132,12 @@ export class TuiRuntimeAdapter implements TuiRuntime {
   private readonly accountIdentityGetter: TuiRuntimeAdapterOptions["accountIdentityGetter"];
   private readonly feedback: TuiRuntimeAdapterOptions["feedback"];
   private readonly dailyCheckin: TuiRuntimeAdapterOptions["dailyCheckin"];
-  private readonly contextMode: McodeContextMode;
+  private readonly contextMode: AlranContextMode;
 
   constructor(cliService: CliService, options: TuiRuntimeAdapterOptions = {}) {
     this.cliService = cliService;
     const defaultAgentName =
-      options.defaultAgentName ?? MINIMAX_CODE_DEFAULT_AGENT_NAME;
+      options.defaultAgentName ?? ALRAN_CODE_DEFAULT_AGENT_NAME;
     this.tokenPlanAccountStatusGetter = options.tokenPlanAccountStatusGetter;
     this.synchronizeAuth = options.synchronizeAuth;
     this.accountIdentityGetter = options.accountIdentityGetter;
@@ -418,7 +418,7 @@ export class TuiRuntimeAdapter implements TuiRuntime {
     sessionId?: string;
   }): Promise<TuiFeedbackPreview> {
     if (!this.feedback)
-      throw new Error("MiniMax Code feedback is unavailable.");
+      throw new Error("Alran Code feedback is unavailable.");
     return this.feedback.prepare(input);
   }
   submitFeedback(
@@ -426,7 +426,7 @@ export class TuiRuntimeAdapter implements TuiRuntime {
     options?: TuiFeedbackSubmitOptions,
   ): Promise<TuiFeedbackReceipt> {
     if (!this.feedback)
-      return Promise.reject(new Error("MiniMax Code feedback is unavailable."));
+      return Promise.reject(new Error("Alran Code feedback is unavailable."));
     return this.feedback.submit(draftId, options);
   }
   cancelFeedback(draftId: string): Promise<boolean> {
@@ -477,37 +477,37 @@ export class TuiRuntimeAdapter implements TuiRuntime {
   cancelCodexOAuthLogin(loginId: string) {
     return this.productAccess.cancelCodexOAuthLogin(loginId);
   }
-  getMiniMaxApiKeyStatus() {
-    return this.productAccess.getMiniMaxApiKeyStatus();
+  getAlranApiKeyStatus() {
+    return this.productAccess.getAlranApiKeyStatus();
   }
-  getMiniMaxModelSource() {
-    return this.productAccess.getMiniMaxModelSource();
+  getAlranModelSource() {
+    return this.productAccess.getAlranModelSource();
   }
-  setMiniMaxModelSource(
-    source: import("../provider/contract.js").McodeMiniMaxModelSource,
+  setAlranModelSource(
+    source: import("../provider/contract.js").AlranAlranModelSource,
   ) {
-    return this.productAccess.setMiniMaxModelSource(source);
+    return this.productAccess.setAlranModelSource(source);
   }
-  upsertMiniMaxApiKey(input: { apiKey: string; saveAndUse?: boolean }) {
-    return this.productAccess.upsertMiniMaxApiKey(input);
+  upsertAlranApiKey(input: { apiKey: string; saveAndUse?: boolean }) {
+    return this.productAccess.upsertAlranApiKey(input);
   }
   createUserModelProvider(
-    input: import("../provider/contract.js").McodeCreateProviderInput,
+    input: import("../provider/contract.js").AlranCreateProviderInput,
   ) {
     return this.productAccess.createUserModelProvider(input);
   }
   discoverUserModelsCandidate(
-    input: import("../provider/contract.js").McodeDiscoverProviderModelsInput,
+    input: import("../provider/contract.js").AlranDiscoverProviderModelsInput,
   ) {
     return this.productAccess.discoverUserModelsCandidate(input);
   }
   saveUserModelProviderCandidate(
-    input: import("../provider/contract.js").McodeSaveProviderCandidateInput,
+    input: import("../provider/contract.js").AlranSaveProviderCandidateInput,
   ) {
     return this.productAccess.saveUserModelProviderCandidate(input);
   }
   updateUserModelProvider(
-    input: import("../provider/contract.js").McodeUpdateProviderInput,
+    input: import("../provider/contract.js").AlranUpdateProviderInput,
   ) {
     return this.productAccess.updateUserModelProvider(input);
   }
@@ -769,5 +769,5 @@ export class TuiRuntimeAdapter implements TuiRuntime {
 }
 
 export function createTuiQueueRequestId(): string {
-  return `minimax-code_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  return `alran-code_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }

@@ -10,7 +10,7 @@ import type {
 
 // Client attribution constants for the `yy` / `x-timestamp` / `x-signature` headers.
 //
-// These tag a request as coming from a first-party MiniMax client. They are shared
+// These tag a request as coming from a first-party Alran client. They are shared
 // across clients and are not credentials or a security boundary: request
 // authorization is the bearer token sent alongside them.
 //
@@ -18,7 +18,7 @@ import type {
 // wire-protocol constants.
 const SIGNATURE_SALT = 'I*7Cf%WZ#S&%1RlZJ&C2';
 const YY_SUFFIX = 'ooui';
-const REQUEST_PATH = '/minimax-cloud/api/v1/desktop/p-config';
+const REQUEST_PATH = '/alran-cloud/api/v1/desktop/p-config';
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 type PromptConfigFetchResult = Awaited<ReturnType<PromptConfigClient['fetch']>>;
@@ -121,11 +121,11 @@ export function resolvePromptConfigCloudBaseUrl(): string {
   if (region === 'cn') {
     if (build === 'test' || build === 'dev') return 'https://matrix-test.example.invalid';
     if (build === 'staging') return 'https://matrix-pre.example.invalid';
-    return 'https://agent.minimaxi.com';
+    return 'https://api.ottili.one';
   }
   if (build === 'test' || build === 'dev') return 'https://matrix-overseas-test.example.invalid';
   if (build === 'staging') return 'https://matrix-overseas-pre.example.invalid';
-  return 'https://agent.minimax.io';
+  return 'https://api.ottili.one';
 }
 
 function buildPublicParams(input: {
@@ -171,7 +171,7 @@ function buildHeaders(input: {
   else headers['X-Mavis-Anonymous'] = 'true';
   if (input.etag) headers['if-none-match'] = input.etag;
   if (input.previewSecret?.trim())
-    headers['X-Minimax-Agent-Preview-Secret'] = input.previewSecret.trim();
+    headers['X-Alran-Agent-Preview-Secret'] = input.previewSecret.trim();
   if (input.lane?.trim()) {
     headers.lane = input.lane.trim();
     headers.bedrock_lane = input.lane.trim();

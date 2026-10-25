@@ -13,9 +13,9 @@ import {
 import type { LocalModelsConfig, LocalProviderOptions } from '../config/types.js';
 import { parseProviderId } from '../config/model-key.js';
 import {
-  allowsManagedMinimaxProxy,
+  allowsManagedAlranProxy,
   buildLocalProviderHeaders,
-  normalizeManagedMinimaxProxyBaseUrl,
+  normalizeManagedAlranProxyBaseUrl,
   normalizeMessagesBaseUrlForPi,
   providerRouteForAuthMode,
   readAgentHeaderId,
@@ -24,7 +24,7 @@ import {
 import type { LocalRuntimeRoutingOptions } from './routing-headers.js';
 import {
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planAlranApiResolution,
   readStringRecord,
   resolveByokResolutionPlan,
   type LocalByokProviderConfig,
@@ -57,7 +57,7 @@ export { lookupLocalModelLimits } from './model-catalog.js';
 
 export const DEFAULT_LOCAL_PI_API: Api = 'anthropic-messages';
 export const MANAGED_PROVIDER_API_KEY_PLACEHOLDER = 'sk-xxx';
-export const MANAGED_PROVIDER_USER_AGENT = 'MiniMaxAgent';
+export const MANAGED_PROVIDER_USER_AGENT = 'AlranAgent';
 const OPENAI_CODEX_PROVIDER = 'openai-codex';
 
 const THINKING_LEVEL_TO_PI: Record<ThinkingLevel, PiThinkingLevel> = {
@@ -72,7 +72,7 @@ const THINKING_LEVEL_TO_PI: Record<ThinkingLevel, PiThinkingLevel> = {
 export interface LocalModelResolverOptions extends LocalRuntimeRoutingOptions {
   providerConfig?: LocalModelsConfig;
   providerConfigGetter?: () => LocalModelsConfig;
-  /** BYOK trees (`minimax_api`, `custom_provider`) for source-aware model keys. */
+  /** BYOK trees (`alran_api`, `custom_provider`) for source-aware model keys. */
   byokConfigGetter?: () => LocalByokProviderConfig | undefined;
   authContextGetter?: () => LocalRuntimeAuthContext | undefined;
   providerAuthGetter?: (provider: string) => Promise<string | undefined> | string | undefined;
@@ -103,7 +103,7 @@ export function resolveLocalProviderCredentials(
   const refBaseUrl = modelRef.base_url?.trim();
   const cfg = providerConfig?.[provider];
   const opts = cfg?.options;
-  const baseUrl = normalizeManagedMinimaxProxyBaseUrl(provider, refBaseUrl || opts?.baseURL);
+  const baseUrl = normalizeManagedAlranProxyBaseUrl(provider, refBaseUrl || opts?.baseURL);
   // Header config has two user-authored layers in config.yaml:
   // provider.options.headers are defaults for every model under the provider,
   // while provider.models.<model_id>.headers are per-model overrides.
@@ -112,7 +112,7 @@ export function resolveLocalProviderCredentials(
   const authModeResolution = resolveProviderAuthMode({
     authMode: opts?.authMode,
     baseURL: baseUrl,
-    allowManagedBaseURLOverride: allowsManagedMinimaxProxy(provider),
+    allowManagedBaseURLOverride: allowsManagedAlranProxy(provider),
   });
   const normalizedBaseUrl =
     baseUrl && authModeResolution.managedBaseURL ? stripUrlCredentials(baseUrl) : baseUrl;
@@ -184,12 +184,12 @@ export class LocalModelResolver implements LocalModelResolverLike {
     if (parsed && parsed.source !== 'provider') {
       const byok = this.byokConfigGetter?.();
       const plan =
-        parsed.source === 'minimax_api'
-          ? planMinimaxApiResolution({
+        parsed.source === 'alran_api'
+          ? planAlranApiResolution({
               byok,
               providerConfig,
               modelId,
-              catalog: lookupLocalModelLimits('minimax', modelId),
+              catalog: lookupLocalModelLimits('alran', modelId),
             })
           : planCustomProviderResolution({
               byok,
@@ -198,7 +198,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
               modelId,
             });
       if (plan) {
-        const route = parsed.source === 'minimax_api' ? 'minimax_api' : 'custom_provider';
+        const route = parsed.source === 'alran_api' ? 'alran_api' : 'custom_provider';
         const resolvedPlan = await resolveByokResolutionPlan(plan, this.providerAuthGetter);
         logger.info(
           { provider, modelId, route, source: parsed.source },
@@ -223,26 +223,26 @@ export class LocalModelResolver implements LocalModelResolverLike {
       );
     }
 
-    // Source-aware routing: when minimaxModelSource is 'minimax_api_key',
-    // route minimax models through the user's own API key instead of managed-login.
-    if (provider === 'minimax') {
+    // Source-aware routing: when alranModelSource is 'alran_api_key',
+    // route alran models through the user's own API key instead of managed-login.
+    if (provider === 'alran') {
       const byok = this.byokConfigGetter?.();
-      if (byok?.minimaxModelSource === 'minimax_api_key') {
-        const plan = planMinimaxApiResolution({
+      if (byok?.alranModelSource === 'alran_api_key') {
+        const plan = planAlranApiResolution({
           byok,
           providerConfig,
           modelId,
-          catalog: lookupLocalModelLimits('minimax', modelId),
+          catalog: lookupLocalModelLimits('alran', modelId),
         });
         if (plan) {
           logger.info(
             {
               provider,
               modelId,
-              route: 'minimax_api_key',
-              minimaxModelSource: byok.minimaxModelSource,
+              route: 'alran_api_key',
+              alranModelSource: byok.alranModelSource,
             },
-            '[model-resolve-route] minimax_api_key — minimax model routed through user API key',
+            '[model-resolve-route] alran_api_key — alran model routed through user API key',
           );
           const resolvedPlan = await resolveByokResolutionPlan(plan, this.providerAuthGetter);
           return this.finishResolve({
@@ -257,12 +257,12 @@ export class LocalModelResolver implements LocalModelResolverLike {
           });
         }
         throw new Error(
-          `LocalModelResolver: BYOK model configuration "minimax_api/${modelId}" is unavailable or disabled.`,
+          `LocalModelResolver: BYOK model configuration "alran_api/${modelId}" is unavailable or disabled.`,
         );
-      } else if (byok && !byok.minimaxModelSource) {
+      } else if (byok && !byok.alranModelSource) {
         logger.info(
-          { provider, modelId, minimaxModelSource: byok.minimaxModelSource },
-          '[model-resolve-route] minimaxModelSource not set — using builtin provider',
+          { provider, modelId, alranModelSource: byok.alranModelSource },
+          '[model-resolve-route] alranModelSource not set — using builtin provider',
         );
       }
     }
@@ -294,7 +294,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     if (
       credentials.authMode === 'managed-login' &&
       !credentials.managedBaseURL &&
-      !allowsManagedMinimaxProxy(provider)
+      !allowsManagedAlranProxy(provider)
     ) {
       throw new Error(
         `LocalModelResolver: managed-login requires a known managed base_url for provider "${provider}".`,

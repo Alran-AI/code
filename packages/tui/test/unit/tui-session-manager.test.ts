@@ -196,13 +196,13 @@ describe('TuiSessionManager', () => {
       workspaceDir: '/workspace/cli',
       updatedAt: NOW,
       status: 'finished',
-      model: { providerId: 'minimax', modelId: 'MiniMax-M3' },
+      model: { providerId: 'alran', modelId: 'Alran-M3' },
     };
     const { manager } = createManager({
       sessions: [target, ...sessions],
       workspaceDir: '/workspace/cli',
       initialQuery:
-        'id:target-branch path:workspace/cli type:branch status:finished model:minimax-m3',
+        'id:target-branch path:workspace/cli type:branch status:finished model:alran-m3',
     });
 
     const rendered = renderPlain(manager);

@@ -101,7 +101,7 @@ function createMutableChatParts(surface: 'welcome' | 'conversation') {
   return parts;
 }
 
-describe('MCode Pi Engine local deltas', () => {
+describe('Alran Pi Engine local deltas', () => {
   describe.each([
     ['xterm', RecordingVirtualTerminal],
     ['clear-to-scrollback host', ClearToScrollbackTerminal],
@@ -1256,7 +1256,7 @@ describe('MCode Pi Engine local deltas', () => {
     });
 
     it('logs the pid, the deferral and the changed row shape with PI_DEBUG_REDRAW', async () => {
-      const logDirectory = mkdtempSync(path.join(tmpdir(), 'mcode-redraw-'));
+      const logDirectory = mkdtempSync(path.join(tmpdir(), 'alran-redraw-'));
       const previous = process.env.PI_DEBUG_REDRAW;
       process.env.PI_DEBUG_REDRAW = '1';
       try {

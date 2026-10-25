@@ -22,7 +22,7 @@ export {
   RUNTIME_ENV_PREFIX,
   getRuntimeRegion,
   getRuntimeBuildEnv,
-  allowsManagedMinimaxProviderOverride,
+  allowsManagedAlranProviderOverride,
   isBetaFeatureProdReady,
   resolveBetaFeature,
   isInternalBuild,
@@ -31,7 +31,34 @@ export {
   DEFAULT_MODEL_PRESETS,
   isProposalEligibleAgent,
 } from './config.js';
-export { minimaxApiModels } from './byok-config.js';
+export { alranApiModels } from './byok-config.js';
+export {
+  OTTILI_API_BASE_ENV,
+  OTTILI_API_KEY_CONSOLE_ENV,
+  OTTILI_API_KEY_ENV,
+  OTTILI_API_KEY_PREFIX,
+  OTTILI_AI_PLATFORM_BASE_URL,
+  OTTILI_DEV_AI_PLATFORM_BASE_URL,
+  OTTILI_PLATFORM_URL,
+  OTTILI_PLATFORM_URL_ENV,
+  isOttiliApiKey,
+  normalizeOttiliApiBaseUrl,
+  resolveOttiliApiBaseUrl,
+  resolveOttiliApiKey,
+  resolveOttiliApiKeyConsoleUrl,
+  resolveOttiliEnvironment,
+  resolveOttiliPlatformUrl,
+} from './ottili.js';
+export type { OttiliEnvironment } from './ottili.js';
+export {
+  ALRAN_MODEL_TIER_BY_MODEL_ID,
+  DEFAULT_OTTILI_MODEL_TIER,
+  OTTILI_MODEL_IDS,
+  isOttiliModelId,
+  resolveOttiliModelId,
+  resolveOttiliModelTier,
+} from './ottili-model-map.js';
+export type { OttiliModelTier } from './ottili-model-map.js';
 export {
   GOAL_CONFIG_DEFAULTS,
   GOAL_CONFIG_LIMITS,
@@ -51,9 +78,9 @@ export type {
 } from './goal-config.js';
 export {
   CUSTOM_PROVIDER_ID_PREFIX,
-  MANAGED_MINIMAX_PROVIDER_ID,
-  MINIMAX_API_PROVIDER_ID,
-  isFirstPartyMinimaxMessagesRoute,
+  MANAGED_ALRAN_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
+  isFirstPartyAlranRoute,
   listRouteModelIds,
   resolveModelAvailability,
   resolveModelCallRoute,
@@ -79,20 +106,20 @@ export {
 } from './data-dir.js';
 export type { DataDirMigrationLogger, ResolveDataDirOptions } from './data-dir.js';
 export {
-  isLegacyManagedMinimaxProvider,
+  isLegacyManagedAlranProvider,
   isManagedProviderBaseUrl,
   resolveProviderAuthMode,
 } from './provider-auth-mode.js';
 export {
   compareAndSetLocalModelContext,
   removeLocalProviderConfig,
-  replaceLocalManagedMinimaxProvider,
+  replaceLocalManagedAlranProvider,
   updateLocalByokConfig,
   updateLocalModelSelection,
 } from './local-model-provider-write.js';
 export type {
   LocalByokConfigDraft,
-  ManagedMinimaxProviderSnapshot,
+  ManagedAlranProviderSnapshot,
   LocalModelContextCompareAndSetResult,
   LocalModelSelectionWriteInput,
 } from './local-model-provider-write.js';
@@ -220,7 +247,7 @@ export type {
   ProviderOptions,
   ProviderConfig,
   ModelsConfig,
-  MinimaxApiConfig,
+  AlranApiConfig,
   CustomProviderConfig,
   CustomProvidersConfig,
   NexusModelConfig,

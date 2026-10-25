@@ -1,6 +1,6 @@
 import type { IAgentConfig } from '@mavis/protocol';
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { allowsManagedMinimaxProviderOverride, type ProviderAuthMode } from '@mavis/config';
+import { allowsManagedAlranProviderOverride, type ProviderAuthMode } from '@mavis/config';
 
 import { MANAGED_PROVIDER_USER_AGENT } from './model-resolver.js';
 import {
@@ -8,8 +8,8 @@ import {
   type LocalRuntimeRoutingContext,
 } from './routing-headers.js';
 
-export function allowsManagedMinimaxProxy(provider: string): boolean {
-  return provider === 'minimax' && allowsManagedMinimaxProviderOverride();
+export function allowsManagedAlranProxy(provider: string): boolean {
+  return provider === 'alran' && allowsManagedAlranProviderOverride();
 }
 
 export function providerRouteForAuthMode(authMode: ProviderAuthMode): string {
@@ -18,12 +18,12 @@ export function providerRouteForAuthMode(authMode: ProviderAuthMode): string {
   return 'provider_api_key';
 }
 
-export function normalizeManagedMinimaxProxyBaseUrl(
+export function normalizeManagedAlranProxyBaseUrl(
   provider: string,
   value: string | undefined,
 ): string | undefined {
   if (value === undefined) return undefined;
-  if (!allowsManagedMinimaxProxy(provider)) return value;
+  if (!allowsManagedAlranProxy(provider)) return value;
   const trimmed = value.trim();
   if (/^[a-z][a-z\d+.-]*:\/\//iu.test(trimmed)) {
     return trimmed;

@@ -16,7 +16,7 @@ afterEach(() => {
 });
 
 function workspace(): string {
-  const root = mkdtempSync(join(tmpdir(), 'mcode-system-prompt-options-'));
+  const root = mkdtempSync(join(tmpdir(), 'alran-system-prompt-options-'));
   roots.push(root);
   return root;
 }

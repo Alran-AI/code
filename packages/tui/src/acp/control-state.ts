@@ -2,7 +2,7 @@ import type * as acp from '@agentclientprotocol/sdk';
 
 import {
   formatTuiPermissionMode,
-  MINIMAX_CODE_PERMISSION_MODES,
+  ALRAN_CODE_PERMISSION_MODES,
   type TuiPermissionMode,
 } from '../application/permission-mode.js';
 import type { TuiModel, TuiSession, TuiSessionUsage } from '../runtime/port.js';
@@ -135,20 +135,20 @@ export function usageUpdate(
 function permissionModeOption(
   permissionMode: TuiPermissionMode | undefined,
 ): acp.SessionConfigOption | undefined {
-  const current = MINIMAX_CODE_PERMISSION_MODES.find((mode) => mode === permissionMode);
+  const current = ALRAN_CODE_PERMISSION_MODES.find((mode) => mode === permissionMode);
   if (!current) return undefined;
   return {
     type: 'select',
     id: ACP_CONFIG_PERMISSION_MODE,
     name: 'Permission mode',
-    description: 'Controls how MiniMax Code handles tool permission requests in this process.',
+    description: 'Controls how Alran Code handles tool permission requests in this process.',
     category: '_permission',
     currentValue: current,
-    options: MINIMAX_CODE_PERMISSION_MODES.map((mode) => ({
+    options: ALRAN_CODE_PERMISSION_MODES.map((mode) => ({
       value: mode,
       name: formatTuiPermissionMode(mode),
     })),
-    _meta: { 'minimax-code/scope': 'process' },
+    _meta: { 'alran-code/scope': 'process' },
   };
 }
 

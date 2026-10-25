@@ -447,18 +447,18 @@ describe("totalTokens field", () => {
 	});
 
 	// =========================================================================
-	// MiniMax
+	// Alran
 	// =========================================================================
 
-	describe.skipIf(!process.env.MINIMAX_API_KEY)("MiniMax", () => {
+	describe.skipIf(!process.env.ALRAN_API_KEY)("Alran", () => {
 		it(
-			"MiniMax-M2.7 - should return totalTokens equal to sum of components",
+			"Alran-M2.7 - should return totalTokens equal to sum of components",
 			{ retry: 3, timeout: 60000 },
 			async () => {
-				const llm = getModel("minimax", "MiniMax-M2.7");
+				const llm = getModel("alran", "Alran-M2.7");
 
-				console.log(`\nMiniMax / ${llm.id}:`);
-				const { first, second } = await testTotalTokensWithCache(llm, { apiKey: process.env.MINIMAX_API_KEY });
+				console.log(`\nAlran / ${llm.id}:`);
+				const { first, second } = await testTotalTokensWithCache(llm, { apiKey: process.env.ALRAN_API_KEY });
 
 				logUsage("First request", first);
 				logUsage("Second request", second);

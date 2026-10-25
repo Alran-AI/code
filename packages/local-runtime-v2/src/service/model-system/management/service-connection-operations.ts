@@ -1,5 +1,5 @@
-import { MINIMAX_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
-import { MANAGED_MINIMAX_PROVIDER_ID } from '../identity.js';
+import { ALRAN_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
+import { MANAGED_ALRAN_PROVIDER_ID } from '../identity.js';
 import type { DiscoveredModel } from '../connectivity/discover-models.js';
 import { customProviderKind } from '../catalog/list-models.js';
 import { ModelProviderServiceContext } from './service-context.js';
@@ -11,8 +11,8 @@ export async function testProvider(
   providerId: string,
   opts?: { apiKeyOverride?: string },
 ): Promise<ModelProviderTestOutcome> {
-  if (parseProviderId(providerId)?.source === 'minimax_api') {
-    return enqueueProviderMutation(context.minimaxMutationKey(), () =>
+  if (parseProviderId(providerId)?.source === 'alran_api') {
+    return enqueueProviderMutation(context.alranMutationKey(), () =>
       testProviderNow(context, providerId, opts),
     );
   }
@@ -38,8 +38,8 @@ export async function testModel(
   providerId: string,
   modelId: string,
 ): Promise<ModelProviderTestOutcome> {
-  if (parseProviderId(providerId)?.source === 'minimax_api') {
-    return enqueueProviderMutation(context.minimaxMutationKey(), () =>
+  if (parseProviderId(providerId)?.source === 'alran_api') {
+    return enqueueProviderMutation(context.alranMutationKey(), () =>
       testModelNow(context, providerId, modelId),
     );
   }
@@ -85,10 +85,10 @@ export function assertModelSelectable(
 ): void {
   const config = context.deps.configGetter();
   if (
-    providerId === MANAGED_MINIMAX_PROVIDER_ID &&
-    config.minimaxModelSource === 'minimax_api_key'
+    providerId === MANAGED_ALRAN_PROVIDER_ID &&
+    config.alranModelSource === 'alran_api_key'
   ) {
-    context.resolveTestTarget(MINIMAX_API_PROVIDER_ID, modelId);
+    context.resolveTestTarget(ALRAN_API_PROVIDER_ID, modelId);
     return;
   }
   const parsed = parseProviderId(providerId);
@@ -96,6 +96,6 @@ export function assertModelSelectable(
     const provider = config.custom_provider?.[parsed.providerKey];
     if (provider && customProviderKind(provider) === 'oauth') return;
   }
-  if (parsed?.source !== 'custom_provider' && parsed?.source !== 'minimax_api') return;
+  if (parsed?.source !== 'custom_provider' && parsed?.source !== 'alran_api') return;
   context.resolveTestTarget(providerId, modelId);
 }

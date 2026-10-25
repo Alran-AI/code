@@ -11,13 +11,13 @@ preparation 接收该 resolver，Session 建立后再组装 `ModelProviderApplic
 DTO 映射、AgentHost lifecycle 和 Session persistence 仍由各自边界持有。
 
 OpenRouter 使用官方 `https://openrouter.ai` endpoint 时，Model
-System 会在真实推理、连接测试和模型发现请求中统一加入 MiniMax Code 的 app attribution
+System 会在真实推理、连接测试和模型发现请求中统一加入 Alran Code 的 app attribution
 headers：`HTTP-Referer`、`X-OpenRouter-Title` 和
 `X-OpenRouter-Categories`。这些产品身份字段由 Runtime 按 header
 name 大小写不敏感地覆盖，用户自定义 Provider headers 不能改变归因身份；其他 endpoint 不受影响。
 
 OpenCode Go 的官方 HTTPS 地址 `https://opencode.ai/zen/go` 及其子路径会自动携带
-`x-opencode-session` 和 `User-Agent: MiniMaxCode`，无需依赖自定义 Provider 名称。
+`x-opencode-session` 和 `User-Agent: AlranCode`，无需依赖自定义 Provider 名称。
 推理请求使用 Runtime 提供的 Session ID，同一会话跨 Turn、恢复与重试保持稳定，不同会话各自隔离；
 标题与压缩沿用已解析的请求头。连接测试和模型发现没有产品会话，使用独立生成的探测 ID。
 这两个身份字段按 header name 大小写不敏感地覆盖静态配置，其他请求头保持原值。
@@ -31,7 +31,7 @@ OpenCode Go 的官方 HTTPS 地址 `https://opencode.ai/zen/go` 及其子路径�
 - `resolution/`：Provider、BYOK、model ref、thinking 与 credential 解析；
 - `catalog/`：模型列表、Provider view、缓存与选择；
 - `connectivity/`：Provider 请求规则、模型发现与连接测试；
-- `management/`：Provider 配置变更与 MiniMax Context 工作流；
+- `management/`：Provider 配置变更与 Alran Context 工作流；
 - `codex-oauth.ts`：Codex OAuth 登录状态；
 - `index.ts`：唯一公开入口，仅做 re-export。
 
@@ -57,7 +57,7 @@ ms；这些临时数据不写入配置。相同方式的重复请求复用当前
 
 Anthropic Messages providers first request `<base>/v1/models`. Only a 404 or 405 triggers fallback to `<base>/models`, then the origin-level `/models` endpoint. Authentication failures, rate limits, and server errors retain their original status. If every candidate is absent, return `models_endpoint_missing` so the UI can offer manual model entry. Each attempt has its own request timeout.
 
-Official OpenCode Go HTTPS endpoints under `https://opencode.ai/zen/go` receive `x-opencode-session` and `User-Agent: MiniMaxCode` headers. Inference keeps a stable runtime session ID across turns and retries; connection and discovery probes receive separate generated IDs. These identity headers override custom values case-insensitively. Other custom headers remain intact, and ordinary Zen `/zen/v1`, proxies, and other providers are unaffected.
+Official OpenCode Go HTTPS endpoints under `https://opencode.ai/zen/go` receive `x-opencode-session` and `User-Agent: AlranCode` headers. Inference keeps a stable runtime session ID across turns and retries; connection and discovery probes receive separate generated IDs. These identity headers override custom values case-insensitively. Other custom headers remain intact, and ordinary Zen `/zen/v1`, proxies, and other providers are unaffected.
 
 ## Codex OAuth 模型发现
 
@@ -65,7 +65,7 @@ Official OpenCode Go HTTPS endpoints under `https://opencode.ai/zen/go` receive 
 `AuthStorage` 的刷新机制和宿主 `fetch`，请求
 `https://chatgpt.com/backend-api/codex/models?client_version=0.162.0`。
 `connectivity/codex-model-discovery.ts` 负责这个独立的 Codex 协议。兼容版本来自已验证的
-Codex 客户端协议，与 MiniMax Code 产品版本独立；模型 ID 和思考等级由响应提供。OAuth 解析复用可配置思考协议，将远端等级原样映射到请求；
+Codex 客户端协议，与 Alran Code 产品版本独立；模型 ID 和思考等级由响应提供。OAuth 解析复用可配置思考协议，将远端等级原样映射到请求；
 `ultra` 等新增等级不依赖 Pi 的静态等级枚举。
 
 只导入 `visibility=list` 的模型，ChatGPT OAuth 不用 `supported_in_api` 过滤。模型名称、

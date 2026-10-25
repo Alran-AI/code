@@ -574,7 +574,7 @@ describe("withLLMRetry", () => {
       retryOptions({ sleep: vi.fn(async () => {}) }),
     );
 
-    const result = await wrapped(fakeModel("minimax_api"), CONTEXT, {});
+    const result = await wrapped(fakeModel("alran_api"), CONTEXT, {});
     await collectEvents(result);
 
     expect(attempts).toBe(6);
@@ -585,7 +585,7 @@ describe("withLLMRetry", () => {
   // retry-all budget only delays the real reason by ~20 seconds.
   it.each([
     ["custom_provider:work", "400 Upstream [invalid_request_error] Too many images in request: 31 > 30"],
-    ["minimax_api", "400 Upstream [invalid_request_error] Too many images in request: 31 > 30"],
+    ["alran_api", "400 Upstream [invalid_request_error] Too many images in request: 31 > 30"],
     ["custom_provider:work", '400 {"type":"invalid_request_error","message":"messages: text content blocks must be non-empty"}'],
     ["fake-provider", "400 Too many images in request: 31 > 30"],
   ])("does not retry a deterministic request rejection from %s: %s", async (provider, message) => {
@@ -609,15 +609,15 @@ describe("withLLMRetry", () => {
   // pre-send body check, or a context-window overflow) is rejected again on
   // every resend; the BYOK retry-all budget used to send it six times.
   it.each([
-    ["minimax_api", "413 Request Entity Too Large"],
-    ["minimax_api", '413 {"type":"error","error":{"type":"request_too_large","message":"Request exceeds the maximum allowed number of bytes."}}'],
+    ["alran_api", "413 Request Entity Too Large"],
+    ["alran_api", '413 {"type":"error","error":{"type":"request_too_large","message":"Request exceeds the maximum allowed number of bytes."}}'],
     ["custom_provider:work", "413 Payload Too Large"],
     ["custom_provider:work", "413 status code (no body)"],
-    ["minimax_api", "Request body too large: 70000000 bytes exceeds client limit 67108864 bytes."],
-    ["minimax_api", "400 invalid params, context window exceeds limit (2013)"],
+    ["alran_api", "Request body too large: 70000000 bytes exceeds client limit 67108864 bytes."],
+    ["alran_api", "400 invalid params, context window exceeds limit (2013)"],
     ["custom_provider:work", '400 {"error":{"message":"prompt is too long: 600000 tokens > 512000 maximum"}}'],
-    ["minimax", "413 Request Entity Too Large"],
-    ["minimax", "Request body too large: 70000000 bytes exceeds client limit 67108864 bytes."],
+    ["alran", "413 Request Entity Too Large"],
+    ["alran", "Request body too large: 70000000 bytes exceeds client limit 67108864 bytes."],
   ])("sends an oversized request from %s only once: %s", async (provider, message) => {
     let attempts = 0;
     const sleep = vi.fn(async () => {});
@@ -840,7 +840,7 @@ describe("withLLMRetry", () => {
         retryOptions({ observer: (event: LLMRetryEvent) => observed.push(event) }),
       );
 
-      const result = await wrapped(fakeModel("minimax"), CONTEXT, {});
+      const result = await wrapped(fakeModel("alran"), CONTEXT, {});
       const events = await collectEvents(result);
 
       expect(attempts).toBe(2);
@@ -1225,7 +1225,7 @@ describe("deterministic request rejection classification", () => {
 
   it("does not treat transient or unrelated size-like errors as deterministic", () => {
     const oversized = rejection;
-    // The bare MiniMax 2013 code is a generic invalid-params code.
+    // The bare Alran 2013 code is a generic invalid-params code.
     expect(oversized("400 invalid params (2013)")).toBe(false);
     expect(oversized("400 Bad Request")).toBe(false);
     expect(oversized("prompt is too long", 503)).toBe(false);

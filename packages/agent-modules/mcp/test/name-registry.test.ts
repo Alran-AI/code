@@ -32,7 +32,7 @@ describe('McpNameRegistry', () => {
   });
   it('preserves configured, official, then local ownership on first allocation', () => {
     const registry = new McpNameRegistry();
-    const local = {key: pluginMcpNameKey('LOCAL_MINIMAX', 'a', 'docs'), name: 'docs'};
+    const local = {key: pluginMcpNameKey('LOCAL_ALRAN', 'a', 'docs'), name: 'docs'};
     const official = plugin('z', 'docs');
     const config = configured('docs');
     const names = registry.assignServers([local, official, config]).names;
@@ -43,7 +43,7 @@ describe('McpNameRegistry', () => {
   it('gives an unchanged name priority over a lossy name from a higher-priority source', () => {
     const registry = new McpNameRegistry();
     const config = configured('docs.server');
-    const local = { key: pluginMcpNameKey('LOCAL_MINIMAX', 'docs', 'docs_server'), name: 'docs_server' };
+    const local = { key: pluginMcpNameKey('LOCAL_ALRAN', 'docs', 'docs_server'), name: 'docs_server' };
     const names = registry.assignServers([config, local]).names;
     expect(names.get(local.key)).toBe('docs_server');
     expect(names.get(config.key)).toBe('docs_server_2');

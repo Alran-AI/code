@@ -11,14 +11,14 @@ import {
 } from '@mavis/config';
 import {
   AuthSessionChangedError,
-  MCODE_OAUTH_SCOPES,
+  ALRAN_OAUTH_SCOPES,
   requiresInteractiveLogin,
-  resolveMCodeOAuthEndpointConfig,
+  resolveAlranOAuthEndpointConfig,
   type AccessTokenLease,
   type AuthStatusSnapshot,
-  type MCodeOAuthCore,
+  type AlranOAuthCore,
 } from '@mavis/oauth-core';
-import type { McodeToolsHostAuthSession } from '@mavis/mcode-tools-host';
+import type { AlranToolsHostAuthSession } from '@mavis/alran-tools-host';
 import {
   createEmbeddedRuntimeHost,
   type EmbeddedRuntimeHost,
@@ -51,7 +51,7 @@ import {
   writeRejectedCliAccountIdentity,
   writeVerifiedCliAccountIdentity,
 } from '../auth/identity-storage.js';
-import { resolveMcodeDataEnvironment } from '../auth/environment.js';
+import { resolveAlranDataEnvironment } from '../auth/environment.js';
 import { uploadTuiFeedbackDiagnostics } from './feedback/diagnostic-upload.js';
 import { TuiFeedbackService } from './feedback/service.js';
 import {
@@ -61,13 +61,13 @@ import {
 } from './browser-provider.js';
 import { TuiDailyCheckinApplication } from '../checkin/application.js';
 import { TuiDailyCheckinHttpGateway } from '../checkin/http-gateway.js';
-import { createMcodeSharedAuthSession } from './auth-session.js';
-import type { McodeContextMode } from '@mavis/protocol/local';
+import { createAlranSharedAuthSession } from './auth-session.js';
+import type { AlranContextMode } from '@mavis/protocol/local';
 import { resolveTuiManagedBackendLane } from '../cli/environment.js';
 import {
-  prepareTuiMcodeToolsIntegration,
-  type McodeToolsReadiness,
-} from './mcode-tools-integration.js';
+  prepareTuiAlranToolsIntegration,
+  type AlranToolsReadiness,
+} from './alran-tools-integration.js';
 
 // Runtime components own dependency-ordered bounded drains of up to 20 seconds.
 // This outer process ceiling must cover the whole close graph, not race one component budget.
@@ -83,7 +83,7 @@ export interface CreateTuiRuntimeOptions {
   surface?: TuiObservabilitySurface;
   observability?: TuiObservability;
   permissionMode?: NonNullable<LocalRuntimeConfig['permissionMode']>;
-  contextMode?: McodeContextMode;
+  contextMode?: AlranContextMode;
   lane?: string;
 }
 
@@ -117,13 +117,13 @@ export interface CreateTuiRuntimeDependencies {
     signal?: AbortSignal,
   ) => Promise<LocalRuntimeAuthContext | undefined>;
   syncRuntimeAuthProjection?: typeof syncCliRuntimeAuthProjection;
-  getDataEnvironment?: typeof resolveMcodeDataEnvironment;
+  getDataEnvironment?: typeof resolveAlranDataEnvironment;
   fetchImpl?: typeof fetch;
   sharedAuthCore?: Pick<
-    MCodeOAuthCore,
+    AlranOAuthCore,
     'getStatus' | 'getAccessToken' | 'handleUnauthorized' | 'watch'
   >;
-  prepareMcodeToolsIntegration?: typeof prepareTuiMcodeToolsIntegration;
+  prepareAlranToolsIntegration?: typeof prepareTuiAlranToolsIntegration;
 }
 
 export interface CreatedTuiRuntime {
@@ -158,7 +158,7 @@ export async function createTuiRuntime(
     };
   };
   // Reject unreadable or unsafe config before auth watchers can keep a failed CLI alive.
-  const requestedMcodeTools = getConfig().beta?.mcodeTools === true;
+  const requestedAlranTools = getConfig().beta?.alranTools === true;
   const readAuthContext = dependencies.readAuthContext ?? readCliAuthContext;
   const importSharedAuthContext =
     dependencies.importSharedAuthContext ?? importSharedCliAuthContext;
@@ -211,11 +211,11 @@ export async function createTuiRuntime(
   if (useSharedOAuth) {
     const activeSharedAuthCore =
       dependencies.sharedAuthCore ??
-      createMcodeSharedAuthSession({
+      createAlranSharedAuthSession({
         dataDir: options.dataDir,
         region: authScope.region,
         buildEnv: authScope.buildEnv,
-        oauthEndpoints: resolveMCodeOAuthEndpointConfig(process.env, authScope),
+        oauthEndpoints: resolveAlranOAuthEndpointConfig(process.env, authScope),
       });
     sharedAuthCore = activeSharedAuthCore;
     const projectSharedLease = async (
@@ -323,30 +323,30 @@ export async function createTuiRuntime(
       }
     }
   }
-  let mcodeToolsReadiness: McodeToolsReadiness = fallbackMcodeToolsReadiness(
-    requestedMcodeTools,
+  let alranToolsReadiness: AlranToolsReadiness = fallbackAlranToolsReadiness(
+    requestedAlranTools,
     authScope.buildEnv,
   );
   if (useSharedOAuth && sharedAuthCore) {
-    mcodeToolsReadiness = await (
-      dependencies.prepareMcodeToolsIntegration ?? prepareTuiMcodeToolsIntegration
+    alranToolsReadiness = await (
+      dependencies.prepareAlranToolsIntegration ?? prepareTuiAlranToolsIntegration
     )({
-      requested: requestedMcodeTools,
+      requested: requestedAlranTools,
       dataDir: options.dataDir,
       buildEnv: authScope.buildEnv,
       region: authScope.region,
-      session: createMcodeToolsBrokerAuthSession(sharedAuthCore),
+      session: createAlranToolsBrokerAuthSession(sharedAuthCore),
       entryUrl: import.meta.url,
       ...(bedrockLane ? { bedrockLane } : {}),
     });
   }
-  const effectiveMcodeTools = mcodeToolsReadiness.ready;
+  const effectiveAlranTools = alranToolsReadiness.ready;
   let authShutdown = false;
   const shutdownAuth = async (): Promise<void> => {
     if (authShutdown) return;
     authShutdown = true;
     stopSharedAuthWatch();
-    await mcodeToolsReadiness.dispose();
+    await alranToolsReadiness.dispose();
   };
   const publicAuthContextResolver = (input: {
     readonly forceRefresh: boolean;
@@ -392,7 +392,7 @@ export async function createTuiRuntime(
         ...(options.permissionMode ? { permissionMode: options.permissionMode } : {}),
         beta: {
           ...config.beta,
-          mcodeTools: effectiveMcodeTools,
+          alranTools: effectiveAlranTools,
         },
       };
     },
@@ -461,7 +461,7 @@ export async function createTuiRuntime(
     },
     ...(options.surface === 'headless' ||
     options.surface === 'acp' ||
-    (dependencies.getDataEnvironment ?? resolveMcodeDataEnvironment)() === 'test'
+    (dependencies.getDataEnvironment ?? resolveAlranDataEnvironment)() === 'test'
       ? { startupExecutionPolicy: 'quarantined' }
       : {}),
   };
@@ -483,12 +483,12 @@ export async function createTuiRuntime(
         {
           ...hostOptions,
           ...(browserProvider ? { browserAdapter: browserProvider } : {}),
-          productCapabilities: { mcodeTools: effectiveMcodeTools },
+          productCapabilities: { alranTools: effectiveAlranTools },
         },
         dependencies.factory,
       ),
     );
-    mcodeToolsReadiness.ensureCommandPath();
+    alranToolsReadiness.ensureCommandPath();
     if (ownsObservability) {
       observability.recordStartup({
         phase: 'runtime.initialize',
@@ -608,7 +608,7 @@ export async function createTuiRuntime(
     if (cleanupFailures.length > 0) {
       throw new AggregateError(
         [error, ...cleanupFailures],
-        'Minimax Code Runtime startup cleanup failed.',
+        'Alran Code Runtime startup cleanup failed.',
       );
     }
     throw error;
@@ -642,7 +642,7 @@ async function readSharedAccessToken(
 ): Promise<AccessTokenLease | undefined> {
   try {
     return await core.getAccessToken({
-      requiredScopes: [...MCODE_OAUTH_SCOPES],
+      requiredScopes: [...ALRAN_OAUTH_SCOPES],
       minValidityMs,
     });
   } catch (error) {
@@ -659,9 +659,9 @@ function isSharedCredentialState(status: AuthStatusSnapshot): boolean {
   );
 }
 
-function createMcodeToolsBrokerAuthSession(
+function createAlranToolsBrokerAuthSession(
   core: NonNullable<CreateTuiRuntimeDependencies['sharedAuthCore']>,
-): McodeToolsHostAuthSession {
+): AlranToolsHostAuthSession {
   const projectStatus = (status: AuthStatusSnapshot) => ({
     status: status.status,
     generation: status.generation,
@@ -671,7 +671,7 @@ function createMcodeToolsBrokerAuthSession(
     getStatus: async () => projectStatus(await core.getStatus()),
     getAccessToken: (minValidityMs) =>
       core.getAccessToken({
-        requiredScopes: [...MCODE_OAUTH_SCOPES],
+        requiredScopes: [...ALRAN_OAUTH_SCOPES],
         minValidityMs,
       }),
     handleUnauthorized: (generation) => core.handleUnauthorized({ generation }),
@@ -679,10 +679,10 @@ function createMcodeToolsBrokerAuthSession(
   };
 }
 
-function fallbackMcodeToolsReadiness(
+function fallbackAlranToolsReadiness(
   requested: boolean,
   buildEnv: CliAuthScope['buildEnv'],
-): McodeToolsReadiness {
+): AlranToolsReadiness {
   return {
     requested,
     ready: false,
@@ -857,7 +857,7 @@ export async function shutdownTuiRuntime(
     dependencies.reportFailure ??
     ((step: string, error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
-      process.stderr.write(`[minimax-code] ${step} cleanup failed: ${message}\n`);
+      process.stderr.write(`[alran-code] ${step} cleanup failed: ${message}\n`);
     });
   const shutdownTimeoutMs = normalizeShutdownTimeout(dependencies.shutdownTimeoutMs);
   const shutdownDeadline = shutdownStartedAt + shutdownTimeoutMs;

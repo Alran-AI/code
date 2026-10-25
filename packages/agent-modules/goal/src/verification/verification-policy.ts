@@ -10,7 +10,7 @@ import type { ThreadGoalVerification } from '../types.js';
  * mode writes `goal.verification` into the config file; everyone else gets the
  * route-derived answer below, recomputed on every settlement.
  *
- * Routes we bill ourselves (`managed_token_plan`, `minimax_api_key`) can afford
+ * Routes we bill ourselves (`managed_token_plan`, `alran_api_key`) can afford
  * a read-only subagent verifier. BYOK routes (`custom_provider`,
  * `configured_provider`) spend the user's own quota, so we accept the worker's
  * completion proposal instead of silently doubling their bill.
@@ -18,7 +18,7 @@ import type { ThreadGoalVerification } from '../types.js';
 export function verificationModeForRoute(
   kind: EvaluatorRouteKind | undefined,
 ): ThreadGoalVerification {
-  if (kind === 'managed_token_plan' || kind === 'minimax_api_key') return 'subagent';
+  if (kind === 'managed_token_plan' || kind === 'alran_api_key') return 'subagent';
   // `custom_provider` / `configured_provider`, and any route we could not
   // resolve at all, settle on the worker's proposal.
   return 'none';

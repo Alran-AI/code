@@ -7,7 +7,7 @@ import {
   resolveTuiObservabilityDirectory,
 } from '../../src/observability/local-observability.js';
 
-describe('Minimax Code observability', () => {
+describe('Alran Code observability', () => {
   it('persists typed local-only events and deduplicates stable access decisions', async () => {
     let nowMs = 1_000;
     const writes: Array<{ path: string; content: string }> = [];
@@ -83,9 +83,9 @@ describe('Minimax Code observability', () => {
     });
     await observability.flush();
 
-    expect(resolveTuiObservabilityDirectory('/data')).toBe('/data/v2/observability/mcode');
+    expect(resolveTuiObservabilityDirectory('/data')).toBe('/data/v2/observability/alran');
     expect(writes).toHaveLength(1);
-    expect(writes[0]?.path).toBe('/data/v2/observability/mcode/mcode-observability-900-42.jsonl');
+    expect(writes[0]?.path).toBe('/data/v2/observability/alran/alran-observability-900-42.jsonl');
     const events = writes
       .flatMap((write) => write.content.trim().split('\n'))
       .map((line) => JSON.parse(line) as Record<string, unknown>);
@@ -208,7 +208,7 @@ describe('Minimax Code observability', () => {
       await vi.advanceTimersByTimeAsync(1_000);
 
       expect(append).toHaveBeenCalledWith(
-        expect.stringContaining('/v2/observability/mcode/'),
+        expect.stringContaining('/v2/observability/alran/'),
         expect.stringContaining('"phase":"runtime.initialize"'),
       );
       await observability.flush();
@@ -218,7 +218,7 @@ describe('Minimax Code observability', () => {
   });
 
   it('writes a per-process JSONL file through the real cross-platform filesystem path', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-observability-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-observability-'));
     try {
       const observability = createTuiObservability(dataDir, {
         surface: 'tui',
@@ -246,8 +246,8 @@ describe('Minimax Code observability', () => {
       await observability.flush();
 
       const directory = resolveTuiObservabilityDirectory(dataDir);
-      expect(await readdir(directory)).toEqual(['mcode-observability-123-99.jsonl']);
-      const content = await readFile(join(directory, 'mcode-observability-123-99.jsonl'), 'utf8');
+      expect(await readdir(directory)).toEqual(['alran-observability-123-99.jsonl']);
+      const content = await readFile(join(directory, 'alran-observability-123-99.jsonl'), 'utf8');
       const events = content
         .trim()
         .split('\n')

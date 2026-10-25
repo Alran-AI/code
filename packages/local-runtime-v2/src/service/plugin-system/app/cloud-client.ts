@@ -6,7 +6,7 @@ import type {
 } from '../../host-connector-system/index.js';
 import { PluginSystemCloudTransport, PluginSystemCloudTransportError } from '../cloud-transport.js';
 
-const CONNECTOR_BASE = '/minimax-cloud/api/v1/connectors';
+const CONNECTOR_BASE = '/alran-cloud/api/v1/connectors';
 // Tool discovery runs before every Desktop turn. It is fail-open in the
 // runtime, so keep this budget short enough that a slow Cloud dependency does
 // not make message sending appear stuck.

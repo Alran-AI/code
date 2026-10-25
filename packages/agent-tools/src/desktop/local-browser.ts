@@ -589,7 +589,7 @@ interface PostActionVisualCapture {
 const POST_ACTION_VISUAL_PADDING_PX = 48;
 const POST_ACTION_VISUAL_MAX_CLIP_EDGE_PX = 4_096;
 // Smallest clip we are willing to ask the provider for. Model gateways reject
-// degenerate images outright (the production MiniMax-M3 gateway answers
+// degenerate images outright (the production Alran-M3 gateway answers
 // `invalid params, 410 (2013)` for a short edge of 2px), and a rejected image
 // persisted into session history poisons every later request in that session.
 // The rejection threshold is a server-side property that can move — measured at

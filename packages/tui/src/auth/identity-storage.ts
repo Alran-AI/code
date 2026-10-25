@@ -73,7 +73,7 @@ export function writeVerifiedCliAccountIdentity(
   const identity = normalizeLocalRuntimeAuthContext(
     typeof identityInput === 'string' ? { realUserID: identityInput } : identityInput,
   );
-  if (!identity.realUserID) throw new Error('MiniMax account identity is missing a user ID.');
+  if (!identity.realUserID) throw new Error('Alran account identity is missing a user ID.');
   writeCliAccountIdentity(dataDir, scope, {
     version: 1,
     ...scope,

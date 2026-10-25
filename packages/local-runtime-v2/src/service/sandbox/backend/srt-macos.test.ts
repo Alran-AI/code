@@ -50,14 +50,14 @@ describe("srt-macos backend version pin", () => {
         "utf8",
       ),
     ) as { dependencies?: Record<string, string> };
-    const pinned = manifest.dependencies?.["@minimax/mcode-sandbox-runtime"];
+    const pinned = manifest.dependencies?.["@ottili/alran-sandbox-runtime"];
     expect(pinned).toBe("workspace:*");
 
     const backend = createSrtMacosBackend(fakeManager());
-    expect(backend.describeVersions().backendVersion).toBe("0.0.74-mcode.2");
+    expect(backend.describeVersions().backendVersion).toBe("0.0.74-alran.2");
 
     const installed = createRequire(import.meta.url)(
-      "@minimax/mcode-sandbox-runtime/package.json",
+      "@ottili/alran-sandbox-runtime/package.json",
     ) as { version?: string };
     expect(installed.version).toBe(backend.describeVersions().backendVersion);
   });
@@ -66,7 +66,7 @@ describe("srt-macos backend version pin", () => {
 describe("srt-macos backend", () => {
   it("preserves sandbox enforcement without an ask callback or idle log monitor", async () => {
     const manager = fakeManager();
-    const backend = createSrtMacosBackend(manager, "0.0.74-mcode.rc.0");
+    const backend = createSrtMacosBackend(manager, "0.0.74-alran.rc.0");
     const policy = effectivePolicy("open", "allow_all");
 
     await backend.validatePolicy(policy);
@@ -296,7 +296,7 @@ describe("srt-macos backend failure and lifecycle edges", () => {
     expect(manager.initialize).toHaveBeenCalledTimes(2);
     // The direct-update path skips the installed SRT schema, so it proves the
     // backend emits `network.disabled: true` for the unrestricted IR (the
-    // 0.0.74-mcode.1 schema still strips the key on the validated paths).
+    // 0.0.74-alran.1 schema still strips the key on the validated paths).
     expect(manager.updateConfig).toHaveBeenLastCalledWith(
       expect.objectContaining({
         allowSecurityServer: false,
@@ -1096,9 +1096,9 @@ const canInspectProfile = process.platform === "darwin";
 const profileBackend = createSrtMacosBackend();
 const profileFixture = canInspectProfile
   ? realpathSync(
-      mkdtempSync(join(realpathSync(tmpdir()), "mcode-srt-profile-")),
+      mkdtempSync(join(realpathSync(tmpdir()), "alran-srt-profile-")),
     )
-  : "/tmp/mcode-srt-profile-skipped";
+  : "/tmp/alran-srt-profile-skipped";
 
 describe.runIf(canInspectProfile)("srt-macos SBPL profile contract", () => {
   afterAll(async () => {
@@ -1290,7 +1290,7 @@ interface ProbeFixture {
 
 function createProbeFixture(): ProbeFixture {
   const root = realpathSync(
-    mkdtempSync(join(realpathSync(tmpdir()), "mcode-srt-probe-")),
+    mkdtempSync(join(realpathSync(tmpdir()), "alran-srt-probe-")),
   );
   const workspace = join(root, "workspace");
   const gitDir = join(workspace, ".git");
@@ -1379,7 +1379,7 @@ async function expectModeScopeIsTheOnlyWriteRule(
     const policy = probeFilesystemPolicy(mode, fixture);
     mkdirSync(join(fixture.workspace, ".vscode"), { recursive: true });
     mkdirSync(join(fixture.workspace, ".idea"), { recursive: true });
-    mkdirSync(join(fixture.workspace, ".mcode", "commands"), {
+    mkdirSync(join(fixture.workspace, ".alran", "commands"), {
       recursive: true,
     });
     mkdirSync(join(fixture.gitDir, "hooks"), { recursive: true });
@@ -1391,7 +1391,7 @@ async function expectModeScopeIsTheOnlyWriteRule(
       join(fixture.workspace, ".mcp.json"),
       join(fixture.workspace, ".vscode", "settings.json"),
       join(fixture.workspace, ".idea", "x.xml"),
-      join(fixture.workspace, ".mcode", "commands", "c.md"),
+      join(fixture.workspace, ".alran", "commands", "c.md"),
       join(fixture.gitDir, "hooks", "pre-commit"),
       join(fixture.gitDir, "config"),
     ]) {
@@ -1491,7 +1491,7 @@ async function expectMandatoryDenySurface(
  * Probes must measure the sandbox, not the caller's shell. Every probe spawns a
  * real process and resolves its command through `PATH`, so inheriting the
  * ambient one lets a wrapper ahead of `/bin` decide what `rm` means — for
- * example the recoverable-delete shim MCode installs into agent shells, whose
+ * example the recoverable-delete shim Alran installs into agent shells, whose
  * trash move the sandbox then denies, turning a correct allow-probe into a
  * reported sandbox regression. Pin the probes to the system binaries they
  * actually use (`cat`, `rm`, `rmdir`, `find`, `mv`, `printf`, `git`, `true`).
@@ -1578,7 +1578,7 @@ interface GitProbeFixture {
 
 function createGitProbeFixture(): GitProbeFixture {
   const root = realpathSync(
-    mkdtempSync(join(realpathSync(tmpdir()), "mcode-srt-git-")),
+    mkdtempSync(join(realpathSync(tmpdir()), "alran-srt-git-")),
   );
   const workspace = join(root, "workspace");
   const home = join(root, "home");

@@ -29,7 +29,7 @@ afterEach(async () => {
 });
 
 async function fixture() {
-  const dataDir = await mkdtemp(join(tmpdir(), 'mcode-message-contention-'));
+  const dataDir = await mkdtemp(join(tmpdir(), 'alran-message-contention-'));
   cleanup.push(() => rm(dataDir, { recursive: true, force: true }));
   const client = new DatabaseClient({ dataDir });
   cleanup.push(() => client.close());

@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 /**
  * Configuration for Sandbox Runtime
@@ -891,7 +891,7 @@ const NetworkConfigObjectSchema = z.object({
   ),
 });
 
-// MCODE-008: `disabled` bypasses the proxy entirely, so any field that only
+// ALRAN-008: `disabled` bypasses the proxy entirely, so any field that only
 // has an effect through the proxy pipeline is a contradiction — reject it
 // loudly instead of silently ignoring it. Kept as a separate chained schema
 // so the object literal above stays byte-identical to upstream ordering.

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createAuthNamespace, type OAuthClient } from '@mavis/oauth-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createMcodeSharedAuthSession } from '../../src/runtime/auth-session.js';
+import { createAlranSharedAuthSession } from '../../src/runtime/auth-session.js';
 
 const roots: string[] = [];
 
@@ -13,9 +13,9 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
 
-describe('createMcodeSharedAuthSession', () => {
+describe('createAlranSharedAuthSession', () => {
   it('persists and reuses a plaintext credential without a passphrase provider', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-tui-auth-session-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-tui-auth-session-'));
     roots.push(dataDir);
     const namespace = createAuthNamespace({ dataDir, buildEnv: 'test', region: 'en' });
     const unused = vi.fn(async () => {
@@ -41,7 +41,7 @@ describe('createMcodeSharedAuthSession', () => {
       refreshToken: unused,
       revokeToken: unused,
     };
-    const session = createMcodeSharedAuthSession({
+    const session = createAlranSharedAuthSession({
       dataDir,
       region: 'en',
       buildEnv: 'test',
@@ -56,7 +56,7 @@ describe('createMcodeSharedAuthSession', () => {
     expect(raw).toContain('shared-access-token');
     expect(raw).toContain('shared-refresh-token');
 
-    const restored = createMcodeSharedAuthSession({
+    const restored = createAlranSharedAuthSession({
       dataDir,
       region: 'en',
       buildEnv: 'test',

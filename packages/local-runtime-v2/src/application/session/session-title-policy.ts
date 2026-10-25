@@ -5,7 +5,7 @@ import {
   type ContentSafetyService,
 } from "../../service/content-safety/index.js";
 import {
-  isLegacyMinimaxProvider,
+  isLegacyAlranProvider,
   parseSourceQualifiedModelKey,
   type LocalRuntimeConfig,
 } from "../../service/model-system/index.js";
@@ -68,15 +68,15 @@ function isUnmanagedProvider(
   config: LocalRuntimeConfig,
   model: NonNullable<ReturnType<typeof parseSourceQualifiedModelKey>>,
 ): boolean {
-  if (isLegacyMinimaxProvider(config, model.providerId)) return false;
-  if (model.source === "minimax_api") return true;
+  if (isLegacyAlranProvider(config, model.providerId)) return false;
+  if (model.source === "alran_api") return true;
   if (model.source === "custom_provider") {
     const provider = config.custom_provider?.[model.providerKey];
     return provider !== undefined && provider.enabled !== false;
   }
   if (
-    model.providerId === "minimax" &&
-    config.minimaxModelSource === "minimax_api_key"
+    model.providerId === "alran" &&
+    config.alranModelSource === "alran_api_key"
   )
     return true;
   const provider = config.provider?.[model.providerId];

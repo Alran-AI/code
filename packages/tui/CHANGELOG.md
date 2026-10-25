@@ -1,6 +1,6 @@
-# MCode TUI Changelog
+# Alran TUI Changelog
 
-This changelog covers important changes that directly affect MCode TUI users. It includes:
+This changelog covers important changes that directly affect Alran TUI users. It includes:
 
 - Features, interactions, display, compatibility, installation, and updates in the TUI itself.
 - Shared Runtime, Agent, Tool, and Skill changes that alter TUI behavior.
@@ -47,8 +47,8 @@ Internal refactors, test-only changes, and changes limited to other product surf
 - Each model request attempt now has a first-response bound and a stream idle bound, both 300
   seconds by default. A request that passes a bound is aborted and reported as a retryable timeout,
   so the normal model-request retry runs instead of the turn waiting on a provider that never
-  answers. Override the bounds with `MCODE_LLM_FIRST_EVENT_TIMEOUT_MS` and
-  `MCODE_LLM_STREAM_IDLE_TIMEOUT_MS`, where `0` disables a bound.
+  answers. Override the bounds with `ALRAN_LLM_FIRST_EVENT_TIMEOUT_MS` and
+  `ALRAN_LLM_STREAM_IDLE_TIMEOUT_MS`, where `0` disables a bound.
 
 ### Improved
 
@@ -99,7 +99,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Improved
 
-- The official default model is now `MiniMax-M3.1-Flash-Preview` when no model has been selected.
+- The official default model is now `Alran-M3.1-Flash-Preview` when no model has been selected.
 - When a Goal is marked complete, the agent now ends with one final reply that summarizes what was
   done and where the deliverables are, instead of stopping right after the status update.
 - Safety refusals from the model provider are no longer retried, including on BYOK. The original
@@ -148,7 +148,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   failures caused by oversized requests.
 - Long conversations load their file list and history navigation with less data, making browsing
   them faster.
-- The MiniMax API-key route now uses the same official model catalog as the signed-in route.
+- The Alran API-key route now uses the same official model catalog as the signed-in route.
 
 ### Fixed
 
@@ -203,8 +203,8 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- Terminal titles show the current state, session name, and MCode, for example
-  `Needs approval | Fix login | MCode`, and follow session renames and switches. Notifications for
+- Terminal titles show the current state, session name, and Alran, for example
+  `Needs approval | Fix login | Alran`, and follow session renames and switches. Notifications for
   completed turns, failures, permission requests, and questions identify the session and suppress
   duplicates; completion waits for the session's queue to finish. Configure them with
   `tui.terminalTitle` and `tui.notifications` in `config.yaml`.
@@ -251,7 +251,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   output persistence separately, and keep task receipts bounded.
 - `/theme` uses the left and right arrow keys to select light, automatic, or dark appearance. Custom
   theme watching reconciles once at startup to catch edits that could otherwise be missed.
-- Workspace Skill directories (`.agents/skills`, `.claude/skills`, and `.minimax/skills`) support
+- Workspace Skill directories (`.agents/skills`, `.claude/skills`, and `.alran/skills`) support
   symbolic links to other locations and watch linked directories for additions and changes.
 
 ### Fixed
@@ -273,12 +273,12 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- `/theme` opens a theme panel with live preview. Pick from the built-in `minimax`, `midnight`,
+- `/theme` opens a theme panel with live preview. Pick from the built-in `alran`, `midnight`,
   `graphite`, and `aurora` themes, or write your own theme file under `tui/themes/*.json`. Each
   theme provides both a dark and a light palette, and the appearance follows your terminal's
   background until you lock it to light or dark.
 - Custom theme files support partial overrides, color aliases, syntax palettes, and hot reload, so
-  editing a theme you are already using takes effect without restarting MCode.
+  editing a theme you are already using takes effect without restarting Alran.
 - The theme choice is stored in `tui/tui-settings.json` alongside `tuiMode` and can also be set as
   `<theme-id>/light` or `<theme-id>/dark` to pin one appearance. An unrecognized value falls back to
   the default theme instead of blocking startup.
@@ -323,7 +323,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   Windows terminals, and prevented stale history rows after content changes.
 - Local sessions using custom providers or API keys no longer require a managed login for title
   handling, and the welcome screen no longer asks you to sign in when the selected custom provider
-  does not need a MiniMax account.
+  does not need a Alran account.
 - Token estimates for Z.AI and Zhipu Coding Plan endpoints no longer fall back to a local
   approximation after a failed token-count request.
 - Memory edits containing `$&`, `$$`, or similar sequences are inserted literally.
@@ -332,22 +332,22 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- Interactive sessions support `mcode -m <provider/model>` to select a model for that session.
+- Interactive sessions support `alran -m <provider/model>` to select a model for that session.
 - Provider setup supports explicit context and output limits, image input capability
   (`--support-image`), and testing before saving with `--use`.
 - ACP clients can discover enabled Skills for the attached session's Agent and workspace alongside
   native slash commands.
 - Fullscreen Transcript supports clicking and dragging the scrollbar. An optional `context-meter`
   status line item shows remaining context capacity.
-- Each GitHub Release includes a versioned npm installation archive, `minimax-code-X.Y.Z.tar.gz`,
+- Each GitHub Release includes a versioned npm installation archive, `alran-code-X.Y.Z.tar.gz`,
   with a `.sha256` checksum.
 
 ### Improved
 
 - Reduced repeated history processing and token estimation during long conversations.
 - Provider presets import their explicit reasoning effort options.
-- Source builds now use `~/.minimax` as the default data directory, the same as the published npm
-  CLI. Data in the earlier `~/.minimax-code` default is not moved; set `MINIMAX_DATA_DIR` to keep
+- Source builds now use `~/.alran` as the default data directory, the same as the published npm
+  CLI. Data in the earlier `~/.alran-code` default is not moved; set `ALRAN_DATA_DIR` to keep
   using it.
 - Automatic metrics and diagnostics uploads are off by default and require their own consent; global
   opt-outs are honored.
@@ -366,7 +366,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 - Context usage is recalculated after compaction instead of showing the pre-compaction value.
 - Bash deny and ask rules also match commands prefixed by transparent wrappers such as `nohup` or
   `timeout`.
-- Terminal control sequences in model output are sanitized before display, and reading MCode's
+- Terminal control sequences in model output are sanitized before display, and reading Alran's
   private runtime data requires approval.
 - Configuration files that can hold credentials are restricted to owner access.
 - `replace_all` edits keep literal `$` sequences.
@@ -411,7 +411,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- `mcode exec` and `mcode exec review` support `--effort` to choose reasoning effort for a single run.
+- `alran exec` and `alran exec review` support `--effort` to choose reasoning effort for a single run.
   Unsupported levels fail before execution, and the override does not change the session's saved effort.
 
 ### Fixed
@@ -455,7 +455,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Added
 
 - Choose terminal, coding, or general work instructions for non-interactive runs with
-  `mcode exec --prompt-mode tui|coding|work`; terminal mode remains the default.
+  `alran exec --prompt-mode tui|coding|work`; terminal mode remains the default.
 
 ### Improved
 
@@ -556,7 +556,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- Review local changes with `/review` or `mcode exec review`, with findings linked to file
+- Review local changes with `/review` or `alran exec review`, with findings linked to file
   locations.
 - Run Shell commands with `!`, keep results local with `!!`, and use Tab to complete commands and
   paths.
@@ -606,7 +606,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   mode transitions, and remaining 5-hour and weekly quotas with reset countdowns.
 - The compact status panel wraps long paths and keeps local configuration visible while account
   details load or when the account request fails.
-- `/logout` and `mcode logout` print a complete browser sign-out link and open the page for the
+- `/logout` and `alran logout` print a complete browser sign-out link and open the page for the
   current account region and environment. On remote or headless machines, copy the link to your
   browser; command completion does not wait for the browser or page result.
 
@@ -636,7 +636,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Fixed
 
-- When MCode shares its data directory with MiniMax Desktop, official model endpoints are now
+- When Alran shares its data directory with Alran Desktop, official model endpoints are now
   resolved in memory for the current environment: reading configuration or first-run initialization
   no longer writes new official endpoints into the shared config file, so older Desktop versions
   keep working alongside the TUI. Custom (BYOK) endpoints behave as before.
@@ -647,7 +647,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   and migration records are preserved; only explicit user selections are written back to
   configuration.
 - Installing or updating with npm 12 no longer breaks the native SQLite module: install and update
-  authorize the MCode and `better-sqlite3` lifecycle scripts and keep optional native dependencies.
+  authorize the Alran and `better-sqlite3` lifecycle scripts and keep optional native dependencies.
   When native SQLite fails to load, startup prints a repair command matching the install registry,
   and early startup errors are reported instead of failing silently.
 
@@ -656,7 +656,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Fixed
 
 - Legacy model repair now also covers resuming sessions and queued messages, not just startup:
-  selections from the legacy custom provider switch to the same model on the official MiniMax
+  selections from the legacy custom provider switch to the same model on the official Alran
   provider, or to the official default model when the same model is unavailable, and the repair is
   saved to the session or default configuration. The model list no longer shows legacy entries.
 - After a response fails or is stopped, queued messages that have not run yet are kept and shown as
@@ -664,7 +664,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   also be edited, restored, or deleted. Sending a new message while paused offers to send it first
   and then continue the original queue, or to clear pending messages first; cancelling keeps your
   draft. Reopening the session shows the paused queue and waits for you to continue.
-- In-TUI updates now run npm with MCode's own Node runtime and validate the new version's native
+- In-TUI updates now run npm with Alran's own Node runtime and validate the new version's native
   modules with that exact runtime before activation, fixing startup failures after updating on
   machines whose system Node version differs. If validation fails, the previous version stays
   active.
@@ -677,7 +677,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Improved
 
 - On startup, when the selected model comes from the legacy custom provider, the TUI automatically
-  switches to the same model on the official MiniMax provider.
+  switches to the same model on the official Alran provider.
 
 ### Fixed
 
@@ -738,8 +738,8 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Added
 
 - TUI and Desktop now use the Shared OAuth Core for the same account session; Runtime and embedded
-  `mcode-tools` consume short-lived access-token leases without reading refresh credentials.
-- Managed `mcode-tools` packaging validates its version lock, package identity, lease protocol, and
+  `alran-tools` consume short-lived access-token leases without reading refresh credentials.
+- Managed `alran-tools` packaging validates its version lock, package identity, lease protocol, and
   CLI SHA-256 before enabling the launcher, and remains fail-closed when validation fails.
 - Added a unified `/tasks` center for Agent Team and Runtime background work, with a compact
   severity-aware summary above the Composer and drill-down into child Session transcripts.
@@ -751,7 +751,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Improved
 
 - Internal test and staging builds accept an explicit global `--lane <name>` for OAuth integration
-  testing. Production builds reject the option, and MCode does not infer a lane from environment
+  testing. Production builds reject the option, and Alran does not infer a lane from environment
   variables.
 - The Composer now identifies Prompt, Command, and Skill input before submission, shows a localized
   empty-state hint, and treats text following no-argument slash commands as a regular prompt.
@@ -760,7 +760,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   recovery, and follow-up delivery.
 - Model retries, Goal completion, and compaction report clearer progress and actual Provider token
   usage. Plan Review content remains scrollable in the Transcript.
-- Installing MCode now exposes the managed `mcode-tools` command without requiring a TUI startup and
+- Installing Alran now exposes the managed `alran-tools` command without requiring a TUI startup and
   keeps package-owned launchers clean across updates.
 
 ### Fixed
@@ -878,7 +878,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 - Fixed legacy `main` or `mavis` Agent data preventing Runtime startup.
 - Fixed `/fork` offering worktree isolation when the current repository could not safely create it
   and failing only after selection.
-- Fixed MiniMax Plugin Hooks receiving incorrect Tool names or input shapes, which broke Hook
+- Fixed Alran Plugin Hooks receiving incorrect Tool names or input shapes, which broke Hook
   matching and input rewriting.
 - Fixed built-in Matrix tools using the wrong authentication method for managed services.
 - Fixed interrupted, repeated, or failed install/update attempts leaving incomplete versions, with
@@ -888,14 +888,14 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Added
 
-- `mcode acp` expands the Session control plane with Session fork, mode and configuration switching,
+- `alran acp` expands the Session control plane with Session fork, mode and configuration switching,
   Queue/Steer, Goal, and delegation while preserving ownership through rebinding, cancellation,
   permissions, and questionnaires.
 - Installed Plugin Skills are directly searchable and invokable through `/`.
 - Added lifecycle Hooks compatible with the Plugin format, including Runtime compatibility handling.
 - Goal supports runtime budgets, automatic settlement, and independent verification; Ask shows a
   countdown before automatic continuation.
-- `mcode exec` now emits structured events and output for automation workflows.
+- `alran exec` now emits structured events and output for automation workflows.
 - Press Ctrl+U to continue the latest Codex Session.
 
 ### Improved
@@ -941,7 +941,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 - Ctrl+C exit confirmation now stays armed until the next press. Clearing a Draft can be undone with
   Ctrl+Z without a fixed 500 ms window.
 - Startup defers nonessential dependencies.
-- The MiniMax Code product-knowledge Skill is now a top-level router with trusted region context and
+- The Alran Code product-knowledge Skill is now a top-level router with trusted region context and
   topic-specific references for accounts, Agents, extensions, workflows, and more.
 
 ### Fixed
@@ -950,7 +950,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   reconciliation errors in long-running Sessions.
 - Fixed `tool_trim` rewriting persisted user messages and failing the Turn; original user payloads
   are retained.
-- Fixed `mcode update` parsing npm responses that contain a single-element version array.
+- Fixed `alran update` parsing npm responses that contain a single-element version array.
 - Fixed settlement consistency when run results, Agent Team events, and Runtime events arrive after
   reconnects, as duplicates, or out of order.
 
@@ -963,7 +963,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Improved
 
-- `/update` reports the real number of blocking MCode sessions and waits for older processes to exit
+- `/update` reports the real number of blocking Alran sessions and waits for older processes to exit
   safely instead of abandoning activation after a fixed timeout.
 - Slash Review switches to a compact Git-discovery prompt when context is tight, preserving review
   output and recovery paths.
@@ -1034,7 +1034,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   `/review` queued-message sources failing to reconcile with their bubbles.
 - Fixed invalid Workspaces blocking the current Session when accelerated indexing was enabled.
 - Fixed Windows local-file tools disagreeing on Read-Before-Write path identity and installers
-  mistaking `mcode.ps1` for the launcher in PowerShell.
+  mistaking `alran.ps1` for the launcher in PowerShell.
 - Fixed `/update` replacing files in place under the npm prefix and colliding with locked native
   modules; updates now use isolated staging and atomic activation.
 
@@ -1082,9 +1082,9 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 - Added `/goal` for creating, viewing, and managing the current Session Goal, including status,
   progress, and elapsed time consistent with Desktop and Runtime semantics.
-- Added Plugin management through `mcode plugin` and the interactive Plugin manager for browsing,
+- Added Plugin management through `alran plugin` and the interactive Plugin manager for browsing,
   installing, enabling, disabling, and removing official or local Plugins.
-- Expanded `/provider` and `/model` for viewing and testing Providers, switching between MiniMax
+- Expanded `/provider` and `/model` for viewing and testing Providers, switching between Alran
   OAuth and API Key, and selecting a model and reasoning effort reflected in the status bar and
   `/status`.
 - Expanded ACP and continuous collaboration with persistent Session listing, loading, restoration,
@@ -1106,7 +1106,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 ### Fixed
 
 - Fixed copy offsets while scrolling a drag selection and delayed display of queued messages.
-- Fixed built-in Matrix tools being incorrectly trimmed when the `mcode-tools` switch was enabled.
+- Fixed built-in Matrix tools being incorrectly trimmed when the `alran-tools` switch was enabled.
 - Fixed image paste on Windows and WSL and cross-platform generated-file path display.
 
 ## 0.1.3 · 2026-08-17
@@ -1115,7 +1115,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 - ACP editor integrations can reopen or continue an earlier Session after restart, with fixes for
   `/new` causing Session mismatches.
-- `mcode exec` JSON output includes the model actually used for usage analysis.
+- `alran exec` JSON output includes the model actually used for usage analysis.
 - Added `/copy` to copy the latest Assistant response to the system clipboard as Markdown, with
   clear feedback and a manual-copy path when no response or clipboard is available.
 
@@ -1126,6 +1126,6 @@ Internal refactors, test-only changes, and changes limited to other product surf
 
 ### Fixed
 
-- MiniMax API Key users can start conversations without signing in.
+- Alran API Key users can start conversations without signing in.
 - Fixed extra text attaching to delivered file paths and frequent Composer cursor/border flicker.
 - Improved WSL sign-in and Windows PowerShell installer compatibility.

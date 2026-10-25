@@ -12,7 +12,7 @@
       "name": "minimal-package",
       "entries": [
         {
-          "path": ".minimax-plugin/plugin.json",
+          "path": ".alran-plugin/plugin.json",
           "kind": "file",
           "contentUtf8": "{\"schemaVersion\":1,\"name\":\"demo\"}\n"
         },
@@ -35,7 +35,7 @@
           "contentUtf8": "---\nname: research\ndescription: Research a topic\n---\n\nUse the available tools.\n"
         },
         {
-          "path": ".minimax-plugin/plugin.json",
+          "path": ".alran-plugin/plugin.json",
           "kind": "file",
           "contentUtf8": "{\"schemaVersion\":1,\"name\":\"demo\"}\n"
         }
@@ -49,7 +49,7 @@
       "name": "metadata-ignored",
       "entries": [
         {
-          "path": ".minimax-plugin/plugin.json",
+          "path": ".alran-plugin/plugin.json",
           "kind": "file",
           "contentUtf8": "{\"schemaVersion\":1,\"name\":\"demo\"}\n",
           "mode": 493,
@@ -80,7 +80,7 @@
           "kind": "directory"
         },
         {
-          "path": ".minimax-plugin/plugin.json",
+          "path": ".alran-plugin/plugin.json",
           "kind": "file",
           "contentUtf8": "{\"schemaVersion\":1,\"name\":\"demo\"}\n"
         },
@@ -106,7 +106,7 @@
         {
           "path": "skills/writer/SKILL.md",
           "kind": "file",
-          "contentUtf8": "---\nname: writer\ndescription: 中文写作\n---\n\n你好，MiniMax。\n"
+          "contentUtf8": "---\nname: writer\ndescription: 中文写作\n---\n\n你好，Alran。\n"
         }
       ],
       "expect": {
@@ -117,7 +117,7 @@
       "name": "content-change",
       "entries": [
         {
-          "path": ".minimax-plugin/plugin.json",
+          "path": ".alran-plugin/plugin.json",
           "kind": "file",
           "contentUtf8": "{\"schemaVersion\":1,\"name\":\"demo-2\"}\n"
         },

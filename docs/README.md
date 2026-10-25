@@ -4,7 +4,7 @@
 
 ## Get started
 
-- [Official CLI quick start](https://agent.minimax.io/docs/cli/quick-start): installation, account regions, first tasks, and sessions.
+- [Official CLI quick start](https://api.ottili.one/docs/cli/quick-start): installation, account regions, first tasks, and sessions.
 - [Install from source](installation.md): prerequisites, build, project usage, updates, and removal.
 - [Examples](examples.md): code fixes, model selection, search, and image input.
 - [Real TUI demo](demo.md): a 20-second replay, still image, and reproduction steps.

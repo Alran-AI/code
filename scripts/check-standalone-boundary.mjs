@@ -11,7 +11,7 @@ const violations = Object.keys(metafile.inputs).filter((input) =>
 const required = [
   'packages/tui/src/auth/application.ts',
   'packages/tui/src/runtime/auth-session.ts',
-  'packages/tui/src/runtime/mcode-tools-integration.ts',
+  'packages/tui/src/runtime/alran-tools-integration.ts',
   'packages/tui/src/account/matrix-account-client.ts',
   'packages/tui/src/checkin/http-gateway.ts',
   'packages/tui/src/runtime/feedback/service.ts',

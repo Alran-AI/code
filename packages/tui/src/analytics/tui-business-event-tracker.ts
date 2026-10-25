@@ -1,15 +1,15 @@
 import type {
-  McodeBusinessTelemetry,
-  McodeBusinessEventMap,
-  McodeBusinessEventName,
-  McodeChatType,
-  McodeSlashCommandType,
+  AlranBusinessTelemetry,
+  AlranBusinessEventMap,
+  AlranBusinessEventName,
+  AlranChatType,
+  AlranSlashCommandType,
 } from './business-telemetry.js';
-import { bucketMcodeDuration } from './business-telemetry.js';
+import { bucketAlranDuration } from './business-telemetry.js';
 import type { AutocompleteItem, AutocompleteSuggestions } from '../tui/widgets/autocomplete.js';
 
 export interface TuiBusinessEventContext {
-  readonly chatType: () => McodeChatType;
+  readonly chatType: () => AlranChatType;
   readonly userMessageCount: () => number;
   readonly skillCommandNames: () => ReadonlySet<string>;
 }
@@ -18,7 +18,7 @@ export class TuiBusinessEventTracker {
   private readonly btwOpenedAtMs = new Map<string, number>();
 
   constructor(
-    private readonly telemetry: McodeBusinessTelemetry,
+    private readonly telemetry: AlranBusinessTelemetry,
     private readonly context: TuiBusinessEventContext,
   ) {}
 
@@ -44,7 +44,7 @@ export class TuiBusinessEventTracker {
     this.btwOpenedAtMs.delete(input.sideSessionId);
     this.track('btw_session_lifecycle', {
       phase: 'closed',
-      duration_bucket: bucketMcodeDuration(
+      duration_bucket: bucketAlranDuration(
         openedAt === undefined ? 0 : Math.max(0, Date.now() - openedAt),
       ),
       exit_reason: input.exitReason,
@@ -92,7 +92,7 @@ export class TuiBusinessEventTracker {
     } as const;
   }
 
-  private slashCommandType(commandName: string): McodeSlashCommandType {
+  private slashCommandType(commandName: string): AlranSlashCommandType {
     const normalized = commandName.trim().toLocaleLowerCase();
     if (this.context.skillCommandNames().has(normalized)) return 'skill';
     if (normalized === 'new' || normalized === 'clear') return 'new_chat';
@@ -102,9 +102,9 @@ export class TuiBusinessEventTracker {
     return 'other';
   }
 
-  private track<Event extends McodeBusinessEventName>(
+  private track<Event extends AlranBusinessEventName>(
     event: Event,
-    properties: McodeBusinessEventMap[Event],
+    properties: AlranBusinessEventMap[Event],
   ): void {
     try {
       this.telemetry.track(event, properties);

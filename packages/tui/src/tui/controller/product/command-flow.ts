@@ -31,7 +31,7 @@ import type { TuiGoalFlow } from './goal-flow.js';
 import type { TuiPlanModeFlow } from '../interaction/plan-mode-flow.js';
 import type { TuiPermissionModeFlow } from '../interaction/permission-mode-flow.js';
 import type { MavisRegion } from '@mavis/config';
-import type { McodeAuthPort } from '../../../auth/application.js';
+import type { AlranAuthPort } from '../../../auth/application.js';
 import { markTuiAuthorizationUrl } from '../../../auth/authorization-url.js';
 import type { TuiMode } from '../../engine/public.js';
 import type { TuiKeybindingOverride, TuiKeybindingRegistry } from '../../shell/keybindings.js';
@@ -78,7 +78,7 @@ export interface TuiCommandFlowOptions {
   readonly goalFlow?: Pick<TuiGoalFlow, 'execute' | 'resumeBlocked'>;
   readonly planModeFlow?: TuiPlanModeFlow;
   readonly permissionModeFlow?: TuiPermissionModeFlow;
-  readonly auth?: McodeAuthPort;
+  readonly auth?: AlranAuthPort;
   readonly openExternalTarget?: TuiExternalTargetOpener;
   readonly interactionFlow: TuiInteractionFlow;
   readonly sessionFlow: TuiSessionFlow;
@@ -1518,7 +1518,7 @@ export class TuiCommandFlow {
    * `/provider` OAuth row — so sign-in always runs the same region picker and
    * auth command as `/login`.
    */
-  startMiniMaxLogin(): void {
+  startAlranLogin(): void {
     this.pendingLoginContinuation = undefined;
     this.showLoginRegionPicker();
   }
@@ -1526,7 +1526,7 @@ export class TuiCommandFlow {
   private showLoginRegionPicker(): void {
     if (!this.options.auth) {
       this.pendingLoginContinuation = undefined;
-      this.options.append('MiniMax authentication is unavailable in this host.', 'warning');
+      this.options.append('Alran authentication is unavailable in this host.', 'warning');
       return;
     }
     if (this.loginRegionPicker) this.options.surface.close(this.loginRegionPicker);
@@ -1555,7 +1555,7 @@ export class TuiCommandFlow {
       }
     } catch {
       this.options.append(
-        "Couldn't verify MiniMax sign-in. Check the connection, then retry /checkin.",
+        "Couldn't verify Alran sign-in. Check the connection, then retry /checkin.",
         'warning',
       );
       return;
@@ -1619,7 +1619,7 @@ export class TuiCommandFlow {
           this.options.append(
             formatTuiActionFailure(error, {
               summary: "Couldn't save the TUI mode.",
-              nextStep: 'Check the MCode data directory permissions, then retry /settings.',
+              nextStep: 'Check the Alran data directory permissions, then retry /settings.',
               preservation: `The TUI remains in ${previousMode} mode.`,
             }),
             'warning',
@@ -1674,10 +1674,10 @@ export class TuiCommandFlow {
 
   private async runAuthCommand(operation: 'login' | 'logout', region?: MavisRegion): Promise<void> {
     if (!this.options.auth) {
-      this.options.append('MiniMax authentication is unavailable in this host.', 'warning');
+      this.options.append('Alran authentication is unavailable in this host.', 'warning');
       return;
     }
-    this.options.setHint(operation === 'login' ? 'Starting MiniMax sign-in…' : 'Signing out…');
+    this.options.setHint(operation === 'login' ? 'Starting Alran sign-in…' : 'Signing out…');
     this.options.onChanged();
     try {
       const result =
@@ -1687,7 +1687,7 @@ export class TuiCommandFlow {
                 progress.verificationUriComplete ?? progress.verificationUri,
               );
               this.options.append(
-                `Complete MiniMax login in your browser:\n` +
+                `Complete Alran login in your browser:\n` +
                   `${authorizationUrl}\n` +
                   `Code: ${progress.userCode}`,
               );

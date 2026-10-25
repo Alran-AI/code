@@ -12,7 +12,7 @@ import type { ConversationModelThinkingSelection } from '@mavis/conversation-con
 import {
   LocalModelProviderError,
   type LocalModelConfig,
-  type MiniMaxM3ThinkingMode,
+  type AlranM3ThinkingMode,
 } from '../contracts.js';
 import { CUSTOM_PROVIDER_ID_PREFIX } from '../identity.js';
 import {
@@ -24,13 +24,13 @@ import {
   normalizeLocalMultimodalLimitCapabilities,
 } from './file-api-capabilities.js';
 
-export type { MiniMaxM3ThinkingMode } from '../contracts.js';
+export type { AlranM3ThinkingMode } from '../contracts.js';
 
 const THINKING_VARIANT = 'thinking';
 const NONE_THINKING_VARIANT = '';
 const APOLLO_NONE_THINKING_VARIANT = 'none-thinking';
 const PI_THINKING_LEVELS = new Set<string>(['minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
-export const MINIMAX_M3_MODEL_ID = 'MiniMax-M3';
+export const ALRAN_M3_MODEL_ID = 'Alran-M3';
 
 const SELECTED_THINKING_EFFORT_CAPABILITY = 'selected_thinking_effort';
 const SUPPORT_JSON_OBJECT_OUTPUT_CAPABILITY = 'support_json_object_output';
@@ -250,11 +250,11 @@ function resolveEffectiveThinkingEffort(
   if (thinkingMode === 'forced_on') return resolveForcedOnThinkingEffort(modelConfig, selected);
   if (normalizeThinkingVariant(selection.variant) === NONE_THINKING_VARIANT) return undefined;
   if (!normalizeModelThinkingEffortOptions(modelConfig?.thinking?.effortOptions)) {
-    const miniMaxM3Mode = resolveMiniMaxM3ThinkingMode(
+    const alranM3Mode = resolveAlranM3ThinkingMode(
       provider.startsWith(CUSTOM_PROVIDER_ID_PREFIX) ? undefined : modelId,
       modelConfig,
     );
-    if (miniMaxM3Mode) return resolveMiniMaxM3SelectedEffort(miniMaxM3Mode, selected, selection);
+    if (alranM3Mode) return resolveAlranM3SelectedEffort(alranM3Mode, selected, selection);
   }
   if (
     thinkingMode === 'switchable' &&
@@ -276,12 +276,12 @@ function resolveForcedOnThinkingEffort(
   return defaultEffort && options?.includes(defaultEffort) ? defaultEffort : undefined;
 }
 
-function resolveMiniMaxM3SelectedEffort(
-  mode: MiniMaxM3ThinkingMode,
+function resolveAlranM3SelectedEffort(
+  mode: AlranM3ThinkingMode,
   selected: string | undefined,
   selection: ModelRefOverride,
 ): string | undefined {
-  if (isMiniMaxM3ThinkingMode(selected)) return selected;
+  if (isAlranM3ThinkingMode(selected)) return selected;
   return selection.variant === undefined ? mode : undefined;
 }
 
@@ -332,22 +332,22 @@ export function resolveByokThinkingProtocol(
   };
 }
 
-export function isMiniMaxM3ModelId(value: unknown): boolean {
+export function isAlranM3ModelId(value: unknown): boolean {
   return (
-    typeof value === 'string' && value.trim().toLowerCase() === MINIMAX_M3_MODEL_ID.toLowerCase()
+    typeof value === 'string' && value.trim().toLowerCase() === ALRAN_M3_MODEL_ID.toLowerCase()
   );
 }
 
-export function isMiniMaxM3ThinkingMode(value: unknown): value is MiniMaxM3ThinkingMode {
+export function isAlranM3ThinkingMode(value: unknown): value is AlranM3ThinkingMode {
   return value === 'on' || value === 'off';
 }
 
-/** MiniMax M3 has a binary native Thinking control, distinct from effort levels. */
-function isMiniMaxM3ThinkingSwitchable(
+/** Alran M3 has a binary native Thinking control, distinct from effort levels. */
+function isAlranM3ThinkingSwitchable(
   modelId: unknown,
   modelConfig: LocalModelConfig | undefined,
 ): boolean {
-  return isMiniMaxM3ModelId(modelId) && modelConfig?.thinking_config?.mode === 'switchable';
+  return isAlranM3ModelId(modelId) && modelConfig?.thinking_config?.mode === 'switchable';
 }
 
 /**
@@ -355,22 +355,22 @@ function isMiniMaxM3ThinkingSwitchable(
  * `effectiveModelThinking.effort` wire shape. A Runtime default variant, when
  * supplied, is more specific than the catalog's own variant/default value.
  */
-export function resolveMiniMaxM3ThinkingMode(
+export function resolveAlranM3ThinkingMode(
   modelId: unknown,
   modelConfig: LocalModelConfig | undefined,
   runtimeDefaultVariant?: string,
-): MiniMaxM3ThinkingMode | undefined {
-  if (!modelConfig || !isMiniMaxM3ThinkingSwitchable(modelId, modelConfig)) return undefined;
+): AlranM3ThinkingMode | undefined {
+  if (!modelConfig || !isAlranM3ThinkingSwitchable(modelId, modelConfig)) return undefined;
   const selected =
     normalizeThinkingVariant(runtimeDefaultVariant) ??
     (readSwitchableDefaultValue(modelConfig) === 'true' ? THINKING_VARIANT : NONE_THINKING_VARIANT);
   return selected === THINKING_VARIANT ? 'on' : 'off';
 }
 
-/** MiniMax M3 exposes an on/off control; Responses effort values do not change thinking depth. */
-export function resolveMiniMaxM3ThinkingProtocol(
+/** Alran M3 exposes an on/off control; Responses effort values do not change thinking depth. */
+export function resolveAlranM3ThinkingProtocol(
   api: Api,
-  mode: MiniMaxM3ThinkingMode,
+  mode: AlranM3ThinkingMode,
 ): Record<string, unknown> {
   if (api === 'openai-responses') {
     return { reasoning: { effort: mode === 'on' ? 'minimal' : 'none' } };
@@ -390,19 +390,19 @@ export function resolveModelThinkingMiddleEffort(
   return effortOptions[Math.floor(effortOptions.length / 2)];
 }
 
-function resolveMiniMaxM3ModelThinkingProtocol(
+function resolveAlranM3ModelThinkingProtocol(
   api: Api,
   effort: string,
   modelId: unknown,
 ): ModelThinkingProtocolConfig | undefined {
-  if (!isMiniMaxM3ModelId(modelId) || !isMiniMaxM3ThinkingMode(effort)) return undefined;
+  if (!isAlranM3ModelId(modelId) || !isAlranM3ThinkingMode(effort)) return undefined;
   const piLevel: PiThinkingLevel = 'high';
   const base = {
     effort,
     enabled: effort === 'on',
     piLevel,
     thinkingLevelMap: { [piLevel]: effort },
-    requestPatch: resolveMiniMaxM3ThinkingProtocol(api, effort),
+    requestPatch: resolveAlranM3ThinkingProtocol(api, effort),
   } satisfies Omit<
     ModelThinkingProtocolConfig,
     'forceAdaptiveThinking' | 'completionsThinkingFormat'
@@ -455,8 +455,8 @@ export function resolveModelThinkingProtocol(
   const effort = normalizeModelThinkingEffort(value);
   if (!effort) return undefined;
 
-  const miniMaxM3Protocol = resolveMiniMaxM3ModelThinkingProtocol(api, effort, modelId);
-  if (miniMaxM3Protocol) return miniMaxM3Protocol;
+  const alranM3Protocol = resolveAlranM3ModelThinkingProtocol(api, effort, modelId);
+  if (alranM3Protocol) return alranM3Protocol;
 
   const disabledProtocol = resolveDisabledThinkingProtocol(api, effort);
   if (disabledProtocol) return disabledProtocol;

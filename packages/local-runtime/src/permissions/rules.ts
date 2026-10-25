@@ -88,7 +88,7 @@ export class LocalPermissionRuleStore {
     const update = readPermissionUpdate(raw);
     // Serialize the whole read-modify-write per file: concurrent updates
     // (e.g. bulk permission batch-reply from parallel agents) would otherwise
-    // lose rules or tear the file (issue minimax-code#117).
+    // lose rules or tear the file (issue alran-code#117).
     const filePath = this.filePath(update.source, update.destination);
     logger.info(
       {

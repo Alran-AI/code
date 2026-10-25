@@ -279,7 +279,7 @@ const BrowserNetworkResourceType = Type.Union([
   Type.Literal('other'),
 ]);
 
-// MiniMax constrained decoding treats nested string-literal unions as ordered
+// Alran constrained decoding treats nested string-literal unions as ordered
 // alternatives and can repeatedly emit the first item even when its reasoning
 // selected another value. Keep the exact action contracts below, but expose
 // compact provider enums in the same flat shape already used by `action`.

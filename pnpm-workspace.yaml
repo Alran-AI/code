@@ -29,4 +29,4 @@ packages:
   - third_party/sandbox-runtime
   - packages/oauth-core
   - packages/oauth-lease-protocol
-  - packages/mcode-tools-host
+  - packages/alran-tools-host

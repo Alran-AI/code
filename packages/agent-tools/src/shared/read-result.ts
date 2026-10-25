@@ -1,6 +1,6 @@
 /**
  * read-result.ts — single conversion point from a pi `AgentToolResult` to
- * the MiniMax `ToolResult` for the `read` tool, plus the shared error-result
+ * the Alran `ToolResult` for the `read` tool, plus the shared error-result
  * helper used by the wrapper-level guards.
  *
  * Why (design: `.harness/docs/design/tools-optimize/read-tool-optimization.md`
@@ -38,7 +38,7 @@ export function readErrorResult(toolName: string, message: string): ToolResult {
 }
 
 /**
- * Convert a pi read result into a MiniMax ToolResult, applying the ①⑤ text
+ * Convert a pi read result into a Alran ToolResult, applying the ①⑤ text
  * postprocessing (line numbers + long-line truncation + empty-file
  * reminder).
  *

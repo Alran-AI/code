@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { copyFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'

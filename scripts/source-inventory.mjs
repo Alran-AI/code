@@ -34,17 +34,17 @@ const violations = suiteInventoryViolations(files, readSuites(root));
 // Standard MIT text with the reviewed first-party attribution.
 // Source: https://opensource.org/license/mit
 const rootLicenseSha256 =
-  "28bb5c2948742f9f8d27ed84882844d09dff07cb5df64f20729875e8582a18ea";
+  "baf1da741bc1061e1799ffd12bc1293d7294a23df02430243b033cc8b33af9b6";
 if (
   createHash("sha256")
     .update(readFileSync(path.join(root, "LICENSE")))
     .digest("hex") !== rootLicenseSha256
 )
   violations.push(
-    "LICENSE: expected MIT text with the reviewed MiniMax Code attribution",
+    "LICENSE: expected MIT text with the reviewed Alran Code attribution",
   );
 const internalText =
-  /(?:[\w.-]+\.xaminim\.com|weaver\/idl|@mavis\/thrift-gen|\/Users\/minimax(?:\/|\b)|\/archon\/internal\/api\/)/u;
+  /(?:[\w.-]+\.xaminim\.com|weaver\/idl|@mavis\/thrift-gen|\/Users\/alran(?:\/|\b)|\/archon\/internal\/api\/)/u;
 const credential =
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\r?\n[A-Za-z0-9+/=\r\n]{100,}|\b(?:ghp_|github_pat_)[A-Za-z0-9_]{30,}|\bsk-[A-Za-z0-9_-]{32,}/u;
 for (const file of files) {

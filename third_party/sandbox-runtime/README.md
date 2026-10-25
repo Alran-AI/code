@@ -1,8 +1,8 @@
 # Sandbox Runtime
 
-This directory contains the complete sandbox source used by MiniMax Code, based on the upstream version pinned in `upstream.json`. See `LICENSE` for its license.
+This directory contains the complete sandbox source used by Alran Code, based on the upstream version pinned in `upstream.json`. See `LICENSE` for its license.
 
-Pinned version: `0.0.74-mcode.2`; source revision: `630552a32ab23abd42d988ba50c80ea8efa974af`. Runtime code is not downloaded from a private registry.
+Pinned version: `0.0.74-alran.2`; source revision: `630552a32ab23abd42d988ba50c80ea8efa974af`. Runtime code is not downloaded from a private registry.
 
 Retained extensions include SecurityServer control, independent unlink scopes, deny-first network allow-all behavior, a sanitized baseEnv per invocation, caller-provided temporary directories, and file protection even when the network proxy is disabled.
 

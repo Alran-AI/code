@@ -5,10 +5,10 @@ import { basename, extname, isAbsolute, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import type { TuiAttachment } from '../application/invocation.js';
-import { MINIMAX_CODE_MAX_TOTAL_ATTACHMENT_BYTES } from '../application/attachment-policy.js';
+import { ALRAN_CODE_MAX_TOTAL_ATTACHMENT_BYTES } from '../application/attachment-policy.js';
 import { inferTuiNativeVideoMimeType } from '../application/video-mime.js';
 
-export const MINIMAX_CODE_CLIPBOARD_IMAGE_MAX_BYTES = MINIMAX_CODE_MAX_TOTAL_ATTACHMENT_BYTES;
+export const ALRAN_CODE_CLIPBOARD_IMAGE_MAX_BYTES = ALRAN_CODE_MAX_TOTAL_ATTACHMENT_BYTES;
 
 const SUPPORTED_CLIPBOARD_IMAGE_MIME_TYPES = [
   'image/png',
@@ -48,7 +48,7 @@ export async function copyTuiAttachmentToTemporaryLease(
   attachment: TuiAttachment,
   options: { readonly tempRoot?: string } = {},
 ): Promise<TuiClipboardImageLease> {
-  const directory = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'minimax-code-clipboard-'));
+  const directory = await mkdtemp(join(options.tempRoot ?? tmpdir(), 'alran-code-clipboard-'));
   const suffix = extname(attachment.fileName).slice(0, 16);
   const filePath = join(directory, `recovered${suffix}`);
   let disposed = false;
@@ -220,7 +220,7 @@ async function persistClipboardImageBytes(
   }
 
   const directory = await mkdtemp(
-    join(options.tempRoot ?? tmpdir(), 'minimax-code-clipboard-'),
+    join(options.tempRoot ?? tmpdir(), 'alran-code-clipboard-'),
   ).catch((error: unknown) => {
     throw classifyClipboardImageError(error, 'unavailable');
   });
@@ -375,7 +375,7 @@ async function readWslClipboardImageViaPowerShell(
   options: ReadTuiClipboardImageOptions,
 ): Promise<Buffer | undefined> {
   const directory = await mkdtemp(
-    join(options.tempRoot ?? tmpdir(), 'minimax-code-wsl-clipboard-'),
+    join(options.tempRoot ?? tmpdir(), 'alran-code-wsl-clipboard-'),
   );
   const filePath = join(directory, 'clipboard.png');
   const executeFile = options.executeFile ?? executeClipboardFile;
@@ -648,7 +648,7 @@ function classifyClipboardImageError(
   ) {
     return new TuiClipboardImageError(
       'permission-denied',
-      'Minimax Code cannot read the system clipboard. Allow clipboard access, then try again.',
+      'Alran Code cannot read the system clipboard. Allow clipboard access, then try again.',
       { cause: error },
     );
   }
@@ -669,7 +669,7 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 
 function normalizeMaximumBytes(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) {
-    return MINIMAX_CODE_CLIPBOARD_IMAGE_MAX_BYTES;
+    return ALRAN_CODE_CLIPBOARD_IMAGE_MAX_BYTES;
   }
   return Math.max(0, Math.floor(value));
 }

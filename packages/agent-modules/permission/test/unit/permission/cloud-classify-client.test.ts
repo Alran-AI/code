@@ -24,7 +24,7 @@ describe('getPermissionCheckApiUrl', () => {
     });
 
     expect(getPermissionCheckApiUrl()).toBe(
-      'https://agent.minimax.cn/mavis/api/v1/permission/check',
+      'https://api.ottili.one/mavis/api/v1/permission/check',
     );
   });
 });

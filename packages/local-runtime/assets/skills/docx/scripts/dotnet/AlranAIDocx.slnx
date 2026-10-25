@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AlranAIDocx.Cli/AlranAIDocx.Cli.csproj" />
+  <Project Path="AlranAIDocx.Core/AlranAIDocx.Core.csproj" />
+</Solution>

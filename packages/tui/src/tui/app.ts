@@ -257,7 +257,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     deliverPermissionFeedback: async (feedback) => {
       const disposition = await commandFlow.submit(feedback);
       if (disposition === 'retained')
-        throw new Error('MCode kept the guidance in the composer instead of sending it.');
+        throw new Error('Alran kept the guidance in the composer instead of sending it.');
     },
     onChanged: () => {
       updateChrome(controller.snapshot());
@@ -309,7 +309,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     onOpenSession: (sessionId) => sessionFlow.activateSessionById(sessionId),
     onArchivedCurrentSession: (sessionId) => sessionFlow.archiveCurrentProjection(sessionId),
     refreshAutocomplete: () => activeRunFlow?.refreshAutocomplete(),
-    onStartMiniMaxLogin: () => commandFlow.startMiniMaxLogin(), // Wired below.
+    onStartAlranLogin: () => commandFlow.startAlranLogin(), // Wired below.
     isStopped: () => stopped,
     hasLiveRun,
   });

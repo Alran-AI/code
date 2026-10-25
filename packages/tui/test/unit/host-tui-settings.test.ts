@@ -17,7 +17,7 @@ afterEach(async () => {
 });
 
 async function temporaryDataDir(): Promise<string> {
-  const directory = await mkdtemp(join(tmpdir(), 'mcode-tui-settings-'));
+  const directory = await mkdtemp(join(tmpdir(), 'alran-tui-settings-'));
   directories.push(directory);
   return directory;
 }
@@ -68,7 +68,7 @@ describe('TUI mode settings', () => {
     expect(readTuiModeSetting(dataDir)).toBe('regular');
   });
 
-  it('persists the selected fullscreen mode in the MCode data directory', async () => {
+  it('persists the selected fullscreen mode in the Alran data directory', async () => {
     const dataDir = await temporaryDataDir();
 
     writeTuiModeSetting(dataDir, 'fullscreen');

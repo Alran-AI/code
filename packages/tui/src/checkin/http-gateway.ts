@@ -14,8 +14,8 @@ import {
 import { createPublicGatewayRequest, publicGatewayOrigin } from '../runtime/public-gateway.js';
 import type { TuiDailyCheckinGateway } from './application.js';
 
-const STATUS_PATH = '/minimax-cloud/api/v1/signin/status';
-const CLAIM_PATH = '/minimax-cloud/api/v1/signin/claim';
+const STATUS_PATH = '/alran-cloud/api/v1/signin/status';
+const CLAIM_PATH = '/alran-cloud/api/v1/signin/claim';
 
 interface CheckinAuthContext {
   readonly accessToken?: string;
@@ -110,7 +110,7 @@ export class TuiDailyCheckinHttpGateway implements TuiDailyCheckinGateway {
     const accessToken = auth?.accessToken?.trim();
     const realUserID = auth?.realUserID?.trim();
     if (!accessToken || !realUserID) {
-      throw new Error('MiniMax Code sign-in is required. Run /login, then retry /checkin.');
+      throw new Error('Alran Code sign-in is required. Run /login, then retry /checkin.');
     }
     return { accessToken, realUserID };
   }
@@ -149,7 +149,7 @@ export class TuiDailyCheckinHttpGateway implements TuiDailyCheckinGateway {
   private assertCurrentAccount(auth: { readonly realUserID: string }): void {
     const current = this.options.authContextGetter();
     if (!current?.accessToken?.trim() || current.realUserID?.trim() !== auth.realUserID) {
-      throw new Error('MiniMax account changed during daily check-in. Retry /checkin.');
+      throw new Error('Alran account changed during daily check-in. Retry /checkin.');
     }
   }
 }
@@ -163,6 +163,6 @@ function assertExpectedAccount(
   expectedAccountKey: string | undefined,
 ): void {
   if (expectedAccountKey && accountKey(auth) !== expectedAccountKey) {
-    throw new Error('MiniMax account changed during daily check-in. Retry /checkin.');
+    throw new Error('Alran account changed during daily check-in. Retry /checkin.');
   }
 }

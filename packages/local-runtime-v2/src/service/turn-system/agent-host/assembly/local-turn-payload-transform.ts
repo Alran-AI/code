@@ -275,7 +275,7 @@ function patchOutputFormatPayload(
   const schema = outputContract.schema;
   const schemaSnapshot = structuredClone(schema);
   const contract = {
-    name: 'mcode_output',
+    name: 'alran_output',
     strict: true,
     schema: schemaSnapshot,
   };
@@ -428,8 +428,8 @@ function patchThinkingPayload(
   }
   payload.thinking = { ...thinking };
   if (shouldPreserveCustomProviderTopEffort(payload, model)) return true;
-  if (selectedEffort && parseProviderId(model.provider)?.source === 'minimax_api') {
-    // The MiniMax API-key path speaks the same Messages dialect as the managed
+  if (selectedEffort && parseProviderId(model.provider)?.source === 'alran_api') {
+    // The Alran API-key path speaks the same Messages dialect as the managed
     // gateway; keep the selected `--effort` exactly like patchManagedThinkingPayload.
     payload.output_config = { ...readRecord(payload.output_config), effort: selectedEffort };
     return true;

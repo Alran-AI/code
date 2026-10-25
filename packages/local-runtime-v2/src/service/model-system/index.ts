@@ -5,7 +5,7 @@ export type {
   LocalConversationRuntimeConfig,
   LocalCustomProviderConfig,
   LocalCustomProvidersConfig,
-  LocalMinimaxApiConfig,
+  LocalAlranApiConfig,
   LocalModelConfig,
   LocalModelResolveInput,
   LocalModelResolverLike,
@@ -36,8 +36,8 @@ export * from './codex-oauth.js';
 export {
   CUSTOM_PROVIDER_ID_PREFIX,
   isModelProviderApi,
-  MANAGED_MINIMAX_PROVIDER_ID,
-  MINIMAX_API_PROVIDER_ID,
+  MANAGED_ALRAN_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
   MODEL_PROVIDER_APIS,
   MODEL_PROVIDER_SOURCES,
   OPENAI_CODEX_PROVIDER_ID,
@@ -63,18 +63,18 @@ export {
 } from './resolution/local-model-resolver.js';
 export {
   capabilitiesFromModelConfig,
-  isMiniMaxM3ModelId,
-  isMiniMaxM3ThinkingMode,
-  MINIMAX_M3_MODEL_ID,
+  isAlranM3ModelId,
+  isAlranM3ThinkingMode,
+  ALRAN_M3_MODEL_ID,
   modelLimitsFromConfig,
   modelRefForModel,
   normalizeModelThinkingEffort,
   normalizeModelThinkingEffortOptions,
-  resolveMiniMaxM3ThinkingProtocol,
+  resolveAlranM3ThinkingProtocol,
   resolveModelThinkingMiddleEffort,
   resolveModelThinkingProtocol,
   resolveThinkingLevel,
-  type MiniMaxM3ThinkingMode,
+  type AlranM3ThinkingMode,
   type ModelThinkingProtocolConfig,
 } from './resolution/model-ref.js';
 export {

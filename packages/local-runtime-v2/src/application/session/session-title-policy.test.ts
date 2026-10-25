@@ -34,8 +34,8 @@ const session: SessionRecord = {
 };
 const config: LocalRuntimeConfig = {
   dataDir: "/synthetic",
-  defaultModel: "minimax/MiniMax-M3",
-  provider: { minimax: { options: { authMode: "managed-login" } } },
+  defaultModel: "alran/Alran-M3",
+  provider: { alran: { options: { authMode: "managed-login" } } },
   custom_provider: { byok: { options: { baseURL: "https://example.com/v1" } } },
 };
 function fixture(
@@ -95,7 +95,7 @@ describe("CLI session title review", () => {
     expect(review).not.toHaveBeenCalled();
 
     await sessions.update(session.sessionId, {
-      effectiveModel: "minimax/MiniMax-M3",
+      effectiveModel: "alran/Alran-M3",
     });
     await expect(
       records.mutateSession(session.sessionId, { title: "Must not persist" }),
@@ -115,7 +115,7 @@ describe("CLI session title review", () => {
       await expect(
         policy.blocks("Managed title", {
           ...session,
-          effectiveModel: "minimax/MiniMax-M3",
+          effectiveModel: "alran/Alran-M3",
         }),
       ).resolves.toBe(true);
     },
@@ -130,7 +130,7 @@ describe("CLI session title review", () => {
     await expect(
       policy.blocks("Local", { ...session, effectiveModel: null }),
     ).resolves.toBe(false);
-    current.defaultModel = "minimax/MiniMax-M3";
+    current.defaultModel = "alran/Alran-M3";
     await expect(
       policy.blocks("Managed", { ...session, effectiveModel: null }),
     ).resolves.toBe(true);
@@ -152,7 +152,7 @@ describe("CLI session title review", () => {
       await expect(
         policy.blocks("Managed title", {
           ...session,
-          effectiveModel: "minimax/MiniMax-M3",
+          effectiveModel: "alran/Alran-M3",
         }),
       ).resolves.toBe(
         !verdict.pass &&
@@ -168,7 +168,7 @@ describe("CLI session title review", () => {
     await expect(
       policy.blocks("Managed title", {
         ...session,
-        effectiveModel: "minimax/MiniMax-M3",
+        effectiveModel: "alran/Alran-M3",
       }),
     ).resolves.toBe(true);
     await expect(policy.blocks("Local title", session)).resolves.toBe(false);
@@ -176,14 +176,14 @@ describe("CLI session title review", () => {
   });
 
   it.each([
-    "minimax_api/test-model",
-    "minimax/test-model",
+    "alran_api/test-model",
+    "alran/test-model",
     "external/test-model",
   ])("allows non-managed credentials on %s", async (effectiveModel) => {
     const { policy, review } = fixture({
       config: {
         ...config,
-        minimaxModelSource: "minimax_api_key",
+        alranModelSource: "alran_api_key",
         provider: {
           ...config.provider,
           external: { options: { authMode: "oauth" } },
@@ -199,7 +199,7 @@ describe("CLI session title review", () => {
   it.each([
     "missing/test",
     "custom_provider:missing/test",
-    "custom_provider:minimax-legacy/test",
+    "custom_provider:alran-legacy/test",
     "malformed",
   ])(
     "retains review for unknown or legacy context %s",
@@ -217,7 +217,7 @@ describe("CLI session title review", () => {
         ...config,
         provider: {
           alias: { options: { authMode: "managed-login" } },
-          inferred: { options: { baseURL: "https://agent.minimax.cn/v1" } },
+          inferred: { options: { baseURL: "https://api.ottili.one/v1" } },
         },
       },
     });
@@ -231,7 +231,7 @@ describe("CLI session title review", () => {
     }
   });
 
-  it.each(["minimax", "custom_provider:byok"])(
+  it.each(["alran", "custom_provider:byok"])(
     "uses the frozen Task provider %s",
     async (providerId) => {
       const { policy, review } = fixture({
@@ -256,10 +256,10 @@ describe("CLI session title review", () => {
         policy.blocks("Task title", {
           ...session,
           sessionKind: "task",
-          effectiveModel: "minimax/MiniMax-M3",
+          effectiveModel: "alran/Alran-M3",
         }),
-      ).resolves.toBe(providerId === "minimax");
-      expect(review).toHaveBeenCalledTimes(providerId === "minimax" ? 1 : 0);
+      ).resolves.toBe(providerId === "alran");
+      expect(review).toHaveBeenCalledTimes(providerId === "alran" ? 1 : 0);
     },
   );
 

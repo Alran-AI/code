@@ -21,7 +21,7 @@ import Database from "better-sqlite3";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { withoutProxyEnvironment } from "./offline-environment.mjs";
 
-const cli = process.env.MCODE_TEST_CLI ?? fileURLToPath(new URL("../dist/cli.js", import.meta.url));
+const cli = process.env.ALRAN_TEST_CLI ?? fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 // This case is 30+ serial CLI spawns, each booting the whole runtime, so its
 // wall-clock cost tracks machine speed rather than the transport it asserts.
 // A flat budget sized for an idle laptop turns any busy runner (parallel build,
@@ -35,7 +35,7 @@ test(
   "BYOK runs without managed login and resumes its saved conversation",
   { timeout: byokSerialTimeoutMs },
   async (t) => {
-    const fixtureDir = mkdtempSync(path.join(tmpdir(), "minimax-code-byok-"));
+    const fixtureDir = mkdtempSync(path.join(tmpdir(), "alran-code-byok-"));
     const dataDir = path.join(fixtureDir, "data");
     const workspaceDir = path.join(fixtureDir, "workspace");
     mkdirSync(workspaceDir);
@@ -180,13 +180,13 @@ test(
     });
     const baseUrl = `http://127.0.0.1:${server.address().port}/v1`;
     const env = {
-      MINIMAX_DATA_DIR: dataDir,
+      ALRAN_DATA_DIR: dataDir,
       MAVIS_DATA_DIR: dataDir,
-      MCODE_PROVIDER_API_KEY: "fixture-only-key",
-      MCODE_TEST_ALLOWED_ORIGIN: new URL(baseUrl).origin,
-      MCODE_TEST_NETWORK_AUDIT: networkAudit,
-      MCODE_TEST_MANAGED_OFFLINE: "1",
-      MCODE_TEST_PROCESS_PROBE: "1",
+      ALRAN_PROVIDER_API_KEY: "fixture-only-key",
+      ALRAN_TEST_ALLOWED_ORIGIN: new URL(baseUrl).origin,
+      ALRAN_TEST_NETWORK_AUDIT: networkAudit,
+      ALRAN_TEST_MANAGED_OFFLINE: "1",
+      ALRAN_TEST_PROCESS_PROBE: "1",
       NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
     };
     let commandSequence = 0;
@@ -264,7 +264,7 @@ test(
     assert.equal(requests.length, 0, "Adding without --use must not test or activate");
     const snapshot = JSON.parse(await run(["provider", "list", "--json"]));
     assert.equal(
-      snapshot.providers.some((p) => p.kind === "minimax-oauth"),
+      snapshot.providers.some((p) => p.kind === "alran-oauth"),
       true,
     );
     const selected = snapshot.providers.find(
@@ -315,7 +315,7 @@ test(
     }
     const configPath = path.join(dataDir, "config.yaml");
     const savedConfig = () => parseYaml(readFileSync(configPath, "utf8"));
-    assert.equal(savedConfig().defaultModel, "minimax/MiniMax-M3.1-Flash");
+    assert.equal(savedConfig().defaultModel, "alran/Alran-M3.1-Flash");
     assert.equal(savedConfig().custom_provider.fixture.models["fixture-model"].limit, undefined);
     assert.equal(selected.active, false);
     assert.equal(selected.models[0].contextLimit, undefined);
@@ -453,14 +453,14 @@ test(
     /Available levels: low, high, max/);
     assert.equal(requests.length, beforeInvalidEffort, "Invalid effort must fail before transport");
     // Real Plugin packages exercise command execution and all three output adapters.
-    const hookMarkers = ["minimax", "claude", "codex"].map((format) => {
+    const hookMarkers = ["alran", "claude", "codex"].map((format) => {
       const name = `hook-notice-${format}`;
       const root = path.join(dataDir, "plugins", name);
-      const manifestDir = format === "minimax" ? ".minimax-plugin" : `.${format}-plugin`;
+      const manifestDir = format === "alran" ? ".alran-plugin" : `.${format}-plugin`;
       mkdirSync(path.join(root, manifestDir), { recursive: true });
       mkdirSync(path.join(root, "hooks"));
       const marker = `HOOK_DISPLAY_ONLY_${format.toUpperCase()}`;
-      const manifest = format === "minimax" ? {
+      const manifest = format === "alran" ? {
         schemaVersion: 1, name, version: "1.0.0", description: "Synthetic Hook display fixture",
         author: "Test", icon: "icon.png", category: "Code", exampleQueries: ["Reply OK"],
         apps: [], mcpServers: [], skills: [], hooks: ["hooks/hooks.json"],
@@ -492,8 +492,8 @@ test(
     for (const marker of hookMarkers) assert.ok(!first.includes(marker));
     await assert.rejects(run([
       'exec', 'Managed model still requires its own login',
-      '--model', 'minimax/MiniMax-M3', '--timeout', '20s', '--max-steps', '1',
-    ]), /Sign in to MiniMax/);
+      '--model', 'alran/Alran-M3', '--timeout', '20s', '--max-steps', '1',
+    ]), /Sign in to Alran/);
     const beforeResume = requests.length;
     const second = await run([
       "exec",
@@ -615,7 +615,7 @@ test(
   "lightweight mode stops safely when a provider emits an unoffered tool call",
   { timeout: 45000 },
   async (t) => {
-    const fixtureDir = mkdtempSync(path.join(tmpdir(), "minimax-code-lightweight-tool-"));
+    const fixtureDir = mkdtempSync(path.join(tmpdir(), "alran-code-lightweight-tool-"));
     const dataDir = path.join(fixtureDir, "data");
     const workspaceDir = path.join(fixtureDir, "workspace");
     const homeDir = path.join(fixtureDir, "home");
@@ -731,11 +731,11 @@ test(
           HOME: homeDir,
           XDG_CONFIG_HOME: path.join(homeDir, "config"),
           XDG_DATA_HOME: path.join(homeDir, "data"),
-          MINIMAX_DATA_DIR: dataDir,
+          ALRAN_DATA_DIR: dataDir,
           MAVIS_DATA_DIR: dataDir,
-          MCODE_TEST_ALLOWED_ORIGIN: origin,
-          MCODE_TEST_NETWORK_AUDIT: networkAudit,
-          MCODE_TEST_MANAGED_OFFLINE: "1",
+          ALRAN_TEST_ALLOWED_ORIGIN: origin,
+          ALRAN_TEST_NETWORK_AUDIT: networkAudit,
+          ALRAN_TEST_MANAGED_OFFLINE: "1",
           NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
         },
         stdio: ["ignore", "pipe", "pipe"],
@@ -752,7 +752,7 @@ test(
     const [code] = await once(child, "close");
     assert.equal(code, 0, `${stdout}\n${stderr}`);
     assert.match(stdout, /tools, which are unavailable in lightweight mode/u);
-    assert.match(stdout, /mcode --mode standard/u);
+    assert.match(stdout, /alran --mode standard/u);
     assert.equal(streamRequests, 1, "The rejected tool call must not trigger another model step");
     assert.equal(existsSync(marker), false, "An unoffered tool call must never execute");
     assert.equal(existsSync(networkAudit), false, "No external requests are allowed");
@@ -767,7 +767,7 @@ test(
 
 function cancellationTest(cancellation) {
   return async (t) => {
-    const fixtureDir = mkdtempSync(path.join(tmpdir(), "minimax-code-cancel-write-"));
+    const fixtureDir = mkdtempSync(path.join(tmpdir(), "alran-code-cancel-write-"));
     const dataDir = path.join(fixtureDir, "data");
     const workspaceDir = path.join(fixtureDir, "workspace");
     const homeDir = path.join(fixtureDir, "home");
@@ -963,11 +963,11 @@ function cancellationTest(cancellation) {
           HOME: homeDir,
           XDG_CONFIG_HOME: path.join(homeDir, "config"),
           XDG_DATA_HOME: path.join(homeDir, "data"),
-          MINIMAX_DATA_DIR: dataDir,
+          ALRAN_DATA_DIR: dataDir,
           MAVIS_DATA_DIR: dataDir,
-          MCODE_TEST_ALLOWED_ORIGIN: origin,
-          MCODE_TEST_NETWORK_AUDIT: networkAudit,
-          MCODE_TEST_MANAGED_OFFLINE: "1",
+          ALRAN_TEST_ALLOWED_ORIGIN: origin,
+          ALRAN_TEST_NETWORK_AUDIT: networkAudit,
+          ALRAN_TEST_MANAGED_OFFLINE: "1",
           NODE_OPTIONS: `--import=${new URL("./network-deny.mjs", import.meta.url).href}`,
         },
         stdio: ["ignore", "pipe", "pipe"],

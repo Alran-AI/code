@@ -1,13 +1,13 @@
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
-import { getConfig, getConfigPath, minimaxApiModels, resetConfig } from '@mavis/config';
+import { getConfig, getConfigPath, alranApiModels, resetConfig } from '@mavis/config';
 import yaml from 'js-yaml';
 import lockfile from 'proper-lockfile';
 
 import type { LocalRuntimeConfig } from './types.js';
 
-// BYOK trees ('minimax_api', 'custom_provider') are intentionally excluded
+// BYOK trees ('alran_api', 'custom_provider') are intentionally excluded
 // from both whitelists below: they hold plaintext API keys and must only be
 // written through the dedicated ModelProvider API. Allowing them here would
 // reopen the masked-value read-modify-write hazard — GET /config returns
@@ -123,11 +123,11 @@ export async function compareAndSetLocalModelContext(
 ): Promise<LocalModelContextCompareAndSetResult> {
   const modelId = input.modelId.trim();
   if (
-    (input.providerId !== 'minimax' && input.providerId !== 'minimax_api') ||
+    (input.providerId !== 'alran' && input.providerId !== 'alran_api') ||
     !modelId ||
     DANGEROUS_CONFIG_PATH_SEGMENTS.has(modelId)
   ) {
-    throw new LocalConfigValidationError('Invalid MiniMax model context target');
+    throw new LocalConfigValidationError('Invalid Alran model context target');
   }
   const configPath = getConfigPath();
   let release: (() => Promise<void>) | undefined;
@@ -143,14 +143,14 @@ export async function compareAndSetLocalModelContext(
     resetConfig();
     const currentConfig = getConfig() as LocalRuntimeConfig;
     const model =
-      input.providerId === 'minimax'
-        ? currentConfig.provider?.minimax?.models?.[modelId]
-        : minimaxApiModels(currentConfig)[modelId];
+      input.providerId === 'alran'
+        ? currentConfig.provider?.alran?.models?.[modelId]
+        : alranApiModels(currentConfig)[modelId];
     if (
-      input.providerId === 'minimax_api' &&
+      input.providerId === 'alran_api' &&
       !model?.contextWindowOptions?.includes(input.contextLimit)
     ) {
-      throw new LocalConfigValidationError('Invalid MiniMax API context limit');
+      throw new LocalConfigValidationError('Invalid Alran API context limit');
     }
     if (model?.limit?.context !== input.expectedContextLimit) {
       return { updated: false, config: currentConfig };
@@ -158,21 +158,21 @@ export async function compareAndSetLocalModelContext(
     if (!(await beforeCommit(currentConfig))) {
       return { updated: false, config: currentConfig };
     }
-    if (input.providerId === 'minimax') {
-      const modelContextLimits = isPlainRecord(raw.minimaxModelContextLimits)
-        ? raw.minimaxModelContextLimits
+    if (input.providerId === 'alran') {
+      const modelContextLimits = isPlainRecord(raw.alranModelContextLimits)
+        ? raw.alranModelContextLimits
         : {};
-      raw.minimaxModelContextLimits = {
+      raw.alranModelContextLimits = {
         ...modelContextLimits,
         [modelId]: input.contextLimit,
       };
     } else {
-      const minimaxApi = isPlainRecord(raw.minimax_api) ? raw.minimax_api : {};
-      const modelContextLimits = isPlainRecord(minimaxApi.modelContextLimits)
-        ? minimaxApi.modelContextLimits
+      const alranApi = isPlainRecord(raw.alran_api) ? raw.alran_api : {};
+      const modelContextLimits = isPlainRecord(alranApi.modelContextLimits)
+        ? alranApi.modelContextLimits
         : {};
-      raw.minimax_api = {
-        ...minimaxApi,
+      raw.alran_api = {
+        ...alranApi,
         modelContextLimits: { ...modelContextLimits, [modelId]: input.contextLimit },
       };
     }
@@ -194,14 +194,14 @@ export async function compareAndSetLocalModelContext(
 // BYOK roots and never reachable from a request-body field name.
 
 export interface LocalByokConfigDraft {
-  minimax_api?: Record<string, unknown>;
+  alran_api?: Record<string, unknown>;
   custom_provider?: Record<string, unknown>;
-  minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  alranModelSource?: 'token_plan' | 'alran_api_key';
   defaultModel?: string;
   defaultModelVariant?: string;
 }
 
-const LOCAL_BYOK_CONFIG_ROOTS = ['minimax_api', 'custom_provider'] as const;
+const LOCAL_BYOK_CONFIG_ROOTS = ['alran_api', 'custom_provider'] as const;
 
 /**
  * Drops null/non-object entries from a BYOK subtree. A retired provider can
@@ -231,13 +231,13 @@ export async function updateLocalByokConfig(
     });
     const raw = readLocalRawConfig(configPath);
     const draft: LocalByokConfigDraft = {
-      minimax_api: isPlainRecord(raw.minimax_api) ? raw.minimax_api : undefined,
+      alran_api: isPlainRecord(raw.alran_api) ? raw.alran_api : undefined,
       custom_provider: withoutEmptyEntries(
         isPlainRecord(raw.custom_provider) ? raw.custom_provider : undefined,
       ),
-      minimaxModelSource:
-        typeof raw.minimaxModelSource === 'string'
-          ? (raw.minimaxModelSource as 'token_plan' | 'minimax_api_key')
+      alranModelSource:
+        typeof raw.alranModelSource === 'string'
+          ? (raw.alranModelSource as 'token_plan' | 'alran_api_key')
           : undefined,
       defaultModel: typeof raw.defaultModel === 'string' ? raw.defaultModel : undefined,
       defaultModelVariant:
@@ -257,10 +257,10 @@ export async function updateLocalByokConfig(
       assertSafeConfigRecord(value);
       raw[root] = value;
     }
-    if (draft.minimaxModelSource) {
-      raw.minimaxModelSource = draft.minimaxModelSource;
-    } else if (draft.minimaxModelSource === undefined && 'minimaxModelSource' in raw) {
-      delete raw.minimaxModelSource;
+    if (draft.alranModelSource) {
+      raw.alranModelSource = draft.alranModelSource;
+    } else if (draft.alranModelSource === undefined && 'alranModelSource' in raw) {
+      delete raw.alranModelSource;
     }
     if (draft.defaultModel) {
       raw.defaultModel = draft.defaultModel;

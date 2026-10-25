@@ -631,7 +631,7 @@ function supportsPromptCaching(model: Model<"bedrock-converse-stream">): boolean
 /**
  * Check if the model supports thinking signatures in reasoningContent.
  * Only Anthropic Claude models support the signature field.
- * Other models (OpenAI, Qwen, Minimax, Moonshot, etc.) reject it with:
+ * Other models (OpenAI, Qwen, Alran, Moonshot, etc.) reject it with:
  * "This model doesn't support the reasoningContent.reasoningText.signature field"
  *
  * Checks both model ID and model name to support application inference profiles.

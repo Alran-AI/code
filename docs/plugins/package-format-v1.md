@@ -1,6 +1,6 @@
-# MiniMax Plugin Package Format V1
+# Alran Plugin Package Format V1
 
-本文定义官方 MiniMax Plugin V1 的仓库结构、manifest 引用、archive 安全边界和 digest
+本文定义官方 Alran Plugin V1 的仓库结构、manifest 引用、archive 安全边界和 digest
 算法。Publisher、Desktop 与 cloud-runtime 均以本文和仓库内 checked-in vectors 为准。
 
 ## 1. 仓库与包边界
@@ -8,9 +8,9 @@
 Marketplace 仓库结构：
 
 ```text
-.minimax-plugin/marketplace.json
+.alran-plugin/marketplace.json
 plugins/<plugin-name>/
-  .minimax-plugin/plugin.json
+  .alran-plugin/plugin.json
   <icon>
   *.app.json
   *.mcp.json
@@ -20,7 +20,7 @@ plugins/<plugin-name>/
   <其他被能力文件引用的普通文件>
 ```
 
-`.minimax-plugin/marketplace.json` 使用
+`.alran-plugin/marketplace.json` 使用
 [`marketplace-v1.schema.json`](../../schemas/plugins/marketplace-v1.schema.json)，显式列出当前目录中的
 Plugin name、repository-root-relative path、端分发范围和安装策略。每项必填 `deliveryTargets`，
 只允许 `desktop`、`cloud` 中的 1～2 个不重复值；可选 `installationPolicy` 只允许
@@ -34,7 +34,7 @@ Plugin name、repository-root-relative path、端分发范围和安装策略。�
 
 每个 `plugins/<plugin-name>/` 是一个独立 package root：
 
-- archive 根目录直接包含 `.minimax-plugin/plugin.json`，不得再套一层 Plugin 目录；
+- archive 根目录直接包含 `.alran-plugin/plugin.json`，不得再套一层 Plugin 目录；
 - `content_digest` 只覆盖该 package root 的完整文件树，不包含仓库级 marketplace.json；
 - manifest 的所有路径均相对 package root，使用 `/`，不得相对 manifest 自身解析；
 - 未被 manifest 引用的普通文件仍属于包，也必须进入 digest 和安全上限统计；
@@ -73,7 +73,7 @@ Plugin name、repository-root-relative path、端分发范围和安装策略。�
   App、MCP、Skill 或合法 Hook 失效。`matcher` 推荐使用精确名称或 `|` 分隔的精确
   alternatives（也接受逗号分隔）；matcher 总长度不超过 256。`UserPromptSubmit` 和 `Stop`
   在非空字符串与长度检查后忽略 matcher 内容，建议省略；其他事件不接受正则 matcher。
-  工具 matcher 大小写敏感，必须使用 MiniMax 原生名称（`bash`、`read`、`write`、`edit`、
+  工具 matcher 大小写敏感，必须使用 Alran 原生名称（`bash`、`read`、`write`、`edit`、
   `task`），不能使用兼容层别名（`Bash`、`Read`、`Write`、`Edit`、`Agent`）。`*` 表示显式
   匹配全部。
 
@@ -209,7 +209,7 @@ entry 顺序不参与 digest；空目录因此不影响结果。文件内容按�
 2. 初始化 SHA-256，并按顺序写入：
 
 ```text
-ASCII "MINIMAX-PLUGIN-CONTENT-DIGEST" + 0x00
+ASCII "ALRAN-PLUGIN-CONTENT-DIGEST" + 0x00
 uint32_be(1)                         # contract version
 uint32_be(file_count)
 for each file:

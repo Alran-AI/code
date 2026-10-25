@@ -38,7 +38,7 @@ export function projectNativeTools(input: {
 }): LocalMcpNativeToolInfo[] {
   const { server, config, rawTools, registry } = input;
   const matrix = isBuiltinMatrixConfig(server, config);
-  // Live Matrix advertises every tool even when mcode-tools owns media generation.
+  // Live Matrix advertises every tool even when alran-tools owns media generation.
   const tools =
     matrix && input.matrixWebSearchOnly
       ? rawTools.filter((tool) => tool.name === BUILTIN_MATRIX_WEB_SEARCH_TOOL_NAME)

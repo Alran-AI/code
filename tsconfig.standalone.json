@@ -124,6 +124,9 @@
       "@mavis/agent-tools/read-contract": [
         "./packages/agent-tools/src/shared/read-contract.ts"
       ],
+      "@mavis/alran-tools-host": [
+        "./packages/alran-tools-host/src/index.ts"
+      ],
       "@mavis/background-task": [
         "./packages/agent-modules/background-task/src/index.ts"
       ],
@@ -180,9 +183,6 @@
       ],
       "@mavis/local-runtime-v2/turn-system": [
         "./packages/local-runtime-v2/src/service/turn-system/index.ts"
-      ],
-      "@mavis/mcode-tools-host": [
-        "./packages/mcode-tools-host/src/index.ts"
       ],
       "@mavis/mcp": [
         "./packages/agent-modules/mcp/src/index.ts"
@@ -376,16 +376,16 @@
       "@mavis/system-reminder": [
         "./packages/agent-modules/system-reminder/src/index.ts"
       ],
-      "@minimax/code/package.json": [
+      "@ottili/alran-code/package.json": [
         "./packages/tui/package.json"
       ],
-      "@minimax/mcode-sandbox-runtime": [
+      "@ottili/alran-sandbox-runtime": [
         "./third_party/sandbox-runtime/src/index.ts"
       ],
-      "@minimax/mcode-sandbox-runtime/dist/sandbox/sandbox-manager.js": [
+      "@ottili/alran-sandbox-runtime/dist/sandbox/sandbox-manager.js": [
         "./third_party/sandbox-runtime/src/sandbox/sandbox-manager.ts"
       ],
-      "@minimax/mcode-sandbox-runtime/package.json": [
+      "@ottili/alran-sandbox-runtime/package.json": [
         "./third_party/sandbox-runtime/package.json"
       ]
     },

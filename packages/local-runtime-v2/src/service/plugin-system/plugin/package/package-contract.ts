@@ -17,7 +17,7 @@ export const PLUGIN_PACKAGE_V1_LIMITS = {
   maxPathSegments: 16,
 } as const;
 
-const CONTENT_MAGIC = Buffer.from('MINIMAX-PLUGIN-CONTENT-DIGEST\0', 'ascii');
+const CONTENT_MAGIC = Buffer.from('ALRAN-PLUGIN-CONTENT-DIGEST\0', 'ascii');
 const CONTENT_DIGEST_PATTERN = /^sha256-tree-v1:([0-9a-f]{64})$/u;
 const PORTABLE_SEGMENT_PATTERN = /^[A-Za-z0-9._-]+$/u;
 const WINDOWS_RESERVED = new Set([
@@ -39,7 +39,7 @@ type PluginContractEntryKind =
   | 'device'
   | 'special';
 
-type PluginPackagePathPolicy = 'minimax-portable' | 'agent-plugin' | 'unrestricted';
+type PluginPackagePathPolicy = 'alran-portable' | 'agent-plugin' | 'unrestricted';
 
 export interface PluginPackageDigestOptions {
   readonly pathPolicy?: PluginPackagePathPolicy;
@@ -99,7 +99,7 @@ export function validatePluginPortablePath(relativePath: string): void {
 
 /**
  * Agent Plugins only require package paths to remain inside the Plugin root.
- * Keep the MiniMax marketplace's stricter cross-platform naming contract separate
+ * Keep the Alran marketplace's stricter cross-platform naming contract separate
  * so standards-compliant GitHub Plugins may contain ordinary names such as
  * `docs/(redirects)/guide.md` or non-ASCII assets.
  */
@@ -198,7 +198,7 @@ export function computePluginContentDigest(
   entries: readonly PluginContractEntry[],
   options: PluginPackageDigestOptions = {},
 ): PluginContentDigestResult {
-  const files = validateEntries(entries, true, options.pathPolicy ?? 'minimax-portable');
+  const files = validateEntries(entries, true, options.pathPolicy ?? 'alran-portable');
   for (const file of files) {
     if ((file.compression ?? 'store') !== 'store') {
       fail('UNSUPPORTED_COMPRESSION', `${JSON.stringify(file.path)} is not STORE`);
@@ -227,7 +227,7 @@ export async function computePluginDirectoryDigest(
   root: string,
   options: PluginPackageDigestOptions = {},
 ): Promise<Omit<PluginContentDigestResult, 'files'>> {
-  const pathPolicy = options.pathPolicy ?? 'minimax-portable';
+  const pathPolicy = options.pathPolicy ?? 'alran-portable';
   const entries: PluginContractEntry[] = [];
   await collectDirectoryEntries(root, '', entries, {
     entryCount: 0,
@@ -318,7 +318,7 @@ async function collectMiniAppFiles(
     entryCount: 0,
     fileCount: 0,
     totalBytes: 0,
-    pathPolicy: 'minimax-portable',
+    pathPolicy: 'alran-portable',
     rejectHardlinks: options.rejectHardlinks === true,
     skip: (relativePath) => {
       if (!isMiniAppRuntimePayloadExcludedPath(relativePath)) return false;
@@ -331,7 +331,7 @@ async function collectMiniAppFiles(
       return options.includeOrdinaryContentDigest !== true;
     },
   });
-  return validateEntries(entries, false, 'minimax-portable');
+  return validateEntries(entries, false, 'alran-portable');
 }
 
 export function pluginDigestCacheKey(contentDigest: string): string {

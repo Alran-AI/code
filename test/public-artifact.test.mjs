@@ -4,28 +4,28 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { extractMcodeToolsArtifact, MCODE_TOOLS_ARTIFACT } from '../scripts/lib/mcode-tools-artifact.mjs';
+import { extractAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
 
 test('public archive yields the exact embedded production tool artifact', async () => {
   const archive = readFileSync(new URL('../.cache/artifacts/code-0.3.11.tgz', import.meta.url));
-  const extracted = await extractMcodeToolsArtifact(archive);
-  const built = readFileSync(new URL('../dist/embedded/mcode-tools/cli.mjs', import.meta.url));
+  const extracted = await extractAlranToolsArtifact(archive);
+  const built = readFileSync(new URL('../dist/embedded/alran-tools/cli.mjs', import.meta.url));
   assert.deepEqual(extracted.cli, built);
-  assert.equal(createHash('sha256').update(built).digest('hex'), MCODE_TOOLS_ARTIFACT.sha256);
+  assert.equal(createHash('sha256').update(built).digest('hex'), ALRAN_TOOLS_ARTIFACT.sha256);
   assert.equal(JSON.parse(extracted.manifest).auth.mode, 'shared-broker');
 });
 
 test('modified public archives fail before any artifact is accepted', async () => {
   const archive = readFileSync(new URL('../.cache/artifacts/code-0.3.11.tgz', import.meta.url));
   archive[archive.length - 1] ^= 1;
-  await assert.rejects(extractMcodeToolsArtifact(archive), /integrity mismatch/);
+  await assert.rejects(extractAlranToolsArtifact(archive), /integrity mismatch/);
 });
 
-test('the built mcode-tools CLI starts independently and exposes its commands', () => {
-  const cli = fileURLToPath(new URL('../dist/mcode-tools.js', import.meta.url));
+test('the built alran-tools CLI starts independently and exposes its commands', () => {
+  const cli = fileURLToPath(new URL('../dist/alran-tools.js', import.meta.url));
   const result = spawnSync(process.execPath, [cli, '--help'], { encoding: 'utf8', timeout: 15000 });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /mcode-tools/);
+  assert.match(result.stdout, /alran-tools/);
 });
 
 test('the built image preview worker processes a synthetic PNG and exits cleanly', { timeout: 15000 }, async (t) => {

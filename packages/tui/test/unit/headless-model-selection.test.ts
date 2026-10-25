@@ -193,12 +193,12 @@ describe('resolveHeadlessModelSelection', () => {
   it('rejects --effort for an explicit model whose catalog default is thinking-off', async () => {
     await expectInvocationError(
       resolveHeadlessModelSelection({
-        model: 'minimax/Official-M4',
+        model: 'alran/Official-M4',
         effort: 'high',
         session: session(),
         runtime: runtimeWith(
           catalog({
-            providerId: 'minimax',
+            providerId: 'alran',
             modelId: 'Official-M4',
             variant: '',
             thinkingConfig: { mode: 'switchable', defaultValue: 'false' },
@@ -206,7 +206,7 @@ describe('resolveHeadlessModelSelection', () => {
           }),
         ),
       }),
-      'minimax/Official-M4 runs with thinking off by default, so --effort high would be discarded. Pass --model minimax/Official-M4#thinking to turn thinking on.',
+      'alran/Official-M4 runs with thinking off by default, so --effort high would be discarded. Pass --model alran/Official-M4#thinking to turn thinking on.',
     );
   });
 

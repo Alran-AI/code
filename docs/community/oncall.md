@@ -11,7 +11,7 @@ The community on-call covers two surfaces:
 | Surface | Meaning | Owner |
 | --- | --- | --- |
 | Community chat (Chinese Feishu group, Discord) | User questions, feedback, event coordination | On-call A |
-| GitHub issues (`MiniMax-AI/minimax-code`) | Bug reports, feature requests, contribution requests | On-call B |
+| GitHub issues (`Alran-AI/alran-code`) | Bug reports, feature requests, contribution requests | On-call B |
 
 These are two different roles and they are staffed by two different people. A single person holding
 both roles cannot cover the 18:00–20:00 window, so that window is explicitly not covered by either

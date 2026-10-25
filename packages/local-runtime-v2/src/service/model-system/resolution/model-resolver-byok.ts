@@ -1,5 +1,9 @@
 import type { Api } from '@earendil-works/pi-ai';
-import { minimaxApiModels, getRuntimeRegion } from '@mavis/config';
+import {
+  alranApiModels,
+  resolveOttiliApiBaseUrl,
+  resolveOttiliApiKey,
+} from '@mavis/config';
 
 import type {
   LocalByokProviderConfig,
@@ -11,15 +15,14 @@ import type {
 import { mergeProviderHeaders } from '../connectivity/provider-request.js';
 import {
   isModelProviderApi,
-  MANAGED_MINIMAX_PROVIDER_ID,
-  MINIMAX_API_PROVIDER_ID,
+  MANAGED_ALRAN_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
 } from '../identity.js';
 
 const BYOK_FALLBACK_MODEL_LIMITS = {
   contextWindow: 200_000,
   maxTokens: 16_384,
 } as const;
-const MESSAGES_API_COMPAT_PATH = '\x61\x6e\x74\x68\x72\x6f\x70\x69\x63';
 
 export interface ByokResolutionPlan {
   readonly provider: string;
@@ -34,7 +37,7 @@ export interface ByokResolutionPlan {
   readonly modelCompat?: LocalModelCompatOverrides;
 }
 
-export function planMinimaxApiResolution(input: {
+export function planAlranApiResolution(input: {
   readonly byok: LocalByokProviderConfig | undefined;
   readonly providerConfig: LocalModelsConfig | undefined;
   readonly modelId: string;
@@ -44,20 +47,23 @@ export function planMinimaxApiResolution(input: {
     readonly fromCatalog: boolean;
   };
 }): ByokResolutionPlan | undefined {
-  const config = input.byok?.minimax_api;
-  if (!config) return undefined;
-  const apiKey = config.apiKey?.trim();
+  const config = input.byok?.alran_api;
+  // A stored Ottili key wins; `ALRAN_API_KEY` is the environment override.
+  const apiKey = config?.apiKey?.trim() || resolveOttiliApiKey();
+  if (!config && !apiKey) return undefined;
   if (!apiKey) {
-    throw new Error('LocalModelResolver: minimax_api apiKey is not configured.');
+    throw new Error(
+      'LocalModelResolver: no Ottili API key configured. Run `alran login` or set ALRAN_API_KEY.',
+    );
   }
-  const catalogModel = minimaxApiModels({ provider: input.providerConfig, minimax_api: config })[
+  const catalogModel = alranApiModels({ provider: input.providerConfig, alran_api: config })[
     input.modelId
   ];
   return {
-    provider: MINIMAX_API_PROVIDER_ID,
-    api: 'anthropic-messages',
+    provider: ALRAN_API_PROVIDER_ID,
+    api: 'openai-completions',
     apiKey,
-    baseUrl: config.baseURL?.trim() || defaultMinimaxApiBaseUrl(),
+    baseUrl: config?.baseURL?.trim() || defaultAlranApiBaseUrl(),
     contextWindow:
       catalogModel?.limit?.context ??
       (input.catalog.fromCatalog
@@ -150,9 +156,9 @@ export function firstBuiltinModel(
   providerConfig: LocalModelsConfig | undefined,
 ): { readonly provider: string; readonly modelId: string } | undefined {
   const preferredModelId = Object.keys(
-    providerConfig?.[MANAGED_MINIMAX_PROVIDER_ID]?.models ?? {},
+    providerConfig?.[MANAGED_ALRAN_PROVIDER_ID]?.models ?? {},
   )[0];
-  if (preferredModelId) return { provider: MANAGED_MINIMAX_PROVIDER_ID, modelId: preferredModelId };
+  if (preferredModelId) return { provider: MANAGED_ALRAN_PROVIDER_ID, modelId: preferredModelId };
   return Object.entries(providerConfig ?? {}).flatMap(([provider, config]) => {
     const modelId = Object.keys(config.models ?? {})[0];
     return modelId ? [{ provider, modelId }] : [];
@@ -245,8 +251,6 @@ function readModelCompat(value: unknown): LocalModelCompatOverrides | undefined 
   return Object.keys(compat).length > 0 ? compat : undefined;
 }
 
-function defaultMinimaxApiBaseUrl(): string {
-  const origin =
-    getRuntimeRegion() === 'cn' ? 'https://api.minimaxi.com' : 'https://api.minimax.io';
-  return `${origin}/${MESSAGES_API_COMPAT_PATH}`;
+function defaultAlranApiBaseUrl(): string {
+  return resolveOttiliApiBaseUrl();
 }

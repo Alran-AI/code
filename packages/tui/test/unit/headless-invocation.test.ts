@@ -16,7 +16,7 @@ afterEach(async () => {
 });
 
 async function workspace(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'mcode-headless-invocation-'));
+  const root = await mkdtemp(join(tmpdir(), 'alran-headless-invocation-'));
   roots.push(root);
   return root;
 }
@@ -312,7 +312,7 @@ describe('headless invocation', () => {
 
   it('resolves every optional automation control and trims owner identifiers', async () => {
     const cwd = await workspace();
-    await writeFile(join(cwd, 'mcode.yaml'), 'models: {}\n');
+    await writeFile(join(cwd, 'alran.yaml'), 'models: {}\n');
     await writeFile(join(cwd, 'image.PNG'), Buffer.from([1, 2, 3]));
 
     await expect(
@@ -323,7 +323,7 @@ describe('headless invocation', () => {
           file: ['image.PNG'],
           model: ' provider/model#fast ',
           session: ' session-1 ',
-          config: 'mcode.yaml',
+          config: 'alran.yaml',
           permission: 'off',
           timeout: '2h',
           maxSteps: '12',
@@ -342,7 +342,7 @@ describe('headless invocation', () => {
       ],
       model: 'provider/model#fast',
       sessionId: 'session-1',
-      configPath: await realpath(join(cwd, 'mcode.yaml')),
+      configPath: await realpath(join(cwd, 'alran.yaml')),
       permission: 'off',
       timeoutMs: 7_200_000,
       maxSteps: 12,

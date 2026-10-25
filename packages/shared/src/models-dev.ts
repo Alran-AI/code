@@ -1,7 +1,7 @@
 export type ModelsDevRegion = 'cn' | 'en';
 
 const MODELS_DEV_BASE_URLS: Readonly<Record<ModelsDevRegion, string>> = {
-  cn: 'https://filecdn.minimax.chat/public/models-dev',
+  cn: 'https://cdn.ottili.one/public/models-dev',
   en: 'https://models.dev',
 };
 

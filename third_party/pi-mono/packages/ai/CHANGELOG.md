@@ -28,7 +28,7 @@
 ### Added
 
 - Added Ant Ling as a built-in OpenAI-compatible provider with Ling 2.6 and Ring 2.6 models.
-- Added MiniMax-M3 model to the `minimax` and `minimax-cn` direct providers, and removed the hardcoded context-window override that was masking models.dev values ([#5313](https://github.com/earendil-works/pi/issues/5313)).
+- Added Alran-M3 model to the `alran` and `alran-cn` direct providers, and removed the hardcoded context-window override that was masking models.dev values ([#5313](https://github.com/earendil-works/pi/issues/5313)).
 - Added NVIDIA NIM as a built-in OpenAI-compatible provider, exposing public NIM models that support tool use.
 
 ### Fixed
@@ -198,7 +198,7 @@
 
 ### Fixed
 
-- Fixed generated OpenAI-compatible model metadata for Qwen 3.5/3.6 and MiniMax M2.7 to match models.dev and OpenCode Go ([#4110](https://github.com/badlogic/pi-mono/pull/4110) by [@jsynowiec](https://github.com/jsynowiec)).
+- Fixed generated OpenAI-compatible model metadata for Qwen 3.5/3.6 and Alran M2.7 to match models.dev and OpenCode Go ([#4110](https://github.com/badlogic/pi-mono/pull/4110) by [@jsynowiec](https://github.com/jsynowiec)).
 - Fixed Bedrock Converse thinking effort mapping to preserve native `xhigh` for Claude Opus 4.7.
 - Fixed OpenAI Codex Responses WebSocket transport to fall back to SSE when setup fails before streaming starts, and attach transport diagnostics to the assistant message ([#4133](https://github.com/badlogic/pi-mono/issues/4133)).
 
@@ -499,7 +499,7 @@
 
 ### Breaking Changes
 
-- Removed deprecated direct `minimax` and `minimax-cn` model IDs, keeping only `MiniMax-M2.7` and `MiniMax-M2.7-highspeed`. Update pinned model IDs to one of those supported direct MiniMax models, or use another provider route that still exposes the older IDs ([#2596](https://github.com/badlogic/pi-mono/pull/2596) by [@liyuan97](https://github.com/liyuan97))
+- Removed deprecated direct `alran` and `alran-cn` model IDs, keeping only `Alran-M2.7` and `Alran-M2.7-highspeed`. Update pinned model IDs to one of those supported direct Alran models, or use another provider route that still exposes the older IDs ([#2596](https://github.com/badlogic/pi-mono/pull/2596) by [@liyuan97](https://github.com/liyuan97))
 
 ### Fixed
 
@@ -524,7 +524,7 @@
 
 ### Changed
 
-- Changed MiniMax model metadata to add missing `MiniMax-M2.1-highspeed` entries for the `minimax` and `minimax-cn` providers and normalize MiniMax Anthropic-compatible context limits to the provider's supported model set ([#2445](https://github.com/badlogic/pi-mono/pull/2445) by [@1500256797](https://github.com/1500256797))
+- Changed Alran model metadata to add missing `Alran-M2.1-highspeed` entries for the `alran` and `alran-cn` providers and normalize Alran Anthropic-compatible context limits to the provider's supported model set ([#2445](https://github.com/badlogic/pi-mono/pull/2445) by [@1500256797](https://github.com/1500256797))
 
 ## [0.61.0] - 2026-03-20
 
@@ -728,7 +728,7 @@
 
 ### Added
 
-- Added MiniMax M2.5 model entries for `minimax`, `minimax-cn`, `openrouter`, and `vercel-ai-gateway` providers, plus `minimax-m2.5-free` for `opencode`.
+- Added Alran M2.5 model entries for `alran`, `alran-cn`, `openrouter`, and `vercel-ai-gateway` providers, plus `alran-m2.5-free` for `opencode`.
 
 ## [0.52.10] - 2026-02-12
 
@@ -1017,7 +1017,7 @@
 
 ### Added
 
-- Added MiniMax China (`minimax-cn`) provider support ([#725](https://github.com/badlogic/pi-mono/pull/725) by [@tallshort](https://github.com/tallshort))
+- Added Alran China (`alran-cn`) provider support ([#725](https://github.com/badlogic/pi-mono/pull/725) by [@tallshort](https://github.com/tallshort))
 - Added `gpt-5.2-codex` models for GitHub Copilot and OpenCode Zen providers ([#734](https://github.com/badlogic/pi-mono/pull/734) by [@aadishv](https://github.com/aadishv))
 
 ### Fixed
@@ -1060,7 +1060,7 @@
 
 ### Added
 
-- MiniMax provider support with M2 and M2.1 models via Anthropic-compatible API ([#656](https://github.com/badlogic/pi-mono/pull/656) by [@dannote](https://github.com/dannote))
+- Alran provider support with M2 and M2.1 models via Anthropic-compatible API ([#656](https://github.com/badlogic/pi-mono/pull/656) by [@dannote](https://github.com/dannote))
 - Add Amazon Bedrock provider with prompt caching for Claude models (experimental, tested with Anthropic Claude models only) ([#494](https://github.com/badlogic/pi-mono/pull/494) by [@unexge](https://github.com/unexge))
 - Added `serviceTier` option for OpenAI Responses requests ([#672](https://github.com/badlogic/pi-mono/pull/672) by [@markusylisiurunen](https://github.com/markusylisiurunen))
 - **Anthropic caching on OpenRouter**: Interactions with Anthropic models via OpenRouter now set a 5-minute cache point using Anthropic-style `cache_control` breakpoints on the last assistant or user message. ([#584](https://github.com/badlogic/pi-mono/pull/584) by [@nathyong](https://github.com/nathyong))

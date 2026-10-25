@@ -23,7 +23,7 @@ import {
   PluginSystemCloudTransportError,
 } from '../../cloud-transport.js';
 
-const CLOUD_BASE = '/minimax-cloud/api/v1';
+const CLOUD_BASE = '/alran-cloud/api/v1';
 const ARCHIVE_SHA = /^[0-9a-f]{64}$/u;
 const CONTENT_DIGEST = /^sha256-tree-v1:[0-9a-f]{64}$/u;
 

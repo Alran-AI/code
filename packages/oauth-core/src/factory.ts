@@ -1,5 +1,5 @@
 import type { AuthNamespaceInput } from './contracts.js';
-import { MCodeOAuthCore } from './auth-core.js';
+import { AlranOAuthCore } from './auth-core.js';
 import { createCredentialStore } from './credential-store/factory.js';
 import { createAuthNamespace } from './namespace.js';
 import { migrateLegacyAuthNamespace } from './namespace-migration.js';
@@ -7,11 +7,11 @@ import { HttpOAuthClient, type HttpOAuthClientOptions } from './oauth-client.js'
 import {
   createAuthManager,
   createTokenProvider,
-  type MCodeAuthManager,
-  type MCodeTokenProvider,
+  type AlranAuthManager,
+  type AlranTokenProvider,
 } from './token-provider.js';
 
-export interface CreateMCodeLocalAuthOptions extends AuthNamespaceInput {
+export interface CreateAlranLocalAuthOptions extends AuthNamespaceInput {
   fetchImpl?: typeof fetch;
   endpoints: Pick<
     HttpOAuthClientOptions,
@@ -22,17 +22,17 @@ export interface CreateMCodeLocalAuthOptions extends AuthNamespaceInput {
   >;
 }
 
-export function createMCodeTokenProvider(options: CreateMCodeLocalAuthOptions): MCodeTokenProvider {
+export function createAlranTokenProvider(options: CreateAlranLocalAuthOptions): AlranTokenProvider {
   return createTokenProvider(createCore(options));
 }
 
-export function createMCodeAuthManager(options: CreateMCodeLocalAuthOptions): MCodeAuthManager {
+export function createAlranAuthManager(options: CreateAlranLocalAuthOptions): AlranAuthManager {
   return createAuthManager(createCore(options));
 }
 
-function createCore(options: CreateMCodeLocalAuthOptions): MCodeOAuthCore {
+function createCore(options: CreateAlranLocalAuthOptions): AlranOAuthCore {
   const namespace = createAuthNamespace(options);
-  return new MCodeOAuthCore({
+  return new AlranOAuthCore({
     namespace,
     credentialStore: createCredentialStore({ authHome: namespace.namespaceHome }),
     oauthClient: new HttpOAuthClient({ ...options.endpoints, fetchImpl: options.fetchImpl }),

@@ -11,13 +11,13 @@ Shared roots:
 ```bash
 # macOS / Linux / WSL
 DOCX_ROOT="<skill_dir>"
-CLI="dotnet run --project $DOCX_ROOT/scripts/dotnet/MiniMaxAIDocx.Cli --"
+CLI="dotnet run --project $DOCX_ROOT/scripts/dotnet/AlranAIDocx.Cli --"
 ```
 
 ```powershell
 # Windows
 $env:DOCX_ROOT = "<skill_dir>"
-$CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\MiniMaxAIDocx.Cli --"
+$CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\AlranAIDocx.Cli --"
 ```
 
 ## Backend D — builtin dotnet CLI
@@ -72,7 +72,7 @@ if (-not ($check | Select-String -Pattern '^\[OK\]\s+dotnet\b')) {
 Same as `D`, plus read the relevant sample under:
 
 ```bash
-$DOCX_ROOT/scripts/dotnet/MiniMaxAIDocx.Core/Samples/*.cs
+$DOCX_ROOT/scripts/dotnet/AlranAIDocx.Core/Samples/*.cs
 ```
 
 ## Backend X — local XML patch runtime

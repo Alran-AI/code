@@ -66,13 +66,13 @@ describe("TuiRuntimeAdapter product access", () => {
   it("uses the Runtime startup model projection without saving a global selection", async () => {
     const service = {
       listModels: vi.fn(async () => [
-        { providerId: "minimax", modelId: "MiniMax-M3", selected: true },
+        { providerId: "alran", modelId: "Alran-M3", selected: true },
       ]),
       selectModel: vi.fn(async () => true),
     };
     const adapter = new TuiRuntimeAdapter(service as never);
     await expect(adapter.listModels()).resolves.toEqual([
-      { providerId: "minimax", modelId: "MiniMax-M3", selected: true },
+      { providerId: "alran", modelId: "Alran-M3", selected: true },
     ]);
     expect(service.selectModel).not.toHaveBeenCalled();
   });
@@ -92,13 +92,13 @@ describe("TuiRuntimeAdapter product access", () => {
     expect(selectModel).not.toHaveBeenCalled();
   });
   it.each([
-    "custom_provider:minimax-legacy",
-    "custom_provider:minimax-legacy-2",
+    "custom_provider:alran-legacy",
+    "custom_provider:alran-legacy-2",
   ])(
     "uses the Runtime projection while preserving the stored Session alias: %s",
     async (providerId) => {
-      const legacy = { providerId, modelId: "MiniMax-M3" };
-      const official = { providerId: "minimax", modelId: "MiniMax-M3" };
+      const legacy = { providerId, modelId: "Alran-M3" };
+      const official = { providerId: "alran", modelId: "Alran-M3" };
       const service = {
         listModels: vi.fn(async () => [
           { ...official, selected: true },
@@ -120,13 +120,13 @@ describe("TuiRuntimeAdapter product access", () => {
         selected: true,
       });
       expect(models.map((model) => model.providerId)).toEqual([
-        "minimax",
+        "alran",
         "custom_provider:work",
       ]);
       await expect(
         adapter.getContextSnapshot("session-1"),
       ).resolves.toMatchObject({
-        model: { provider: "minimax", id: "MiniMax-M3" },
+        model: { provider: "alran", id: "Alran-M3" },
       });
     },
   );
@@ -193,7 +193,7 @@ describe("TuiRuntimeAdapter product access", () => {
 
     await expect(adapter.getSessionUsage("session-1")).resolves.toEqual({
       summary: { inputTokens: 10, outputTokens: 5, totalTokens: 15, turns: 1 },
-      rows: [{ model: "minimax/MiniMax-M3" }],
+      rows: [{ model: "alran/Alran-M3" }],
     });
     await expect(adapter.getSessionUsageSummary("session-1")).resolves.toEqual({
       inputTokens: 10,
@@ -228,7 +228,7 @@ describe("TuiRuntimeAdapter product access", () => {
       adapter.getContextSnapshot("session-1"),
     ).resolves.toMatchObject({
       status: "stale",
-      model: { provider: "minimax", id: "MiniMax-M3", contextWindow: 1000 },
+      model: { provider: "alran", id: "Alran-M3", contextWindow: 1000 },
       contextUsage: {
         contextWindowTokens: 1000,
         usedTokens: 300,
@@ -297,7 +297,7 @@ describe("TuiRuntimeAdapter product access", () => {
 
     await expect(adapter.getAccountStatus("session-1")).resolves.toMatchObject({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M3",
+      defaultModel: "alran/Alran-M3",
     });
     await expect(adapter.getRuntimeDiagnostics()).resolves.toMatchObject({
       status: "ok",
@@ -311,8 +311,8 @@ describe("TuiRuntimeAdapter product access", () => {
     );
     await expect(adapter.listModels("session-1")).resolves.toEqual([
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
         selected: true,
         contextLimit: 400_000,
       },
@@ -478,8 +478,8 @@ describe("TuiRuntimeAdapter product access", () => {
     const cliService = cliServiceFixture();
     const adapter = new TuiRuntimeAdapter(cliService);
     const selection = {
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
       variant: "thinking",
       contextLimit: 1_000_000,
       thinking: { effort: "high" },
@@ -512,8 +512,8 @@ describe("TuiRuntimeAdapter product access", () => {
     const cliService = cliServiceFixture();
     const adapter = new TuiRuntimeAdapter(cliService);
     const selection = {
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
       variant: "thinking",
       thinking: { effort: "high" },
     };
@@ -534,8 +534,8 @@ describe("TuiRuntimeAdapter product access", () => {
     vi.mocked(cliService.selectModel).mockResolvedValueOnce(false);
     const adapter = new TuiRuntimeAdapter(cliService);
     const selection = {
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
     };
 
     await expect(adapter.selectModel(selection, "session-1")).resolves.toBe(
@@ -606,7 +606,7 @@ function cliServiceFixture(): CliService {
     })),
     getSessionUsage: vi.fn(async () => ({
       summary: { inputTokens: 10, outputTokens: 5, totalTokens: 15, turns: 1 },
-      rows: [{ model: "minimax/MiniMax-M3" }],
+      rows: [{ model: "alran/Alran-M3" }],
     })),
     getMessages: vi.fn(async () => ({
       messages: [
@@ -641,16 +641,16 @@ function cliServiceFixture(): CliService {
         agentName: "mavis",
         status: { statusType: 1 },
         model: {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           contextLimit: 1000,
         },
       },
     })),
     listModels: vi.fn(async () => [
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
         selected: true,
         contextLimit: 400_000,
       },
@@ -663,8 +663,8 @@ function cliServiceFixture(): CliService {
     listPendingPermissions: vi.fn(async () => ({ requests: [] })),
     getPendingQuestionnaire: vi.fn(async () => ({})),
     getAccountStatus: vi.fn(async () => ({
-      selection: { defaultModel: "minimax/MiniMax-M3" },
-      provider: { id: "minimax", authMode: "managed-login" },
+      selection: { defaultModel: "alran/Alran-M3" },
+      provider: { id: "alran", authMode: "managed-login" },
       auth: { tokenPresent: true },
       warnings: [],
     })),

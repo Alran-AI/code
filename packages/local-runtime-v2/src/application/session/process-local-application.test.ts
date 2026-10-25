@@ -15,11 +15,11 @@ describe("createProcessLocalApplication account and usage", () => {
         account: {
           getStatus: async () => ({
             selection: {
-              providerId: "custom_provider:minimax-legacy-2",
+              providerId: "custom_provider:alran-legacy-2",
               modelId: "retired",
             },
             provider: {
-              id: "custom_provider:minimax-legacy-2",
+              id: "custom_provider:alran-legacy-2",
               authMode: "api-key",
             },
             auth: { tokenPresent: false },
@@ -30,14 +30,14 @@ describe("createProcessLocalApplication account and usage", () => {
         application: {
           list: async () => [
             {
-              providerId: "minimax",
-              modelId: "MiniMax-M3",
-              providerKind: "minimax-managed",
+              providerId: "alran",
+              modelId: "Alran-M3",
+              providerKind: "alran-managed",
               selected: true,
             },
           ],
         } as never,
-        providers: { getMinimaxModelSource: () => "token_plan" } as never,
+        providers: { getAlranModelSource: () => "token_plan" } as never,
         listProviderPresets: vi.fn(async () => []),
         oauth: { getStatus: vi.fn(), startLogin: vi.fn() } as never,
       },
@@ -45,8 +45,8 @@ describe("createProcessLocalApplication account and usage", () => {
     await expect(
       application.account?.getStatus({ sessionId: "old-session" }),
     ).resolves.toMatchObject({
-      selection: { providerId: "minimax", modelId: "MiniMax-M3" },
-      provider: { id: "minimax", authMode: "managed-login" },
+      selection: { providerId: "alran", modelId: "Alran-M3" },
+      provider: { id: "alran", authMode: "managed-login" },
       modelSource: "token-plan",
       auth: { tokenPresent: false },
     });
@@ -70,7 +70,7 @@ describe("createProcessLocalApplication account and usage", () => {
       peripherals: { account: { getStatus: vi.fn() } } as never,
       modelProvider: {
         application: {} as never,
-        providers: { getMinimaxModelSource: vi.fn() } as never,
+        providers: { getAlranModelSource: vi.fn() } as never,
       } as never,
     });
 
@@ -85,13 +85,13 @@ describe("createProcessLocalApplication account and usage", () => {
     expect(unsubscribe).toHaveBeenCalledOnce();
   });
 
-  it("reports the builtin MiniMax API-key route as BYOK account access", async () => {
+  it("reports the builtin Alran API-key route as BYOK account access", async () => {
     const getStatus = vi.fn(async () => ({
-      selection: { providerId: "minimax", modelId: "MiniMax-M3" },
-      provider: { id: "minimax", authMode: "managed-login" },
+      selection: { providerId: "alran", modelId: "Alran-M3" },
+      provider: { id: "alran", authMode: "managed-login" },
       auth: { tokenPresent: false },
     }));
-    const getMinimaxModelSource = vi.fn(() => "minimax_api_key" as const);
+    const getAlranModelSource = vi.fn(() => "alran_api_key" as const);
     const application = createProcessLocalApplication({
       eventBus: { subscribe: vi.fn(() => () => undefined) },
       skills: {} as never,
@@ -101,7 +101,7 @@ describe("createProcessLocalApplication account and usage", () => {
       peripherals: { account: { getStatus } } as never,
       modelProvider: {
         application: {} as never,
-        providers: { getMinimaxModelSource } as never,
+        providers: { getAlranModelSource } as never,
         listProviderPresets: vi.fn(async () => []),
         oauth: { getStatus: vi.fn(), startLogin: vi.fn() } as never,
       },
@@ -110,8 +110,8 @@ describe("createProcessLocalApplication account and usage", () => {
     await expect(
       application.account?.getStatus({ sessionId: "session-1" }),
     ).resolves.toMatchObject({
-      selection: { providerId: "minimax", modelId: "MiniMax-M3" },
-      provider: { id: "minimax", authMode: "managed-login" },
+      selection: { providerId: "alran", modelId: "Alran-M3" },
+      provider: { id: "alran", authMode: "managed-login" },
       auth: { tokenPresent: false },
       modelSource: "byok",
     });
@@ -153,10 +153,10 @@ describe("createProcessLocalApplication capabilities", () => {
     };
     const modelProviders = {
       listUserProviders: vi.fn(() => []),
-      getMinimaxApiKeyStatus: vi.fn(() => ({ hasApiKey: false })),
-      getMinimaxModelSource: vi.fn(() => "token_plan" as const),
-      setMinimaxModelSource: vi.fn(async () => "minimax_api_key" as const),
-      upsertMinimaxApiKey: vi.fn(),
+      getAlranApiKeyStatus: vi.fn(() => ({ hasApiKey: false })),
+      getAlranModelSource: vi.fn(() => "token_plan" as const),
+      setAlranModelSource: vi.fn(async () => "alran_api_key" as const),
+      upsertAlranApiKey: vi.fn(),
       createUserProvider: vi.fn(),
       discoverUserModelsCandidate: vi.fn(async () => [{ modelId: "latest" }]),
       saveUserModelProviderCandidate: vi.fn(async () => ({
@@ -229,9 +229,9 @@ describe("createProcessLocalApplication capabilities", () => {
     await expect(application.models?.list()).resolves.toEqual([]);
     expect(modelApplication.list).toHaveBeenCalledOnce();
     await expect(
-      application.modelProviders?.getMiniMaxModelSource(),
+      application.modelProviders?.getAlranModelSource(),
     ).resolves.toBe("token_plan");
-    expect(modelProviders.getMinimaxModelSource).toHaveBeenCalledOnce();
+    expect(modelProviders.getAlranModelSource).toHaveBeenCalledOnce();
     await expect(
       application.modelProviders?.listProviderPresets(),
     ).resolves.toEqual([

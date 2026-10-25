@@ -190,8 +190,8 @@ describe("AI Providers Abort Tests", () => {
 		});
 	});
 
-	describe.skipIf(!process.env.MINIMAX_API_KEY)("MiniMax Provider Abort", () => {
-		const llm = getModel("minimax", "MiniMax-M2.7");
+	describe.skipIf(!process.env.ALRAN_API_KEY)("Alran Provider Abort", () => {
+		const llm = getModel("alran", "Alran-M2.7");
 
 		it("should abort mid-stream", { retry: 3 }, async () => {
 			await testAbortSignal(llm);

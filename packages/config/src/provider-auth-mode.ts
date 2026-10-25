@@ -16,19 +16,21 @@ export interface ResolvedProviderAuthMode {
   warnings: string[];
 }
 
-const MANAGED_PROVIDER_HOSTS = [
-  'agent.minimax.io',
-  'agent.minimax.cn',
-  // Retain the historical China origin so existing user config migrates as managed.
-  'agent.minimaxi.com',
-] as const;
+/**
+ * Hosts that serve the Ottili AI Platform gateway.
+ *
+ * The first-party provider is authenticated with an Ottili API key, so this
+ * list only records which origins the CLI trusts enough to strip URL
+ * credentials from and to keep as the managed default.
+ */
+const MANAGED_PROVIDER_HOSTS = ['api.ottili.one'] as const;
 
 const MANAGED_PROVIDER_ORIGINS = new Set(MANAGED_PROVIDER_HOSTS.map((host) => `https://${host}`));
 
-/** Recognizes generated MiniMax aliases, including dangling refs, while preserving custom endpoints. */
-export function isLegacyManagedMinimaxProvider(providerId: string, baseURL?: string): boolean {
+/** Recognizes generated Alran aliases, including dangling refs, while preserving custom endpoints. */
+export function isLegacyManagedAlranProvider(providerId: string, baseURL?: string): boolean {
   return (
-    /^custom_provider:minimax-legacy(?:-\d+)?$/u.test(providerId) &&
+    /^custom_provider:alran-legacy(?:-\d+)?$/u.test(providerId) &&
     (!baseURL || isManagedProviderBaseUrl(baseURL))
   );
 }
@@ -38,7 +40,7 @@ export function isManagedProviderBaseUrl(baseURL: string): boolean {
     const parsed = new URL(baseURL);
     // URL credentials change the authority string the user intended to trust.
     // Treat them as untrusted even when the host portion matches an allowlisted
-    // managed MiniMax origin, matching the preview opencode plugin contract.
+    // managed Alran origin, matching the preview opencode plugin contract.
     if (parsed.username || parsed.password) return false;
     return MANAGED_PROVIDER_ORIGINS.has(parsed.origin.toLowerCase());
   } catch {
@@ -73,7 +75,7 @@ export function resolveProviderAuthMode(
       !input?.allowManagedBaseURLOverride
     ) {
       warnings.push(
-        'Provider authMode is managed-login but baseURL is not a known managed MiniMax host.',
+        'Provider authMode is managed-login but baseURL is not a known managed Alran host.',
       );
     }
     return {
@@ -86,7 +88,7 @@ export function resolveProviderAuthMode(
 
   if (managedBaseURL) {
     warnings.push(
-      'Provider authMode is inferred from a managed MiniMax baseURL; set options.authMode: managed-login to make this explicit.',
+      'Provider authMode is inferred from a managed Alran baseURL; set options.authMode: managed-login to make this explicit.',
     );
     return {
       authMode: 'managed-login',

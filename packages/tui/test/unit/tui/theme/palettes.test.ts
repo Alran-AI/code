@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import {
   BUILT_IN_THEMES,
   DEFAULT_THEME_ID,
-  MINIMAX_CODE_DARK_THEME,
-  MINIMAX_CODE_LIGHT_THEME,
+  ALRAN_CODE_DARK_THEME,
+  ALRAN_CODE_LIGHT_THEME,
 } from '../../../../src/tui/theme/palettes.js';
 import {
   TUI_SYNTAX_TONE_NAMES,
   TUI_THEME_COLOR_NAMES,
 } from '../../../../src/tui/theme/contracts.js';
 import {
-  MINIMAX_CODE_THEME_CONTRAST_POLICY,
+  ALRAN_CODE_THEME_CONTRAST_POLICY,
   contrastRatio,
 } from '../../../helpers/theme-contrast.js';
 
@@ -21,9 +21,9 @@ const ALL_PALETTES = BUILT_IN_THEMES.flatMap((theme) => [
 ]);
 
 describe('built-in TUI themes', () => {
-  it('keeps the default MCode palette byte-identical to the pre-theme implementation', () => {
+  it('keeps the default Alran palette byte-identical to the pre-theme implementation', () => {
     // The default theme is what every existing user sees, so it must not move.
-    expect(MINIMAX_CODE_DARK_THEME.colors).toEqual({
+    expect(ALRAN_CODE_DARK_THEME.colors).toEqual({
       brand: '#68C0FF',
       wordmarkHighlight: '#93D2FF',
       wordmarkShadow: '#3DAEFF',
@@ -45,31 +45,31 @@ describe('built-in TUI themes', () => {
       warning: '#FFC340',
       error: '#FF5E6C',
     });
-    expect(MINIMAX_CODE_LIGHT_THEME.colors.text).toBe('#303030');
-    expect(DEFAULT_THEME_ID).toBe('minimax');
+    expect(ALRAN_CODE_LIGHT_THEME.colors.text).toBe('#303030');
+    expect(DEFAULT_THEME_ID).toBe('alran');
   });
 
   it.each(ALL_PALETTES)(
     'enforces readable semantic colors for $theme.id $palette.appearance',
     ({ palette }) => {
-      const background = MINIMAX_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
+      const background = ALRAN_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
 
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.roles) {
-        const exception = MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.exceptions.find(
+      for (const role of ALRAN_CODE_THEME_CONTRAST_POLICY.normalText.roles) {
+        const exception = ALRAN_CODE_THEME_CONTRAST_POLICY.normalText.exceptions.find(
           (candidate) => candidate.appearance === palette.appearance && candidate.role === role,
         );
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.id}.${palette.appearance}.${role} must remain readable against ${background}`,
         ).toBeGreaterThanOrEqual(
-          exception?.minimum ?? MINIMAX_CODE_THEME_CONTRAST_POLICY.normalText.minimum,
+          exception?.minimum ?? ALRAN_CODE_THEME_CONTRAST_POLICY.normalText.minimum,
         );
       }
-      for (const role of MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.roles) {
+      for (const role of ALRAN_CODE_THEME_CONTRAST_POLICY.nonText.roles) {
         expect(
           contrastRatio(palette.colors[role], background),
           `${palette.id}.${palette.appearance}.${role} must stay distinguishable against ${background}`,
-        ).toBeGreaterThanOrEqual(MINIMAX_CODE_THEME_CONTRAST_POLICY.nonText.minimum);
+        ).toBeGreaterThanOrEqual(ALRAN_CODE_THEME_CONTRAST_POLICY.nonText.minimum);
       }
     },
   );
@@ -93,7 +93,7 @@ describe('built-in TUI themes', () => {
   it.each(ALL_PALETTES)(
     'keeps syntax text legible for $theme.id $palette.appearance',
     ({ palette }) => {
-      const background = MINIMAX_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
+      const background = ALRAN_CODE_THEME_CONTRAST_POLICY.backgrounds[palette.appearance];
       // Comments are the lowest-emphasis token but still have to be readable.
       expect(contrastRatio(palette.syntax.overlay2, background)).toBeGreaterThanOrEqual(3);
       expect(contrastRatio(palette.syntax.text, background)).toBeGreaterThanOrEqual(4.5);

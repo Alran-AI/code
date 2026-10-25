@@ -9,7 +9,7 @@ import {
 } from '../features/composer/attachments.js';
 import type { TranscriptStore } from '../transcript/store.js';
 import type { TranscriptAttachment, TranscriptUserPresentation } from '../transcript/model.js';
-import { MINIMAX_CODE_DEFAULT_AGENT_NAME } from '../../product-context.js';
+import { ALRAN_CODE_DEFAULT_AGENT_NAME } from '../../product-context.js';
 import { TuiTurnProjection } from './projection/turn-projection.js';
 import type { OptimisticUserCommitMode } from './projection/turn-projection.js';
 import { TuiStatusMetricsFlow } from './projection/status-metrics-flow.js';
@@ -94,7 +94,7 @@ export class TuiChatController {
     this.transcript = options.transcript;
     this.workspaceDir = options.workspaceDir;
     this.version = options.version ?? 'development';
-    this.defaultAgentName = options.defaultAgentName ?? MINIMAX_CODE_DEFAULT_AGENT_NAME;
+    this.defaultAgentName = options.defaultAgentName ?? ALRAN_CODE_DEFAULT_AGENT_NAME;
     this.createTurnId = options.createTurnId ?? createTuiTurnId;
     this.runCoordinator = options.runCoordinator ?? new TuiRunCoordinator(options.runtime);
     this.retirementWarningTimeoutMs = options.retirementWarningTimeoutMs ?? 5_000;

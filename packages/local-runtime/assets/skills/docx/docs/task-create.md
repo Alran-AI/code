@@ -32,7 +32,7 @@ The generation core that preserves old benchmark quality is:
 - `<skill_dir>/references/typography_guide.md`
 - `<skill_dir>/references/design_principles.md`
 - `<skill_dir>/references/cjk_typography.md` when CJK / 公文 / mixed-script quality matters
-- `<skill_dir>/scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
+- `<skill_dir>/scripts/dotnet/AlranAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 
 These files are not optional background. They are the recipe layer. Pick a family from them before
 inventing any formatting values.

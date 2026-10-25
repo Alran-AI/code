@@ -46,7 +46,7 @@ export function resolveTuiExternalEditorCommand(
   options: ResolveTuiExternalEditorCommandOptions = {},
 ): string | undefined {
   const env = options.env ?? process.env;
-  const configured = [options.configuredCommand, env.MCODE_EDITOR, env.VISUAL, env.EDITOR].find(
+  const configured = [options.configuredCommand, env.ALRAN_EDITOR, env.VISUAL, env.EDITOR].find(
     (value) => value?.trim(),
   );
   if (configured) return configured.trim();
@@ -118,7 +118,7 @@ export async function editTuiDraftInExternalEditor(
   options: EditTuiDraftInExternalEditorOptions,
 ): Promise<string> {
   const parsed = parseTuiExternalEditorCommand(options.command);
-  const directory = await mkdtemp(join(tmpdir(), 'mcode-editor-'));
+  const directory = await mkdtemp(join(tmpdir(), 'alran-editor-'));
   const draftPath = join(directory, 'prompt.md');
   try {
     await writeFile(draftPath, normalizeLineEndings(options.draft), {

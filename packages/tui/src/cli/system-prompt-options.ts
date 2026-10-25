@@ -60,7 +60,7 @@ export function applySystemPromptCliOptions(command: Command): Command {
 
 /**
  * Fills each prompt slot from the nearest parent command that received it on the
- * command line, so `mcode --system-prompt-file a.md acp` still applies. A slot set
+ * command line, so `alran --system-prompt-file a.md acp` still applies. A slot set
  * closer to the subcommand wins as a whole: `exec --system-prompt` replaces a
  * `--system-prompt-file` given before `exec` instead of conflicting with it.
  */

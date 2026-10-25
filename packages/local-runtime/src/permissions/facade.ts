@@ -997,7 +997,7 @@ export class LocalPermissionFacade {
 
     const candidates: string[] = [];
     const dataDir = this.deps.configGetter().dataDir;
-    for (const root of [dataDir, path.join(homedir(), '.minimax')]) {
+    for (const root of [dataDir, path.join(homedir(), '.alran')]) {
       if (!root) continue;
       candidates.push(path.resolve(root, 'skills'), path.resolve(root, '.builtin-skills'));
       if (agentName) candidates.push(path.resolve(root, 'agents', agentName, 'skills'));

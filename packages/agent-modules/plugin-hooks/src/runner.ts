@@ -180,7 +180,7 @@ export class PluginHookRunner {
       const latestCompatibleRewrite = outcomes
         .filter(
           (outcome) =>
-            outcome.handler.sourceFormat !== 'MINIMAX' &&
+            outcome.handler.sourceFormat !== 'ALRAN' &&
             outcome.decision?.updatedInput !== undefined,
         )
         .sort((left, right) => right.completionOrder - left.completionOrder)[0]
@@ -238,13 +238,13 @@ export class PluginHookRunner {
       await mkdir(pluginDataDir, { recursive: true, mode: 0o700 });
       const env = {
         ...safeHookEnvironment(),
-        MINIMAX_PLUGIN_ROOT: handler.pluginRoot,
+        ALRAN_PLUGIN_ROOT: handler.pluginRoot,
         CLAUDE_PLUGIN_ROOT: handler.pluginRoot,
         CODEX_PLUGIN_ROOT: handler.pluginRoot,
         PLUGIN_ROOT: handler.pluginRoot,
         CLAUDE_PLUGIN_DATA: pluginDataDir,
         PLUGIN_DATA: pluginDataDir,
-        MINIMAX_PROJECT_DIR: input.cwd,
+        ALRAN_PROJECT_DIR: input.cwd,
         CLAUDE_PROJECT_DIR: input.cwd,
         CODEX_PROJECT_DIR: input.cwd,
         ...(handler.sourceFormat === 'CLAUDE' && handlerInput.effort
@@ -309,7 +309,7 @@ export class PluginHookRunner {
         ? parseDecision(captured.stdout, handler, input)
         : ({ kind: 'empty', decision: defaultDecision(input.event) } as const);
       const exitDecision =
-        result.code === 2 && handler.sourceFormat !== 'MINIMAX'
+        result.code === 2 && handler.sourceFormat !== 'ALRAN'
           ? explicitExitTwoDecision(input.event, captured.stderr, handler.sourceFormat)
           : undefined;
       if (parsed.kind === 'invalid') {
@@ -778,7 +778,7 @@ function parsePermissionRequestOutput(
       decision.interrupt === true)
   )
     return undefined;
-  if (sourceFormat === 'MINIMAX' && decision.updatedPermissions !== undefined) return undefined;
+  if (sourceFormat === 'ALRAN' && decision.updatedPermissions !== undefined) return undefined;
   const updatedPermissions =
     sourceFormat === 'CLAUDE' && Array.isArray(decision.updatedPermissions)
       ? parseCompatiblePermissionUpdates(decision.updatedPermissions, handler, input)
@@ -1391,7 +1391,7 @@ function allowedWireOutputKeys(
         ...common,
         'decision',
         'reason',
-        ...(sourceFormat === 'CLAUDE' || sourceFormat === 'MINIMAX' ? ['hookSpecificOutput'] : []),
+        ...(sourceFormat === 'CLAUDE' || sourceFormat === 'ALRAN' ? ['hookSpecificOutput'] : []),
       ]);
     case 'PreCompact':
       return new Set([...common, ...(sourceFormat === 'CODEX' ? [] : ['decision', 'reason'])]);
@@ -1707,7 +1707,7 @@ function serializeHookInput(input: PluginHookEventInput): string | undefined {
 
 function isValidWireInput(handler: PluginHookCommandHandler, input: PluginHookEventInput): boolean {
   if (!input.sessionId || !input.cwd) return false;
-  if (handler.sourceFormat === 'MINIMAX') return true;
+  if (handler.sourceFormat === 'ALRAN') return true;
   const payload = input.payload ?? {};
   const has = (key: string) =>
     Object.prototype.hasOwnProperty.call(payload, key) && payload[key] !== undefined;
@@ -1812,7 +1812,7 @@ function matches(handler: PluginHookCommandHandler, input: PluginHookEventInput)
     if (/^[A-Za-z0-9_\- ,|]+$/u.test(pattern)) {
       return values.some((value) => alternatives.includes(value));
     }
-  } else if (handler.sourceFormat === 'MINIMAX') {
+  } else if (handler.sourceFormat === 'ALRAN') {
     const alternatives = pattern.split(/[|,]/u).map((part) => part.trim());
     if (alternatives.every((part) => /^[A-Za-z0-9_.:/-]+$/u.test(part))) {
       return values.some((value) => alternatives.includes(value));
@@ -2066,7 +2066,7 @@ function compatiblePermissionSuggestions(
       type: 'addRules',
       rules: value.map((ruleContent) => ({ toolName, ruleContent })),
       behavior: 'allow',
-      // MiniMax's persisted global permission store is equivalent to Compatible's
+      // Alran's persisted global permission store is equivalent to Compatible's
       // per-user settings destination. Keep Compatible's public wire vocabulary on
       // the Hook boundary so a suggestion can be echoed as updatedPermissions.
       destination: 'userSettings',
@@ -2080,7 +2080,7 @@ function adaptCommonInputMetadata(
 ): PluginHookEventInput {
   const subagentContext = input.subagentContext;
   const usesParentAgentSession =
-    sourceFormat !== 'MINIMAX' &&
+    sourceFormat !== 'ALRAN' &&
     subagentContext !== undefined &&
     (input.event === 'SubagentStart' || input.event === 'SubagentStop');
   const codexTurnScoped = input.event !== 'SessionStart' && input.event !== 'SessionEnd';

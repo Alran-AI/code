@@ -1,4 +1,4 @@
-# MiniMax Plugin V1 — 可选 Host Binding 扩展
+# Alran Plugin V1 — 可选 Host Binding 扩展
 
 Host Binding 是 manifest V1 的可选属性，不需要另起一版包格式。V1 的路径、archive、digest、App、
 MCP、Skill 和 Hook 契约保持不变；未声明该属性的普通插件行为不变。
@@ -11,7 +11,7 @@ Host Binding 让官方 Plugin 声明“希望复用 Desktop Host 已提供的一
 映射请求，不包含能力实现，不启动额外进程，也不自动绕过 Host 的版本、surface、来源和安全策略。
 
 新包统一使用 `schemaVersion: 1` 和 `plugin-v1.schema.json`，包括 Browser Use。
-根 `.minimax-plugin/marketplace.json` 同样仍使用 catalog schema v1。
+根 `.alran-plugin/marketplace.json` 同样仍使用 catalog schema v1。
 Marketplace validator 和 Publisher 仅接受 manifest V1，不转换或接收 V2。已发布 V2 包由
 Desktop reader 保留读取兼容，不改写旧包或 digest；不维护独立 V2 schema。
 
@@ -19,7 +19,7 @@ Desktop reader 保留读取兼容，不改写旧包或 digest；不维护独立 
 
 ```text
 plugins/<plugin-name>/
-  .minimax-plugin/plugin.json
+  .alran-plugin/plugin.json
   bindings/<binding-name>.binding.json
   skills/<skill-name>/SKILL.md
   <icon>

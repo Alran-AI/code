@@ -2,9 +2,9 @@ import type { Api, Model } from '@earendil-works/pi-ai';
 import { ThinkingLevel, type IModelRef } from '@mavis/protocol';
 import { parseProviderId } from '../config/model-key.js';
 import {
-  isMiniMaxM3ModelId,
-  isMiniMaxM3ThinkingMode,
-  resolveMiniMaxM3ThinkingProtocol,
+  isAlranM3ModelId,
+  isAlranM3ThinkingMode,
+  resolveAlranM3ThinkingProtocol,
 } from '../model-provider/thinking.js';
 import { readSelectedThinkingEffort } from '../model-provider/model-selection.js';
 
@@ -24,13 +24,13 @@ function cloneThinkingPayload(value: unknown): Record<string, unknown> | undefin
   return { ...value };
 }
 
-function patchMiniMaxM3Effort(
+function patchAlranM3Effort(
   payload: Record<string, unknown>,
   model: Model<Api>,
   effort: 'on' | 'off',
 ): Record<string, unknown> | undefined {
   if (model.api === 'openai-responses') {
-    const patch = resolveMiniMaxM3ThinkingProtocol('openai-responses', effort);
+    const patch = resolveAlranM3ThinkingProtocol('openai-responses', effort);
     const reasoningPatch = isRecord(patch.reasoning) ? patch.reasoning : {};
     payload.reasoning = {
       ...(isRecord(payload.reasoning) ? payload.reasoning : {}),
@@ -40,13 +40,13 @@ function patchMiniMaxM3Effort(
   }
   if (model.api === 'openai-completions' || model.api === 'openai-chat') {
     if (!Array.isArray(payload.messages)) return undefined;
-    const patch = resolveMiniMaxM3ThinkingProtocol('openai-completions', effort);
+    const patch = resolveAlranM3ThinkingProtocol('openai-completions', effort);
     payload.thinking = isRecord(patch.thinking) ? { ...patch.thinking } : {};
     delete payload.reasoning_effort;
     return payload;
   }
   if (model.api !== 'anthropic-messages' || !Array.isArray(payload.messages)) return undefined;
-  const patch = resolveMiniMaxM3ThinkingProtocol('anthropic-messages', effort);
+  const patch = resolveAlranM3ThinkingProtocol('anthropic-messages', effort);
   payload.thinking = isRecord(patch.thinking) ? { ...patch.thinking } : {};
   const outputConfig = isRecord(payload.output_config) ? { ...payload.output_config } : {};
   delete outputConfig.effort;
@@ -81,8 +81,8 @@ export function buildOpenPlatformThinkingPatcher(modelRef: IModelRef | undefined
   const selectedEffort = readSelectedThinkingEffort(
     modelRef?.capabilities as Record<string, unknown> | undefined,
   );
-  const miniMaxM3Effort =
-    isMiniMaxM3ModelId(modelRef?.model_id) && isMiniMaxM3ThinkingMode(selectedEffort)
+  const alranM3Effort =
+    isAlranM3ModelId(modelRef?.model_id) && isAlranM3ThinkingMode(selectedEffort)
       ? selectedEffort
       : undefined;
 
@@ -93,14 +93,14 @@ export function buildOpenPlatformThinkingPatcher(modelRef: IModelRef | undefined
     if (!payload || typeof payload !== 'object') return undefined;
     const p = payload as Record<string, unknown>;
 
-    if (miniMaxM3Effort) return patchMiniMaxM3Effort(p, model, miniMaxM3Effort);
+    if (alranM3Effort) return patchAlranM3Effort(p, model, alranM3Effort);
     if (!variants) return undefined;
 
     const thinking = thinkingOn ? variants.thinking : variants['none-thinking'];
     if (!thinking) return undefined;
-    if (isMiniMaxM3ModelId(modelRef?.model_id) && model.api !== 'anthropic-messages') {
+    if (isAlranM3ModelId(modelRef?.model_id) && model.api !== 'anthropic-messages') {
       if (model.api === 'openai-responses') {
-        const patch = resolveMiniMaxM3ThinkingProtocol(
+        const patch = resolveAlranM3ThinkingProtocol(
           'openai-responses',
           thinkingOn ? 'on' : 'off',
         );
@@ -113,7 +113,7 @@ export function buildOpenPlatformThinkingPatcher(modelRef: IModelRef | undefined
       }
       if (model.api === 'openai-completions' || model.api === 'openai-chat') {
         if (!Array.isArray(p.messages)) return undefined;
-        const patch = resolveMiniMaxM3ThinkingProtocol(
+        const patch = resolveAlranM3ThinkingProtocol(
           'openai-completions',
           thinkingOn ? 'on' : 'off',
         );

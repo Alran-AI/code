@@ -62,7 +62,7 @@ export function parsePluginHookDocuments(input: {
         if (
           rawMatcher !== undefined &&
           (typeof rawMatcher !== 'string' ||
-            (!rawMatcher.trim() && input.sourceFormat === 'MINIMAX'))
+            (!rawMatcher.trim() && input.sourceFormat === 'ALRAN'))
         ) {
           diagnostics.push({
             ...baseDiagnostic(input.pluginName, document.sourcePath, 'HOOK_SCHEMA_INVALID'),

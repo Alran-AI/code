@@ -11,8 +11,8 @@ import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
 type AppendFeedbackNotice = (content: string, kind?: 'warning' | 'error') => void;
 
-export const MINIMAX_CODE_TUI_FEEDBACK_LOGIN_REQUIRED_MESSAGE =
-  'Sign in to MiniMax to submit feedback. Run /login, then retry.';
+export const ALRAN_CODE_TUI_FEEDBACK_LOGIN_REQUIRED_MESSAGE =
+  'Sign in to Alran to submit feedback. Run /login, then retry.';
 
 export class FeedbackFlow {
   private activeDraftId: string | undefined;
@@ -66,7 +66,7 @@ export class FeedbackFlow {
       const loginRequired = error instanceof TuiLoginRequiredError;
       this.appendNotice(
         loginRequired
-          ? MINIMAX_CODE_TUI_FEEDBACK_LOGIN_REQUIRED_MESSAGE
+          ? ALRAN_CODE_TUI_FEEDBACK_LOGIN_REQUIRED_MESSAGE
           : formatTuiActionFailure(error, {
               summary: "Couldn't prepare feedback.",
               nextStep: 'Retry /feedback.',

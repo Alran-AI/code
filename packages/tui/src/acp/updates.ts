@@ -79,7 +79,7 @@ export class TuiAcpUpdateProjector {
     if (tool.id && this.completedToolIds.has(tool.id)) return undefined;
     const key = tool.id ? `id:${tool.id}` : `name:${tool.name}`;
     const existingId = this.toolIds.get(key);
-    const toolCallId = existingId ?? tool.id ?? `minimax-code-tool-${this.nextAnonymousToolId++}`;
+    const toolCallId = existingId ?? tool.id ?? `alran-code-tool-${this.nextAnonymousToolId++}`;
     const status = toolStatus(tool.status);
     const content = toolContent(tool);
     const locations = toolLocations(tool);

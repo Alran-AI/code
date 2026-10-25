@@ -1,7 +1,7 @@
 import type {
-  McodeProviderView,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
+  AlranProviderView,
+  AlranSaveProviderCandidateInput,
+  AlranSaveProviderCandidateResult,
 } from '../../../provider/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import { getKeybindings, Input, Key, matchesKey } from '../../engine/public.js';
@@ -30,10 +30,10 @@ export class TuiProviderEditor implements Component, Focusable {
 
   constructor(
     private readonly options: {
-      readonly provider: McodeProviderView;
+      readonly provider: AlranProviderView;
       readonly onSave: (
-        input: McodeSaveProviderCandidateInput,
-      ) => Promise<McodeSaveProviderCandidateResult>;
+        input: AlranSaveProviderCandidateInput,
+      ) => Promise<AlranSaveProviderCandidateResult>;
       readonly onSaved: (keyChanged: boolean) => void;
       readonly onCancel: () => void;
       readonly requestRender: () => void;

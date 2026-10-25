@@ -195,7 +195,7 @@ function createDraftRecoveryQueueLeaseFactory(dataDir: string) {
 }
 
 function isDraftRecoveryAssetPath(dataDir: string, filePath: string): boolean {
-  const draftsDirectory = resolve(dataDir, 'v2', 'mcode', 'drafts');
+  const draftsDirectory = resolve(dataDir, 'v2', 'alran', 'drafts');
   const pathFromDrafts = relative(draftsDirectory, resolve(filePath));
   if (!pathFromDrafts || pathFromDrafts.startsWith('..') || isAbsolute(pathFromDrafts))
     return false;
@@ -212,7 +212,7 @@ function isDetachedClipboardMedia(attachment: TuiAttachment): boolean {
     return false;
   }
   return (
-    pathFromTemporaryDirectory.split(/[\\/]/u)[0]?.startsWith('minimax-code-clipboard-') === true
+    pathFromTemporaryDirectory.split(/[\\/]/u)[0]?.startsWith('alran-code-clipboard-') === true
   );
 }
 

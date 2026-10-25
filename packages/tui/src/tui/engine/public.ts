@@ -1,6 +1,6 @@
 /**
  * The only supported product-facing import boundary for the TUI Engine during migration.
- * Keep MCode product code out of the upstream-shaped implementation modules.
+ * Keep Alran product code out of the upstream-shaped implementation modules.
  */
 export * from './index.js';
 export { decodePrintableKey } from './keys.js';

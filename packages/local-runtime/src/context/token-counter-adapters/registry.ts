@@ -5,14 +5,14 @@ import {
 } from './openai-chat-tokenizers.js';
 import {
   genericResponsesTokenCounterAdapter,
-  minimaxResponsesTokenCounterAdapter,
+  alranResponsesTokenCounterAdapter,
 } from './responses.js';
 import type { RemoteTokenCountContext, RemoteTokenCounterAdapter } from './types.js';
 
 /** First match wins: source-specific adapters must precede generic protocols. */
 export const DEFAULT_REMOTE_TOKEN_COUNTER_ADAPTERS: readonly RemoteTokenCounterAdapter[] =
   Object.freeze([
-    minimaxResponsesTokenCounterAdapter,
+    alranResponsesTokenCounterAdapter,
     zhipuTokenizerTokenCounterAdapter,
     kimiEstimateTokenCountAdapter,
     genericResponsesTokenCounterAdapter,

@@ -27,8 +27,8 @@ describe("TuiModelPicker", () => {
 
   it("switches M3 context independently of thinking and restores the saved choice", () => {
     const model = {
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
       selected: true,
       contextLimit: 512_000,
       contextWindowOptions: [512_000, 1_000_000],
@@ -62,8 +62,8 @@ describe("TuiModelPicker", () => {
 
   it("keeps context drafts while filtering, preserves effort and discards cancelled changes", () => {
     const model = {
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
       contextLimit: 512_000,
       contextWindowOptions: [512_000, 1_000_000],
       effortOptions: ["low", "high"],
@@ -124,9 +124,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
         },
       ],
       vi.fn(),
@@ -136,7 +136,7 @@ describe("TuiModelPicker", () => {
     for (const height of [6, 8]) {
       const visible = stripAnsi(picker.renderViewport(40, height).join("\n"));
       expect(visible).toContain("›");
-      expect(visible).toContain("MiniMax-M3");
+      expect(visible).toContain("Alran-M3");
       expect(visible.toLowerCase()).toContain("esc");
     }
   });
@@ -161,16 +161,16 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          providerName: "MiniMax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          providerName: "Alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
         },
         {
-          providerId: "minimax",
-          providerName: "MiniMax",
-          modelId: "MiniMax-M2.7",
-          displayName: "MiniMax-M2.7",
+          providerId: "alran",
+          providerName: "Alran",
+          modelId: "Alran-M2.7",
+          displayName: "Alran-M2.7",
         },
         {
           providerId: "deepseek",
@@ -184,7 +184,7 @@ describe("TuiModelPicker", () => {
     );
 
     const initial = stripAnsi(picker.render(90).join("\n"));
-    expect(initial).toContain("MiniMax · 2");
+    expect(initial).toContain("Alran · 2");
     expect(initial).toContain("DeepSeek · 1");
 
     picker.handleInput("deepseek");
@@ -192,7 +192,7 @@ describe("TuiModelPicker", () => {
     expect(filtered).toContain("Search: deepseek");
     expect(filtered).toContain("DeepSeek · 1");
     expect(filtered).toContain("deepseek-v4-pro");
-    expect(filtered).not.toContain("MiniMax-M3");
+    expect(filtered).not.toContain("Alran-M3");
 
     picker.handleInput("\r");
     expect(onSelect).toHaveBeenCalledWith(
@@ -261,12 +261,12 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          providerName: "MiniMax",
+          providerId: "alran",
+          providerName: "Alran",
           providerSource: "provider",
-          providerKind: "minimax-managed",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerKind: "alran-managed",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
         },
       ],
       vi.fn(),
@@ -364,9 +364,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
         },
         {
@@ -385,7 +385,7 @@ describe("TuiModelPicker", () => {
     picker.handleInput("\r");
 
     expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ providerId: "minimax", modelId: "MiniMax-M3" }),
+      expect.objectContaining({ providerId: "alran", modelId: "Alran-M3" }),
     );
   });
 
@@ -424,9 +424,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M2.7",
-          displayName: "MiniMax M2.7",
+          providerId: "alran",
+          modelId: "Alran-M2.7",
+          displayName: "Alran M2.7",
           selected: true,
           contextLimit: 204800,
         },
@@ -441,14 +441,14 @@ describe("TuiModelPicker", () => {
     );
 
     expect(picker.render(90).join("\n")).toContain("Models");
-    expect(picker.render(90).join("\n")).toContain("MiniMax M2.7");
+    expect(picker.render(90).join("\n")).toContain("Alran M2.7");
     expect(picker.render(90).join("\n")).toContain("Available models");
     picker.handleInput("\r");
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        providerId: "minimax",
-        modelId: "MiniMax-M2.7",
+        providerId: "alran",
+        modelId: "Alran-M2.7",
       }),
     );
   });
@@ -458,14 +458,14 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: false,
         },
         {
           providerId: "custom_provider:innerTest",
-          modelId: "MiniMax-M3",
+          modelId: "Alran-M3",
           displayName: "m3.05",
           selected: true,
         },
@@ -502,10 +502,10 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M2.7",
-          displayName: "MiniMax M2.7",
-          providerKind: "minimax-managed",
+          providerId: "alran",
+          modelId: "Alran-M2.7",
+          displayName: "Alran M2.7",
+          providerKind: "alran-managed",
         },
       ],
       onSelect,
@@ -529,9 +529,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
           variant: "thinking",
           thinkingConfig: { mode: "switchable", defaultValue: "true" },
@@ -553,8 +553,8 @@ describe("TuiModelPicker", () => {
 
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
         variant: "",
       }),
     );
@@ -566,9 +566,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           variant: "thinking",
           thinkingConfig: { mode: "switchable", defaultValue: "true" },
         },
@@ -597,17 +597,17 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
           variant: "thinking",
           thinkingConfig: { mode: "switchable", defaultValue: "true" },
         },
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M2.7-highspeed",
-          displayName: "MiniMax-M2.7-highspeed",
+          providerId: "alran",
+          modelId: "Alran-M2.7-highspeed",
+          displayName: "Alran-M2.7-highspeed",
           thinkingConfig: { mode: "hidden" },
         },
       ],
@@ -631,9 +631,9 @@ describe("TuiModelPicker", () => {
     const forced = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           variant: "thinking",
           thinkingConfig: { mode: "forced_on" },
         },
@@ -816,7 +816,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
+          providerId: "alran",
           modelId: "deep-reasoner-1",
           displayName: "deep-reasoner-1",
           variant: "thinking",
@@ -843,7 +843,7 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
+          providerId: "alran",
           modelId: "deep-reasoner-1",
           displayName: "deep-reasoner-1",
           variant: "thinking",
@@ -894,7 +894,7 @@ describe("TuiModelPicker", () => {
   it("shows a fixed catalog effort without offering editable levels", () => {
     const onSelect = vi.fn();
     const model = {
-      providerId: "minimax",
+      providerId: "alran",
       modelId: "fixed",
       defaultEffort: "max",
       thinkingConfig: { mode: "forced_on" },
@@ -911,7 +911,7 @@ describe("TuiModelPicker", () => {
   it("keeps the thinking switch usable alongside a fixed default effort", () => {
     const onSelect = vi.fn();
     const model = {
-      providerId: "minimax",
+      providerId: "alran",
       modelId: "fixed-switchable",
       defaultEffort: "max",
       thinkingConfig: { mode: "switchable", defaultValue: "true" },
@@ -945,9 +945,9 @@ describe("TuiModelPicker", () => {
     const picker = new TuiModelPicker(
       [
         {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
           variant: "thinking",
           thinkingConfig: { mode: "switchable", defaultValue: "true" },
@@ -976,8 +976,8 @@ describe("TuiModelPicker favorites", () => {
   const CTRL_S = "\x13";
   const DOWN = "\x1b[B";
   const catalog = () => [
-    { providerId: "minimax", providerName: "MiniMax", modelId: "MiniMax-M3" },
-    { providerId: "minimax", providerName: "MiniMax", modelId: "MiniMax-M2.7" },
+    { providerId: "alran", providerName: "Alran", modelId: "Alran-M3" },
+    { providerId: "alran", providerName: "Alran", modelId: "Alran-M2.7" },
     {
       providerId: "deepseek",
       providerName: "DeepSeek",
@@ -1007,7 +1007,7 @@ describe("TuiModelPicker favorites", () => {
     const rendered = lines(picker);
     const favorites = indexOf(rendered, "★ Favorites · 2");
     expect(favorites).toBeGreaterThanOrEqual(0);
-    expect(favorites).toBeLessThan(indexOf(rendered, "MiniMax · 2"));
+    expect(favorites).toBeLessThan(indexOf(rendered, "Alran · 2"));
     const kimi = indexOf(rendered, "● kimi-k3");
     const deepseek = indexOf(rendered, "deepseek-v4-pro");
     expect(kimi).toBeGreaterThan(favorites);
@@ -1019,7 +1019,7 @@ describe("TuiModelPicker favorites", () => {
     // The selected model is focused on its Favorites row and applies as itself.
     const focused = rendered.findIndex((line) => line.includes("› "));
     expect(focused).toBe(kimi);
-    expect(focused).toBeLessThan(indexOf(rendered, "MiniMax · 2"));
+    expect(focused).toBeLessThan(indexOf(rendered, "Alran · 2"));
     picker.handleInput("\r");
     expect(onSelect).toHaveBeenCalledWith(
       expect.objectContaining({ providerId: "kimi", modelId: "kimi-k3" }),
@@ -1035,7 +1035,7 @@ describe("TuiModelPicker favorites", () => {
     expect(lines(picker).join("\n")).toContain("ctrl+s favorite");
     picker.handleInput(CTRL_S);
     expect(onToggleFavorite).toHaveBeenLastCalledWith(
-      expect.objectContaining({ modelId: "MiniMax-M2.7" }),
+      expect.objectContaining({ modelId: "Alran-M2.7" }),
       true,
     );
     expect(lines(picker).join("\n")).toContain("Search: M2.7");
@@ -1043,8 +1043,8 @@ describe("TuiModelPicker favorites", () => {
 
     let rendered = lines(picker);
     expect(rendered.join("\n")).toContain("★ Favorites · 3");
-    const group = rendered.slice(indexOf(rendered, "★ Favorites · 3"), indexOf(rendered, "MiniMax · 2"));
-    expect(group.findIndex((line) => line.includes("MiniMax-M2.7"))).toBeGreaterThan(
+    const group = rendered.slice(indexOf(rendered, "★ Favorites · 3"), indexOf(rendered, "Alran · 2"));
+    expect(group.findIndex((line) => line.includes("Alran-M2.7"))).toBeGreaterThan(
       group.findIndex((line) => line.includes("deepseek-v4-pro")),
     );
 
@@ -1096,10 +1096,10 @@ describe("TuiModelPicker favorites", () => {
     expect(rendered).toContain("Couldn't update favorites.");
 
     picker.handleInput("M3");
-    picker.handleInput(CTRL_S); // star MiniMax-M3 → rejects
+    picker.handleInput(CTRL_S); // star Alran-M3 → rejects
     await new Promise((resolve) => setTimeout(resolve, 0));
     rendered = lines(picker).join("\n");
-    expect(rendered).not.toContain("★ MiniMax-M3");
+    expect(rendered).not.toContain("★ Alran-M3");
     expect(rendered).toContain("Couldn't update favorites.");
     for (let index = 0; index < 2; index += 1) picker.handleInput("\x7f");
     // The rolled-back unstar keeps kimi first, ahead of deepseek.

@@ -16,7 +16,7 @@ import { copyLocalRuntimeAssets } from "./lib/local-runtime-assets.mjs";
 import { createTuiBundleModuleLocationConfig } from "./lib/tui-npm-bundle-profile.mjs";
 import { shouldCopyTuiRuntimeResource } from "./lib/tui-package-privacy.mjs";
 import { TUI_DISABLED_BUILTIN_SKILL_NAMES } from "./lib/builtin-skills.mjs";
-import { copyMcodeToolsArtifact } from './lib/mcode-tools-artifact.mjs';
+import { copyAlranToolsArtifact } from './lib/alran-tools-artifact.mjs';
 import { readExtraction } from "./lib/release-metadata.mjs";
 import { cliBuildVersion, cliExternalModules } from './lib/cli-release.mjs';
 
@@ -80,7 +80,7 @@ const result = await build({
   entryPoints: {
     cli: "packages/tui/src/index.ts",
     "image-preview-worker": "packages/tui/src/host/image-preview-worker.ts",
-    'mcode-tools': 'packages/tui/src/cli/mcode-tools-entry.ts',
+    'alran-tools': 'packages/tui/src/cli/alran-tools-entry.ts',
     'matrix-mcp-stdio': 'packages/agent-tools/src/desktop/matrix-mcp-stdio.ts',
   },
   external: cliExternalModules,
@@ -126,24 +126,24 @@ for (const name of ["seccomp", "srt-win", "java-proxy-agent"]) {
   );
 }
 chmodSync(path.join(outdir, "cli.js"), 0o755);
-await copyMcodeToolsArtifact(root, outdir);
-cpSync(path.join(root, 'packages/tui/src/cli/mcode-tools-launchers'), path.join(outdir, 'internal-bin'), { recursive: true });
-for (const name of ['internal-bin/mcode-tools', 'mcode-tools.js', 'matrix-mcp-stdio.js'])
+await copyAlranToolsArtifact(root, outdir);
+cpSync(path.join(root, 'packages/tui/src/cli/alran-tools-launchers'), path.join(outdir, 'internal-bin'), { recursive: true });
+for (const name of ['internal-bin/alran-tools', 'alran-tools.js', 'matrix-mcp-stdio.js'])
   chmodSync(path.join(outdir, name), 0o755);
 writeFileSync(
   path.join(outdir, "metafile.json"),
   JSON.stringify(result.metafile, null, 2) + "\n",
 );
 console.log(
-  `Built MiniMax Code ${version} from ${Object.keys(result.metafile.inputs).length} source files.`,
+  `Built Alran Code ${version} from ${Object.keys(result.metafile.inputs).length} source files.`,
 );
 
 writeFileSync(
   path.join(outdir, "package.json"),
   JSON.stringify(
     {
-      name: "@minimax-ai/code", version, type: "module", private: true,
-      ...(process.env.MCODE_RELEASE_TAG ? {
+      name: "@ottili/alran-code", version, type: "module", private: true,
+      ...(process.env.ALRAN_RELEASE_TAG ? {
         gitHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
       } : {}),
     },

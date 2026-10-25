@@ -22,7 +22,7 @@ import {
 
 const secret = "synthetic-config-preservation-key";
 const contextInput = {
-  providerId: "minimax",
+  providerId: "alran",
   modelId: "synthetic-model",
   expectedContextLimit: 100,
   contextLimit: 200,
@@ -43,7 +43,7 @@ const writers = [
     "legacy BYOK",
     () =>
       updateLegacyByok((draft) => {
-        draft.minimax_api = { apiKey: secret };
+        draft.alran_api = { apiKey: secret };
       }),
   ],
   [
@@ -52,13 +52,13 @@ const writers = [
   ],
   [
     "model selection",
-    () => updateLocalModelSelection({ modelKey: "minimax/synthetic-model" }),
+    () => updateLocalModelSelection({ modelKey: "alran/synthetic-model" }),
   ],
   [
     "BYOK",
     () =>
       updateLocalByokConfig((draft) => {
-        draft.minimax_api = { apiKey: secret };
+        draft.alran_api = { apiKey: secret };
       }),
   ],
   [
@@ -72,11 +72,11 @@ let dataDir: string;
 let configPath: string;
 
 beforeEach(() => {
-  root = fs.mkdtempSync(join(os.tmpdir(), "mcode-config-preservation-"));
+  root = fs.mkdtempSync(join(os.tmpdir(), "alran-config-preservation-"));
   dataDir = join(root, "profile");
   fs.mkdirSync(dataDir);
   vi.spyOn(os, "homedir").mockReturnValue(root);
-  vi.stubEnv("MINIMAX_DATA_DIR", dataDir);
+  vi.stubEnv("ALRAN_DATA_DIR", dataDir);
   vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "0");
   resetConfig();
   setLegacyByokProviderMigrationEnabled(false);

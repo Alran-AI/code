@@ -8,58 +8,58 @@ import type {
 } from '@mavis/oauth-core';
 
 import type {
-  McodeBusinessEventMap,
-  McodeBusinessTelemetry,
-  McodeLoginFailReason,
-  McodeLoginSource,
+  AlranBusinessEventMap,
+  AlranBusinessTelemetry,
+  AlranLoginFailReason,
+  AlranLoginSource,
 } from '../analytics/business-telemetry.js';
-import { resolveMcodeAuthEnvironment } from './environment.js';
-import { buildMcodeLogoutUrl } from './logout-url.js';
+import { resolveAlranAuthEnvironment } from './environment.js';
+import { buildAlranLogoutUrl } from './logout-url.js';
 
-export type McodeAuthProgress = {
+export type AlranAuthProgress = {
   readonly state: 'device-authorization';
 } & DeviceAuthorizationPrompt;
 
-export interface McodeAuthResult {
+export interface AlranAuthResult {
   readonly state: 'already-authenticated' | 'authenticated' | 'already-signed-out' | 'signed-out';
   readonly message: string;
   readonly restartRequired?: boolean;
   readonly logoutUrl?: string;
 }
 
-export interface McodeAuthPort {
+export interface AlranAuthPort {
   login(
-    onProgress?: (progress: McodeAuthProgress) => void,
+    onProgress?: (progress: AlranAuthProgress) => void,
     region?: MavisRegion,
-  ): Promise<McodeAuthResult>;
-  logout(): Promise<McodeAuthResult>;
+  ): Promise<AlranAuthResult>;
+  logout(): Promise<AlranAuthResult>;
 }
 
-export interface McodeSharedAuthCore {
+export interface AlranSharedAuthCore {
   getStatus(): Promise<AuthStatusSnapshot>;
   login(options?: LoginOptions): Promise<LoginResult>;
   logout(options: { revoke: boolean }): Promise<LogoutResult>;
 }
 
-export interface McodeAuthApplicationOptions {
+export interface AlranAuthApplicationOptions {
   readonly dataDir: string;
-  readonly sharedAuthCore: McodeSharedAuthCore;
-  readonly resolveSharedAuthCore?: (region: MavisRegion) => McodeSharedAuthCore;
+  readonly sharedAuthCore: AlranSharedAuthCore;
+  readonly resolveSharedAuthCore?: (region: MavisRegion) => AlranSharedAuthCore;
   readonly region?: MavisRegion;
   readonly buildEnv?: MavisBuildEnv;
-  readonly telemetry?: McodeBusinessTelemetry;
-  readonly telemetrySource?: McodeLoginSource;
+  readonly telemetry?: AlranBusinessTelemetry;
+  readonly telemetrySource?: AlranLoginSource;
   readonly writeRegionPreference?: (
     dataDir: string,
     preference: { region: MavisRegion; buildEnv: MavisBuildEnv },
   ) => unknown;
 }
 
-export class McodeAuthApplication implements McodeAuthPort {
+export class AlranAuthApplication implements AlranAuthPort {
   private readonly scope: { region: MavisRegion; buildEnv: MavisBuildEnv };
 
-  constructor(private readonly options: McodeAuthApplicationOptions) {
-    const environment = resolveMcodeAuthEnvironment({
+  constructor(private readonly options: AlranAuthApplicationOptions) {
+    const environment = resolveAlranAuthEnvironment({
       runtimeRegion: process.env.MAVIS_REGION === 'en' ? 'en' : 'cn',
     });
     this.scope = {
@@ -69,9 +69,9 @@ export class McodeAuthApplication implements McodeAuthPort {
   }
 
   async login(
-    onProgress?: (progress: McodeAuthProgress) => void,
+    onProgress?: (progress: AlranAuthProgress) => void,
     region: MavisRegion = this.scope.region,
-  ): Promise<McodeAuthResult> {
+  ): Promise<AlranAuthResult> {
     this.track('login_click', {});
     try {
       const requestedScope = { ...this.scope, region };
@@ -100,10 +100,10 @@ export class McodeAuthApplication implements McodeAuthPort {
         message: alreadyAuthenticated
           ? switchesRegion
             ? `Already signed in with ${formatRegion(requestedScope.region)}.`
-            : 'Already signed in with MiniMax.'
+            : 'Already signed in with Alran.'
           : switchesRegion
             ? `Signed in with ${formatRegion(requestedScope.region)}.`
-            : 'Signed in with MiniMax.',
+            : 'Signed in with Alran.',
         ...(switchesRegion ? { restartRequired: true as const } : {}),
       };
       this.trackLoginResult('1', '');
@@ -114,33 +114,33 @@ export class McodeAuthApplication implements McodeAuthPort {
     }
   }
 
-  async logout(): Promise<McodeAuthResult> {
+  async logout(): Promise<AlranAuthResult> {
     this.track('logout_click', {});
     const status = await this.options.sharedAuthCore.getStatus();
     // Always run the shared logout: signing out while already signed out is a
     // safe no-op in the core, and never blocking /logout keeps a wedged local
     // state recoverable.
     const result = await this.options.sharedAuthCore.logout({ revoke: true });
-    const logoutUrl = buildMcodeLogoutUrl(this.scope);
+    const logoutUrl = buildAlranLogoutUrl(this.scope);
     if (status.status === 'anonymous' && result.status === 'anonymous') {
-      return { state: 'already-signed-out', message: 'Already signed out of MiniMax.', logoutUrl };
+      return { state: 'already-signed-out', message: 'Already signed out of Alran.', logoutUrl };
     }
     return {
       state: 'signed-out',
       logoutUrl,
       message:
         result.status === 'logout_pending'
-          ? `Signed out locally from ${formatRegion(this.scope.region)} across MCode. Server revocation is pending until the network recovers.`
-          : `Signed out of ${formatRegion(this.scope.region)} on Desktop, CLI/TUI, and embedded mcode-tools.`,
+          ? `Signed out locally from ${formatRegion(this.scope.region)} across Alran. Server revocation is pending until the network recovers.`
+          : `Signed out of ${formatRegion(this.scope.region)} on Desktop, CLI/TUI, and embedded alran-tools.`,
     };
   }
 
-  private trackLoginResult(resultType: '1' | '2', failReason: McodeLoginFailReason): void {
+  private trackLoginResult(resultType: '1' | '2', failReason: AlranLoginFailReason): void {
     this.track('login_result', {
-      source: this.options.telemetrySource ?? 'mcode_cli',
+      source: this.options.telemetrySource ?? 'alran_cli',
       result_type: resultType,
       fail_reason: failReason,
-      login_type: 'minimax_oauth',
+      login_type: 'alran_oauth',
     });
   }
 
@@ -154,7 +154,7 @@ export class McodeAuthApplication implements McodeAuthPort {
 
   private track<Event extends 'login_click' | 'logout_click' | 'login_result'>(
     event: Event,
-    properties: McodeBusinessEventMap[Event],
+    properties: AlranBusinessEventMap[Event],
   ): void {
     try {
       this.options.telemetry?.track(event, properties);
@@ -164,7 +164,7 @@ export class McodeAuthApplication implements McodeAuthPort {
   }
 }
 
-function classifyLoginFailure(error: unknown): McodeLoginFailReason {
+function classifyLoginFailure(error: unknown): AlranLoginFailReason {
   const message = error instanceof Error ? error.message : String(error);
   if (/cancel/iu.test(message)) return '3';
   if (/network|offline|fetch|ECONN|ENOTFOUND|ETIMEDOUT/iu.test(message)) return '2';
@@ -185,11 +185,11 @@ function formatEnvironmentConflict(
   requested: { region: MavisRegion; buildEnv: MavisBuildEnv },
 ): string {
   if (active.region !== requested.region) {
-    return `Signed in to ${formatRegion(active.region)}. Run \`mcode logout\` before signing in to ${formatRegion(requested.region)}.`;
+    return `Signed in to ${formatRegion(active.region)}. Run \`alran logout\` before signing in to ${formatRegion(requested.region)}.`;
   }
-  return `Signed in to another MiniMax ${active.buildEnv} environment. Run \`mcode logout\` before signing in to ${requested.buildEnv}.`;
+  return `Signed in to another Alran ${active.buildEnv} environment. Run \`alran logout\` before signing in to ${requested.buildEnv}.`;
 }
 
 function formatRegion(region: MavisRegion): string {
-  return region === 'cn' ? 'MiniMax China' : 'MiniMax Global';
+  return region === 'cn' ? 'Alran China' : 'Alran Global';
 }

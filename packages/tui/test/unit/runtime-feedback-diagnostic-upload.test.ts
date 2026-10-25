@@ -316,7 +316,7 @@ describe('feedback diagnostic upload privacy', () => {
         `${`${PRIVATE}\n`.repeat(150_000)}{"level":"error"}\n`,
       ],
       [
-        'v2/observability/mcode/mcode-observability-test.jsonl',
+        'v2/observability/alran/alran-observability-test.jsonl',
         '{"level":"warn","password":"hidden"}\n',
       ],
       [

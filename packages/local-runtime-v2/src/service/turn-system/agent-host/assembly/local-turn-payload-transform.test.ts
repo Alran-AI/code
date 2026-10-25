@@ -6,7 +6,7 @@ import { modelRefForModel } from '../../../model-system/resolution/model-ref.js'
 import type { LocalModelConfig } from '../../../model-system/contracts.js';
 import { buildLocalRequestPayloadTransform } from './local-turn-payload-transform.js';
 
-// Mirrors the bundled MiniMax catalog entries that matter for thinking.
+// Mirrors the bundled Alran catalog entries that matter for thinking.
 const M31_FLASH = {
   name: 'M3.1-Flash',
   reasoning: true,
@@ -37,13 +37,13 @@ const M3 = {
   },
 } as unknown as LocalModelConfig;
 
-/** Resolve an API-key MiniMax model and capture the request body pi-ai actually sends. */
+/** Resolve an API-key Alran model and capture the request body pi-ai actually sends. */
 async function captureWireBody(input: {
   readonly provider: string;
   readonly modelId: string;
   readonly modelConfig: LocalModelConfig;
   readonly effort?: string;
-  readonly minimaxModelSource?: string;
+  readonly alranModelSource?: string;
 }) {
   const modelRef = modelRefForModel(input.provider, input.modelId, input.modelConfig, {
     ...(input.effort ? { thinking: { effort: input.effort } } : {}),
@@ -56,15 +56,15 @@ async function captureWireBody(input: {
     skills: [],
   } as never;
   const resolver = new LocalModelResolver({
-    providerConfig: { minimax: { models: { [input.modelId]: input.modelConfig } } } as never,
+    providerConfig: { alran: { models: { [input.modelId]: input.modelConfig } } } as never,
     byokConfigGetter: () =>
       ({
-        ...(input.minimaxModelSource ? { minimaxModelSource: input.minimaxModelSource } : {}),
-        minimax_api: { apiKey: 'k', baseURL: 'https://byok.invalid/anthropic' },
+        ...(input.alranModelSource ? { alranModelSource: input.alranModelSource } : {}),
+        alran_api: { apiKey: 'k', baseURL: 'https://byok.invalid/anthropic' },
       }) as never,
   });
   const llm = await resolver.resolveModel({ sessionId: 's', turnId: 't', agentConfig });
-  expect(llm.model.provider).toBe('minimax_api');
+  expect(llm.model.provider).toBe('alran_api');
   expect(llm.managedProvider).not.toBe(true);
   let body: Record<string, unknown> | undefined;
   const fetchImpl = (async (_url: unknown, init: { body?: unknown }) => {
@@ -93,13 +93,13 @@ async function captureWireBody(input: {
   return body!;
 }
 
-describe('API-key MiniMax thinking effort', () => {
+describe('API-key Alran thinking effort', () => {
   it.each(['high', 'low', 'xhigh', 'max'])(
-    'keeps --effort %s on the minimax_api wire request',
+    'keeps --effort %s on the alran_api wire request',
     async (effort) => {
       const body = await captureWireBody({
-        provider: 'minimax_api',
-        modelId: 'MiniMax-M3.1-Flash',
+        provider: 'alran_api',
+        modelId: 'Alran-M3.1-Flash',
         modelConfig: M31_FLASH,
         effort,
       });
@@ -108,21 +108,21 @@ describe('API-key MiniMax thinking effort', () => {
     },
   );
 
-  it('keeps --effort when a MiniMax model is routed through the API key source', async () => {
+  it('keeps --effort when a Alran model is routed through the API key source', async () => {
     const body = await captureWireBody({
-      provider: 'minimax',
-      modelId: 'MiniMax-M3.1-Flash',
+      provider: 'alran',
+      modelId: 'Alran-M3.1-Flash',
       modelConfig: M31_FLASH,
       effort: 'high',
-      minimaxModelSource: 'minimax_api_key',
+      alranModelSource: 'alran_api_key',
     });
     expect(body.output_config).toEqual({ effort: 'high' });
   });
 
   it('sends no effort when none was selected (default)', async () => {
     const body = await captureWireBody({
-      provider: 'minimax_api',
-      modelId: 'MiniMax-M3.1-Flash',
+      provider: 'alran_api',
+      modelId: 'Alran-M3.1-Flash',
       modelConfig: M31_FLASH,
     });
     expect(body.thinking).toEqual({ type: 'adaptive' });
@@ -131,8 +131,8 @@ describe('API-key MiniMax thinking effort', () => {
 
   it('sends no effort for a model without effort levels', async () => {
     const body = await captureWireBody({
-      provider: 'minimax_api',
-      modelId: 'MiniMax-M3',
+      provider: 'alran_api',
+      modelId: 'Alran-M3',
       modelConfig: M3,
       effort: 'high',
     });

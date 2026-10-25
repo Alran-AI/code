@@ -10,7 +10,7 @@ import { ExecDiagnostics } from '../../src/headless/diagnostics.js';
 
 describe('headless preparation cancellation', () => {
   it('stops before account access when cancelled during diagnostics preparation', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'mcode-cancel-diagnostics-'));
+    const directory = await mkdtemp(join(tmpdir(), 'alran-cancel-diagnostics-'));
     const controller = new AbortController();
     const createDiagnostics = ExecDiagnostics.create;
     const create = vi.spyOn(ExecDiagnostics, 'create').mockImplementationOnce(async (...args) => {

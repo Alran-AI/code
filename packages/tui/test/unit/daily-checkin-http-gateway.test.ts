@@ -58,7 +58,7 @@ describe('TuiDailyCheckinHttpGateway', () => {
     await gateway.claimSignin();
 
     const [statusUrl, statusInit] = fetchImpl.mock.calls[0] ?? [];
-    expect(String(statusUrl)).toContain('/minimax-cloud/api/v1/signin/status?');
+    expect(String(statusUrl)).toContain('/alran-cloud/api/v1/signin/status?');
     expect(String(statusUrl)).toContain('user_id=user-1');
     expect(statusInit).toEqual(
       expect.objectContaining({
@@ -71,7 +71,7 @@ describe('TuiDailyCheckinHttpGateway', () => {
       }),
     );
     const [claimUrl, claimInit] = fetchImpl.mock.calls[1] ?? [];
-    expect(String(claimUrl)).toContain('/minimax-cloud/api/v1/signin/claim?');
+    expect(String(claimUrl)).toContain('/alran-cloud/api/v1/signin/claim?');
     expect(claimInit).toEqual(expect.objectContaining({ method: 'POST', body: '{}' }));
   });
 

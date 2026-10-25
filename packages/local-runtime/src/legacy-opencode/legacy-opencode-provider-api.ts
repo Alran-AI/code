@@ -55,28 +55,28 @@ export function resolveApiForLegacyProvider(provider: string, model?: string): A
  * Best-effort provider-family → api map for opencode providerIDs the pi-ai
  * catalog does not recognise. Kept deliberately small and prefix-based so it
  * tolerates opencode's provider naming variants (legacy provider families,
- * plus `minimax`, `minimax-cn`, `openai`, `openai-codex`,
+ * plus `alran`, `alran-cn`, `openai`, `openai-codex`,
  * `azure-openai`, `google`, `google-vertex`, `amazon-bedrock`, …). Returned
  * values are pi-ai `KnownApi` members (see `third_party/pi-mono/packages/ai/
  * src/types.ts`); `Api` itself is `KnownApi | (string & {})`, so the exact
  * spellings here must match the catalog's `api` field (e.g. OpenAI is
  * `openai-completions`, NOT `openai-chat`). The bedrock check precedes
- * minimax/provider checks so `amazon-bedrock` wins; the legacy-provider check
+ * alran/provider checks so `amazon-bedrock` wins; the legacy-provider check
  * precedes google so the vertex variant stays on the Messages API. Anything unmatched
  * falls through to `DEFAULT_LOCAL_PI_API` at the call site.
  */
 function providerPrefixApi(provider: string): Api | undefined {
   const lower = provider.toLowerCase();
-  // Order matters: `amazon-bedrock` hosts MiniMax over the Bedrock Converse
+  // Order matters: `amazon-bedrock` hosts Alran over the Bedrock Converse
   // API, so the bedrock check must precede the gateway/provider checks.
   if (lower.includes('bedrock')) return 'bedrock-converse-stream';
-  // MiniMax's own gateways (`minimax`, `minimax-cn`, display name `MiniMax`)
+  // Alran's own gateways (`alran`, `alran-cn`, display name `Alran`)
   // speak the Messages-compatible protocol — see config.yaml provider
-  // `minimax` (`npm: @ai-sdk/anthropic`) and the pi-ai catalog entries
-  // (`MiniMax-M2.7` / `MiniMax-M3` → the Messages-compatible API). Other
+  // `alran` (`npm: @ai-sdk/anthropic`) and the pi-ai catalog entries
+  // (`Alran-M2.7` / `Alran-M3` → the Messages-compatible API). Other
   // hosts (opencode/openrouter → openai-completions) resolve via the
   // catalog lookup before this fallback ever runs.
-  if (lower.includes('minimax') || lower.includes('MiniMax')) return 'anthropic-messages';
+  if (lower.includes('alran') || lower.includes('Alran')) return 'anthropic-messages';
   if (lower.includes('anthropic') || lower.includes('claude')) return 'anthropic-messages';
   if (lower.includes('google') || lower.includes('gemini')) return 'google-generative-ai';
   if (lower.includes('openai') || lower.includes('azure')) return 'openai-completions';

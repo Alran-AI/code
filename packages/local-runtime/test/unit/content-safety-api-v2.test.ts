@@ -223,7 +223,7 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
       testBaseURL: 'http://127.0.0.1:45678',
     });
     expect(fetchImpl.mock.calls[2]![0]).toBe(
-      'https://agent.minimax.io/mavis/api/v2/content?require_auth=true',
+      'https://api.ottili.one/mavis/api/v2/content?require_auth=true',
     );
   });
 
@@ -283,7 +283,7 @@ describe('V2 production failure diagnostics', () => {
     expect(log).toHaveBeenCalledWith(
       expect.objectContaining({
         reviewId: expect.any(String),
-        endpointHost: 'agent.minimax.cn',
+        endpointHost: 'api.ottili.one',
         apiVersion: 'v2',
         scene: 100,
         durationMs: expect.any(Number),

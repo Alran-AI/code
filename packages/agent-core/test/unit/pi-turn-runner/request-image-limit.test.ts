@@ -224,7 +224,7 @@ describe("limitRequestImages", () => {
 });
 
 describe("request image ceiling resolution", () => {
-  it("defaults to a conservative limit below the observed MiniMax gateway limit of 30", () => {
+  it("defaults to a conservative limit below the observed Alran gateway limit of 30", () => {
     expect(DEFAULT_MAX_IMAGES_PER_REQUEST).toBeLessThanOrEqual(30);
     expect(resolveMaxImagesPerRequest(model())).toBe(DEFAULT_MAX_IMAGES_PER_REQUEST);
   });

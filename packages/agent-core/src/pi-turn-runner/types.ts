@@ -55,13 +55,13 @@ export interface LLMModelConfig {
   /**
    * Per-attempt wait (ms) for the first provider stream event before the
    * request is aborted and reported as a retryable timeout. Absent: the
-   * `MCODE_LLM_FIRST_EVENT_TIMEOUT_MS` environment value, else
+   * `ALRAN_LLM_FIRST_EVENT_TIMEOUT_MS` environment value, else
    * `LLM_FIRST_EVENT_TIMEOUT_MS`. `0` disables the bound.
    */
   firstEventTimeoutMs?: number;
   /**
    * Per-attempt maximum gap (ms) between provider stream events after the
-   * first. Absent: `MCODE_LLM_STREAM_IDLE_TIMEOUT_MS`, else
+   * first. Absent: `ALRAN_LLM_STREAM_IDLE_TIMEOUT_MS`, else
    * `LLM_STREAM_IDLE_TIMEOUT_MS`. `0` disables the bound.
    */
   streamIdleTimeoutMs?: number;

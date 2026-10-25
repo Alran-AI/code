@@ -23,13 +23,13 @@ const LOG_UPLOAD_API_BASE: Readonly<Record<MavisRegion, Readonly<Record<MavisBui
       dev: 'https://matrix-test.example.invalid',
       test: 'https://matrix-test.example.invalid',
       staging: 'https://matrix-pre.example.invalid',
-      prod: 'https://agent.minimaxi.com',
+      prod: 'https://api.ottili.one',
     },
     en: {
       dev: 'https://matrix-overseas-test.example.invalid',
       test: 'https://matrix-overseas-test.example.invalid',
       staging: 'https://matrix-overseas-pre.example.invalid',
-      prod: 'https://agent.minimax.io',
+      prod: 'https://api.ottili.one',
     },
   };
 
@@ -159,14 +159,14 @@ export async function uploadTuiFeedbackDiagnostics(
   const presignResponse = await fetchImpl(`${baseUrl}/matrix/api/v1/log/upload`, {
     method: 'POST',
     headers: {
-      'User-Agent': 'MiniMaxAgent',
+      'User-Agent': 'AlranAgent',
       Origin: baseUrl,
       Referer: `${baseUrl}/`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       device_id: '0',
-      base_file_name: `mcode-feedback-${archiveTimestamp(nowMs)}.zip`,
+      base_file_name: `alran-feedback-${archiveTimestamp(nowMs)}.zip`,
     }),
     signal: input.signal,
   });
@@ -207,9 +207,9 @@ async function collectArtifacts(
       recursive: true,
     },
     {
-      directory: join(v2ObservabilityRoot, 'mcode'),
-      prefix: 'mcode/',
-      matches: (name) => /^mcode-observability-.*\.jsonl$/u.test(name),
+      directory: join(v2ObservabilityRoot, 'alran'),
+      prefix: 'alran/',
+      matches: (name) => /^alran-observability-.*\.jsonl$/u.test(name),
     },
     {
       directory: join(v2ObservabilityRoot, 'events'),

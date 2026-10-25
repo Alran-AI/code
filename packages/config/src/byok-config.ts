@@ -4,7 +4,7 @@
 // (they are part of the Config surface); the back edge here is type-only, so
 // there is no runtime import cycle.
 
-import { MINIMAX_MODELS } from './minimax-model-catalog.js';
+import { ALRAN_MODELS } from './alran-model-catalog.js';
 
 import { createHash, randomUUID } from 'node:crypto';
 import fs from 'node:fs';
@@ -15,15 +15,15 @@ import { restrictConfigFileSync, writePrivateConfigFileSync } from './private-co
 import type {
   CustomProvidersConfig,
   ModelConfig,
-  MinimaxApiConfig,
+  AlranApiConfig,
   ModelsConfig,
   ProviderConfig,
 } from './config.js';
 
-export function parseMinimaxApiConfig(raw: unknown): MinimaxApiConfig | undefined {
+export function parseAlranApiConfig(raw: unknown): AlranApiConfig | undefined {
   if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
   const obj = raw as Record<string, unknown>;
-  const parsed: MinimaxApiConfig = {};
+  const parsed: AlranApiConfig = {};
   if (typeof obj.apiKey === 'string') parsed.apiKey = obj.apiKey;
   if (typeof obj.baseURL === 'string') parsed.baseURL = obj.baseURL;
   const modelContextLimits = parseModelContextLimits(obj.modelContextLimits);
@@ -59,7 +59,7 @@ function applyModelContextLimits<
 }
 
 /** The API route shares the managed catalog, with its own user Context selections. */
-export function minimaxApiModels<
+export function alranApiModels<
   T extends {
     enabled?: boolean;
     limit?: { context?: number };
@@ -67,29 +67,29 @@ export function minimaxApiModels<
   },
 >(config: {
   provider?: Record<string, { models?: Record<string, T>; catalogModels?: Record<string, T> }>;
-  minimax_api?: { modelContextLimits?: Record<string, number> };
+  alran_api?: { modelContextLimits?: Record<string, number> };
 }): Record<string, T | ModelConfig> {
-  const provider = config.provider?.minimax;
-  const models = provider?.catalogModels ?? provider?.models ?? MINIMAX_MODELS;
+  const provider = config.provider?.alran;
+  const models = provider?.catalogModels ?? provider?.models ?? ALRAN_MODELS;
   return applyModelContextLimits(
     Object.fromEntries(Object.entries(models).filter(([, model]) => model.enabled !== false)),
-    config.minimax_api?.modelContextLimits,
+    config.alran_api?.modelContextLimits,
   );
 }
 
 /** Keep the shared catalog before applying managed-only user Context selections. */
-export function applyManagedMinimaxContextLimits(
+export function applyManagedAlranContextLimits(
   provider: ModelsConfig,
   contextLimits: Record<string, number> | undefined,
 ): ModelsConfig {
-  const minimax = provider.minimax;
-  if (!minimax?.models) return provider;
+  const alran = provider.alran;
+  if (!alran?.models) return provider;
   return {
     ...provider,
-    minimax: {
-      ...minimax,
-      catalogModels: minimax.models,
-      models: applyModelContextLimits(minimax.models, contextLimits),
+    alran: {
+      ...alran,
+      catalogModels: alran.models,
+      models: applyModelContextLimits(alran.models, contextLimits),
     },
   };
 }
@@ -191,8 +191,8 @@ export interface LegacyByokProviderMigrationResult {
 const LEGACY_BYOK_MIGRATION_KEY = 'byok_legacy_provider_to_custom_provider_v1';
 const LEGACY_BYOK_BACKUP_PREFIX = 'config.yaml.bak.byok-legacy-provider.';
 const RESERVED_CUSTOM_PROVIDER_KEYS = new Set([
-  'minimax',
-  'minimax_api',
+  'alran',
+  'alran_api',
   'provider',
   'custom_provider',
 ]);
@@ -203,7 +203,7 @@ const SIMPLE_ASCII_NAME = /^[A-Za-z0-9 _-]+$/;
  * under `provider.*`. New builds keep `provider` as the managed/builtin tree,
  * so legacy user-owned entries are moved into `custom_provider` before the
  * config is parsed. Classification is intentionally conservative: eligible
- * legacy entries always become custom providers, never `minimax_api`.
+ * legacy entries always become custom providers, never `alran_api`.
  */
 export function migrateLegacyByokProvidersOnDisk(
   configPath: string,
@@ -287,24 +287,24 @@ export function migrateLegacyByokProvidersOnDisk(
 
 // config.yaml lives in the user-writable dataDir, so the provider tree cannot
 // be trusted as-is: the builtin managed provider may be deleted or hand-edited.
-// In managed runtime every read restores a usable `provider.minimax`: a missing
+// In managed runtime every read restores a usable `provider.alran`: a missing
 // or gutted entry is rebuilt from the current preset and missing models/npm are
 // backfilled. Protected builds additionally force `baseURL` and `authMode` back
 // to the current preset with managed-login. Test builds deliberately preserve
 // existing connection fields so developers can route the builtin provider
 // through a local fault-injection proxy. In non-managed dev/runtime, an existing
-// `provider.minimax` that explicitly points at a managed preset gateway still
+// `provider.alran` that explicitly points at a managed preset gateway still
 // gets the built-in model table only when its managed snapshot is absent, but
-// custom endpoints are left untouched. `provider.minimax` remains the builtin managed provider; user
-// BYOK for protected builds lives exclusively in the `minimax_api` /
+// custom endpoints are left untouched. `provider.alran` remains the builtin managed provider; user
+// BYOK for protected builds lives exclusively in the `alran_api` /
 // `custom_provider` trees. The result is never written back to disk, and
-// user-owned trees (`minimax_api`, `custom_provider`) are never touched.
+// user-owned trees (`alran_api`, `custom_provider`) are never touched.
 // Selection fallback for a dangling defaultModel is owned by the models/select
 // layer, not by this read path.
 //
-// `minimax_api` is additionally a reserved provider id: the resolver matches
+// `alran_api` is additionally a reserved provider id: the resolver matches
 // it before falling back to the legacy provider map, so a hand-written
-// `provider.minimax_api` entry would be permanently shadowed. It is dropped
+// `provider.alran_api` entry would be permanently shadowed. It is dropped
 // from the effective view with a warning (in every runtime mode).
 export function applyRequiredProviderOverrides(
   input: { provider: ModelsConfig; defaultModel?: string },
@@ -313,21 +313,21 @@ export function applyRequiredProviderOverrides(
   let provider = input.provider;
   const defaultModel = input.defaultModel;
 
-  if (Object.prototype.hasOwnProperty.call(provider, 'minimax_api')) {
-    const { minimax_api: _shadowed, ...rest } = provider;
+  if (Object.prototype.hasOwnProperty.call(provider, 'alran_api')) {
+    const { alran_api: _shadowed, ...rest } = provider;
     provider = rest;
     console.warn(
-      '[config] "minimax_api" is a reserved provider id; ignoring provider.minimax_api from config.yaml',
+      '[config] "alran_api" is a reserved provider id; ignoring provider.alran_api from config.yaml',
     );
   }
 
   const preset = deps.getManagedPreset();
-  const presetProvider = preset.provider.minimax as ProviderConfig;
-  const existing = provider.minimax;
+  const presetProvider = preset.provider.alran as ProviderConfig;
+  const existing = provider.alran;
   const managedRuntime = deps.isManagedRuntime();
-  const shouldBackfillManagedMinimax =
-    managedRuntime || isManagedOriginMinimaxProvider(existing, deps);
-  if (!shouldBackfillManagedMinimax) return { provider, defaultModel };
+  const shouldBackfillManagedAlran =
+    managedRuntime || isManagedOriginAlranProvider(existing, deps);
+  if (!shouldBackfillManagedAlran) return { provider, defaultModel };
 
   const existingOptions = existing?.options;
   const enforceProtection = managedRuntime && deps.shouldEnforceManagedProviderProtection();
@@ -353,7 +353,7 @@ export function applyRequiredProviderOverrides(
 
   provider = {
     ...provider,
-    minimax: {
+    alran: {
       ...presetProvider,
       ...(existing ?? {}),
       npm: existing?.npm ?? presetProvider.npm,
@@ -372,7 +372,7 @@ export function applyRequiredProviderOverrides(
   return { provider, defaultModel };
 }
 
-function isManagedOriginMinimaxProvider(
+function isManagedOriginAlranProvider(
   provider: ProviderConfig | undefined,
   deps: RequiredProviderOverrideDeps,
 ): boolean {
@@ -406,7 +406,7 @@ function shouldMigrateLegacyProvider(
 ): providerConfig is Record<string, unknown> {
   // Builtin identity is stable even when old config contains a proxy endpoint.
   // Never turn an official Session choice into an API-key provider alias.
-  if (providerId === 'minimax' || providerId === 'minimax_api') return false;
+  if (providerId === 'alran' || providerId === 'alran_api') return false;
   if (!isProviderLikeRecord(providerConfig)) return false;
   if (!hasLegacyByokProviderShape(providerConfig)) return false;
   return !Object.prototype.hasOwnProperty.call(managedProvider, providerId);

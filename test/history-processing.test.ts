@@ -47,7 +47,7 @@ describe('prepared runtime reads', () => {
   async function withDatabase(
     run: (client: DatabaseClient, writer: DatabaseClient) => Promise<void>,
   ) {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-prepared-reads-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-prepared-reads-'));
     const client = new DatabaseClient({ dataDir });
     const writer = new DatabaseClient({ dataDir });
     try {
@@ -811,7 +811,7 @@ describe('bounded token count reuse', () => {
 
 describe('committed history read reuse', () => {
   it('reuses verified records for indexing while observing external changes and corruption', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-history-reuse-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-history-reuse-'));
     const redundantRead = vi.spyOn(CanonicalHistoryJsonlDataSource.prototype, 'readActive');
     try {
       const session: SessionRecord = {
@@ -878,7 +878,7 @@ describe('committed history read reuse', () => {
     }
   });
   it('checks migration target existence without reparsing and preserves legacy adapter fallback', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-materialized-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-materialized-'));
     try {
       const sessionId = 'synthetic-session';
       const paths = resolveSessionHistoryPaths(dataDir, {
@@ -921,7 +921,7 @@ describe('committed history read reuse', () => {
     }
   });
   it('retains disk reads for standalone appends and validates supplied prefix identities', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-append-prefix-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-append-prefix-'));
     try {
       const source = new CanonicalHistoryJsonlDataSource({
         activePath: join(dataDir, 'messages.jsonl'),
@@ -1078,7 +1078,7 @@ describe('owned decoded history rows', () => {
   async function withReaders(
     run: (path: string, reader: CanonicalHistoryJsonlDataSource) => Promise<void>,
   ) {
-    const dir = await mkdtemp(join(tmpdir(), 'mcode-owned-rows-'));
+    const dir = await mkdtemp(join(tmpdir(), 'alran-owned-rows-'));
     const path = join(dir, 'messages.jsonl');
     try {
       await run(
@@ -1288,7 +1288,7 @@ describe('owned decoded history rows', () => {
   });
 
   it('keeps default provider snapshots mutable and detached from its private rows', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-owned-provider-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-owned-provider-'));
     try {
       const session: SessionRecord = {
         sessionId: 'owned-session',
@@ -1344,7 +1344,7 @@ describe('internal history snapshot handoff', () => {
     session: SessionRecord;
     dataDir: string;
   }) => Promise<void>) {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-history-handoff-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-history-handoff-'));
     const session: SessionRecord = {
       sessionId: 'handoff', agentName: 'test', workspaceDir: dataDir,
       runtime: 'pi-agent', sessionType: 'root', sessionKind: 'conversation',
@@ -1458,7 +1458,7 @@ describe('incremental history index scanning', () => {
     paths: import('../packages/local-runtime-v2/src/service/session-system/messages/history/mutation/canonical-history-scanner.js').CanonicalHistoryScannerPaths;
     compare: () => Promise<Awaited<ReturnType<typeof scanCanonicalHistoryArtifacts>>>;
   }) => Promise<void>) {
-    const dir = await mkdtemp(join(tmpdir(), 'mcode-index-scan-'));
+    const dir = await mkdtemp(join(tmpdir(), 'alran-index-scan-'));
     const paths = { activePath: join(dir, 'messages.jsonl'), snapshotsPath: join(dir, 'snapshots'), sessionId: 's1' };
     const scan = createCanonicalHistoryScanner();
     const files = createCanonicalHistoryFileAdapter({ reuseDecodedRecords: true });
@@ -1536,7 +1536,7 @@ describe('incremental history index scanning', () => {
     });
   });
   it('rechecks fresh bytes when history changes after the provider read', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'mcode-index-race-'));
+    const dir = await mkdtemp(join(tmpdir(), 'alran-index-race-'));
     const paths = { activePath: join(dir, 'messages.jsonl'), snapshotsPath: join(dir, 'snapshots'), sessionId: 's1' };
     const files = createCanonicalHistoryFileAdapter({ reuseDecodedRecords: true });
     const scan = createCanonicalHistoryScanner();

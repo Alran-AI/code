@@ -3,7 +3,7 @@
  * before every bash tool child spawn (foreground LocalBashTool, background
  * bash executor, and the pi-turn-runner builtin fallback).
  *
- * Layer A — MCode runtime boundary strip. ALWAYS on, no escape hatch.
+ * Layer A — Alran runtime boundary strip. ALWAYS on, no escape hatch.
  *   Reuses the env-builder boundary key lists verbatim (import, never fork):
  *   runtime/parent identity, session ids, profile/dataDir/port keys, safety
  *   switches, and ASR proxy auth. Leaking these is not a "secret exfil"
@@ -74,7 +74,7 @@ export interface BashEnvSanitizeResult {
  */
 export const BASH_SUBPROCESS_SCRUB: readonly string[] = [
   // Provider / LLM auth — the runtime re-reads these per-request itself
-  'MCODE_PROVIDER_API_KEY',
+  'ALRAN_PROVIDER_API_KEY',
   'ANTHROPIC_API_KEY',
   'ANTHROPIC_AUTH_TOKEN',
   'CLAUDE_CODE_OAUTH_TOKEN',
@@ -102,7 +102,7 @@ export const BASH_SUBPROCESS_SCRUB: readonly string[] = [
   'ACTIONS_RUNTIME_TOKEN',
   'ACTIONS_RUNTIME_URL',
 
-  // MCode-side additions — runtime-only integration tokens, no subprocess use
+  // Alran-side additions — runtime-only integration tokens, no subprocess use
   'FIGMA_API_TOKEN',
   'FIGMA_TOKEN',
   'E2E_AUTH_TOKEN',
@@ -195,7 +195,7 @@ export function sanitizeBashSubprocessEnv(
   const out: NodeJS.ProcessEnv = { ...env };
   const removed: string[] = [];
 
-  // Layer A — MCode boundary strip. Always on; allowlist deliberately ignored.
+  // Layer A — Alran boundary strip. Always on; allowlist deliberately ignored.
   removed.push(...stripRuntimeBoundaryKeysFrom(out, 'agent-runtime'));
 
   // Layer B — provider and integration secret scrub, gated by mode.

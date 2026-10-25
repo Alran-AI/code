@@ -42,7 +42,7 @@ import { modelSupportsVariant } from './model-selection.js';
 import { TuiAcpPromptContinuation } from './prompt-continuation.js';
 import { TuiAcpUpdateProjector } from './updates.js';
 
-const AUTH_METHOD_ID = 'minimax-code-login';
+const AUTH_METHOD_ID = 'alran-code-login';
 const AVAILABLE_COMMANDS_RETRY_DELAY_MS = 100;
 const ACP_HISTORY_PAGE_SIZE = 100;
 const MAX_DETACHED_LIFECYCLES_PER_SESSION = 2;
@@ -100,7 +100,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
   let clientCapabilities: acp.ClientCapabilities = {};
   let pendingPermissionBroadcast: readonly (readonly [string, AcpSession])[] | undefined;
   let permissionBroadcastRunning = false;
-  const app = acp.agent({ name: 'minimax-code' });
+  const app = acp.agent({ name: 'alran-code' });
 
   const advertiseAvailableCommands = (client: acp.AgentContext, sessionId: string): void => {
     const attachment = sessions.get(sessionId);
@@ -224,7 +224,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
     activeAcpSessionId = undefined;
     if (supportsTuiAcpExtensionNotifications(clientCapabilities)) {
       void client
-        .notify('mcode/session/current_session_update', { sessionId: null })
+        .notify('alran/session/current_session_update', { sessionId: null })
         .catch(() => undefined);
     }
   };
@@ -356,7 +356,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
 
   app.onConnect((connection) => {
     if (hasConnected) {
-      connection.close(new Error('MCode ACP supports exactly one Client connection per process.'));
+      connection.close(new Error('Alran ACP supports exactly one Client connection per process.'));
       return;
     }
     hasConnected = true;
@@ -462,19 +462,19 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
               {
                 type: 'terminal' as const,
                 id: AUTH_METHOD_ID,
-                name: 'Sign in to MiniMax Code',
+                name: 'Sign in to Alran Code',
                 args: ['login'],
               },
             ],
           }
         : {}),
       agentInfo: {
-        name: 'minimax-code',
-        title: 'MiniMax Code',
+        name: 'alran-code',
+        title: 'Alran Code',
         version: options.version,
       },
       _meta: {
-        'minimax-code/extensions': {
+        'alran-code/extensions': {
           version: TUI_ACP_EXTENSION_VERSION,
           methods: [...extensionCapabilities.methods],
           notifications: [...extensionCapabilities.notifications],
@@ -947,7 +947,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       }
       return {
         _meta: {
-          'minimax-code/transition': active.pendingModeIntent ? 'next_prompt' : 'settled',
+          'alran-code/transition': active.pendingModeIntent ? 'next_prompt' : 'settled',
         },
       };
     });
@@ -961,7 +961,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       if (typeof params.value !== 'string') {
         throw acp.RequestError.invalidParams(
           undefined,
-          'MiniMax Code ACP configuration options are select controls.',
+          'Alran Code ACP configuration options are select controls.',
         );
       }
 
@@ -1210,8 +1210,8 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       throw acp.RequestError.internalError(
         undefined,
         result.error
-          ? `MiniMax Code Runtime failed: ${result.error}`
-          : 'MiniMax Code Runtime failed.',
+          ? `Alran Code Runtime failed: ${result.error}`
+          : 'Alran Code Runtime failed.',
       );
     } finally {
       context.signal.removeEventListener('abort', cancel);
@@ -1385,7 +1385,7 @@ function createRuntimeControlProjections(options: {
         if (!isCurrent()) return;
         const items = await options.runtime.listQueuedMessages(runtimeSessionId);
         if (!isCurrent()) return;
-        await options.client.notify('mcode/session/queue_update', {
+        await options.client.notify('alran/session/queue_update', {
           sessionId: acpSessionId,
           items,
         });
@@ -1400,7 +1400,7 @@ function createRuntimeControlProjections(options: {
       key: `${acpSessionId}\0goal`,
       run: async (signal) => {
         if (!isCurrentAttachment(options.sessions, acpSessionId, active, signal)) return;
-        await options.client.notify('mcode/session/goal_update', {
+        await options.client.notify('alran/session/goal_update', {
           sessionId: acpSessionId,
           goal,
         });
@@ -1414,7 +1414,7 @@ function createRuntimeControlProjections(options: {
       key: `${acpSessionId}\0goal`,
       run: async (signal) => {
         if (!isCurrentAttachment(options.sessions, acpSessionId, active, signal)) return;
-        await options.client.notify('mcode/session/goal_update', {
+        await options.client.notify('alran/session/goal_update', {
           sessionId: acpSessionId,
           goal: null,
           goalId,
@@ -1466,7 +1466,7 @@ async function notifyDelegationUpdates(
       snapshots.set(rootSessionId, snapshot);
     }
     if (!isCurrent()) continue;
-    await client.notify('mcode/session/delegation_update', {
+    await client.notify('alran/session/delegation_update', {
       sessionId: acpSessionId,
       snapshot,
     });
@@ -1696,7 +1696,7 @@ function assertNoAdditionalDirectories(directories: readonly string[] | undefine
   if (!directories?.length) return;
   throw acp.RequestError.invalidParams(
     undefined,
-    'Additional directories are not supported by MiniMax Code ACP.',
+    'Additional directories are not supported by Alran Code ACP.',
   );
 }
 
@@ -2055,8 +2055,8 @@ async function followQuestionnaireContinuations(options: {
         throw acp.RequestError.internalError(
           undefined,
           transition.message
-            ? `MiniMax Code Runtime continuation failed: ${transition.message}`
-            : 'MiniMax Code Runtime continuation failed.',
+            ? `Alran Code Runtime continuation failed: ${transition.message}`
+            : 'Alran Code Runtime continuation failed.',
         );
       }
 
@@ -2081,7 +2081,7 @@ async function followQuestionnaireContinuations(options: {
     if (error instanceof acp.RequestError) throw error;
     throw acp.RequestError.internalError(
       undefined,
-      `MiniMax Code Runtime continuation failed: ${error instanceof Error ? error.message : String(error)}`,
+      `Alran Code Runtime continuation failed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }
@@ -2112,7 +2112,7 @@ async function assertAuthenticated(runtime: TuiAcpRuntime): Promise<void> {
     await requireTuiAgentAccess(runtime);
   } catch (error) {
     if (error instanceof TuiLoginRequiredError) {
-      throw acp.RequestError.authRequired(undefined, 'Run `mcode login` and try again.');
+      throw acp.RequestError.authRequired(undefined, 'Run `alran login` and try again.');
     }
     throw error;
   }

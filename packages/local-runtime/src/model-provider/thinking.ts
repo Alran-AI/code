@@ -20,27 +20,27 @@ export interface ModelThinkingProtocolConfig {
   completionsThinkingFormat?: 'openai';
 }
 
-export const MINIMAX_M3_MODEL_ID = 'MiniMax-M3';
+export const ALRAN_M3_MODEL_ID = 'Alran-M3';
 // Keep the adaptive-thinking probe at the same minimum usable output floor as
-// normal Messages-compatible requests. Smaller caps can finish before MiniMax emits a
+// normal Messages-compatible requests. Smaller caps can finish before Alran emits a
 // Messages `content` block and make a valid key look like an invalid response.
-export const MINIMAX_M3_THINKING_TEST_MAX_TOKENS = 1_024;
-export type MiniMaxM3ThinkingMode = 'on' | 'off';
+export const ALRAN_M3_THINKING_TEST_MAX_TOKENS = 1_024;
+export type AlranM3ThinkingMode = 'on' | 'off';
 
-export function isMiniMaxM3ModelId(value: unknown): boolean {
+export function isAlranM3ModelId(value: unknown): boolean {
   return (
-    typeof value === 'string' && value.trim().toLowerCase() === MINIMAX_M3_MODEL_ID.toLowerCase()
+    typeof value === 'string' && value.trim().toLowerCase() === ALRAN_M3_MODEL_ID.toLowerCase()
   );
 }
 
-export function isMiniMaxM3ThinkingMode(value: unknown): value is MiniMaxM3ThinkingMode {
+export function isAlranM3ThinkingMode(value: unknown): value is AlranM3ThinkingMode {
   return value === 'on' || value === 'off';
 }
 
-/** MiniMax M3 exposes an on/off control; Responses effort values do not change thinking depth. */
-export function resolveMiniMaxM3ThinkingProtocol(
+/** Alran M3 exposes an on/off control; Responses effort values do not change thinking depth. */
+export function resolveAlranM3ThinkingProtocol(
   api: ModelProviderApi,
-  mode: MiniMaxM3ThinkingMode,
+  mode: AlranM3ThinkingMode,
 ): Record<string, unknown> {
   if (api === 'openai-responses') {
     return { reasoning: { effort: mode === 'on' ? 'minimal' : 'none' } };
@@ -91,15 +91,15 @@ export function resolveModelThinkingProtocol(
   const effort = normalizeModelThinkingEffort(value);
   if (!effort) return undefined;
 
-  if (isMiniMaxM3ModelId(modelId) && isMiniMaxM3ThinkingMode(effort)) {
+  if (isAlranM3ModelId(modelId) && isAlranM3ThinkingMode(effort)) {
     const piLevel: PiThinkingLevel = 'high';
     const base = {
       effort,
       enabled: effort === 'on',
       piLevel,
       thinkingLevelMap: { [piLevel]: effort },
-      requestPatch: resolveMiniMaxM3ThinkingProtocol(api, effort),
-      minimumMaxTokens: effort === 'on' ? MINIMAX_M3_THINKING_TEST_MAX_TOKENS : 1,
+      requestPatch: resolveAlranM3ThinkingProtocol(api, effort),
+      minimumMaxTokens: effort === 'on' ? ALRAN_M3_THINKING_TEST_MAX_TOKENS : 1,
     } satisfies Omit<
       ModelThinkingProtocolConfig,
       'forceAdaptiveThinking' | 'completionsThinkingFormat'

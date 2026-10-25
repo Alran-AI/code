@@ -73,7 +73,7 @@ describe('local native turn tools', () => {
       expect(searches).toHaveLength(1);
       const result = await searches[0]!.impl.execute(
         { sessionId: 'search-session', turnId: 'search-turn' },
-        { query: 'MiniMax' },
+        { query: 'Alran' },
       );
       expect(JSON.parse(result.text)).toMatchObject({ total: 1 });
       expect(result.details).toMatchObject({
@@ -85,7 +85,7 @@ describe('local native turn tools', () => {
       expect(String(url)).toMatch(/\/mavis\/api\/v1\/mcp\/web_search$/);
       expect(new Headers(request?.headers).get('authorization')).toBe('Bearer test-search-token');
       expect(new Headers(request?.headers).get('bedrock-lane')).toBe('search-lane');
-      expect(JSON.parse(request!.body as string)).toEqual({ query: 'MiniMax' });
+      expect(JSON.parse(request!.body as string)).toEqual({ query: 'Alran' });
 
       const noTools = await buildLocalTurnToolSources({ ...input, toolsDisabled: true });
       expect(noTools.nativeTools).toEqual([]);

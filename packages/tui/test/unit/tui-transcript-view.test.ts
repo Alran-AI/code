@@ -13,7 +13,7 @@ import {
   getTuiThemeSnapshot,
   tuiColors,
 } from '../../src/tui/theme/runtime.js';
-import { MINIMAX_CODE_DARK_THEME, MINIMAX_CODE_LIGHT_THEME } from '../../src/tui/theme/palettes.js';
+import { ALRAN_CODE_DARK_THEME, ALRAN_CODE_LIGHT_THEME } from '../../src/tui/theme/palettes.js';
 
 const previewDisplayModes = {
   revision: 0,
@@ -160,7 +160,7 @@ describe('TranscriptView', () => {
     // verbatim, the way Codex renders its user history cells.
     const originalTheme = getTuiThemeSnapshot();
     const palette =
-      originalTheme.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
+      originalTheme.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
     // Force real styling so "no bold/italic on the prompt" is a meaningful
     // assertion instead of a vacuous one in a colorless test terminal.
     applyTuiRenderTheme(palette, 3);
@@ -533,7 +533,7 @@ describe('TranscriptView', () => {
     const originalCapabilities = getCapabilities();
     const originalTheme = getTuiThemeSnapshot();
     const palette =
-      originalTheme.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
+      originalTheme.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
     setCapabilities({ ...originalCapabilities, hyperlinks: true });
     applyTuiRenderTheme(palette, 3);
     try {
@@ -592,8 +592,8 @@ describe('TranscriptView', () => {
   it('renders assistant dots in the same tone as the body text', () => {
     const original = getTuiThemeSnapshot();
     const originalPalette =
-      original.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
-    applyTuiRenderTheme(MINIMAX_CODE_DARK_THEME, 3);
+      original.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
+    applyTuiRenderTheme(ALRAN_CODE_DARK_THEME, 3);
     try {
       const view = new TranscriptView(() => [
         createTranscriptCell({
@@ -607,8 +607,8 @@ describe('TranscriptView', () => {
       const line = view.render(28)[0] ?? '';
       const color = createTuiChalk({ colorLevel: 3 });
 
-      expect(line).toContain(color.hex(MINIMAX_CODE_DARK_THEME.colors.text)('●'));
-      expect(line).not.toContain(color.hex(MINIMAX_CODE_DARK_THEME.colors.signal)('●'));
+      expect(line).toContain(color.hex(ALRAN_CODE_DARK_THEME.colors.text)('●'));
+      expect(line).not.toContain(color.hex(ALRAN_CODE_DARK_THEME.colors.signal)('●'));
     } finally {
       applyTuiRenderTheme(originalPalette, original.colorLevel);
     }
@@ -726,21 +726,21 @@ describe('TranscriptView', () => {
         id: 'inspection-status',
         kind: 'inspection',
         status: 'succeeded',
-        content: 'MCode status\nAccount: Connected with MiniMax',
+        content: 'Alran status\nAccount: Connected with Alran',
         inspection: {
-          title: 'MCode status',
+          title: 'Alran status',
           badge: { label: 'READY', tone: 'success' },
           sections: [
             {
               title: 'Account',
               rows: [
-                { label: 'Account', value: 'Connected with MiniMax', tone: 'success' },
-                { label: 'Provider', value: 'minimax' },
+                { label: 'Account', value: 'Connected with Alran', tone: 'success' },
+                { label: 'Provider', value: 'alran' },
               ],
             },
             {
               title: 'Model',
-              rows: [{ label: 'Active', value: 'minimax/MiniMax-M3' }],
+              rows: [{ label: 'Active', value: 'alran/Alran-M3' }],
             },
           ],
           footer: 'Read only',
@@ -752,10 +752,10 @@ describe('TranscriptView', () => {
     const rendered = stripVTControlCharacters(view.render(60).join('\n'));
 
     expect(rendered).toContain('╭─');
-    expect(rendered).toMatch(/│ MCode status\s+● READY │/u);
+    expect(rendered).toMatch(/│ Alran status\s+● READY │/u);
     expect(rendered).toContain('READY');
     expect(rendered).toContain('├─ Account ');
-    expect(rendered).toMatch(/│ Account\s+│ Connected with MiniMax\s+│/u);
+    expect(rendered).toMatch(/│ Account\s+│ Connected with Alran\s+│/u);
     expect(rendered).toContain('├─ Model ');
     expect(rendered).toMatch(/│ Read only\s+│/u);
     expect(rendered).toContain('╰─');
@@ -778,7 +778,7 @@ describe('TranscriptView', () => {
               rows: [
                 {
                   label: 'Source',
-                  value: '/home/dev/.minimax/config.yaml',
+                  value: '/home/dev/.alran/config.yaml',
                 },
               ],
             },
@@ -791,7 +791,7 @@ describe('TranscriptView', () => {
     const rendered = stripVTControlCharacters(view.render(28).join('\n'));
 
     expect(rendered).toMatch(/│ Source\s+│/u);
-    expect(rendered).toContain('│   /home/dev/.minimax');
+    expect(rendered).toContain('│   /home/dev/.alran');
     expect(rendered).toContain('│   /config.yaml');
     expect(rendered).not.toMatch(/│ Source\s+│?\s*\/home/u);
     expect(rendered).toContain('╰─');
@@ -812,7 +812,7 @@ describe('TranscriptView', () => {
           footer: 'Runtime source',
           visualization: {
             kind: 'usage',
-            model: 'minimax-cn-coding-plan/MiniMax-M3',
+            model: 'alran-cn-coding-plan/Alran-M3',
             inputTokens: 145_000,
             outputTokens: 1_400,
             totalTokens: 146_400,
@@ -1206,8 +1206,8 @@ describe('TranscriptView', () => {
   it('renders user messages as a vertically padded full-width prompt band', () => {
     const original = getTuiThemeSnapshot();
     const originalPalette =
-      original.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
-    applyTuiRenderTheme(MINIMAX_CODE_LIGHT_THEME, 3);
+      original.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
+    applyTuiRenderTheme(ALRAN_CODE_LIGHT_THEME, 3);
     try {
       const view = new TranscriptView(() => [
         createTranscriptCell({
@@ -1447,8 +1447,8 @@ describe('TranscriptView', () => {
   it('syntax-highlights executable commands on the collapsed shell row', () => {
     const original = getTuiThemeSnapshot();
     const originalPalette =
-      original.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
-    applyTuiRenderTheme(MINIMAX_CODE_DARK_THEME, 3);
+      original.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
+    applyTuiRenderTheme(ALRAN_CODE_DARK_THEME, 3);
 
     try {
       const command = 'ls packages/tui/src/ && echo "---" && ls packages/tui/src/tui/ 2>/dev/null';
@@ -1480,8 +1480,8 @@ describe('TranscriptView', () => {
     (description) => {
       const original = getTuiThemeSnapshot();
       const palette =
-        original.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME;
-      applyTuiRenderTheme(MINIMAX_CODE_DARK_THEME, 3);
+        original.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME;
+      applyTuiRenderTheme(ALRAN_CODE_DARK_THEME, 3);
       try {
         const view = new TranscriptView(
           () => [
@@ -1977,7 +1977,7 @@ describe('TranscriptView', () => {
         status: 'resolved',
         title: 'Answers sent',
         content: 'Release channel  Stable\nCollaboration  Mixed mode',
-        detail: 'MCode is continuing…',
+        detail: 'Alran is continuing…',
         createdAtMs: 6,
       }),
     ]);
@@ -1995,7 +1995,7 @@ describe('TranscriptView', () => {
     expect(rendered).toContain('✓ Answers sent');
     expect(rendered).toContain('Release channel  Stable');
     expect(rendered).toContain('Collaboration  Mixed mode');
-    expect(rendered).toContain('MCode is continuing');
+    expect(rendered).toContain('Alran is continuing');
     expect(rendered).not.toContain('/allow');
     expect(rendered).not.toContain('/q1');
   });

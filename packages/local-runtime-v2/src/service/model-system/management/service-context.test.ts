@@ -13,7 +13,7 @@ import type {
 import type { ModelProviderServiceContext } from './service-context.js';
 import { LocalModelProviderService } from './service.js';
 
-const MINIMAX_KEY = 'sk-user-minimax-key-12345678';
+const ALRAN_KEY = 'sk-user-alran-key-12345678';
 const CUSTOM_KEY = 'sk-custom-key-abcdefgh';
 
 let dataDir: string;
@@ -34,16 +34,16 @@ function createHarness(
   const config: LocalRuntimeConfig = {
     dataDir,
     provider: {
-      minimax: {
+      alran: {
         models: {
-          'MiniMax-M3': {
-            name: 'MiniMax M3',
+          'Alran-M3': {
+            name: 'Alran M3',
             limit: { context: 200_000, output: 32_000 },
           },
         },
       },
     },
-    defaultModel: 'minimax/MiniMax-M3',
+    defaultModel: 'alran/Alran-M3',
     ...initial,
   };
   const cache = new LocalModelCache(() => dataDir);
@@ -57,19 +57,19 @@ function createHarness(
     configGetter: () => config,
     updateByokConfig: async (mutate) => {
       const draft: LocalByokConfigDraft = {
-        minimax_api: config.minimax_api
-          ? (structuredClone(config.minimax_api) as Record<string, unknown>)
+        alran_api: config.alran_api
+          ? (structuredClone(config.alran_api) as Record<string, unknown>)
           : undefined,
         custom_provider: config.custom_provider
           ? structuredClone(config.custom_provider)
           : undefined,
-        minimaxModelSource: config.minimaxModelSource,
+        alranModelSource: config.alranModelSource,
         defaultModel: config.defaultModel,
       };
       await mutate(draft, config);
-      config.minimax_api = draft.minimax_api as LocalRuntimeConfig['minimax_api'];
+      config.alran_api = draft.alran_api as LocalRuntimeConfig['alran_api'];
       config.custom_provider = draft.custom_provider as LocalRuntimeConfig['custom_provider'];
-      config.minimaxModelSource = draft.minimaxModelSource;
+      config.alranModelSource = draft.alranModelSource;
       config.defaultModel = draft.defaultModel;
       return { config };
     },
@@ -107,18 +107,18 @@ afterEach(async () => {
 });
 
 describe('LocalModelProviderService context', () => {
-  it('stores MiniMax credentials while exposing only their masked view', async () => {
+  it('stores Alran credentials while exposing only their masked view', async () => {
     const harness = createHarness();
 
-    await harness.service.upsertMinimaxApiKey({ apiKey: MINIMAX_KEY, saveAndUse: true });
+    await harness.service.upsertAlranApiKey({ apiKey: ALRAN_KEY, saveAndUse: true });
 
-    expect(harness.config.minimax_api?.apiKey).toBe(MINIMAX_KEY);
-    expect(harness.config.minimaxModelSource).toBe('minimax_api_key');
-    expect(harness.service.getMinimaxApiKeyStatus()).toEqual({
+    expect(harness.config.alran_api?.apiKey).toBe(ALRAN_KEY);
+    expect(harness.config.alranModelSource).toBe('alran_api_key');
+    expect(harness.service.getAlranApiKeyStatus()).toEqual({
       hasApiKey: true,
-      maskedApiKey: `${MINIMAX_KEY.slice(0, 4)}****${MINIMAX_KEY.slice(-4)}`,
+      maskedApiKey: `${ALRAN_KEY.slice(0, 4)}****${ALRAN_KEY.slice(-4)}`,
     });
-    expect(JSON.stringify(harness.service.listEffectiveProviders())).not.toContain(MINIMAX_KEY);
+    expect(JSON.stringify(harness.service.listEffectiveProviders())).not.toContain(ALRAN_KEY);
     expect(harness.selectModel).not.toHaveBeenCalled();
   });
 

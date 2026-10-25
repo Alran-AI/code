@@ -23,7 +23,7 @@ import type { TuiKeybindingRegistry } from '../../shell/keybindings.js';
 import type { TuiComposerState } from '../../shell/composer.js';
 import {
   isTuiCommandDiscoverable,
-  MINIMAX_CODE_COMMANDS,
+  ALRAN_CODE_COMMANDS,
   type TuiCommand,
 } from '../../commands/catalog.js';
 import { resolveTuiComposerInputIntent } from '../../commands/input-intent.js';
@@ -258,7 +258,7 @@ export class TuiChromeFlow {
       ...presentation.composer,
       inputIntent: resolveTuiComposerInputIntent(
         expandedDraft,
-        this.options.inputCommands?.() ?? MINIMAX_CODE_COMMANDS.filter(isTuiCommandDiscoverable),
+        this.options.inputCommands?.() ?? ALRAN_CODE_COMMANDS.filter(isTuiCommandDiscoverable),
       ),
     };
     const composer =

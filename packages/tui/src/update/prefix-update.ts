@@ -11,45 +11,45 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import spawn from 'cross-spawn';
-import { resolveMcodeNpmPrefixInstall, type McodeNpmPackageName } from './install-source.js';
+import { resolveAlranNpmPrefixInstall, type AlranNpmPackageName } from './install-source.js';
 
-const PENDING_UPDATE_FILE = '.mcode-update-pending.json';
-const ACTIVE_PROCESS_DIRECTORY = '.mcode-active';
-const ACTIVATOR_LEASE_FILE = '.mcode-update-activator.json';
-const ACTIVATION_STATUS_FILE = '.mcode-update-activation-status.json';
+const PENDING_UPDATE_FILE = '.alran-update-pending.json';
+const ACTIVE_PROCESS_DIRECTORY = '.alran-active';
+const ACTIVATOR_LEASE_FILE = '.alran-update-activator.json';
+const ACTIVATION_STATUS_FILE = '.alran-update-activation-status.json';
 const PENDING_UPDATE_SCHEMA_VERSION = 1;
 const ACTIVATOR_LEASE_SCHEMA_VERSION = 1;
 const ACTIVATION_STATUS_SCHEMA_VERSION = 1;
 const RESTART_PARENT_WAIT_TIMEOUT_MS = 30_000;
-export const MCODE_UPDATE_PARENT_PID_ENV = 'MCODE_UPDATE_PARENT_PID';
+export const ALRAN_UPDATE_PARENT_PID_ENV = 'ALRAN_UPDATE_PARENT_PID';
 
-type McodePlatformPath = typeof path.posix | typeof path.win32;
+type AlranPlatformPath = typeof path.posix | typeof path.win32;
 
-export interface McodePrefixPackageMetadata {
+export interface AlranPrefixPackageMetadata {
   readonly packageRoot: string;
   readonly version: string;
   readonly binEntry: string;
-  readonly mcodeToolsBinEntry: string;
+  readonly alranToolsBinEntry: string;
 }
 
-export interface McodePrefixLauncherPair {
+export interface AlranPrefixLauncherPair {
   readonly activePath: string;
   readonly stagedPath: string;
   readonly backupPath: string;
 }
 
-export interface McodePrefixUpdateActivation {
+export interface AlranPrefixUpdateActivation {
   readonly stagingPrefix: string;
   readonly activePrefix: string;
   readonly activeModulesRoot: string;
   readonly stagedModulesRoot: string;
   readonly backupModulesRoot: string;
-  readonly packageName: McodeNpmPackageName;
+  readonly packageName: AlranNpmPackageName;
   readonly expectedVersion: string;
-  readonly launchers: readonly McodePrefixLauncherPair[];
+  readonly launchers: readonly AlranPrefixLauncherPair[];
 }
 
-export function createMcodePrefixUpdateStagingPrefix(
+export function createAlranPrefixUpdateStagingPrefix(
   activePrefix: string,
   version: string,
   platform: NodeJS.Platform = process.platform,
@@ -61,7 +61,7 @@ export function createMcodePrefixUpdateStagingPrefix(
   );
 }
 
-export function resolveMcodePrefixModulesRoot(
+export function resolveAlranPrefixModulesRoot(
   prefix: string,
   platform: NodeJS.Platform = process.platform,
 ): string {
@@ -71,102 +71,102 @@ export function resolveMcodePrefixModulesRoot(
     : platformPath.join(prefix, 'lib', 'node_modules');
 }
 
-export function resolveMcodePrefixPackageRoot(
+export function resolveAlranPrefixPackageRoot(
   prefix: string,
-  packageName: McodeNpmPackageName,
+  packageName: AlranNpmPackageName,
   platform: NodeJS.Platform = process.platform,
 ): string {
   const platformPath = platformPathFor(platform);
   return platformPath.join(
-    resolveMcodePrefixModulesRoot(prefix, platform),
+    resolveAlranPrefixModulesRoot(prefix, platform),
     ...packageName.split('/'),
   );
 }
 
-export function resolveMcodePrefixLauncherPairs(
+export function resolveAlranPrefixLauncherPairs(
   activePrefix: string,
   stagingPrefix: string,
   platform: NodeJS.Platform = process.platform,
-): readonly McodePrefixLauncherPair[] {
+): readonly AlranPrefixLauncherPair[] {
   const platformPath = platformPathFor(platform);
-  const names = platform === 'win32' ? ['mcode.cmd', 'mcode.ps1'] : ['mcode'];
+  const names = platform === 'win32' ? ['alran.cmd', 'alran.ps1'] : ['alran'];
   const directory = platform === 'win32' ? '' : 'bin';
   return names.map((name) => {
     const activePath = platformPath.join(activePrefix, directory, name);
     return {
       activePath,
       stagedPath: platformPath.join(stagingPrefix, directory, name),
-      backupPath: `${activePath}.mcode-update-backup`,
+      backupPath: `${activePath}.alran-update-backup`,
     };
   });
 }
 
-export function prepareMcodePrefixUpdateStaging(
+export function prepareAlranPrefixUpdateStaging(
   activePrefix: string,
   stagingPrefix: string,
   platform: NodeJS.Platform = process.platform,
 ): void {
-  const activeModulesRoot = resolveMcodePrefixModulesRoot(activePrefix, platform);
-  const stagedModulesRoot = resolveMcodePrefixModulesRoot(stagingPrefix, platform);
+  const activeModulesRoot = resolveAlranPrefixModulesRoot(activePrefix, platform);
+  const stagedModulesRoot = resolveAlranPrefixModulesRoot(stagingPrefix, platform);
   if (!existsSync(activeModulesRoot)) {
-    throw new Error(`Active MCode modules directory is missing: ${activeModulesRoot}`);
+    throw new Error(`Active Alran modules directory is missing: ${activeModulesRoot}`);
   }
   cpSync(activeModulesRoot, stagedModulesRoot, { recursive: true, dereference: false });
-  for (const launcher of resolveMcodePrefixLauncherPairs(activePrefix, stagingPrefix, platform)) {
+  for (const launcher of resolveAlranPrefixLauncherPairs(activePrefix, stagingPrefix, platform)) {
     if (!existsSync(launcher.activePath)) continue;
     mkdirSync(path.dirname(launcher.stagedPath), { recursive: true });
     cpSync(launcher.activePath, launcher.stagedPath, { dereference: false, force: true });
   }
 }
 
-export function readMcodePrefixPackageMetadata(
+export function readAlranPrefixPackageMetadata(
   prefix: string,
-  packageName: McodeNpmPackageName,
+  packageName: AlranNpmPackageName,
   platform: NodeJS.Platform = process.platform,
-): McodePrefixPackageMetadata {
-  const packageRoot = resolveMcodePrefixPackageRoot(prefix, packageName, platform);
+): AlranPrefixPackageMetadata {
+  const packageRoot = resolveAlranPrefixPackageRoot(prefix, packageName, platform);
   const manifestFile = path.join(packageRoot, 'package.json');
   const manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) as {
     name?: unknown;
     version?: unknown;
     bin?: unknown;
   };
-  const binEntry = readMcodeBinEntry(manifest.bin, 'mcode');
-  const mcodeToolsBinEntry = readMcodeBinEntry(manifest.bin, 'mcode-tools');
+  const binEntry = readAlranBinEntry(manifest.bin, 'alran');
+  const alranToolsBinEntry = readAlranBinEntry(manifest.bin, 'alran-tools');
   if (
     manifest.name !== packageName ||
     typeof manifest.version !== 'string' ||
     !binEntry ||
-    !mcodeToolsBinEntry
+    !alranToolsBinEntry
   ) {
-    throw new Error(`MCode package metadata is invalid at ${manifestFile}.`);
+    throw new Error(`Alran package metadata is invalid at ${manifestFile}.`);
   }
-  return { packageRoot, version: manifest.version, binEntry, mcodeToolsBinEntry };
+  return { packageRoot, version: manifest.version, binEntry, alranToolsBinEntry };
 }
 
-export async function validateMcodePrefixPackage(
+export async function validateAlranPrefixPackage(
   prefix: string,
-  metadata: McodePrefixPackageMetadata,
+  metadata: AlranPrefixPackageMetadata,
   runtimeExecutable: string,
   expectedVersion: string,
 ): Promise<void> {
-  await validateMcodePrefixEntry(
+  await validateAlranPrefixEntry(
     prefix,
     runtimeExecutable,
     [path.join(metadata.packageRoot, ...metadata.binEntry.split('/')), '--version'],
-    'MCode',
+    'Alran',
     (output) => output === expectedVersion,
   );
-  await validateMcodePrefixEntry(
+  await validateAlranPrefixEntry(
     prefix,
     runtimeExecutable,
-    [path.join(metadata.packageRoot, ...metadata.mcodeToolsBinEntry.split('/')), '--version'],
-    'mcode-tools',
+    [path.join(metadata.packageRoot, ...metadata.alranToolsBinEntry.split('/')), '--version'],
+    'alran-tools',
     (output) => output.length > 0,
   );
   // --version does not load the native runtime. Validate it with the exact Node
   // executable that the new release launcher will use, independently of npm's Node.
-  await validateMcodePrefixEntry(
+  await validateAlranPrefixEntry(
     prefix,
     runtimeExecutable,
     [
@@ -190,11 +190,11 @@ export async function validateMcodePrefixPackage(
   );
 }
 
-function validateMcodePrefixEntry(
+function validateAlranPrefixEntry(
   prefix: string,
   runtimeExecutable: string,
   args: readonly string[],
-  commandName: 'MCode' | 'mcode-tools' | 'SQLite',
+  commandName: 'Alran' | 'alran-tools' | 'SQLite',
   outputIsValid: (output: string) => boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -225,7 +225,7 @@ function validateMcodePrefixEntry(
   });
 }
 
-export function writeMcodePrefixUpdatePending(activation: McodePrefixUpdateActivation): string {
+export function writeAlranPrefixUpdatePending(activation: AlranPrefixUpdateActivation): string {
   const pendingFile = path.join(activation.activePrefix, PENDING_UPDATE_FILE);
   const temporaryFile = `${pendingFile}.tmp-${process.pid}-${randomUUID()}`;
   const contents = `${JSON.stringify(
@@ -243,7 +243,7 @@ export function writeMcodePrefixUpdatePending(activation: McodePrefixUpdateActiv
   return pendingFile;
 }
 
-export async function scheduleMcodePrefixUpdate(
+export async function scheduleAlranPrefixUpdate(
   pendingFile: string,
   runtimeExecutable = process.execPath,
   parentPid = process.pid,
@@ -253,14 +253,14 @@ export async function scheduleMcodePrefixUpdate(
 ): Promise<void> {
   const { contents: pendingContents, pending } = readPendingUpdateFile(pendingFile);
   if (path.resolve(pendingFile) !== path.resolve(pending.activePrefix, PENDING_UPDATE_FILE)) {
-    throw new Error(`MCode pending update file is outside its active prefix: ${pendingFile}`);
+    throw new Error(`Alran pending update file is outside its active prefix: ${pendingFile}`);
   }
   const pendingDigest = createHash('sha256').update(pendingContents).digest('hex');
   const leaseFile = path.join(pending.activePrefix, ACTIVATOR_LEASE_FILE);
-  if (!acquireMcodePrefixActivatorLease(leaseFile, pendingDigest)) return;
-  const helperFile = path.join(pending.activePrefix, '.mcode-update-activator.cjs');
+  if (!acquireAlranPrefixActivatorLease(leaseFile, pendingDigest)) return;
+  const helperFile = path.join(pending.activePrefix, '.alran-update-activator.cjs');
   try {
-    writeMcodePrefixActivationStatus(pending.activePrefix, pendingDigest, 'scheduled');
+    writeAlranPrefixActivationStatus(pending.activePrefix, pendingDigest, 'scheduled');
     writeFileSync(helperFile, prefixActivatorSource(), { mode: 0o700 });
     const child = spawn(
       runtimeExecutable,
@@ -280,16 +280,16 @@ export async function scheduleMcodePrefixUpdate(
     child.unref();
   } catch (error) {
     try {
-      writeMcodePrefixActivationStatus(pending.activePrefix, pendingDigest, 'failed', error);
+      writeAlranPrefixActivationStatus(pending.activePrefix, pendingDigest, 'failed', error);
     } catch {
       // Preserve the scheduling failure when its diagnostic sidecar cannot be written.
     }
-    removeMcodePrefixActivatorLease(leaseFile, pendingDigest, process.pid);
+    removeAlranPrefixActivatorLease(leaseFile, pendingDigest, process.pid);
     throw error;
   }
 }
 
-export async function schedulePendingMcodePrefixUpdate(
+export async function schedulePendingAlranPrefixUpdate(
   entryFile = process.argv[1],
   runtimeExecutable = process.execPath,
   parentPid = process.pid,
@@ -300,7 +300,7 @@ export async function schedulePendingMcodePrefixUpdate(
   if (!prefix) return false;
   const pendingFile = path.join(prefix, PENDING_UPDATE_FILE);
   if (!existsSync(pendingFile)) return false;
-  await scheduleMcodePrefixUpdate(
+  await scheduleAlranPrefixUpdate(
     pendingFile,
     runtimeExecutable,
     parentPid,
@@ -310,34 +310,34 @@ export async function schedulePendingMcodePrefixUpdate(
   return true;
 }
 
-export function removeMcodePrefixUpdatePending(pendingFile: string): void {
+export function removeAlranPrefixUpdatePending(pendingFile: string): void {
   rmSync(pendingFile, { force: true });
 }
 
-export function removeMcodePrefixUpdateStaging(stagingPrefix: string): void {
+export function removeAlranPrefixUpdateStaging(stagingPrefix: string): void {
   rmSync(stagingPrefix, { recursive: true, force: true, maxRetries: 4, retryDelay: 50 });
 }
 
-export interface McodePendingPrefixUpdateInspection {
+export interface AlranPendingPrefixUpdateInspection {
   readonly pendingFile: string;
-  readonly activation: McodePrefixUpdateActivation;
+  readonly activation: AlranPrefixUpdateActivation;
   readonly state: 'staged' | 'activated';
 }
 
-export function inspectPendingMcodePrefixUpdate(
+export function inspectPendingAlranPrefixUpdate(
   entryFile = process.argv[1],
-): McodePendingPrefixUpdateInspection | undefined {
+): AlranPendingPrefixUpdateInspection | undefined {
   const prefix = resolvePrefixFromEntryFile(entryFile);
   if (!prefix) return undefined;
   const pendingFile = path.join(prefix, PENDING_UPDATE_FILE);
   if (!existsSync(pendingFile)) return undefined;
   const { pending } = readPendingUpdateFile(pendingFile);
   if (path.resolve(pendingFile) !== path.resolve(pending.activePrefix, PENDING_UPDATE_FILE)) {
-    throw new Error(`MCode pending update file is outside its active prefix: ${pendingFile}`);
+    throw new Error(`Alran pending update file is outside its active prefix: ${pendingFile}`);
   }
-  const state = classifyRecoverableMcodePrefixUpdateArtifacts(pending);
+  const state = classifyRecoverableAlranPrefixUpdateArtifacts(pending);
   if (!state) {
-    throw new Error(`MCode pending update artifacts are incomplete at ${pendingFile}.`);
+    throw new Error(`Alran pending update artifacts are incomplete at ${pendingFile}.`);
   }
   return {
     pendingFile,
@@ -346,8 +346,8 @@ export function inspectPendingMcodePrefixUpdate(
   };
 }
 
-function classifyRecoverableMcodePrefixUpdateArtifacts(
-  pending: McodePrefixUpdateActivation,
+function classifyRecoverableAlranPrefixUpdateArtifacts(
+  pending: AlranPrefixUpdateActivation,
 ): 'staged' | 'activated' | undefined {
   if (pending.launchers.length === 0) return undefined;
   const activeMatches = pendingPackageMatches(
@@ -382,7 +382,7 @@ function classifyRecoverableMcodePrefixUpdateArtifacts(
 
 function pendingPackageMatches(
   modulesRoot: string,
-  packageName: McodeNpmPackageName,
+  packageName: AlranNpmPackageName,
   expectedVersion: string,
 ): boolean {
   try {
@@ -395,18 +395,18 @@ function pendingPackageMatches(
   }
 }
 
-export interface McodePrefixProcessPreparation {
+export interface AlranPrefixProcessPreparation {
   readonly remove: () => void;
 }
 
-export async function prepareMcodePrefixProcess(
+export async function prepareAlranPrefixProcess(
   entryFile = process.argv[1],
   environment: NodeJS.ProcessEnv = process.env,
-): Promise<McodePrefixProcessPreparation> {
-  const parentPid = Number(environment[MCODE_UPDATE_PARENT_PID_ENV]);
+): Promise<AlranPrefixProcessPreparation> {
+  const parentPid = Number(environment[ALRAN_UPDATE_PARENT_PID_ENV]);
   if (Number.isSafeInteger(parentPid) && parentPid > 0) await waitForProcessExit(parentPid);
   return {
-    remove: registerMcodePrefixProcess(entryFile) ?? (() => undefined),
+    remove: registerAlranPrefixProcess(entryFile) ?? (() => undefined),
   };
 }
 
@@ -414,7 +414,7 @@ async function waitForProcessExit(pid: number): Promise<void> {
   const deadline = Date.now() + RESTART_PARENT_WAIT_TIMEOUT_MS;
   while (isProcessAlive(pid)) {
     if (Date.now() >= deadline) {
-      throw new Error(`MCode restart waited too long for parent process ${pid} to exit.`);
+      throw new Error(`Alran restart waited too long for parent process ${pid} to exit.`);
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
@@ -429,16 +429,16 @@ function isProcessAlive(pid: number): boolean {
   }
 }
 
-interface McodePrefixActivatorLease {
+interface AlranPrefixActivatorLease {
   readonly schemaVersion: number;
   readonly journalDigest: string;
   readonly pid: number;
   readonly startedAtMs: number;
 }
 
-function acquireMcodePrefixActivatorLease(leaseFile: string, journalDigest: string): boolean {
+function acquireAlranPrefixActivatorLease(leaseFile: string, journalDigest: string): boolean {
   for (let attempt = 0; attempt < 3; attempt += 1) {
-    const lease: McodePrefixActivatorLease = {
+    const lease: AlranPrefixActivatorLease = {
       schemaVersion: ACTIVATOR_LEASE_SCHEMA_VERSION,
       journalDigest,
       pid: process.pid,
@@ -451,19 +451,19 @@ function acquireMcodePrefixActivatorLease(leaseFile: string, journalDigest: stri
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
     }
 
-    const existing = readMcodePrefixActivatorLease(leaseFile);
+    const existing = readAlranPrefixActivatorLease(leaseFile);
     if (existing && isProcessAlive(existing.pid)) {
       if (existing.journalDigest === journalDigest) return false;
-      throw new Error('Another MCode prefix activator is running for a different journal.');
+      throw new Error('Another Alran prefix activator is running for a different journal.');
     }
     rmSync(leaseFile, { force: true });
   }
-  throw new Error(`MCode prefix activator lease could not be acquired at ${leaseFile}.`);
+  throw new Error(`Alran prefix activator lease could not be acquired at ${leaseFile}.`);
 }
 
-function readMcodePrefixActivatorLease(leaseFile: string): McodePrefixActivatorLease | undefined {
+function readAlranPrefixActivatorLease(leaseFile: string): AlranPrefixActivatorLease | undefined {
   try {
-    const value = JSON.parse(readFileSync(leaseFile, 'utf8')) as Partial<McodePrefixActivatorLease>;
+    const value = JSON.parse(readFileSync(leaseFile, 'utf8')) as Partial<AlranPrefixActivatorLease>;
     if (
       value.schemaVersion !== ACTIVATOR_LEASE_SCHEMA_VERSION ||
       typeof value.journalDigest !== 'string' ||
@@ -473,23 +473,23 @@ function readMcodePrefixActivatorLease(leaseFile: string): McodePrefixActivatorL
     ) {
       return undefined;
     }
-    return value as McodePrefixActivatorLease;
+    return value as AlranPrefixActivatorLease;
   } catch {
     return undefined;
   }
 }
 
-function removeMcodePrefixActivatorLease(
+function removeAlranPrefixActivatorLease(
   leaseFile: string,
   journalDigest: string,
   pid: number,
 ): void {
-  const lease = readMcodePrefixActivatorLease(leaseFile);
+  const lease = readAlranPrefixActivatorLease(leaseFile);
   if (lease?.journalDigest !== journalDigest || lease.pid !== pid) return;
   rmSync(leaseFile, { force: true });
 }
 
-function writeMcodePrefixActivationStatus(
+function writeAlranPrefixActivationStatus(
   activePrefix: string,
   journalDigest: string,
   state: 'scheduled' | 'failed',
@@ -516,7 +516,7 @@ function writeMcodePrefixActivationStatus(
   }
 }
 
-export function registerMcodePrefixProcess(entryFile = process.argv[1]): (() => void) | undefined {
+export function registerAlranPrefixProcess(entryFile = process.argv[1]): (() => void) | undefined {
   const prefix = resolvePrefixFromEntryFile(entryFile);
   if (!prefix) return undefined;
   const directory = path.join(prefix, ACTIVE_PROCESS_DIRECTORY);
@@ -537,7 +537,7 @@ export function registerMcodePrefixProcess(entryFile = process.argv[1]): (() => 
   return remove;
 }
 
-export function countMcodePrefixUpdateBlockers(
+export function countAlranPrefixUpdateBlockers(
   activePrefix: string,
   currentPid = process.pid,
 ): number | undefined {
@@ -570,7 +570,7 @@ export function countMcodePrefixUpdateBlockers(
 function resolvePrefixFromEntryFile(entryFile: string | undefined): string | undefined {
   if (!entryFile) return undefined;
   try {
-    const detected = resolveMcodeNpmPrefixInstall(entryFile);
+    const detected = resolveAlranNpmPrefixInstall(entryFile);
     if (detected) return detected.prefix;
   } catch {
     // Fall through to pending-journal recovery for legacy prefixes whose receipt is missing.
@@ -608,17 +608,17 @@ function resolvePrefixFromEntryFile(entryFile: string | undefined): string | und
   }
 }
 
-function readPendingUpdate(file: string): McodePrefixUpdateActivation & { schemaVersion: number } {
+function readPendingUpdate(file: string): AlranPrefixUpdateActivation & { schemaVersion: number } {
   return readPendingUpdateFile(file).pending;
 }
 
 function readPendingUpdateFile(file: string): {
   readonly contents: string;
-  readonly pending: McodePrefixUpdateActivation & { schemaVersion: number };
+  readonly pending: AlranPrefixUpdateActivation & { schemaVersion: number };
 } {
   const contents = readFileSync(file, 'utf8');
   const value = JSON.parse(contents) as Partial<
-    McodePrefixUpdateActivation & { schemaVersion: number }
+    AlranPrefixUpdateActivation & { schemaVersion: number }
   >;
   if (
     value.schemaVersion !== PENDING_UPDATE_SCHEMA_VERSION ||
@@ -627,7 +627,7 @@ function readPendingUpdateFile(file: string): {
     typeof value.activeModulesRoot !== 'string' ||
     typeof value.stagedModulesRoot !== 'string' ||
     typeof value.backupModulesRoot !== 'string' ||
-    (value.packageName !== '@minimax/code' && value.packageName !== '@minimax-ai/code') ||
+    (value.packageName !== '@ottili/alran-code' && value.packageName !== '@ottili/alran-code') ||
     typeof value.expectedVersion !== 'string' ||
     !Array.isArray(value.launchers) ||
     !value.launchers.every(
@@ -642,18 +642,18 @@ function readPendingUpdateFile(file: string): {
         typeof launcher.backupPath === 'string',
     )
   ) {
-    throw new Error(`MCode pending update metadata is invalid at ${file}.`);
+    throw new Error(`Alran pending update metadata is invalid at ${file}.`);
   }
-  const pending = value as McodePrefixUpdateActivation & { schemaVersion: number };
-  const expectedActiveModulesRoot = resolveMcodePrefixModulesRoot(
+  const pending = value as AlranPrefixUpdateActivation & { schemaVersion: number };
+  const expectedActiveModulesRoot = resolveAlranPrefixModulesRoot(
     pending.activePrefix,
     process.platform,
   );
-  const expectedStagedModulesRoot = resolveMcodePrefixModulesRoot(
+  const expectedStagedModulesRoot = resolveAlranPrefixModulesRoot(
     pending.stagingPrefix,
     process.platform,
   );
-  const expectedLaunchers = resolveMcodePrefixLauncherPairs(
+  const expectedLaunchers = resolveAlranPrefixLauncherPairs(
     pending.activePrefix,
     pending.stagingPrefix,
     process.platform,
@@ -664,7 +664,7 @@ function readPendingUpdateFile(file: string): {
     !sameResolvedPath(pending.stagedModulesRoot, expectedStagedModulesRoot) ||
     !sameResolvedPath(
       pending.backupModulesRoot,
-      `${expectedActiveModulesRoot}.mcode-update-backup`,
+      `${expectedActiveModulesRoot}.alran-update-backup`,
     ) ||
     pending.launchers.length !== expectedLaunchers.length ||
     pending.launchers.some((launcher, index) => {
@@ -686,7 +686,7 @@ function readPendingUpdateFile(file: string): {
         !isPathInside(pending.stagingPrefix, launcher.stagedPath),
     )
   ) {
-    throw new Error(`MCode pending update paths are invalid at ${file}.`);
+    throw new Error(`Alran pending update paths are invalid at ${file}.`);
   }
   return { contents, pending };
 }
@@ -700,13 +700,13 @@ function sameResolvedPath(left: string, right: string): boolean {
   return path.resolve(left) === path.resolve(right);
 }
 
-function platformPathFor(platform: NodeJS.Platform): McodePlatformPath {
+function platformPathFor(platform: NodeJS.Platform): AlranPlatformPath {
   return platform === 'win32' ? path.win32 : path.posix;
 }
 
-export function readMcodeBinEntry(value: unknown, name: 'mcode' | 'mcode-tools'): string | undefined {
+export function readAlranBinEntry(value: unknown, name: 'alran' | 'alran-tools'): string | undefined {
   const entry =
-    typeof value === 'string' && name === 'mcode'
+    typeof value === 'string' && name === 'alran'
       ? value
       : value && typeof value === 'object' && name in value
         ? (value as Record<string, unknown>)[name]
@@ -730,10 +730,10 @@ const parentPid = Number(process.argv[4]);
 const restartCwd = process.argv[5];
 const restartArgs = process.argv.slice(6);
 const pendingContents = fs.readFileSync(pendingFile, 'utf8');
-if (crypto.createHash('sha256').update(pendingContents).digest('hex') !== pendingDigest) throw new Error('MCode pending update journal changed after scheduling.');
+if (crypto.createHash('sha256').update(pendingContents).digest('hex') !== pendingDigest) throw new Error('Alran pending update journal changed after scheduling.');
 const pending = JSON.parse(pendingContents);
-const leaseFile = path.join(pending.activePrefix, '.mcode-update-activator.json');
-const statusFile = path.join(pending.activePrefix, '.mcode-update-activation-status.json');
+const leaseFile = path.join(pending.activePrefix, '.alran-update-activator.json');
+const statusFile = path.join(pending.activePrefix, '.alran-update-activation-status.json');
 fs.writeFileSync(leaseFile, JSON.stringify({ schemaVersion: 1, journalDigest: pendingDigest, pid: process.pid, startedAtMs: Date.now() }) + '\n', { mode: 0o600 });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const alive = (pid) => { try { process.kill(pid, 0); return true; } catch (error) { return error && error.code === 'EPERM'; } };
@@ -750,12 +750,12 @@ const writeStatus = (state, error) => {
   }
 };
 // The pending journal is durable. Keep the detached handoff alive until every process using the
-// old prefix exits; a TUI-owned Runtime or another MCode session may legitimately take over 30s.
+// old prefix exits; a TUI-owned Runtime or another Alran session may legitimately take over 30s.
 async function waitForExit(pid) {
   while (alive(pid)) await sleep(100);
 }
 async function waitForMarkers() {
-  const directory = path.join(pending.activePrefix, '.mcode-active');
+  const directory = path.join(pending.activePrefix, '.alran-active');
   for (;;) {
     const blockers = fs.existsSync(directory) ? fs.readdirSync(directory).filter((name) => name.endsWith('.json')).filter((name) => {
       const pid = Number(name.slice(0, -5));
@@ -805,7 +805,7 @@ function cleanup() {
   for (const launcher of pending.launchers || []) remove(launcher.backupPath);
   fs.rmSync(pendingFile, { force: true });
   remove(pending.stagingPrefix);
-  remove(path.join(pending.activePrefix, '.mcode-update-activator.cjs'));
+  remove(path.join(pending.activePrefix, '.alran-update-activator.cjs'));
   remove(leaseFile);
 }
 async function activate() {
@@ -830,15 +830,15 @@ async function activate() {
   const installed = [];
   try {
     const stagedManifest = JSON.parse(fs.readFileSync(path.join(pending.stagedModulesRoot, ...pending.packageName.split('/'), 'package.json'), 'utf8'));
-    if (stagedManifest.name !== pending.packageName || stagedManifest.version !== pending.expectedVersion) throw new Error('Staged MCode package identity or version is invalid.');
-    if (launchers.some((launcher) => !fs.existsSync(launcher.stagedPath))) throw new Error('Staged MCode launcher is missing.');
+    if (stagedManifest.name !== pending.packageName || stagedManifest.version !== pending.expectedVersion) throw new Error('Staged Alran package identity or version is invalid.');
+    if (launchers.some((launcher) => !fs.existsSync(launcher.stagedPath))) throw new Error('Staged Alran launcher is missing.');
     fs.renameSync(pending.activeModulesRoot, pending.backupModulesRoot);
     modulesMoved = true;
     for (const launcher of launchers) { if (fs.existsSync(launcher.activePath)) { fs.renameSync(launcher.activePath, launcher.backupPath); moved.push(launcher); } }
     fs.renameSync(pending.stagedModulesRoot, pending.activeModulesRoot);
     for (const launcher of launchers) { if (fs.existsSync(launcher.stagedPath)) { fs.renameSync(launcher.stagedPath, launcher.activePath); installed.push(launcher); } }
     const manifest = JSON.parse(fs.readFileSync(path.join(pending.activeModulesRoot, ...pending.packageName.split('/'), 'package.json'), 'utf8'));
-    if (manifest.name !== pending.packageName || manifest.version !== pending.expectedVersion) throw new Error('Activated MCode package identity or version is invalid.');
+    if (manifest.name !== pending.packageName || manifest.version !== pending.expectedVersion) throw new Error('Activated Alran package identity or version is invalid.');
     await restart(restartArgs);
     writeStatus('completed');
     cleanup();

@@ -1,4 +1,4 @@
-import { MINIMAX_MODELS } from "./minimax-model-catalog.js";
+import { ALRAN_MODELS } from "./alran-model-catalog.js";
 import {
   resolveRunawayGuardConfig,
   type RunawayGuardSettings,
@@ -12,13 +12,13 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 import { parseTuiConfig, type TuiConfig } from "./tui-config.js";
 import {
-  applyManagedMinimaxContextLimits,
+  applyManagedAlranContextLimits,
   applyRequiredProviderOverrides,
   migrateLegacyByokProvidersOnDisk,
   restrictLegacyByokBackups,
   normalizeLegacyThinkingEfforts,
   parseCustomProvidersConfig,
-  parseMinimaxApiConfig,
+  parseAlranApiConfig,
   parseModelContextLimits,
   type RequiredProviderOverrideDeps,
 } from "./byok-config.js";
@@ -323,7 +323,7 @@ export type * from "./asr.js";
  *   desktopPlanModeAgentEntry: false
  *   taskHistoryProjectGrouping: false
  *   threadGoal: false
- *   mcodeTools: false
+ *   alranTools: false
  *   codexOAuth: false
  * ```
  */
@@ -488,13 +488,13 @@ export interface BetaConfig {
    */
   threadGoal: boolean;
   /**
-   * Bundled mcode-tools CLI and Electron Device Flow integration. Packaged
+   * Bundled alran-tools CLI and Electron Device Flow integration. Packaged
    * dev/test/staging/prod builds default ON on macOS/Linux/Windows. An explicit
    * config.yaml false value may opt any supported build out. This switch does
    * not control native web_search; Electron, TUI and CLI use the native tool
    * without starting the built-in Matrix MCP.
    */
-  mcodeTools: boolean;
+  alranTools: boolean;
   /**
    * OpenAI Codex OAuth model settings entry. Enabled by default in every build environment and
    * release package; set `beta.codexOAuth: false` to hide it. Provider configuration stays in
@@ -640,7 +640,7 @@ export const BETA_FEATURE_DEFS = {
     configurableVisibility: "online",
   },
   threadGoal: { defaultVisibility: "online", configurableVisibility: "online" },
-  mcodeTools: {
+  alranTools: {
     defaultVisibility: "none",
     defaultBuildEnvironments: ["dev", "test", "staging", "prod"],
     defaultPlatforms: ["darwin", "linux", "win32"],
@@ -660,7 +660,7 @@ export interface BetaFeatureResolutionContext {
   internalBuild?: boolean;
   insideBuild?: boolean;
   platform?: NodeJS.Platform;
-  mcodeToolsDevMode?: "published";
+  alranToolsDevMode?: "published";
 }
 
 function getBetaFeatureChannel(
@@ -735,9 +735,9 @@ export function resolveBetaFeature(
     context.buildEnv ??
     getBetaDefaultBuildEnvironment();
   if (
-    feature === "mcodeTools" &&
+    feature === "alranTools" &&
     defaultBuildEnvironment === "dev" &&
-    context.mcodeToolsDevMode === "published" &&
+    context.alranToolsDevMode === "published" &&
     isDefaultEnabledForPlatform(def, context)
   )
     return true;
@@ -858,7 +858,7 @@ export interface ContextManagementConfig {
    * disabled.
    *
    * Used by models with very tight context budgets where repeated SR
-   * injection is too costly (e.g. minimax M2.7). Each turn the daemon would
+   * injection is too costly (e.g. alran M2.7). Each turn the daemon would
    * normally append a `<system-reminder>` block to the user message; for
    * listed models the block is skipped entirely.
    *
@@ -938,17 +938,17 @@ export interface Config {
   devPort: number;
   provider: ModelsConfig;
   /**
-   * BYOK: user's own MiniMax API key. Written only through the ModelProvider
+   * BYOK: user's own Alran API key. Written only through the ModelProvider
    * API — excluded from the generic config update whitelist so a sanitized
    * GET /config payload can never be written back over the real key.
    */
-  minimax_api?: MinimaxApiConfig;
-  /** User-owned Context selections for the managed MiniMax catalog. */
-  minimaxModelContextLimits?: Record<string, number>;
-  /** BYOK: user-created external providers (same write boundary as minimax_api). */
+  alran_api?: AlranApiConfig;
+  /** User-owned Context selections for the managed Alran catalog. */
+  alranModelContextLimits?: Record<string, number>;
+  /** BYOK: user-created external providers (same write boundary as alran_api). */
   custom_provider?: CustomProvidersConfig;
-  /** BYOK: active model source — 'token_plan' uses managed-login, 'minimax_api_key' uses user's own API key. */
-  minimaxModelSource?: "token_plan" | "minimax_api_key";
+  /** BYOK: active model source — 'token_plan' uses managed-login, 'alran_api_key' uses user's own API key. */
+  alranModelSource?: "token_plan" | "alran_api_key";
   nexus?: NexusConfig;
   /** Default model for new agents, format: "providerID/modelID" */
   defaultModel?: string;
@@ -1163,17 +1163,17 @@ export type ModelsConfig = Record<string, ProviderConfig>;
 // --- BYOK user providers (settings-page owned; see the BYOK model configuration technical design) ---
 
 /**
- * User's own MiniMax API key ("MiniMax API" settings tab). Stores the raw key
+ * User's own Alran API key ("Alran API" settings tab). Stores the raw key
  * locally; every API response must mask it. v1 is replace-only through the
  * ModelProvider API (no remove/clear); `baseURL` is a hand-edited override
  * only and is intentionally not exposed via the upsert endpoint. Model list
  * and capabilities are derived by the runtime and never stored here.
  */
-export interface MinimaxApiConfig {
+export interface AlranApiConfig {
   apiKey?: string;
-  /** Optional endpoint override; defaults to the runtime's builtin MiniMax API endpoint. */
+  /** Optional endpoint override; defaults to the runtime's builtin Alran API endpoint. */
   baseURL?: string;
-  /** User-owned Context selections for the API route of the shared MiniMax catalog. */
+  /** User-owned Context selections for the API route of the shared Alran catalog. */
   modelContextLimits?: Record<string, number>;
 }
 
@@ -1209,12 +1209,12 @@ export interface NexusConfig {
 // Brand constants — single source of truth for all brand-related strings.
 // ---------------------------------------------------------------------------
 export const BRAND = {
-  /** Data directory basename (e.g. '.minimax'). */
-  APP_DIR: ".minimax",
-  /** Environment variable prefix (e.g. 'minimax'). */
-  ENV_PREFIX: "minimax",
+  /** Data directory basename (e.g. '.alran'). */
+  APP_DIR: ".alran",
+  /** Environment variable prefix (e.g. 'alran'). */
+  ENV_PREFIX: "alran",
   /** CLI binary name. */
-  CLI_NAME: "minimax",
+  CLI_NAME: "alran",
 } as const;
 
 /** Legacy runtime env prefix. New runtime identity travels via args/files. */
@@ -1329,7 +1329,7 @@ function parseRepoName(remoteUrl: string): string | null {
 
 function getExplicitPublicDataDirEnv(): string | undefined {
   return (
-    process.env.MINIMAX_DATA_DIR?.trim() || process.env.MAVIS_DATA_DIR?.trim()
+    process.env.ALRAN_DATA_DIR?.trim() || process.env.MAVIS_DATA_DIR?.trim()
   );
 }
 
@@ -1530,20 +1530,27 @@ export function getConfigPath(): string {
 // Default provider presets per environment combo (MAVIS_REGION x MAVIS_BUILD_ENV)
 // ---------------------------------------------------------------------------
 
+/**
+ * Default provider presets per environment combo (MAVIS_REGION x MAVIS_BUILD_ENV).
+ *
+ * Every preset points at the Ottili AI Platform gateway, which speaks the
+ * OpenAI chat-completions protocol. The credential is the user's Ottili API
+ * key: `alran_api.apiKey` in the local config, or `ALRAN_API_KEY` in the
+ * environment.
+ */
 const PRESET_BASE_URLS: Record<PresetKey, string> = {
-  "cn-test": "https://matrix-test.example.invalid/mavis/api/v1/llm/v1",
-  "cn-dev": "https://matrix-test.example.invalid/mavis/api/v1/llm/v1",
-  "cn-staging": "https://matrix-pre.example.invalid/mavis/api/v1/llm/v1",
-  "en-test": "https://matrix-overseas-test.example.invalid/mavis/api/v1/llm/v1",
-  "en-dev": "https://matrix-overseas-test.example.invalid/mavis/api/v1/llm/v1",
-  "en-staging":
-    "https://matrix-overseas-pre.example.invalid/mavis/api/v1/llm/v1",
-  "cn-prod": "https://agent.minimax.cn/mavis/api/v1/llm/v1",
-  "en-prod": "https://agent.minimax.io/mavis/api/v1/llm/v1",
+  "cn-test": "https://ottili-test.example.invalid/v1",
+  "cn-dev": "https://ottili-test.example.invalid/v1",
+  "cn-staging": "https://ottili-pre.example.invalid/v1",
+  "en-test": "https://ottili-overseas-test.example.invalid/v1",
+  "en-dev": "https://ottili-overseas-test.example.invalid/v1",
+  "en-staging": "https://ottili-overseas-pre.example.invalid/v1",
+  "cn-prod": "https://api.ottili.one/v1",
+  "en-prod": "https://api.ottili.one/v1",
 };
 
 const LEGACY_MANAGED_PRESET_BASE_URLS = [
-  "https://agent.minimaxi.com/mavis/api/v1/llm/v1",
+  "https://api.ottili.one/v1",
 ] as const;
 const MANAGED_PRESET_BASE_URLS = new Set([
   ...Object.values(PRESET_BASE_URLS),
@@ -1570,13 +1577,13 @@ function isManagedPresetBaseUrl(baseURL: string): boolean {
   }
 }
 
-/** Test desktop builds may route the builtin managed MiniMax provider through a local fault proxy. */
-export function allowsManagedMinimaxProviderOverride(): boolean {
+/** Test desktop builds may route the builtin managed Alran provider through a local fault proxy. */
+export function allowsManagedAlranProviderOverride(): boolean {
   return getRuntimeBuildEnv() === "test";
 }
 
 function shouldEnforceManagedProviderProtection(): boolean {
-  return !allowsManagedMinimaxProviderOverride();
+  return !allowsManagedAlranProviderOverride();
 }
 
 function syncManagedPresetBaseUrl(configPath: string): void {
@@ -1593,11 +1600,11 @@ function syncManagedPresetBaseUrl(configPath: string): void {
   )
     return;
 
-  const { minimax } = provider as Record<string, unknown>;
-  if (minimax == null || typeof minimax !== "object" || Array.isArray(minimax))
+  const { alran } = provider as Record<string, unknown>;
+  if (alran == null || typeof alran !== "object" || Array.isArray(alran))
     return;
 
-  const { options } = minimax as Record<string, unknown>;
+  const { options } = alran as Record<string, unknown>;
   if (options == null || typeof options !== "object" || Array.isArray(options))
     return;
 
@@ -1637,18 +1644,23 @@ function syncManagedPresetBaseUrl(configPath: string): void {
 
 function buildPresetEntry(key: PresetKey) {
   const provider: ProviderConfig = {
-    name: "MiniMax",
-    npm: "@ai-sdk/anthropic",
+    name: "Ottili AI Platform",
+    npm: "@ai-sdk/openai-compatible",
     options: {
-      authMode: "managed-login",
-      apiKey: "sk-xxx",
+      authMode: "api-key",
       baseURL: PRESET_BASE_URLS[key],
     },
-    models: MINIMAX_MODELS,
+    models: ALRAN_MODELS,
+    model_order: [
+      "Alran-M3.1-Flash",
+      "Alran-M3",
+      "Alran-M2.7",
+      "Alran-M2.7-highspeed",
+    ],
   };
   return {
-    provider: { minimax: provider } as ModelsConfig,
-    defaultModel: "minimax/MiniMax-M3.1-Flash",
+    provider: { alran: provider } as ModelsConfig,
+    defaultModel: "alran/Alran-M3.1-Flash",
   };
 }
 
@@ -1714,7 +1726,7 @@ const DEFAULTS: Omit<
     signalCooldownHours: 24,
     minConfidence: 0.7,
     excludeAgents: ["skill-editor"],
-    disableModelPrefixes: ["MiniMax-M2"],
+    disableModelPrefixes: ["Alran-M2"],
     builtinMrEnabled: false,
     sourceRepo: undefined,
     proposal: {
@@ -1938,8 +1950,8 @@ export function resolveConfigFromRaw(
     },
     REQUIRED_PROVIDER_OVERRIDE_DEPS,
   );
-  const minimaxModelContextLimits = parseModelContextLimits(
-    raw.minimaxModelContextLimits,
+  const alranModelContextLimits = parseModelContextLimits(
+    raw.alranModelContextLimits,
   );
   const beta = parseBetaConfig(raw);
 
@@ -1948,9 +1960,9 @@ export function resolveConfigFromRaw(
       typeof raw.logLevel === "string" ? raw.logLevel : DEFAULTS.logLevel,
     devPort,
     ...managedProvider,
-    provider: applyManagedMinimaxContextLimits(
+    provider: applyManagedAlranContextLimits(
       managedProvider.provider,
-      minimaxModelContextLimits,
+      alranModelContextLimits,
     ),
     defaultModelVariant:
       typeof raw.defaultModelVariant === "string"
@@ -1969,14 +1981,14 @@ export function resolveConfigFromRaw(
       Number(raw.defaultModelContextWindow) <= 2_147_483_647
         ? Number(raw.defaultModelContextWindow)
         : undefined,
-    minimax_api: parseMinimaxApiConfig(raw.minimax_api),
-    minimaxModelContextLimits,
+    alran_api: parseAlranApiConfig(raw.alran_api),
+    alranModelContextLimits,
     custom_provider: parseCustomProvidersConfig(raw.custom_provider),
-    minimaxModelSource:
-      typeof raw.minimaxModelSource === "string" &&
-      (raw.minimaxModelSource === "token_plan" ||
-        raw.minimaxModelSource === "minimax_api_key")
-        ? raw.minimaxModelSource
+    alranModelSource:
+      typeof raw.alranModelSource === "string" &&
+      (raw.alranModelSource === "token_plan" ||
+        raw.alranModelSource === "alran_api_key")
+        ? raw.alranModelSource
         : undefined,
     nexus:
       raw.nexus != null &&
@@ -2139,8 +2151,8 @@ function parseBetaConfig(raw: Record<string, unknown>): BetaConfig {
     defaultBuildEnvironment: getBetaDefaultBuildEnvironment(),
     internalBuild: isInternalBuild(),
     insideBuild: isInsideBuild(),
-    mcodeToolsDevMode:
-      process.env.MAVIS_DEV_MCODE_TOOLS_MODE === "published"
+    alranToolsDevMode:
+      process.env.MAVIS_DEV_ALRAN_TOOLS_MODE === "published"
         ? "published"
         : undefined,
   };

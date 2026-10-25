@@ -322,7 +322,7 @@ describe('callSafetyApi fail-policy classification', () => {
       expect(log).toHaveBeenCalledWith(
         expect.objectContaining({
           reviewId: expect.any(String),
-          endpointHost: 'agent.minimax.cn',
+          endpointHost: 'api.ottili.one',
           apiVersion: 'v1',
           scene: SAFETY_SCENE.UserInput,
           durationMs: expect.any(Number),
@@ -378,7 +378,7 @@ describe('callSafetyApi fail-policy classification', () => {
       testBaseURL: 'http://127.0.0.1:43123',
     });
     expect(prodFetch).toHaveBeenCalledWith(
-      'https://agent.minimax.cn/mavis/api/v1/content',
+      'https://api.ottili.one/mavis/api/v1/content',
       expect.any(Object),
     );
   });

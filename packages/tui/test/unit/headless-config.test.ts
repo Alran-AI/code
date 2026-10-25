@@ -14,7 +14,7 @@ afterEach(async () => {
 
 describe('explicit headless config', () => {
   it('loads an explicit config source without changing the active dataDir', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-headless-config-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-headless-config-'));
     roots.push(root);
     const configPath = join(root, 'run.yaml');
     await writeFile(
@@ -63,7 +63,7 @@ describe('explicit headless config', () => {
   });
 
   it('classifies invalid YAML as a config error and shares canonical field fallback semantics', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-headless-config-invalid-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-headless-config-invalid-'));
     roots.push(root);
     const malformed = join(root, 'malformed.yaml');
     const invalidMode = join(root, 'mode.yaml');

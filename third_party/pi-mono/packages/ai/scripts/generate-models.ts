@@ -92,7 +92,7 @@ const TOGETHER_TOGGLE_REASONING_EFFORT_COMPAT: OpenAICompletionsCompat = {
 };
 const TOGETHER_REASONING_ONLY_MODELS = new Set([
 	"deepseek-ai/DeepSeek-R1",
-	"MiniMaxAI/MiniMax-M2.7",
+	"AlranAI/Alran-M2.7",
 ]);
 const TOGETHER_REASONING_EFFORT_MODELS = new Set(["openai/gpt-oss-20b", "openai/gpt-oss-120b"]);
 const TOGETHER_TOGGLE_REASONING_EFFORT_MODELS = new Set(["deepseek-ai/DeepSeek-V4-Pro"]);
@@ -145,7 +145,7 @@ const NVIDIA_NIM_UNSUPPORTED_MODELS = new Set([
 	"meta/llama-3.2-1b-instruct",
 	"meta/llama-4-maverick-17b-128e-instruct",
 	"microsoft/phi-4-mini-instruct",
-	"minimaxai/minimax-m2.7",
+	"ottili/alran-m2.7",
 	"mistralai/mistral-nemotron",
 	"nvidia/nemotron-mini-4b-instruct",
 	"qwen/qwen3-next-80b-a3b-instruct",
@@ -1066,12 +1066,12 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 				// Fix known mismatches between models.dev npm data and actual
 				// OpenCode Go endpoint behaviour. models.dev reports these models
 				// as @ai-sdk/anthropic, but the OpenCode Go endpoints either don't
-				// accept Anthropic SDK auth (MiniMax M2.7) or are served through
+				// accept Anthropic SDK auth (Alran M2.7) or are served through
 				// the OpenAI-compatible /v1/chat/completions path (Qwen 3.5/3.6).
 				// Switch them to openai-completions so requests use Bearer auth
 				// and the standard /v1/chat/completions endpoint.
 				if (variant.provider === "opencode-go") {
-					if (modelId === "minimax-m2.7") {
+					if (modelId === "alran-m2.7") {
 						api = "openai-completions";
 						baseUrl = `${variant.basePath}/v1`;
 					}
@@ -1161,13 +1161,13 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 			}
 		}
 
-		// Process MiniMax models
-		const minimaxVariants = [
-			{ key: "minimax", provider: "minimax", baseUrl: "https://api.minimax.io/anthropic" },
-			{ key: "minimax-cn", provider: "minimax-cn", baseUrl: "https://api.minimaxi.com/anthropic" },
+		// Process Alran models
+		const alranVariants = [
+			{ key: "alran", provider: "alran", baseUrl: "https://api.ottili.one/anthropic" },
+			{ key: "alran-cn", provider: "alran-cn", baseUrl: "https://api.ottili.one/anthropic" },
 		] as const;
 
-		for (const { key, provider, baseUrl } of minimaxVariants) {
+		for (const { key, provider, baseUrl } of alranVariants) {
 			if (data[key]?.models) {
 				for (const [modelId, model] of Object.entries(data[key].models)) {
 					const m = model as ModelsDevModel;
@@ -1178,7 +1178,7 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 						name: m.name || modelId,
 						api: "anthropic-messages",
 						provider,
-						// MiniMax's Anthropic-compatible API - SDK appends /v1/messages
+						// Alran's Anthropic-compatible API - SDK appends /v1/messages
 						baseUrl,
 						reasoning: m.reasoning === true,
 						input: m.modalities?.input?.includes("image") ? ["text", "image"] : ["text"],
@@ -1803,13 +1803,13 @@ async function generateModels() {
 		}
 	}
 
-	const minimaxDirectSupportedIds = new Set(["MiniMax-M2.7", "MiniMax-M2.7-highspeed", "MiniMax-M3"]);
+	const alranDirectSupportedIds = new Set(["Alran-M2.7", "Alran-M2.7-highspeed", "Alran-M3"]);
 
 	for (let i = allModels.length - 1; i >= 0; i--) {
 		const candidate = allModels[i];
 		if (
-			(candidate.provider === "minimax" || candidate.provider === "minimax-cn") &&
-			!minimaxDirectSupportedIds.has(candidate.id)
+			(candidate.provider === "alran" || candidate.provider === "alran-cn") &&
+			!alranDirectSupportedIds.has(candidate.id)
 		) {
 			allModels.splice(i, 1);
 		}

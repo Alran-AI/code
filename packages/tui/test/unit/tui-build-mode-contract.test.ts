@@ -20,7 +20,7 @@ const BASE_STATE: TuiShellState = {
   homeDir: '/home/dev',
   runtimeStatus: 'ready',
   sessionTitle: 'Protected status contract',
-  model: 'minimax/m2',
+  model: 'alran/m2',
   contextWindowTokens: 1_000_000,
   permissionMode: 'auto',
 };
@@ -33,13 +33,13 @@ afterEach(async () => {
 // that module here so a cold import on a loaded CI worker is charged to this
 // setup hook instead of pushing the first test past its own timeout.
 beforeAll(async () => {
-  const dataDir = await mkdtemp(join(tmpdir(), 'mcode-build-mode-contract-'));
+  const dataDir = await mkdtemp(join(tmpdir(), 'alran-build-mode-contract-'));
   roots.push(dataDir);
   await readTuiPresentationConfig(dataDir);
 }, 30_000);
 
 async function readPresentationConfig(lines: readonly string[]) {
-  const dataDir = await mkdtemp(join(tmpdir(), 'mcode-build-mode-contract-'));
+  const dataDir = await mkdtemp(join(tmpdir(), 'alran-build-mode-contract-'));
   roots.push(dataDir);
   await writeFile(join(dataDir, 'config.yaml'), lines.join('\n'));
   return readTuiPresentationConfig(dataDir);

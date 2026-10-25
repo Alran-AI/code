@@ -502,13 +502,13 @@ export function resolveTuiDraftRecoveryPath(
 ): string {
   const workspaceId = createHash('sha256').update(resolve(workspaceDir)).digest('hex').slice(0, 24);
   if (!sessionKey) {
-    return join(resolve(dataDir), 'v2', 'mcode', 'drafts', `${workspaceId}.json`);
+    return join(resolve(dataDir), 'v2', 'alran', 'drafts', `${workspaceId}.json`);
   }
   const sessionId = createHash('sha256')
     .update(normalizeSessionKey(sessionKey))
     .digest('hex')
     .slice(0, 24);
-  return join(resolve(dataDir), 'v2', 'mcode', 'drafts', workspaceId, `${sessionId}.json`);
+  return join(resolve(dataDir), 'v2', 'alran', 'drafts', workspaceId, `${sessionId}.json`);
 }
 
 function cloneDraft(draft: TuiRecoverableDraft): TuiRecoverableDraft {
@@ -860,7 +860,7 @@ function isVolatileClipboardMedia(attachment: TuiAttachment): boolean {
     return false;
   }
   return (
-    pathFromTemporaryDirectory.split(/[\\/]/u)[0]?.startsWith('minimax-code-clipboard-') === true
+    pathFromTemporaryDirectory.split(/[\\/]/u)[0]?.startsWith('alran-code-clipboard-') === true
   );
 }
 

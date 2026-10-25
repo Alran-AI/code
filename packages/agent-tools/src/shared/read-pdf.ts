@@ -11,7 +11,7 @@
  * 10-page must-provide-pages threshold, the 20-pages-per-request cap and
  * the exact error wordings). The content channel deviates deliberately:
  * cc ships the PDF as a native document block or rasterizes pages via
- * poppler — MiniMax-M3 has no document-block input and poppler is a system
+ * poppler — Alran-M3 has no document-block input and poppler is a system
  * dependency we cannot assume on user machines, so we extract text with
  * `unpdf` (self-contained, no worker setup). Page rasterization for
  * layout-heavy PDFs is a recorded follow-up.

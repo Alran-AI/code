@@ -1,21 +1,21 @@
 import {
-  MINIMAX_CODE_SUPPORTED_NODE_VERSIONS,
-  MINIMAX_CODE_VERSION,
+  ALRAN_CODE_SUPPORTED_NODE_VERSIONS,
+  ALRAN_CODE_VERSION,
   supportsTuiNodeVersion,
 } from '../build-info.js';
 import type { RawTuiExecOptions } from '../headless/invocation.js';
 import type { MavisRegion } from '@mavis/config';
 import { createTuiProgram, type TuiInteractiveLaunchRequest } from './program.js';
-import type { McodeProviderCliRequest } from './provider-command.js';
-import type { McodePluginCliRequest } from '../plugin/contract.js';
+import type { AlranProviderCliRequest } from './provider-command.js';
+import type { AlranPluginCliRequest } from '../plugin/contract.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import { configureTuiNetworkProxy } from './network-proxy.js';
 import { consumeLoginRestartHandoff } from '../tui/login-restart-handoff.js';
 import type { SystemPromptOverrides } from './system-prompt-options.js';
-import type { McodeTelemetryCliAction } from './telemetry-command.js';
+import type { AlranTelemetryCliAction } from './telemetry-command.js';
 
 const OUTPUT_DRAIN_TIMEOUT_MS = 250;
-const MINIMAX_CODE_PROCESS_TITLE = 'minimax-code';
+const ALRAN_CODE_PROCESS_TITLE = 'alran-code';
 
 export interface TuiOutputStream {
   readonly destroyed: boolean;
@@ -64,17 +64,17 @@ export interface RunTuiCliDependencies {
   readonly runLogout?: (region?: MavisRegion) => Promise<string>;
   readonly runUpdate?: (version: string) => Promise<void>;
   readonly runProvider?: (
-    request: McodeProviderCliRequest,
+    request: AlranProviderCliRequest,
     version: string,
     lane?: string,
   ) => Promise<string>;
   readonly runPlugin?: (
-    request: McodePluginCliRequest,
+    request: AlranPluginCliRequest,
     version: string,
     lane?: string,
   ) => Promise<string>;
   readonly runTelemetry?: (
-    action: McodeTelemetryCliAction,
+    action: AlranTelemetryCliAction,
     version: string,
     environment: NodeJS.ProcessEnv,
   ) => Promise<string> | string;
@@ -85,13 +85,13 @@ export interface RunTuiCliDependencies {
 
 export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promise<void> {
   const processRef = dependencies.processRef ?? process;
-  processRef.title = MINIMAX_CODE_PROCESS_TITLE;
+  processRef.title = ALRAN_CODE_PROCESS_TITLE;
   const resumeDraftAfterLogin = consumeLoginRestartHandoff(processRef.env);
   const supportsNodeVersion =
     dependencies.supportsNodeVersion ?? ((version: string) => supportsTuiNodeVersion(version));
   if (!supportsNodeVersion(processRef.versions.node)) {
     processRef.stderr.write(
-      `Minimax Code supports Node.js ${MINIMAX_CODE_SUPPORTED_NODE_VERSIONS}; current version is ${processRef.versions.node}.\n`,
+      `Alran Code supports Node.js ${ALRAN_CODE_SUPPORTED_NODE_VERSIONS}; current version is ${processRef.versions.node}.\n`,
     );
     processRef.exitCode = 1;
     return;
@@ -105,7 +105,7 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
     });
     const createProgram = dependencies.createProgram ?? createTuiProgram;
     await createProgram({
-      version: MINIMAX_CODE_VERSION,
+      version: ALRAN_CODE_VERSION,
       allowStartupEnvironmentSelection: dependencies.allowStartupEnvironmentSelection,
       launchTui: async ({
         initialPrompt,
@@ -121,7 +121,7 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
       }) => {
         const launchTui = dependencies.launchTui ?? defaultLaunchTui;
         await launchTui({
-          version: MINIMAX_CODE_VERSION,
+          version: ALRAN_CODE_VERSION,
           ...(initialPrompt ? { initialPrompt } : {}),
           ...(model ? { model } : {}),
           ...(sessionId ? { sessionId } : {}),
@@ -141,15 +141,15 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
         await runExec(
           prompt,
           lane ? { ...commandOptions, lane } : commandOptions,
-          MINIMAX_CODE_VERSION,
+          ALRAN_CODE_VERSION,
         );
         completedCommandExitMode = 'natural';
       },
       runAcp: async (lane, systemPromptOverrides) => {
         const runAcp = dependencies.runAcp ?? defaultRunAcp;
         await (systemPromptOverrides
-          ? runAcp(MINIMAX_CODE_VERSION, lane, systemPromptOverrides)
-          : runAcp(MINIMAX_CODE_VERSION, lane));
+          ? runAcp(ALRAN_CODE_VERSION, lane, systemPromptOverrides)
+          : runAcp(ALRAN_CODE_VERSION, lane));
         completedCommandExitMode = 'natural';
       },
       runLogin: async (region, openBrowser, lane) => {
@@ -165,21 +165,21 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
       runUpdate: async () => {
         completedCommandExitMode = 'natural';
         const runUpdate = dependencies.runUpdate ?? defaultRunUpdate;
-        await runUpdate(MINIMAX_CODE_VERSION);
+        await runUpdate(ALRAN_CODE_VERSION);
       },
       runProvider: async (request, lane) => {
         const runProvider = dependencies.runProvider ?? defaultRunProvider;
-        processRef.stdout.write(`${await runProvider(request, MINIMAX_CODE_VERSION, lane)}\n`);
+        processRef.stdout.write(`${await runProvider(request, ALRAN_CODE_VERSION, lane)}\n`);
         completedCommandExitMode = 'natural';
       },
       runPlugin: async (request, lane) => {
         const runPlugin = dependencies.runPlugin ?? defaultRunPlugin;
-        processRef.stdout.write(`${await runPlugin(request, MINIMAX_CODE_VERSION, lane)}\n`);
+        processRef.stdout.write(`${await runPlugin(request, ALRAN_CODE_VERSION, lane)}\n`);
         completedCommandExitMode = 'natural';
       },
       runTelemetry: async (action) => {
         const runTelemetry = dependencies.runTelemetry ?? defaultRunTelemetry;
-        processRef.stdout.write(await runTelemetry(action, MINIMAX_CODE_VERSION, processRef.env));
+        processRef.stdout.write(await runTelemetry(action, ALRAN_CODE_VERSION, processRef.env));
         completedCommandExitMode = 'natural';
       },
     }).parseAsync(processRef.argv, { from: 'node' });
@@ -222,20 +222,20 @@ async function formatTuiCliError(error: unknown): Promise<string> {
     return diagnostic;
   }
 
-  const { buildMcodePackageManagerCommand, resolveMcodeNpmPrefixInstall } =
+  const { buildAlranPackageManagerCommand, resolveAlranNpmPrefixInstall } =
     await import('../update/install-source.js');
-  if (resolveMcodeNpmPrefixInstall()) {
+  if (resolveAlranNpmPrefixInstall()) {
     return [
-      'MCode could not load its native SQLite dependency.',
+      'Alran could not load its native SQLite dependency.',
       'The Node runtime recorded by this installation no longer loads it (for example after a Homebrew Node upgrade).',
       'Reinstall with the original installer to repair this installation.',
       '',
       `Original error: ${diagnostic}`,
     ].join('\n');
   }
-  const command = buildMcodePackageManagerCommand('npm-global', MINIMAX_CODE_VERSION);
+  const command = buildAlranPackageManagerCommand('npm-global', ALRAN_CODE_VERSION);
   return [
-    'MCode could not load its native SQLite dependency.',
+    'Alran could not load its native SQLite dependency.',
     'If npm reported blocked install scripts, the installation needs explicit script approval.',
     'Reinstall with the original installer. For npm installations, run:',
     `  ${command.display} --foreground-scripts`,
@@ -308,33 +308,33 @@ async function defaultRunLogout(region?: MavisRegion): Promise<string> {
 }
 
 async function defaultRunUpdate(version: string): Promise<void> {
-  const { runMcodeUpdate } = await import('./update.js');
-  await runMcodeUpdate(version);
+  const { runAlranUpdate } = await import('./update.js');
+  await runAlranUpdate(version);
 }
 
 async function defaultRunProvider(
-  request: McodeProviderCliRequest,
+  request: AlranProviderCliRequest,
   version: string,
   lane?: string,
 ): Promise<string> {
-  const { runMcodeProviderCommand } = await import('./provider-command.js');
-  return runMcodeProviderCommand({ request, version, lane });
+  const { runAlranProviderCommand } = await import('./provider-command.js');
+  return runAlranProviderCommand({ request, version, lane });
 }
 
 async function defaultRunPlugin(
-  request: McodePluginCliRequest,
+  request: AlranPluginCliRequest,
   version: string,
   lane?: string,
 ): Promise<string> {
-  const { runMcodePluginCommand } = await import('./plugin-command.js');
-  return runMcodePluginCommand({ request, version, lane });
+  const { runAlranPluginCommand } = await import('./plugin-command.js');
+  return runAlranPluginCommand({ request, version, lane });
 }
 
 async function defaultRunTelemetry(
-  action: McodeTelemetryCliAction,
+  action: AlranTelemetryCliAction,
   version: string,
   environment: NodeJS.ProcessEnv,
 ): Promise<string> {
-  const { runMcodeTelemetryCommand } = await import('./telemetry-command.js');
-  return runMcodeTelemetryCommand(action, version, { environment });
+  const { runAlranTelemetryCommand } = await import('./telemetry-command.js');
+  return runAlranTelemetryCommand(action, version, { environment });
 }

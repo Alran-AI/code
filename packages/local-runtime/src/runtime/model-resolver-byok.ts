@@ -1,17 +1,17 @@
 // BYOK source resolution planning for the model resolver: turns a
-// source-qualified provider reference (`minimax_api`, `custom_provider:<key>`)
+// source-qualified provider reference (`alran_api`, `custom_provider:<key>`)
 // into concrete credentials + limits, without touching the legacy provider
 // tree path. Custom providers never consult the Pi catalog by name; missing
 // limits use the dedicated BYOK fallbacks (not the legacy 2048 default).
 import type { Api } from '@earendil-works/pi-ai';
-import { minimaxApiModels } from '@mavis/config';
+import { alranApiModels } from '@mavis/config';
 
 import type {
   LocalCustomProvidersConfig,
-  LocalMinimaxApiConfig,
+  LocalAlranApiConfig,
   LocalModelsConfig,
 } from '../config/types.js';
-import { MINIMAX_API_DEFAULT_BASE_URL } from '../model-provider/list-models.js';
+import { ALRAN_API_DEFAULT_BASE_URL } from '../model-provider/list-models.js';
 import {
   mergeProviderHeaders,
   normalizeProviderBaseUrl,
@@ -19,9 +19,9 @@ import {
 } from '../model-provider/provider-request.js';
 
 export interface LocalByokProviderConfig {
-  minimax_api?: LocalMinimaxApiConfig;
+  alran_api?: LocalAlranApiConfig;
   custom_provider?: LocalCustomProvidersConfig;
-  minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  alranModelSource?: 'token_plan' | 'alran_api_key';
 }
 
 export const BYOK_FALLBACK_MODEL_LIMITS = {
@@ -65,28 +65,28 @@ export async function resolveByokResolutionPlan(
   return { ...resolved, apiKey };
 }
 
-export function planMinimaxApiResolution(input: {
+export function planAlranApiResolution(input: {
   byok: LocalByokProviderConfig | undefined;
   providerConfig: LocalModelsConfig | undefined;
   modelId: string;
   catalog: { contextWindow: number; maxTokens: number; fromCatalog: boolean };
 }): ByokResolutionPlan | undefined {
-  const cfg = input.byok?.minimax_api;
+  const cfg = input.byok?.alran_api;
   if (!cfg) return undefined;
   const apiKey = cfg.apiKey?.trim();
   if (!apiKey) {
-    throw new Error('LocalModelResolver: minimax_api apiKey is not configured.');
+    throw new Error('LocalModelResolver: alran_api apiKey is not configured.');
   }
-  const catalogModel = minimaxApiModels({ provider: input.providerConfig, minimax_api: cfg })[
+  const catalogModel = alranApiModels({ provider: input.providerConfig, alran_api: cfg })[
     input.modelId
   ];
   return {
-    provider: 'minimax_api',
+    provider: 'alran_api',
     api: 'anthropic-messages',
     apiKey,
     baseUrl: normalizeProviderBaseUrl(
       'anthropic-messages',
-      cfg.baseURL?.trim() || MINIMAX_API_DEFAULT_BASE_URL,
+      cfg.baseURL?.trim() || ALRAN_API_DEFAULT_BASE_URL,
     ),
     contextWindow:
       catalogModel?.limit?.context ??

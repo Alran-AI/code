@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { applyTuiRenderTheme, getTuiThemeSnapshot, tuiChalk, tuiColors } from '../../src/tui/theme/runtime.js';
-import { MINIMAX_CODE_DARK_THEME, MINIMAX_CODE_LIGHT_THEME } from '../../src/tui/theme/palettes.js';
+import { ALRAN_CODE_DARK_THEME, ALRAN_CODE_LIGHT_THEME } from '../../src/tui/theme/palettes.js';
 import { TuiStatusLine } from '../../src/tui/shell/chrome.js';
 import { stripAnsi, visibleWidth } from '../../src/tui/rendering/text.js';
 import { setCapabilityOverrides } from '../../src/tui/engine/public.js';
@@ -19,7 +19,7 @@ const BASE_STATE: TuiShellState = {
   homeDir: '/home/dev',
   runtimeStatus: 'ready',
   sessionTitle: 'Ship status line',
-  model: 'minimax/m2',
+  model: 'alran/m2',
   thinking: 'on',
   permissionMode: 'auto',
   workspaceGit: {
@@ -764,7 +764,7 @@ describe('context meter boundaries', () => {
 
   it('uses the same warning and error boundaries as the percentage item', () => {
     const previous = getTuiThemeSnapshot();
-    applyTuiRenderTheme(MINIMAX_CODE_DARK_THEME, 3);
+    applyTuiRenderTheme(ALRAN_CODE_DARK_THEME, 3);
     try {
       for (const [remaining, color] of [
         [26, tuiColors.muted], [25, tuiColors.warning],
@@ -782,7 +782,7 @@ describe('context meter boundaries', () => {
       }
     } finally {
       applyTuiRenderTheme(
-        previous.appearance === 'light' ? MINIMAX_CODE_LIGHT_THEME : MINIMAX_CODE_DARK_THEME,
+        previous.appearance === 'light' ? ALRAN_CODE_LIGHT_THEME : ALRAN_CODE_DARK_THEME,
         previous.colorLevel,
       );
     }

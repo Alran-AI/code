@@ -22,7 +22,7 @@ export async function uploadLocalEvalRequest(input: {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${input.accessToken}`,
-        'User-Agent': 'MiniMaxAgent',
+        'User-Agent': 'AlranAgent',
         'X-Mavis-Desktop-Channel': 'desktop',
         'Content-Type': 'application/json',
       },

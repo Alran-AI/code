@@ -1,6 +1,6 @@
 /**
  * Add `<dataDir>/bin` to the user's shell or user-level PATH so that
- * `mavis`, `minimax`, and `mavis-trash` are available in new terminal
+ * `mavis`, `alran`, and `mavis-trash` are available in new terminal
  * sessions.
  *
  * Best-effort: failures are swallowed — PATH integration must never block
@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
-const PATH_MARKER = '# Added by MiniMax Code';
+const PATH_MARKER = '# Added by Alran Code';
 
 export function ensurePathIntegration(dataDir: string): void {
   const binDir = join(dataDir, 'bin');

@@ -68,9 +68,9 @@ export function initializeModelSystem(options: InitializeModelSystemOptions): Mo
     byokConfigGetter: () => {
       const config = options.config.read();
       return {
-        ...(config.minimax_api ? { minimax_api: config.minimax_api } : {}),
+        ...(config.alran_api ? { alran_api: config.alran_api } : {}),
         ...(config.custom_provider ? { custom_provider: config.custom_provider } : {}),
-        ...(config.minimaxModelSource ? { minimaxModelSource: config.minimaxModelSource } : {}),
+        ...(config.alranModelSource ? { alranModelSource: config.alranModelSource } : {}),
       };
     },
   });

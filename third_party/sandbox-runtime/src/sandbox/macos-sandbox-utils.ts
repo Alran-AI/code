@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { quote } from "../utils/shell-quote.js";
 import { spawn } from "child_process";
@@ -647,7 +647,7 @@ function generateWriteRules(
   // Block file movement to prevent bypass via mv/rename
   rules.push(...generateMoveBlockingRules(denyPaths, logTag));
 
-  // MCode operation-scoped delete policy. The global unlink deny must be
+  // Alran operation-scoped delete policy. The global unlink deny must be
   // emitted after both the read-side write-root allow and the move-blocking
   // rules above. Only unlink is re-opened: file-write-create remains subject
   // to the mandatory injection protections. Explicit caller denyWrite paths
@@ -896,7 +896,7 @@ function generateSandboxProfile({
   profile.push("; Network");
   if (!needsNetworkRestriction) {
     profile.push("(allow network*)");
-    // MCODE-008: network* covers bind/inbound/outbound but NOT the
+    // ALRAN-008: network* covers bind/inbound/outbound but NOT the
     // socket(AF_UNIX) creation syscall — that needs system-socket (see the
     // allowAllUnixSockets note below). Allow it here so Unix-socket
     // clients (ssh-agent, docker.sock, Gradle) work in the unrestricted

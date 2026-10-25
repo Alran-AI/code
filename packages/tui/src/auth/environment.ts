@@ -6,33 +6,33 @@ import {
 
 export type TuiBuildEnvironment = 'test' | 'staging' | 'prod';
 export type TuiBuildVariant = 'standard' | 'internal';
-export type McodeDataEnvironment = TuiBuildEnvironment | 'dev';
+export type AlranDataEnvironment = TuiBuildEnvironment | 'dev';
 
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
 declare const __TUI_BUILD_VARIANT__: TuiBuildVariant | undefined;
 
-export interface ResolveMcodeAuthEnvironmentOptions {
+export interface ResolveAlranAuthEnvironmentOptions {
   readonly embeddedBuildEnvironment?: TuiBuildEnvironment;
   readonly embeddedBuildVariant?: TuiBuildVariant;
   readonly runtimeRegion?: MavisRegion;
   readonly runtimeBuildEnv?: MavisBuildEnv;
 }
 
-export interface McodeAuthEnvironment {
+export interface AlranAuthEnvironment {
   readonly region: MavisRegion;
   readonly buildEnv: MavisBuildEnv;
 }
 
 let startupBuildEnvironment: TuiBuildEnvironment | undefined;
 
-export function setMcodeStartupBuildEnvironment(
+export function setAlranStartupBuildEnvironment(
   environment: TuiBuildEnvironment | undefined,
 ): void {
   startupBuildEnvironment = environment;
 }
 
-export function resolveMcodeBuildIdentity(
-  options: ResolveMcodeAuthEnvironmentOptions = {},
+export function resolveAlranBuildIdentity(
+  options: ResolveAlranAuthEnvironmentOptions = {},
 ): ProductBuildIdentity {
   const embeddedBuildEnvironment =
     options.embeddedBuildEnvironment ?? readEmbeddedBuildEnvironment();
@@ -45,10 +45,10 @@ export function resolveMcodeBuildIdentity(
   });
 }
 
-export function resolveMcodeAuthEnvironment(
-  options: ResolveMcodeAuthEnvironmentOptions = {},
-): McodeAuthEnvironment {
-  const buildIdentity = resolveMcodeBuildIdentity(options);
+export function resolveAlranAuthEnvironment(
+  options: ResolveAlranAuthEnvironmentOptions = {},
+): AlranAuthEnvironment {
+  const buildIdentity = resolveAlranBuildIdentity(options);
 
   return {
     region: options.runtimeRegion ?? 'cn',
@@ -56,9 +56,9 @@ export function resolveMcodeAuthEnvironment(
   };
 }
 
-export function resolveMcodeDataEnvironment(
+export function resolveAlranDataEnvironment(
   embeddedBuildEnvironment: TuiBuildEnvironment | undefined = readEmbeddedBuildEnvironment(),
-): McodeDataEnvironment {
+): AlranDataEnvironment {
   return startupBuildEnvironment ?? embeddedBuildEnvironment ?? 'dev';
 }
 

@@ -52,8 +52,8 @@ export const SessionInteractionModeView = {
 export type SessionInteractionModeView =
   (typeof SessionInteractionModeView)[keyof typeof SessionInteractionModeView];
 
-export const MCODE_CONTEXT_MODES = ['standard', 'lightweight'] as const;
-export type McodeContextMode = (typeof MCODE_CONTEXT_MODES)[number];
+export const ALRAN_CONTEXT_MODES = ['standard', 'lightweight'] as const;
+export type AlranContextMode = (typeof ALRAN_CONTEXT_MODES)[number];
 
 /**
  * Immutable marker for an explicitly created lightweight root Session.
@@ -130,7 +130,7 @@ export const SkillScope = {
 export type SkillScope = (typeof SkillScope)[keyof typeof SkillScope];
 
 export const SkillSourceType = {
-  MINIMAX_OFFICIAL: 1,
+  ALRAN_OFFICIAL: 1,
   USER_CONTRIBUTION: 2,
 } as const;
 

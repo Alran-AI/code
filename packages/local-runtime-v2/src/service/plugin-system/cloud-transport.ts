@@ -8,7 +8,7 @@ import { PLUGIN_PACKAGE_V1_LIMITS } from './plugin/package/package-contract.js';
 
 // Client attribution constants for the `yy` / `x-timestamp` / `x-signature` headers.
 //
-// These tag a request as coming from a first-party MiniMax client. They are shared
+// These tag a request as coming from a first-party Alran client. They are shared
 // across clients and are not credentials or a security boundary: request
 // authorization is the bearer token sent alongside them.
 //
@@ -216,7 +216,7 @@ function buildHeaders(input: {
   };
   if (input.auth) headers.Authorization = `Bearer ${input.auth.accessToken}`;
   if (input.previewSecret?.trim()) {
-    headers['X-Minimax-Agent-Preview-Secret'] = input.previewSecret.trim();
+    headers['X-Alran-Agent-Preview-Secret'] = input.previewSecret.trim();
   }
   if (input.lane?.trim()) {
     headers.lane = input.lane.trim();

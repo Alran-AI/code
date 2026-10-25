@@ -8,34 +8,34 @@ import type {
 import {
   DEFAULT_MODEL_PRESETS,
   getRuntimePresetKey,
-  isLegacyManagedMinimaxProvider,
+  isLegacyManagedAlranProvider,
   resolveModelAvailability,
 } from '@mavis/config';
 import { LocalModelProviderError, type LocalRuntimeConfig } from '../contracts.js';
 import { parseProviderId, parseSourceQualifiedModelKey } from '../resolution/model-key.js';
 
-export const LEGACY_MINIMAX_PROVIDER_ID = 'custom_provider:minimax-legacy';
+export const LEGACY_ALRAN_PROVIDER_ID = 'custom_provider:alran-legacy';
 
-export function isLegacyMinimaxProvider(config: LocalRuntimeConfig, providerId: string): boolean {
+export function isLegacyAlranProvider(config: LocalRuntimeConfig, providerId: string): boolean {
   const key = parseProviderId(providerId)?.providerKey;
   const provider = key ? config.custom_provider?.[key] : undefined;
-  return isLegacyManagedMinimaxProvider(providerId, provider?.options?.baseURL);
+  return isLegacyManagedAlranProvider(providerId, provider?.options?.baseURL);
 }
 
 /** Resolves a retired managed alias without changing unrelated custom providers. */
-export function resolveLegacyMinimaxModel(
+export function resolveLegacyAlranModel(
   config: LocalRuntimeConfig,
   selection: { readonly providerId: string; readonly modelId: string },
 ): { readonly providerId: string; readonly modelId: string } | undefined {
-  if (!isLegacyMinimaxProvider(config, selection.providerId)) return undefined;
+  if (!isLegacyAlranProvider(config, selection.providerId)) return undefined;
   const preset = getRuntimePresetKey();
   const configured = parseSourceQualifiedModelKey(config.defaultModel);
   const officialDefault = parseSourceQualifiedModelKey(DEFAULT_MODEL_PRESETS[preset].defaultModel);
   const candidates = [
-    { providerId: 'minimax', modelId: selection.modelId },
+    { providerId: 'alran', modelId: selection.modelId },
     ...(configured &&
-    (configured.providerId === 'minimax' || isLegacyMinimaxProvider(config, configured.providerId))
-      ? [{ providerId: 'minimax', modelId: configured.modelId }]
+    (configured.providerId === 'alran' || isLegacyAlranProvider(config, configured.providerId))
+      ? [{ providerId: 'alran', modelId: configured.modelId }]
       : []),
     ...(officialDefault
       ? [{ providerId: officialDefault.providerId, modelId: officialDefault.modelId }]
@@ -53,7 +53,7 @@ export function resolveLegacyMinimaxModel(
   if (replacement) return replacement;
   throw new LocalModelProviderError(
     400,
-    'The legacy MiniMax model has no available official replacement. Select an available official model.',
+    'The legacy Alran model has no available official replacement. Select an available official model.',
     'MODEL_NOT_AVAILABLE_FOR_ROUTE',
   );
 }
@@ -234,8 +234,8 @@ function resolveCreateThinking(
 ): ConversationModelSelection['thinking'] {
   const fallback = parseSourceQualifiedModelKey(config.defaultModel);
   const inheritsGlobalEffort =
-    providerId === 'minimax' &&
-    config.minimaxModelSource !== 'minimax_api_key' &&
+    providerId === 'alran' &&
+    config.alranModelSource !== 'alran_api_key' &&
     providerId === fallback?.providerId &&
     modelId === fallback?.modelId &&
     requested.thinking === undefined &&
@@ -299,7 +299,7 @@ export function freezeManagedQueueModel(
   const selection = requested ?? inherited;
   const provider = selection.provider_id ?? inherited.provider_id;
   const modelId = selection.model_id ?? inherited.model_id ?? '';
-  if (provider !== 'minimax' || config.minimaxModelSource === 'minimax_api_key') return requested;
+  if (provider !== 'alran' || config.alranModelSource === 'alran_api_key') return requested;
   const model = availableManagedQueueModel(config, modelId);
   if (!requested && saved && !saved.parameterSnapshot) {
     return freezeLegacyQueueSelection(provider, modelId, model, selection);
@@ -321,7 +321,7 @@ function queueSessionModel(session: SessionSelection, frozenModel?: FrozenQueueS
 }
 
 function availableManagedQueueModel(config: LocalRuntimeConfig, modelId: string) {
-  const model = config.provider?.minimax?.models?.[modelId];
+  const model = config.provider?.alran?.models?.[modelId];
   if (!modelId || !model || model.enabled === false) {
     throw new LocalModelProviderError(
       400,

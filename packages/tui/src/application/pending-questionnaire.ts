@@ -1,5 +1,5 @@
 import type { TuiInteractionPort, TuiQuestionnaireRequest } from '../runtime/port.js';
-import { MINIMAX_CODE_DEFAULT_AGENT_NAME } from '../product-context.js';
+import { ALRAN_CODE_DEFAULT_AGENT_NAME } from '../product-context.js';
 import type { TuiStreamEvent } from '../runtime/stream-events.js';
 
 /** A fast reply can resolve the pending request before the stream has drained. */
@@ -34,7 +34,7 @@ export async function pendingQuestionnaireForTurn(
   runtime: Partial<Pick<TuiInteractionPort, 'getPendingQuestionnaire'>>,
   sessionId: string,
   turnId: string,
-  agentName = MINIMAX_CODE_DEFAULT_AGENT_NAME,
+  agentName = ALRAN_CODE_DEFAULT_AGENT_NAME,
   signal?: AbortSignal,
 ): Promise<TuiQuestionnaireRequest | undefined> {
   const request = await runtime.getPendingQuestionnaire?.(agentName, sessionId, signal);

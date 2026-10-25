@@ -22,7 +22,7 @@ export interface AuthState {
   schemaVersion: typeof AUTH_STATE_SCHEMA_VERSION | typeof AUTH_STATE_MIN_SUPPORTED_SCHEMA_VERSION;
   status: AuthStatus;
   storeKind: PersistedCredentialStoreKind;
-  clientId: 'mcode-public';
+  clientId: 'alran-public';
   scopes: string[];
   audience: 'agent-backend';
   buildEnv?: AuthBuildEnv;
@@ -75,7 +75,7 @@ function parseState(value: unknown): AuthState {
     ((state.schemaVersion === 1 &&
       (state.storeKind === 'os-keyring' || state.storeKind === 'file')) ||
       (state.schemaVersion === AUTH_STATE_SCHEMA_VERSION && state.storeKind === 'file')) &&
-    state.clientId === 'mcode-public' &&
+    state.clientId === 'alran-public' &&
     Array.isArray(state.scopes) &&
     state.scopes.every((scope) => typeof scope === 'string') &&
     state.audience === 'agent-backend' &&

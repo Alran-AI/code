@@ -62,7 +62,7 @@ templates/                    <- 8 distilled HTML templates
   INDEX.md                    <- master template index
   bilingual-menu-premium/     <- premium bilingual menu (CREATE)
   brand-guide-2page/          <- 2-page brand guide (CREATE)
-    cases/minimax-web-brand-guide/ <- MiniMax website→brand-guide exemplar source
+    cases/alran-web-brand-guide/ <- Alran website→brand-guide exemplar source
   data-viz-report/            <- chart-rich data brief (CREATE)
   multi-article-aggregator/   <- article digest with TOC pagination (CREATE)
   multilang-research-report/  <- multi-jurisdiction regulatory report (CREATE)

@@ -4,7 +4,7 @@ import path from 'node:path';
 import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
 
 const REGION_PREFERENCE_DIRECTORY = 'preferences';
-const REGION_PREFERENCE_FILE = 'mcode-region.json';
+const REGION_PREFERENCE_FILE = 'alran-region.json';
 
 interface TuiRegionPreferenceRecord {
   readonly version: 1;

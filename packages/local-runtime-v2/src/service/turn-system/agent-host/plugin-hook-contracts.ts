@@ -1,7 +1,7 @@
 /** Structural Hook capability port; vendor parsing and execution stay in the Plugin adapter. */
 export interface AgentHostPluginHookHandler {
   readonly kind: 'command';
-  readonly sourceFormat: 'MINIMAX' | 'CLAUDE' | 'CODEX';
+  readonly sourceFormat: 'ALRAN' | 'CLAUDE' | 'CODEX';
   readonly pluginName: string;
   readonly pluginRoot: string;
   readonly sourcePath: string;

@@ -1,4 +1,4 @@
-export type McodeUpdatePhase =
+export type AlranUpdatePhase =
   | 'checking'
   | 'downloading'
   | 'staging'
@@ -7,38 +7,38 @@ export type McodeUpdatePhase =
   | 'activating'
   | 'completed';
 
-export interface McodeUpdatePhaseEvent {
-  readonly phase: McodeUpdatePhase;
+export interface AlranUpdatePhaseEvent {
+  readonly phase: AlranUpdatePhase;
   readonly cancellable: boolean;
 }
 
-export interface McodeUpdateOperationOptions {
+export interface AlranUpdateOperationOptions {
   readonly signal?: AbortSignal;
   readonly onOutput?: (chunk: string) => void;
-  readonly onPhase?: (event: McodeUpdatePhaseEvent) => void;
+  readonly onPhase?: (event: AlranUpdatePhaseEvent) => void;
 }
 
-export class McodeUpdateCancelledError extends Error {
-  constructor(message = 'MCode update cancelled; the previous installation remains active.') {
+export class AlranUpdateCancelledError extends Error {
+  constructor(message = 'Alran update cancelled; the previous installation remains active.') {
     super(message);
-    this.name = 'McodeUpdateCancelledError';
+    this.name = 'AlranUpdateCancelledError';
   }
 }
 
-export class McodeUpdateAdmissionError extends Error {
+export class AlranUpdateAdmissionError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'McodeUpdateAdmissionError';
+    this.name = 'AlranUpdateAdmissionError';
   }
 }
 
-export function throwIfMcodeUpdateCancelled(signal: AbortSignal | undefined): void {
-  if (signal?.aborted) throw new McodeUpdateCancelledError();
+export function throwIfAlranUpdateCancelled(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) throw new AlranUpdateCancelledError();
 }
 
-export function reportMcodeUpdatePhase(
-  options: Pick<McodeUpdateOperationOptions, 'onPhase'>,
-  phase: McodeUpdatePhase,
+export function reportAlranUpdatePhase(
+  options: Pick<AlranUpdateOperationOptions, 'onPhase'>,
+  phase: AlranUpdatePhase,
   cancellable: boolean,
 ): void {
   try {
@@ -48,10 +48,10 @@ export function reportMcodeUpdatePhase(
   }
 }
 
-export function isMcodeUpdateCancelledError(error: unknown): error is McodeUpdateCancelledError {
-  return error instanceof McodeUpdateCancelledError;
+export function isAlranUpdateCancelledError(error: unknown): error is AlranUpdateCancelledError {
+  return error instanceof AlranUpdateCancelledError;
 }
 
-export function isMcodeUpdateAdmissionError(error: unknown): error is McodeUpdateAdmissionError {
-  return error instanceof McodeUpdateAdmissionError;
+export function isAlranUpdateAdmissionError(error: unknown): error is AlranUpdateAdmissionError {
+  return error instanceof AlranUpdateAdmissionError;
 }

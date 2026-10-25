@@ -56,7 +56,7 @@ import {
 } from "../../project/canonical-workspace.js";
 
 const DEFAULT_LOCAL_AGENT_AVATAR_URL =
-  "https://filecdn.minimax.chat/public/d92edcbe-2404-417b-a133-b770b0b9bf61.svg";
+  "https://cdn.ottili.one/public/d92edcbe-2404-417b-a133-b770b0b9bf61.svg";
 const LEGACY_PRIMARY_AGENT_NAME = "main";
 
 export interface LocalAgentRouteContext {

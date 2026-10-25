@@ -45,7 +45,7 @@ writeFileSync(join(data, 'config.yaml'), [
 ].join('\n'));
 const cfg = loadPerfConfig([
   '--script', input.script, '--exhausted', 'stop', '--work-dir', workspace,
-  '--out-dir', join(input.directory, 'raw'), '--harness', 'minimax-code',
+  '--out-dir', join(input.directory, 'raw'), '--harness', 'alran-code',
   '--port', String(port), '--interval-ms', String(input.intervalMs),
   '--timeout-ms', String(input.scenario.timeoutMs), '--sampler', 'rusage',
   '--prompt', '压测：请持续用只读命令检查当前目录状态',
@@ -57,9 +57,9 @@ try { code = await runPerf(cfg, {
     '--import', pathToFileURL(join(input.control, 'test/network-deny.mjs')).href,
     join(input.build, 'dist/cli.js'), 'exec', '--permission', 'off', '--cwd', workspace,
     '--model', 'custom_provider:llm-mock/llm-mock', cfg.prompt],
-  harnessEnv: () => ({ MINIMAX_DATA_DIR: data, PI_TELEMETRY: '0',
-    MCODE_TEST_ALLOWED_ORIGIN: `http://127.0.0.1:${proxy.port}`,
-    MCODE_TEST_NETWORK_AUDIT: join(input.directory, 'network.log'), MCODE_TEST_MANAGED_OFFLINE: '1',
+  harnessEnv: () => ({ ALRAN_DATA_DIR: data, PI_TELEMETRY: '0',
+    ALRAN_TEST_ALLOWED_ORIGIN: `http://127.0.0.1:${proxy.port}`,
+    ALRAN_TEST_NETWORK_AUDIT: join(input.directory, 'network.log'), ALRAN_TEST_MANAGED_OFFLINE: '1',
   }),
 }); } finally { proxy.stop(true); }
 if (code !== 0) throw new Error(`Upstream runner failed: ${code}`);

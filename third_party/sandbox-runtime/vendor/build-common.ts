@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { spawnSync } from 'node:child_process'
 import { mkdirSync } from 'node:fs'

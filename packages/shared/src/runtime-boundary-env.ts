@@ -43,7 +43,7 @@ export const LEGACY_RUNTIME_ENV_KEYS = [
   '__MAVIS_RUNTIME_SESSION_ID',
   '__MAVIS_RUNTIME_DAEMON_URL',
   'MAVIS_PORT',
-  'MINIMAX_DATA_DIR',
+  'ALRAN_DATA_DIR',
   'MAVIS_DATA_DIR',
   'MAVIS_PROFILE',
   'MAVIS_SKIP_PID_PORT',
@@ -172,7 +172,7 @@ export function findLegacyRuntimeEnvKeys(env: NodeJS.ProcessEnv = process.env): 
     (key) =>
       key.startsWith('__MAVIS_RUNTIME_') ||
       key === 'MAVIS_PORT' ||
-      key === 'MINIMAX_DATA_DIR' ||
+      key === 'ALRAN_DATA_DIR' ||
       key === 'MAVIS_DATA_DIR' ||
       key === 'MAVIS_PROFILE' ||
       key === 'MAVIS_SKIP_PID_PORT' ||

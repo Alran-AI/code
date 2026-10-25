@@ -582,13 +582,13 @@ function resolveDesktopDomainUrl(options: CreateDesktopReporterOptions): string 
   if (configuredDomainUrl) return configuredDomainUrl;
 
   if (options.isEn) {
-    if (options.isProd) return 'https://agent.minimax.io';
+    if (options.isProd) return 'https://api.ottili.one';
     if (options.isStaging) return 'https://matrix-overseas-pre.example.invalid';
     if (options.isDev) return 'https://matrix-overseas-test.example.invalid';
     return 'https://matrix-overseas-test.example.invalid';
   }
 
-  if (options.isProd) return 'https://agent.minimax.cn';
+  if (options.isProd) return 'https://api.ottili.one';
   if (options.isStaging) return 'https://matrix-pre.example.invalid';
   if (options.isDev) return 'https://matrix-test.example.invalid';
   return 'https://matrix-test.example.invalid';

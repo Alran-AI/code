@@ -28,7 +28,7 @@ import type { DesktopErrorLog } from './types.js';
 export const EVENT_LOG_WIRE_VERSION = 'v1';
 
 /** Fixed HKDF salt (design §2); must match Gateway exactly. */
-export const HKDF_SALT = 'mcode-desktop-event-log-v1';
+export const HKDF_SALT = 'alran-desktop-event-log-v1';
 
 /** AES-256 derives a 32-byte key; GCM uses a 12-byte nonce. */
 const AES_KEY_BYTES = 32;

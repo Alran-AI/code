@@ -6,17 +6,17 @@ import yaml from 'js-yaml';
 import lockfile from 'proper-lockfile';
 
 import { getConfig, getConfigPath, resetConfig, type Config } from './config.js';
-import { minimaxApiModels } from './byok-config.js';
-import { MANAGED_MINIMAX_PROVIDER_ID, MINIMAX_API_PROVIDER_ID } from './model-availability.js';
+import { alranApiModels } from './byok-config.js';
+import { MANAGED_ALRAN_PROVIDER_ID, ALRAN_API_PROVIDER_ID } from './model-availability.js';
 
 const LOCAL_CONFIG_FILE_MODE = 0o600;
 const DANGEROUS_CONFIG_PATH_SEGMENTS = new Set(['__proto__', 'prototype', 'constructor']);
-const LOCAL_BYOK_CONFIG_ROOTS = ['minimax_api', 'custom_provider'] as const;
+const LOCAL_BYOK_CONFIG_ROOTS = ['alran_api', 'custom_provider'] as const;
 
 export interface LocalByokConfigDraft {
-  minimax_api?: Record<string, unknown>;
+  alran_api?: Record<string, unknown>;
   custom_provider?: Record<string, unknown>;
-  minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  alranModelSource?: 'token_plan' | 'alran_api_key';
   defaultModel?: string;
   defaultModelVariant?: string;
 }
@@ -28,7 +28,7 @@ export interface LocalModelSelectionWriteInput {
   readonly contextLimit?: number;
 }
 
-export interface ManagedMinimaxProviderSnapshot {
+export interface ManagedAlranProviderSnapshot {
   readonly api?: string;
   readonly name?: string;
   readonly options?: unknown;
@@ -50,18 +50,18 @@ export async function removeLocalProviderConfig(
   }).then(({ config }) => ({ config }));
 }
 
-/** Replace the official MiniMax snapshot without taking ownership of BYOK roots. */
-export async function replaceLocalManagedMinimaxProvider(
-  provider: ManagedMinimaxProviderSnapshot,
+/** Replace the official Alran snapshot without taking ownership of BYOK roots. */
+export async function replaceLocalManagedAlranProvider(
+  provider: ManagedAlranProviderSnapshot,
 ): Promise<{ readonly config: Config }> {
   if (!isPlainRecord(provider) || !isPlainRecord(provider.models)) {
-    throw new LocalModelProviderConfigValidationError('Invalid managed MiniMax provider snapshot');
+    throw new LocalModelProviderConfigValidationError('Invalid managed Alran provider snapshot');
   }
   assertSafeConfigRecord(provider);
   return withLockedConfig(async (raw) => {
     raw.provider = {
       ...(isPlainRecord(raw.provider) ? raw.provider : {}),
-      [MANAGED_MINIMAX_PROVIDER_ID]: structuredClone(provider),
+      [MANAGED_ALRAN_PROVIDER_ID]: structuredClone(provider),
     };
     return { write: true, value: undefined };
   }).then(({ config }) => ({ config }));
@@ -93,13 +93,13 @@ export async function updateLocalByokConfig(
 ): Promise<{ readonly config: Config }> {
   return withLockedConfig(async (raw, currentConfig) => {
     const draft: LocalByokConfigDraft = {
-      minimax_api: isPlainRecord(raw.minimax_api) ? raw.minimax_api : undefined,
+      alran_api: isPlainRecord(raw.alran_api) ? raw.alran_api : undefined,
       custom_provider: withoutEmptyEntries(
         isPlainRecord(raw.custom_provider) ? raw.custom_provider : undefined,
       ),
-      minimaxModelSource:
-        typeof raw.minimaxModelSource === 'string'
-          ? (raw.minimaxModelSource as 'token_plan' | 'minimax_api_key')
+      alranModelSource:
+        typeof raw.alranModelSource === 'string'
+          ? (raw.alranModelSource as 'token_plan' | 'alran_api_key')
           : undefined,
       defaultModel: typeof raw.defaultModel === 'string' ? raw.defaultModel : undefined,
       defaultModelVariant:
@@ -118,7 +118,7 @@ export async function updateLocalByokConfig(
       assertSafeConfigRecord(value);
       raw[root] = value;
     }
-    setOptionalString(raw, 'minimaxModelSource', draft.minimaxModelSource);
+    setOptionalString(raw, 'alranModelSource', draft.alranModelSource);
     if (raw.defaultModel !== draft.defaultModel) {
       delete raw.defaultModelThinking;
       delete raw.defaultModelContextWindow;
@@ -161,7 +161,7 @@ export async function updateLocalModelSelection(
   }).then(({ config }) => ({ config }));
 }
 
-/** Compare, remote-test, and persist a managed MiniMax model Context under one config lock. */
+/** Compare, remote-test, and persist a managed Alran model Context under one config lock. */
 export async function compareAndSetLocalModelContext(
   input: {
     readonly providerId: string;
@@ -173,32 +173,32 @@ export async function compareAndSetLocalModelContext(
 ): Promise<LocalModelContextCompareAndSetResult> {
   const modelId = input.modelId.trim();
   if (
-    (input.providerId !== MANAGED_MINIMAX_PROVIDER_ID &&
-      input.providerId !== MINIMAX_API_PROVIDER_ID) ||
+    (input.providerId !== MANAGED_ALRAN_PROVIDER_ID &&
+      input.providerId !== ALRAN_API_PROVIDER_ID) ||
     !modelId ||
     DANGEROUS_CONFIG_PATH_SEGMENTS.has(modelId)
   ) {
-    throw new LocalModelProviderConfigValidationError('Invalid MiniMax model context target');
+    throw new LocalModelProviderConfigValidationError('Invalid Alran model context target');
   }
   const outcome = await withLockedConfig(async (raw, currentConfig) => {
     const model =
-      input.providerId === MANAGED_MINIMAX_PROVIDER_ID
+      input.providerId === MANAGED_ALRAN_PROVIDER_ID
         ? currentConfig.provider?.[input.providerId]?.models?.[modelId]
-        : minimaxApiModels(currentConfig)[modelId];
+        : alranApiModels(currentConfig)[modelId];
     if (
-      input.providerId === MINIMAX_API_PROVIDER_ID &&
+      input.providerId === ALRAN_API_PROVIDER_ID &&
       !model?.contextWindowOptions?.includes(input.contextLimit)
     ) {
-      throw new LocalModelProviderConfigValidationError('Invalid MiniMax API context limit');
+      throw new LocalModelProviderConfigValidationError('Invalid Alran API context limit');
     }
     if (model?.limit?.context !== input.expectedContextLimit) {
       return { write: false, value: false };
     }
     if (!(await beforeCommit(currentConfig))) return { write: false, value: false };
     const path =
-      input.providerId === MANAGED_MINIMAX_PROVIDER_ID
-        ? ['minimaxModelContextLimits', modelId]
-        : ['minimax_api', 'modelContextLimits', modelId];
+      input.providerId === MANAGED_ALRAN_PROVIDER_ID
+        ? ['alranModelContextLimits', modelId]
+        : ['alran_api', 'modelContextLimits', modelId];
     setNestedValue(raw, path, input.contextLimit);
     return { write: true, value: true };
   });
@@ -290,7 +290,7 @@ function withoutEmptyEntries(
 
 function setOptionalString(
   raw: Record<string, unknown>,
-  key: 'minimaxModelSource' | 'defaultModel' | 'defaultModelVariant',
+  key: 'alranModelSource' | 'defaultModel' | 'defaultModelVariant',
   value: string | undefined,
 ): void {
   if (value === undefined) delete raw[key];

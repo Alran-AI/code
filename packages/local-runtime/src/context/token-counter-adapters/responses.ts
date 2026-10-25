@@ -12,10 +12,10 @@ import {
 import { isManagedLoginTokenPlan } from './managed-login.js';
 import { parseTopLevelInputTokens } from './parse.js';
 
-export const minimaxResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
-  id: 'minimax-responses',
+export const alranResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
+  id: 'alran-responses',
   counterKind: 'responses',
-  matches: (ctx) => ctx.model.provider === 'minimax_api',
+  matches: (ctx) => ctx.model.provider === 'alran_api',
   buildRequest: (ctx) => buildResponsesCounterRequest(ctx, true),
   parseTokens: parseTopLevelInputTokens,
 };
@@ -35,7 +35,7 @@ export const genericResponsesTokenCounterAdapter: RemoteTokenCounterAdapter = {
 
 function buildResponsesCounterRequest(
   ctx: RemoteTokenCountContext,
-  isMinimaxApi: boolean,
+  isAlranApi: boolean,
 ): RemoteTokenCounterHttpRequest | undefined {
   const body = buildResponsesInputTokensRequestBody(
     ctx.messages,
@@ -43,10 +43,10 @@ function buildResponsesCounterRequest(
     ctx.model,
     ctx.tools,
   );
-  if (isMinimaxApi && responsesInputTokensBodyHasVideo(body)) {
+  if (isAlranApi && responsesInputTokensBodyHasVideo(body)) {
     logger.info(
       { model: ctx.model.id, provider: ctx.model.provider },
-      '[local-remote-token-counter] MiniMax Responses input_tokens does not accept video; using BPE fallback',
+      '[local-remote-token-counter] Alran Responses input_tokens does not accept video; using BPE fallback',
     );
     return undefined;
   }
@@ -55,7 +55,7 @@ function buildResponsesCounterRequest(
   const baseUrl = ctx.model.baseUrl;
   return {
     url: buildResponsesInputTokensUrl(baseUrl, {
-      stripMessagesCompatibilityPrefix: isMinimaxApi,
+      stripMessagesCompatibilityPrefix: isAlranApi,
     }),
     unsupportedCacheKey: `responses:${baseUrl}`,
     body,

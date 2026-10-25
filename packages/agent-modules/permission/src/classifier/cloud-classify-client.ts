@@ -28,13 +28,13 @@ const PERMISSION_API_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = 
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimax.cn',
+    prod: 'https://api.ottili.one',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
     test: 'https://matrix-overseas-test.example.invalid',
     staging: 'https://matrix-overseas-pre.example.invalid',
-    prod: 'https://agent.minimax.io',
+    prod: 'https://api.ottili.one',
   },
 };
 

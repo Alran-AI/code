@@ -100,7 +100,7 @@ export function createTuiRuntimeLogging(
       const isolated = (...args: unknown[]) => {
         const level = consoleMethodToRuntimeLevel(method);
         runtimeLogger[level](
-          { source: 'mcode-runtime-console', consoleLevel: method },
+          { source: 'alran-runtime-console', consoleLevel: method },
           formatWithOptions({ colors: false, depth: 4 }, ...args),
         );
       };

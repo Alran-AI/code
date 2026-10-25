@@ -7,7 +7,7 @@ import path from "node:path";
 import { afterEach, describe, it } from "vitest";
 import { checkWindowsSourceLocation } from "../scripts/check-windows-source-location.mjs";
 import { resolveWslPath } from "../packages/tui/src/host/wsl-path.js";
-import { McodeUpdateService } from "../packages/tui/src/update/service.js";
+import { AlranUpdateService } from "../packages/tui/src/update/service.js";
 
 const windowsPath = String.raw`D:\Users\demo\Documents\Screen shots\截图.png`;
 const temporaryRoots = [];
@@ -33,14 +33,14 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
   });
 
   it.each(["standard npm", "custom npm wrapper", "custom npm wrapper with adjacent CLI"])("installs and validates a managed update in a complex path with %s", async (npmLayout) => {
-    const root = mkdtempSync(path.join(tmpdir(), "mcode-update-"));
+    const root = mkdtempSync(path.join(tmpdir(), "alran-update-"));
     temporaryRoots.push(root);
     const fixtureRoot = path.join(root, "package");
     mkdirSync(fixtureRoot);
     writeFileSync(path.join(fixtureRoot, "package.json"), JSON.stringify({
-      name: "@minimax-ai/code",
+      name: "@ottili/alran-code",
       version: "1.2.4",
-      bin: { mcode: "cli.cjs" },
+      bin: { alran: "cli.cjs" },
     }));
     writeFileSync(path.join(fixtureRoot, "cli.cjs"), "#!/usr/bin/env node\nconsole.log('1.2.4');\n");
     const environment = {
@@ -78,14 +78,14 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
     const { privateKey, publicKey } = generateKeyPairSync("ed25519");
     const manifest = Buffer.from(JSON.stringify({
       schemaVersion: 1,
-      product: "minimax-code",
+      product: "alran-code",
       channel: "stable",
       version: "1.2.4",
       publishedAt: "2026-09-24T00:00:00.000Z",
       minNodeVersion: "22.19.0",
       registry: "https://registry.npmjs.org/",
       installArtifact: {
-        url: "https://updates.example.invalid/mcode.tgz",
+        url: "https://updates.example.invalid/alran.tgz",
         sha256: createHash("sha256").update(artifact).digest("hex"),
         size: artifact.length,
       },
@@ -97,7 +97,7 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
     const installRoot = path.join(root, "用户 files & (test)");
     mkdirSync(installRoot);
     writeFileSync(path.join(installRoot, "current"), "1.2.3\n");
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: "1.2.3",
       installRoot,
       environment,

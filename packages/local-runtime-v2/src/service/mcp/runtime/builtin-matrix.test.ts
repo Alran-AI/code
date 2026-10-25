@@ -132,7 +132,7 @@ describe('builtin Matrix MCP server config', () => {
   });
 
   it('narrows the built-in Matrix tools to web_search when webSearchOnly is set', async () => {
-    // mcode-tools owns the media/generation Matrix tools but not web_search, so
+    // alran-tools owns the media/generation Matrix tools but not web_search, so
     // the Matrix MCP is narrowed to web_search only. The descriptor list is
     // cached on first build, so a single mocked return covers both calls.
     desktopMocks.buildMatrixMcpToolDescriptors.mockReturnValueOnce([

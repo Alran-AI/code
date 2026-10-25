@@ -16,7 +16,7 @@
  *
  * Semantics mirror the app:// protocol handler so the transport swap is
  * behavior-preserving:
- * - Path gate: only `/mavis/`, `/minimax-desktop/api/` and the
+ * - Path gate: only `/mavis/`, `/alran-desktop/api/` and the
  *   `/archon/api/v1/` alias (rewritten to `/mavis/api/`) are served; other
  *   paths get a 404 without touching the runtime.
  * - An `abort` frame aborts the per-request `AbortController` — per-stream

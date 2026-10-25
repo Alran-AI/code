@@ -1,4 +1,4 @@
-import type { McodePluginView } from '../../../plugin/contract.js';
+import type { AlranPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import { Input, matchesKey, VStack } from '../../engine/public.js';
 import type { Component, Focusable } from '../../rendering/component.js';
@@ -16,12 +16,12 @@ type PluginTab = 'all' | 'installed' | 'official' | 'local';
 const TABS: readonly PluginTab[] = ['all', 'installed', 'official', 'local'];
 
 export interface TuiPluginManagerOptions {
-  readonly plugins: readonly McodePluginView[];
+  readonly plugins: readonly AlranPluginView[];
   readonly initialQuery?: string;
-  readonly onInstall: (plugin: McodePluginView) => Promise<McodePluginView>;
-  readonly onRemove: (plugin: McodePluginView) => Promise<McodePluginView>;
-  readonly onSetEnabled: (plugin: McodePluginView, enabled: boolean) => Promise<McodePluginView>;
-  readonly onRefresh: () => Promise<readonly McodePluginView[]>;
+  readonly onInstall: (plugin: AlranPluginView) => Promise<AlranPluginView>;
+  readonly onRemove: (plugin: AlranPluginView) => Promise<AlranPluginView>;
+  readonly onSetEnabled: (plugin: AlranPluginView, enabled: boolean) => Promise<AlranPluginView>;
+  readonly onRefresh: () => Promise<readonly AlranPluginView[]>;
   readonly onCancel: () => void;
   readonly requestRender: () => void;
 }
@@ -30,7 +30,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
   readonly id = 'plugins';
   readonly layoutRoot: Component;
   focused = false;
-  private plugins: McodePluginView[];
+  private plugins: AlranPluginView[];
   private tab: PluginTab = 'all';
   private readonly searchInput = new Input({ prompt: '' });
   private readonly bodyViewport: TuiSelectionScrollView;
@@ -142,7 +142,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
     return [
       chalk.bold.hex(colors.signal)('Plugins'),
       chalk.hex(colors.muted)(
-        `Browse MiniMax Official and Local plugins · Installed ${installedCount} of ${this.plugins.length}`,
+        `Browse Alran Official and Local plugins · Installed ${installedCount} of ${this.plugins.length}`,
       ),
       renderTabs(this.tab, installedCount),
       searchLine,
@@ -181,7 +181,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
     ].map((line) => truncateToWidth(line, safeWidth, '…'));
   }
 
-  private visiblePlugins(): McodePluginView[] {
+  private visiblePlugins(): AlranPluginView[] {
     const query = this.searchInput.getValue().trim().toLocaleLowerCase();
     return this.plugins.filter((plugin) => {
       const inTab =
@@ -195,7 +195,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
     });
   }
 
-  private selected(): McodePluginView | undefined {
+  private selected(): AlranPluginView | undefined {
     return this.visiblePlugins()[this.selectedIndex];
   }
 
@@ -221,8 +221,8 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
   }
 
   private async mutate(
-    plugin: McodePluginView,
-    operation: () => Promise<McodePluginView>,
+    plugin: AlranPluginView,
+    operation: () => Promise<AlranPluginView>,
   ): Promise<void> {
     this.busy = true;
     this.status = `Updating ${plugin.displayName}…`;
@@ -240,7 +240,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
         summary: `Couldn't update ${plugin.displayName}.`,
         nextStep: isPluginAuthRequired(error)
           ? 'Run /login, then retry.'
-          : 'Retry or run mcode plugin for details.',
+          : 'Retry or run alran plugin for details.',
       });
     } finally {
       if (!this.disposed) {
@@ -264,7 +264,7 @@ export class TuiPluginManager implements TuiFeatureScreen, Component, Focusable 
       if (this.disposed) return;
       this.status = formatTuiActionFailure(error, {
         summary: "Couldn't refresh Plugins.",
-        nextStep: 'Retry or run mcode plugin marketplace upgrade.',
+        nextStep: 'Retry or run alran plugin marketplace upgrade.',
       });
     } finally {
       if (!this.disposed) {
@@ -289,7 +289,7 @@ function renderTabs(tab: PluginTab, installedCount: number): string {
   const entries: ReadonlyArray<readonly [PluginTab, string]> = [
     ['all', 'All Plugins'],
     ['installed', `Installed (${installedCount})`],
-    ['official', 'MiniMax Official'],
+    ['official', 'Alran Official'],
     ['local', 'Local'],
   ];
   return entries
@@ -299,7 +299,7 @@ function renderTabs(tab: PluginTab, installedCount: number): string {
     .join('  ');
 }
 
-function renderPluginRow(plugin: McodePluginView, selected: boolean, width: number): string {
+function renderPluginRow(plugin: AlranPluginView, selected: boolean, width: number): string {
   const marker = plugin.enabled ? '[*]' : plugin.installed ? '[-]' : '[ ]';
   const state = plugin.installed ? (plugin.enabled ? 'Enabled' : 'Disabled') : 'Available';
   const left = `${selected ? '›' : ' '} ${marker} ${sanitizeTerminalText(plugin.displayName)}`;
@@ -308,7 +308,7 @@ function renderPluginRow(plugin: McodePluginView, selected: boolean, width: numb
   return `${selected ? chalk.bold.hex(colors.signal)(left) : chalk.hex(colors.text)(left)}${' '.repeat(gap)}${chalk.hex(colors.muted)(detail)}`;
 }
 
-function capabilitySummary(plugin: McodePluginView): string {
+function capabilitySummary(plugin: AlranPluginView): string {
   const { appCount, mcpServerCount, skillCount } = plugin.capabilities;
   return `${appCount} apps · ${mcpServerCount} MCP · ${skillCount} skills`;
 }

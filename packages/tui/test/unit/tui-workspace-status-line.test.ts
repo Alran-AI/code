@@ -187,7 +187,7 @@ describe('TuiWorkspaceStatusLine', () => {
         version: '0.1.0',
         workspace: '/workspace',
         runtimeStatus: 'ready',
-        model: 'minimax/m2',
+        model: 'alran/m2',
       });
 
       const line = status.render(120).join('\n');

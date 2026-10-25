@@ -19,14 +19,14 @@ import { releaseManifest } from '../scripts/package-cli-release.mjs';
 import { validateReleaseReports } from '../scripts/publish-cli-release.mjs';
 import { compareVersions, releaseCli } from '../scripts/release-cli.mjs';
 import { compareRuns, exitCodeForStatus, renderReport, spread, validateRun, validateRequest, validateToolOutput, median, selectScenarios } from '../scripts/perf/report.mjs';
-import { copyMcodeToolsArtifact, downloadMcodeToolsArtifact, MCODE_TOOLS_ARTIFACT } from '../scripts/lib/mcode-tools-artifact.mjs';
+import { copyAlranToolsArtifact, downloadAlranToolsArtifact, ALRAN_TOOLS_ARTIFACT } from '../scripts/lib/alran-tools-artifact.mjs';
 import { checkWindowsSourceLocation, runWindowsSourceLocationCheck } from '../scripts/check-windows-source-location.mjs';
 
 test('Windows source preflight accepts local NTFS without parsing fsutil display text', () => {
   for (const fsutilOutput of ['E: - Fixed Drive\r\n', 'E: - Festplatte\r\n', new Error('Error 5: Access is denied')]) {
     const calls = [];
     const result = checkWindowsSourceLocation({
-      platform: 'win32', cwd: 'E:\\src\\minimax-code', allowNonFixed: false,
+      platform: 'win32', cwd: 'E:\\src\\alran-code', allowNonFixed: false,
       execFile: (command, args, options) => {
         calls.push(command);
         if (command === 'fsutil') {
@@ -122,8 +122,8 @@ test('artifact download recovers from TLS reset and interrupted response bodies'
   const reset = new TypeError('fetch failed', { cause: Object.assign(new Error('connection reset'), { code: 'ECONNRESET' }) });
   const interrupted = new TypeError('terminated', { cause: Object.assign(new Error('socket closed'), { code: 'UND_ERR_SOCKET' }) });
   const signals = [], delays = [], warnings = [];
-  const result = await downloadMcodeToolsArtifact(async (url, { signal }) => {
-    assert.equal(url, MCODE_TOOLS_ARTIFACT.url);
+  const result = await downloadAlranToolsArtifact(async (url, { signal }) => {
+    assert.equal(url, ALRAN_TOOLS_ARTIFACT.url);
     assert.ok(signal instanceof AbortSignal);
     signals.push(signal);
     if (signals.length === 1) throw reset;
@@ -145,7 +145,7 @@ test('artifact download retries temporary HTTP failures and releases rejected bo
   for (const status of [408, 429, 500, 502, 503, 504]) {
     let calls = 0, cancelled = false;
     const delays = [];
-    const result = await downloadMcodeToolsArtifact(async () => {
+    const result = await downloadAlranToolsArtifact(async () => {
       if (++calls > 1) return new Response('ok');
       return new Response(new ReadableStream({ cancel() { cancelled = true; } }), { status });
     }, { wait: async ms => delays.push(ms), warn() {} });
@@ -160,7 +160,7 @@ test('artifact download bounds Retry-After delays and rejects permanent failures
   for (const [header, expectedDelay] of [['5', 5000], ['999999', 30000], ['invalid', 1000], ['0', 1000]]) {
     let calls = 0;
     const delays = [];
-    await downloadMcodeToolsArtifact(async () => ++calls === 1
+    await downloadAlranToolsArtifact(async () => ++calls === 1
       ? new Response(null, { status: 429, headers: { 'Retry-After': header } }) : new Response('ok'),
     { wait: async ms => delays.push(ms), warn() {} });
     assert.deepEqual(delays, [expectedDelay]);
@@ -168,7 +168,7 @@ test('artifact download bounds Retry-After delays and rejects permanent failures
   const certificateError = new TypeError('fetch failed', { cause: Object.assign(new Error('certificate expired'), { code: 'CERT_HAS_EXPIRED' }) });
   for (const failure of [new Response(null, { status: 403 }), new Response(null, { status: 404 }), certificateError]) {
     let calls = 0;
-    await assert.rejects(downloadMcodeToolsArtifact(async () => {
+    await assert.rejects(downloadAlranToolsArtifact(async () => {
       calls++;
       if (failure instanceof Error) throw failure;
       return failure;
@@ -181,7 +181,7 @@ test('artifact download stops after three timeouts and preserves the final cause
   const timeout = new DOMException('The operation timed out', 'TimeoutError');
   let calls = 0;
   const delays = [];
-  await assert.rejects(downloadMcodeToolsArtifact(async () => { calls++; throw timeout; },
+  await assert.rejects(downloadAlranToolsArtifact(async () => { calls++; throw timeout; },
     { wait: async ms => delays.push(ms), warn() {} }), error => {
     assert.match(error.message, /after 3 attempts/);
     assert.equal(error.cause, timeout);
@@ -192,10 +192,10 @@ test('artifact download stops after three timeouts and preserves the final cause
 });
 
 test('artifact download never retries or caches an archive that fails integrity', async t => {
-  const root = mkdtempSync(path.join(tmpdir(), 'mcode-artifact-download-'));
+  const root = mkdtempSync(path.join(tmpdir(), 'alran-artifact-download-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   let calls = 0;
-  await assert.rejects(copyMcodeToolsArtifact(root, path.join(root, 'dist'), async () => {
+  await assert.rejects(copyAlranToolsArtifact(root, path.join(root, 'dist'), async () => {
     calls++;
     return new Response('corrupt archive');
   }), /integrity mismatch/);
@@ -486,7 +486,7 @@ test('npm release manifests require native SQLite and pin installed external dep
   const manifest = releaseManifest([f.root], '0.4.13');
   assert.equal(manifest.version, '0.4.13');
   assert.equal(manifest.private, true);
-  assert.equal(manifest.bin.mcode, 'cli.js');
+  assert.equal(manifest.bin.alran, 'cli.js');
   assert.equal(manifest.dependencies['better-sqlite3'], '1.2.3');
   assert.equal(manifest.dependencies['@vscode/ripgrep'], '1.2.3');
   assert.equal(manifest.optionalDependencies['@mariozechner/clipboard'], '1.2.3');
@@ -499,7 +499,7 @@ test('npm release manifests require native SQLite and pin installed external dep
 
 test('CLI publication requires every supported installation receipt for the exact archive and revision', t => {
   const f = fixture(t);
-  const archive = path.join(f.root, 'minimax-code-0.4.13.tar.gz');
+  const archive = path.join(f.root, 'alran-code-0.4.13.tar.gz');
   writeFileSync(archive, 'synthetic archive');
   const sha256 = createHash('sha256').update(readFileSync(archive)).digest('hex');
   writeFileSync(`${archive}.sha256`, `${sha256}  ${path.basename(archive)}\n`);
@@ -547,7 +547,7 @@ test('CLI release publishes only tag pushes after full verification and archive 
   assert.equal(workflow.jobs.publish.permissions.contents, 'write');
   assert.equal(workflow.jobs.install.strategy.matrix, '${{ fromJSON(needs.build.outputs.matrix) }}');
   const install = workflow.jobs.install.steps.find(step => step.run === 'pnpm verify --profile package');
-  assert.ok(install.env.MCODE_RELEASE_ARCHIVE.endsWith('.tar.gz'));
+  assert.ok(install.env.ALRAN_RELEASE_ARCHIVE.endsWith('.tar.gz'));
   for (const job of Object.values(workflow.jobs)) {
     for (const step of job.steps) {
       if (step.uses && !step.uses.startsWith('./')) assert.match(step.uses, /@[a-f0-9]{40}$/);
@@ -629,7 +629,7 @@ function verificationFixture(t) {
     const fs = require('node:fs');
     const path = require('node:path');
     const gate = process.argv[3];
-    const report = JSON.parse(fs.readFileSync(path.join(process.env.MCODE_VERIFY_REPORT_DIR, 'verification.json')));
+    const report = JSON.parse(fs.readFileSync(path.join(process.env.ALRAN_VERIFY_REPORT_DIR, 'verification.json')));
     if (report.status !== 'RUNNING' || report.gates.find(g => g.name === gate)?.status !== 'RUNNING') process.exit(99);
     console.log('FIXTURE_OUTPUT_MUST_NOT_BE_UPLOADED');
     if (gate === process.env.VERIFY_FIXTURE_FAIL) process.exit(17);
@@ -650,7 +650,7 @@ function verificationFixture(t) {
       env: {
         ...process.env,
         npm_execpath: manager,
-        MCODE_VERIFY_REPORT_DIR: reportDir,
+        ALRAN_VERIFY_REPORT_DIR: reportDir,
         GITHUB_STEP_SUMMARY: summaryPath,
         VERIFY_FIXTURE_EXPORT: exportRecord,
         VERIFY_FIXTURE_FAIL: '',
@@ -808,10 +808,10 @@ test('manual source candidates pin every checkout and receipt to the selected re
   const workflow = parseYaml(readFileSync(new URL('../.github/workflows/source-candidate.yml', import.meta.url), 'utf8'));
   assert.deepEqual(Object.keys(workflow.on).sort(), ['workflow_call', 'workflow_dispatch']);
   assert.equal(workflow.on.workflow_call.inputs.revision.required, true);
-  assert.equal(workflow.env.MCODE_CANDIDATE_REVISION, '${{ inputs.revision || github.sha }}');
+  assert.equal(workflow.env.ALRAN_CANDIDATE_REVISION, '${{ inputs.revision || github.sha }}');
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
   assert.match(workflow.concurrency.group, /inputs\.revision \|\| github\.sha/);
-  const revision = '${{ env.MCODE_CANDIDATE_REVISION }}';
+  const revision = '${{ env.ALRAN_CANDIDATE_REVISION }}';
   for (const job of Object.values(workflow.jobs)) {
     const checkout = job.steps.find(step => step.uses?.startsWith('actions/checkout@'));
     assert.equal(checkout.with.ref, revision);
@@ -822,7 +822,7 @@ test('manual source candidates pin every checkout and receipt to the selected re
   assert.deepEqual(validate.strategy.matrix.os, ['ubuntu-latest', 'macos-latest']);
   assert.ok(validate.steps.some(step => step.run?.includes('--store-dir "$RUNNER_TEMP/candidate-store" --registry https://registry.npmjs.org/')));
   const verify = validate.steps.find(step => step.run === 'pnpm verify --profile archive');
-  assert.equal(verify.env.MCODE_VERIFY_REVISION, revision);
+  assert.equal(verify.env.ALRAN_VERIFY_REVISION, revision);
   assert.deepEqual(workflow.jobs.publish.needs, ['export', 'validate']);
   assert.ok(workflow.jobs.publish.steps.some(step => step.run?.includes('scripts/source-candidate.mjs finalize')));
   assert.equal(workflow.permissions.contents, 'read');
@@ -845,19 +845,19 @@ function archiveFixture(t, entries) {
 
 test('native and Node source extractors produce identical file content', async t => {
   const f = archiveFixture(t, [
-    { path: 'minimax-code/README.md', content: 'Source preview\n' },
-    { path: 'minimax-code/nested/file.txt', content: 'portable contents\n' },
+    { path: 'alran-code/README.md', content: 'Source preview\n' },
+    { path: 'alran-code/nested/file.txt', content: 'portable contents\n' },
   ]);
   for (const extractor of ['native', 'node']) {
     const output = path.join(f.directory, extractor);
     mkdirSync(output);
     assert.equal(await extractSourceArchive(f.archive, output, extractor), extractor);
-    assert.equal(readFileSync(path.join(output, 'minimax-code/nested/file.txt'), 'utf8'), 'portable contents\n');
+    assert.equal(readFileSync(path.join(output, 'alran-code/nested/file.txt'), 'utf8'), 'portable contents\n');
   }
 });
 
 test('Windows extraction ignores a shadow tar executable on PATH', { skip: process.platform !== 'win32' }, t => {
-  const f = archiveFixture(t, [{ path: 'minimax-code/README.md', content: 'Windows archive\n' }]);
+  const f = archiveFixture(t, [{ path: 'alran-code/README.md', content: 'Windows archive\n' }]);
   const shadow = path.join(f.directory, 'shadow');
   const output = path.join(f.directory, 'output');
   mkdirSync(shadow);
@@ -872,17 +872,17 @@ test('Windows extraction ignores a shadow tar executable on PATH', { skip: proce
     encoding: 'utf8', env: { ...process.env, PATH: `${shadow}${path.delimiter}${process.env.PATH ?? ''}` },
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(readFileSync(path.join(output, 'minimax-code/README.md'), 'utf8'), 'Windows archive\n');
+  assert.equal(readFileSync(path.join(output, 'alran-code/README.md'), 'utf8'), 'Windows archive\n');
 });
 
 test('source archive rejects traversal, links, Git history and duplicate entries before writing files', async t => {
-  const good = { path: 'minimax-code/good.txt', content: 'safe' };
+  const good = { path: 'alran-code/good.txt', content: 'safe' };
   for (const bad of [
-    { path: 'minimax-code/../../outside.txt', content: 'unsafe' },
-    { path: 'minimax-code/link', type: 'SymbolicLink', linkpath: '../../outside' },
-    { path: 'minimax-code/link', type: 'Link', linkpath: '../../outside' },
-    { path: 'minimax-code/.git/config', content: 'history' },
-    { path: 'minimax-code/file:stream', content: 'stream' },
+    { path: 'alran-code/../../outside.txt', content: 'unsafe' },
+    { path: 'alran-code/link', type: 'SymbolicLink', linkpath: '../../outside' },
+    { path: 'alran-code/link', type: 'Link', linkpath: '../../outside' },
+    { path: 'alran-code/.git/config', content: 'history' },
+    { path: 'alran-code/file:stream', content: 'stream' },
     good,
   ]) {
     const f = archiveFixture(t, [good, bad]);
@@ -896,7 +896,7 @@ test('source archive rejects traversal, links, Git history and duplicate entries
 });
 
 test('candidate rejects mismatched receipts and requires successful same-revision Linux and macOS reports', t => {
-  const f = archiveFixture(t, [{ path: 'minimax-code/README.md', content: 'source' }]);
+  const f = archiveFixture(t, [{ path: 'alran-code/README.md', content: 'source' }]);
   const revision = 'a'.repeat(40);
   const receipt = { schemaVersion: 1, revision, sha256: createHash('sha256').update(readFileSync(f.archive)).digest('hex'), format: 'source-only-no-git-history', publicationPerformed: false };
   writeFileSync(`${f.archive}.json`, JSON.stringify(receipt));
@@ -1062,7 +1062,7 @@ test('issue product labels follow current form answers without replacing unrelat
   assert.deepEqual(workflow.permissions, { issues: 'write' });
   assert.equal(workflow.concurrency['cancel-in-progress'], false);
   const job = workflow.jobs['label-product'];
-  assert.equal(job.if, "${{ github.repository == 'MiniMax-AI/minimax-code' && github.event.repository.private == false && !github.event.issue.pull_request }}");
+  assert.equal(job.if, "${{ github.repository == 'Alran-AI/alran-code' && github.event.repository.private == false && !github.event.issue.pull_request }}");
   assert.equal(job.steps.length, 1); // No checkout or execution of issue-supplied code.
   const run = job.steps[0].run;
   assert.doesNotMatch(run, /\$\{\{/);
@@ -1070,13 +1070,13 @@ test('issue product labels follow current form answers without replacing unrelat
   assert.ok(script);
   async function replay(body, labels, failureStatus) {
     const writes = [];
-    const issuePath = '/repos/MiniMax-AI/minimax-code/issues/7';
+    const issuePath = '/repos/Alran-AI/alran-code/issues/7';
     await runInNewContext(script, {
       require: name => {
         assert.equal(name, 'node:fs');
         return { readFileSync: () => JSON.stringify({ issue: { number: 7, body: '### Product or interface\n\nDesktop app', labels: [] } }) };
       },
-      process: { env: { GITHUB_EVENT_PATH: 'fixture.json', GITHUB_REPOSITORY: 'MiniMax-AI/minimax-code', GITHUB_API_URL: 'https://api.github.invalid', GH_TOKEN: 'synthetic' } },
+      process: { env: { GITHUB_EVENT_PATH: 'fixture.json', GITHUB_REPOSITORY: 'Alran-AI/alran-code', GITHUB_API_URL: 'https://api.github.invalid', GH_TOKEN: 'synthetic' } },
       fetch: async (url, options) => {
         assert.equal(options.headers.Authorization, 'Bearer synthetic');
         if (options.method === 'GET') {
@@ -1127,7 +1127,7 @@ test('issue notification is restricted to public destination events and builds p
   assert.deepEqual(workflow.on, { issues: { types: ['opened'] } });
   assert.deepEqual(workflow.permissions, { contents: 'read', issues: 'read' });
   const job = workflow.jobs['notify-feishu'];
-  assert.equal(job.if, "${{ github.repository == 'MiniMax-AI/minimax-code' && github.event.repository.private == false && !github.event.issue.pull_request }}");
+  assert.equal(job.if, "${{ github.repository == 'Alran-AI/alran-code' && github.event.repository.private == false && !github.event.issue.pull_request }}");
   const generate = job.steps.find(step => step.name === 'Build Feishu payload').run;
   // Execute only the payload builder, never the delivery step or its secrets.
   assert.doesNotMatch(generate, /\$\{\{\s*github\.event/);
@@ -1137,8 +1137,8 @@ test('issue notification is restricted to public destination events and builds p
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const marker = path.join(directory, 'must-not-execute');
   const event = {
-    repository: { full_name: 'MiniMax-AI/minimax-code', html_url: 'https://github.com/MiniMax-AI/minimax-code' },
-    issue: { number: 7, title: 'Synthetic issue', body: `$(touch ${marker}) <at id=all>test</at>`, labels: [{ name: 'bug' }], created_at: '2026-09-18T00:00:00Z', html_url: 'https://github.com/MiniMax-AI/minimax-code/issues/7', user: { login: 'fixture' } },
+    repository: { full_name: 'Alran-AI/alran-code', html_url: 'https://github.com/ottili/alran-code' },
+    issue: { number: 7, title: 'Synthetic issue', body: `$(touch ${marker}) <at id=all>test</at>`, labels: [{ name: 'bug' }], created_at: '2026-09-18T00:00:00Z', html_url: 'https://github.com/ottili/alran-code/issues/7', user: { login: 'fixture' } },
   };
   const eventPath = path.join(directory, 'event.json');
   writeFileSync(eventPath, JSON.stringify(event));

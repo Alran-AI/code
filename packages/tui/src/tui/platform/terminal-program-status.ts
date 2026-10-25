@@ -43,7 +43,7 @@ export class TuiTerminalProgramStatus {
     try {
       // Detection is optional in OSC 7501 revision 0.4. Unknown OSCs are ignored.
       // Only fixed metadata is sent; prompts, output and credentials stay in the TUI.
-      this.terminal.write(`\u001b]7501;${report}:app=mcode\u001b\\`);
+      this.terminal.write(`\u001b]7501;${report}:app=alran\u001b\\`);
       this.lastReport = report;
     } catch {
       // Optional status output must not interrupt a Turn or interaction.

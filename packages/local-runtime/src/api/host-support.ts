@@ -4,7 +4,7 @@ import path from "node:path";
 import yaml from "js-yaml";
 import { classifyLLMErrorToCode } from "@mavis/agent-core/event-bridge";
 import {
-  allowsManagedMinimaxProviderOverride,
+  allowsManagedAlranProviderOverride,
   getRuntimePresetKey,
   resolveLocalRuntimeAuthContextPath,
   resolveModelAvailability,
@@ -1166,7 +1166,7 @@ export function buildRuntimeDoctorSnapshot(input: {
     authMode: providerOptions?.authMode,
     baseURL: providerOptions?.baseURL,
     allowManagedBaseURLOverride:
-      providerId === "minimax" && allowsManagedMinimaxProviderOverride(),
+      providerId === "alran" && allowsManagedAlranProviderOverride(),
   });
   const warnings = validateRuntimeConfigFile(configPath, input.config);
   const tokenPresent = Boolean(input.authContext?.accessToken?.trim());
@@ -1220,7 +1220,7 @@ export function buildRuntimeDoctorSnapshot(input: {
     },
     // Presence booleans / counts only — BYOK trees hold plaintext keys.
     byok: {
-      minimaxApiKeyPresent: Boolean(input.config.minimax_api?.apiKey?.trim()),
+      alranApiKeyPresent: Boolean(input.config.alran_api?.apiKey?.trim()),
       customProviderCount: Object.keys(input.config.custom_provider ?? {})
         .length,
     },
@@ -1296,19 +1296,19 @@ function validateRuntimeConfigFile(
     const rawProviderIsObject =
       fileConfig.provider === undefined || isRecord(fileConfig.provider);
     if (
-      selection.providerId === "minimax" &&
+      selection.providerId === "alran" &&
       effectiveAuthMode === "managed-login" &&
       rawProviderIsObject
     ) {
       const effectiveAvailability = resolveModelAvailability({
         config: {
           ...fileConfig,
-          ...(effectiveConfig?.minimaxModelSource !== undefined
-            ? { minimaxModelSource: effectiveConfig.minimaxModelSource }
+          ...(effectiveConfig?.alranModelSource !== undefined
+            ? { alranModelSource: effectiveConfig.alranModelSource }
             : {}),
           provider: {
             ...(isRecord(fileConfig.provider) ? fileConfig.provider : {}),
-            minimax: effectiveProvider,
+            alran: effectiveProvider,
           } as LocalRuntimeConfig["provider"],
         },
         providerId: selection.providerId,

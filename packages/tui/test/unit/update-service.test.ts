@@ -5,30 +5,30 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { McodeUpdateService, type McodeUpdateDependencies } from '../../src/update/service.js';
-import { resolveMcodeNpmDistribution } from '../../src/update/install-source.js';
-import type { McodeReleaseManifestV1 } from '../../src/update/release.js';
+import { AlranUpdateService, type AlranUpdateDependencies } from '../../src/update/service.js';
+import { resolveAlranNpmDistribution } from '../../src/update/install-source.js';
+import type { AlranReleaseManifestV1 } from '../../src/update/release.js';
 
 const temporaryRoots: string[] = [];
 
 function temporaryRoot(): string {
-  const root = mkdtempSync(path.join(tmpdir(), 'mcode-update-test-'));
+  const root = mkdtempSync(path.join(tmpdir(), 'alran-update-test-'));
   temporaryRoots.push(root);
   return root;
 }
 
 function releaseFixture(version = '1.2.4', artifact = Buffer.from('signed artifact bytes')) {
   const { privateKey, publicKey } = generateKeyPairSync('ed25519');
-  const manifest: McodeReleaseManifestV1 = {
+  const manifest: AlranReleaseManifestV1 = {
     schemaVersion: 1,
-    product: 'minimax-code',
+    product: 'alran-code',
     channel: 'stable',
     version,
     publishedAt: '2026-07-27T00:00:00.000Z',
     minNodeVersion: '22.19.0',
     registry: 'https://registry.example.test/',
     installArtifact: {
-      url: `https://downloads.example.test/releases/${version}/mcode.tgz`,
+      url: `https://downloads.example.test/releases/${version}/alran.tgz`,
       sha256: createHash('sha256').update(artifact).digest('hex'),
       size: artifact.length,
     },
@@ -56,7 +56,7 @@ afterEach(() => {
   }
 });
 
-describe('McodeUpdateService', () => {
+describe('AlranUpdateService', () => {
   it
     .skipIf(process.platform !== 'win32')
     .each(['standard npm', 'custom npm wrapper', 'custom npm wrapper with adjacent CLI'])(
@@ -68,9 +68,9 @@ describe('McodeUpdateService', () => {
       writeFileSync(
         path.join(fixtureRoot, 'package.json'),
         JSON.stringify({
-          name: resolveMcodeNpmDistribution().packageName,
+          name: resolveAlranNpmDistribution().packageName,
           version: '1.2.4',
-          bin: { mcode: 'cli.cjs' },
+          bin: { alran: 'cli.cjs' },
         }),
       );
       writeFileSync(
@@ -128,14 +128,14 @@ describe('McodeUpdateService', () => {
       const manifest = Buffer.from(
         JSON.stringify({
           schemaVersion: 1,
-          product: 'minimax-code',
+          product: 'alran-code',
           channel: 'stable',
           version: '1.2.4',
           publishedAt: '2026-09-24T00:00:00.000Z',
           minNodeVersion: '22.19.0',
           registry: 'https://registry.npmjs.org/',
           installArtifact: {
-            url: 'https://updates.example.invalid/mcode.tgz',
+            url: 'https://updates.example.invalid/alran.tgz',
             sha256: createHash('sha256').update(artifact).digest('hex'),
             size: artifact.length,
           },
@@ -150,7 +150,7 @@ describe('McodeUpdateService', () => {
       const installRoot = path.join(root, '用户 files & (test)');
       mkdirSync(installRoot);
       writeFileSync(path.join(installRoot, 'current'), '1.2.3\n');
-      const service = new McodeUpdateService({
+      const service = new AlranUpdateService({
         currentVersion: '1.2.3',
         installRoot,
         environment,
@@ -184,7 +184,7 @@ describe('McodeUpdateService', () => {
       try {
         const address = proxy.address();
         if (!address || typeof address === 'string') throw new Error('Expected TCP proxy');
-        const service = new McodeUpdateService({
+        const service = new AlranUpdateService({
           currentVersion: '1.2.3',
           installRoot: temporaryRoot(),
           releaseBaseUrl: 'https://updates.example.invalid',
@@ -207,7 +207,7 @@ describe('McodeUpdateService', () => {
     const fetchBytes = vi.fn(async (url: string) =>
       url.endsWith('.sig') ? Buffer.from(fixture.signature) : fixture.manifestBytes,
     );
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -233,12 +233,12 @@ describe('McodeUpdateService', () => {
     async (failure) => {
       const root = temporaryRoot();
       const currentFile = path.join(root, 'current');
-      const dependencies: Partial<McodeUpdateDependencies> = {
+      const dependencies: Partial<AlranUpdateDependencies> = {
         fetchBytes: vi.fn(async () => {
           throw failure;
         }),
       };
-      const service = new McodeUpdateService({
+      const service = new AlranUpdateService({
         currentVersion: '1.2.3',
         installRoot: root,
         dependencies,
@@ -252,7 +252,7 @@ describe('McodeUpdateService', () => {
   it('keeps the previous current pointer when install validation fails', async () => {
     const root = temporaryRoot();
     const fixture = releaseFixture();
-    const dependencies: Partial<McodeUpdateDependencies> = {
+    const dependencies: Partial<AlranUpdateDependencies> = {
       fetchBytes: vi.fn(async (url: string) =>
         url.endsWith('.sig')
           ? Buffer.from(fixture.signature)
@@ -263,7 +263,7 @@ describe('McodeUpdateService', () => {
       installArtifact: vi.fn(async () => undefined),
       validateInstalledVersion: vi.fn(async () => undefined),
     };
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -280,7 +280,7 @@ describe('McodeUpdateService', () => {
     const fixture = releaseFixture();
     const installArtifact = vi.fn(async () => undefined);
     const validateInstalledVersion = vi.fn(async () => undefined);
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -312,7 +312,7 @@ describe('McodeUpdateService', () => {
     mkdirSync(root, { recursive: true });
     writeFileSync(path.join(root, 'current'), '1.2.3\n');
     const fixture = releaseFixture();
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -339,7 +339,7 @@ describe('McodeUpdateService', () => {
   it('requires the explicit --to option before downgrading from a channel', async () => {
     const root = temporaryRoot();
     const fixture = releaseFixture('1.2.2');
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -360,7 +360,7 @@ describe('McodeUpdateService', () => {
     const fixture = releaseFixture();
     const controller = new AbortController();
     const phases: string[] = [];
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -397,7 +397,7 @@ describe('McodeUpdateService', () => {
     writeFileSync(path.join(root, 'current'), '1.2.3\n');
     const fixture = releaseFixture();
     const controller = new AbortController();
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,
@@ -442,7 +442,7 @@ describe('McodeUpdateService', () => {
           finishInstall = resolve;
         }),
     );
-    const service = new McodeUpdateService({
+    const service = new AlranUpdateService({
       currentVersion: '1.2.3',
       installRoot: root,
       publicKey: fixture.publicKey,

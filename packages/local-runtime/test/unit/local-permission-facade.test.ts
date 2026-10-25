@@ -603,7 +603,7 @@ describe('LocalPermissionFacade', () => {
             const r = await facade.checkPermission({
               toolName: 'bash',
               input: {
-                command: String.raw`cmd /c "rmdir /S /Q \"X:\minimax workspace\md2wechat-skill\"" ${descriptorRedirect}; if (Test-Path 'X:\minimax workspace\md2wechat-skill') { Write-Host "STILL_EXISTS" } else { Write-Host "DELETED" }`,
+                command: String.raw`cmd /c "rmdir /S /Q \"X:\alran workspace\md2wechat-skill\"" ${descriptorRedirect}; if (Test-Path 'X:\alran workspace\md2wechat-skill') { Write-Host "STILL_EXISTS" } else { Write-Host "DELETED" }`,
               },
             });
             expect(r.behavior).toBe('deny');

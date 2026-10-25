@@ -11,7 +11,7 @@ Date: 2026-09-11. Scope: standalone TUI 0.3.11 source, retained capabilities, de
 - The source gate checks internal addresses, generated protocols, environment files, the explicit inventory, workspace exports, and native helper hashes. The standalone gate checks actual build dependencies and key TUI capabilities. Scanning and review do not prove the absence of every unknown issue.
 - `release/extraction.json` records the source baseline and 32 package roots: 27 declare Apache-2.0 and five MIT. Pi and Sandbox Runtime licenses, upstream revisions, and modification records remain. Assets retain their independent declarations.
 - `release/dependency-licenses.json` records 503 dependency entries and 13 license expressions. Multiple-license expressions and additional declarations such as Zlib remain intact. This is a declaration inventory, not a complete license-text bundle for binary distribution.
-- mcode-tools comes from pinned public `@minimax-ai/code@0.3.11`. The build verifies archive SHA-512 and embedded CLI SHA-256, retaining the 0.0.4 manifest and original distribution notices. The public package declares MIT; the root license does not relicense it. This historical audit did not make a legal determination about first-party source.
+- alran-tools comes from pinned public `@ottili/alran-code@0.3.11`. The build verifies archive SHA-512 and embedded CLI SHA-256, retaining the 0.0.4 manifest and original distribution notices. The public package declares MIT; the root license does not relicense it. This historical audit did not make a legal determination about first-party source.
 
 ## Live-service evidence
 
@@ -19,12 +19,12 @@ The user authorized the existing production login on this machine. Sessions used
 
 | Path | Result |
 | --- | --- |
-| Existing OAuth / Token Plan → MiniMax-M3 | Actual request succeeded and returned the requested marker |
+| Existing OAuth / Token Plan → Alran-M3 | Actual request succeeded and returned the requested marker |
 | Token Plan session resume | `--continue` successfully recovered the previous marker |
 | BYOK connection and actual model session | Existing custom provider passed its connection test; a real session returned the requested marker |
 | Built-in web_search | Events confirmed an actual tool call and successful search results; a request that only returned a known official URL was not counted as tool acceptance |
 | Official plugin catalog | Live service returned 54 available plugins; this does not claim all plugins were installed or tested on real tasks |
-| mcode-tools host lease | Real CLI launched through bash; `auth status` returned shared-broker authenticated |
+| alran-tools host lease | Real CLI launched through bash; `auth status` returned shared-broker authenticated |
 | Connector tool discovery | `connector tools` returned 13 tools with `partial: false` and no provider failures; no third-party business writes were performed |
 
 ## Not run and publication boundaries

@@ -497,7 +497,7 @@ describe('TuiChatController', () => {
     );
   });
 
-  it('requires MiniMax login before starting a managed-model Turn', async () => {
+  it('requires Alran login before starting a managed-model Turn', async () => {
     const runtime = {
       getAccountStatus: vi.fn(async () => ({
         status: 'needs-login' as const,
@@ -2344,8 +2344,8 @@ describe('TuiChatController', () => {
       archiveSession: vi.fn(async () => undefined),
       getAccountStatus: vi.fn(async () => ({
         status: 'ready' as const,
-        defaultModel: 'minimax/MiniMax-M2.7',
-        providerId: 'minimax',
+        defaultModel: 'alran/Alran-M2.7',
+        providerId: 'alran',
         authMode: 'managed-login',
         managedTokenPresent: true,
         warnings: [],
@@ -2370,7 +2370,7 @@ describe('TuiChatController', () => {
       sessions: [expect.objectContaining({ sessionId: 'session-1' })],
       account: expect.objectContaining({
         status: 'ready',
-        defaultModel: 'minimax/MiniMax-M2.7',
+        defaultModel: 'alran/Alran-M2.7',
       }),
     });
     expect(transcript.snapshot()).toEqual([
@@ -2488,9 +2488,9 @@ describe('TuiChatController', () => {
       listSessions: vi.fn(async () => []),
       getAccountStatus: vi.fn(async (_sessionId, options) => ({
         status: 'ready' as const,
-        defaultModel: 'minimax/MiniMax-M2.7',
-        providerId: 'minimax',
-        modelId: 'MiniMax-M2.7',
+        defaultModel: 'alran/Alran-M2.7',
+        providerId: 'alran',
+        modelId: 'Alran-M2.7',
         authMode: 'managed-login',
         managedTokenPresent: true,
         modelSource: 'token-plan' as const,
@@ -2568,7 +2568,7 @@ describe('TuiChatController', () => {
       id: 'local:status',
       kind: 'final-summary',
       status: 'succeeded',
-      content: 'MCode status',
+      content: 'Alran status',
       ephemeral: true,
       createdAtMs: 100,
       updatedAtMs: 100,
@@ -2590,7 +2590,7 @@ describe('TuiChatController', () => {
 
     expect(transcript.snapshot().map((cell) => cell.content)).toEqual([
       'First durable answer',
-      'MCode status',
+      'Alran status',
       'Second durable answer',
     ]);
 

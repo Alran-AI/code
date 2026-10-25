@@ -387,7 +387,7 @@ describe("v1 runtime compatibility host composition", () => {
     ({ kind, embedded, enabled }) => {
       const compatibility = createCompatibility();
       const host = createdHost({
-        configGetter: () => ({ beta: { mcodeTools: true } }),
+        configGetter: () => ({ beta: { alranTools: true } }),
       });
       const services = compatibility.createServiceCompatibility(host, {
         dataDir: "/tmp/runtime",

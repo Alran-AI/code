@@ -68,19 +68,19 @@ import type { TuiChatController } from '../chat-controller.js';
 import { TuiModelState } from './model-state.js';
 import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js';
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
-import { McodeProviderApplication } from '../../../provider/application.js';
-import type { McodeCodexOAuthStatus, McodeProviderTemplate } from '../../../provider/contract.js';
-import { McodePluginApplication } from '../../../plugin/application.js';
-import type { McodePluginRuntimeAccess, McodePluginView } from '../../../plugin/contract.js';
+import { AlranProviderApplication } from '../../../provider/application.js';
+import type { AlranCodexOAuthStatus, AlranProviderTemplate } from '../../../provider/contract.js';
+import { AlranPluginApplication } from '../../../plugin/application.js';
+import type { AlranPluginRuntimeAccess, AlranPluginView } from '../../../plugin/contract.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
 import { hyperlink } from '../../engine/public.js';
 import { sanitizeTerminalText } from '../../rendering/terminal-text.js';
-import { MINIMAX_CODE_VERSION } from '../../../build-info.js';
+import { ALRAN_CODE_VERSION } from '../../../build-info.js';
 import { formatTuiDailyCheckinOutcome } from '../../../checkin/presentation.js';
 
-const OFFICIAL_MODEL_LOGIN_HINT = 'Sign in with /login to use official MiniMax models.';
+const OFFICIAL_MODEL_LOGIN_HINT = 'Sign in with /login to use official Alran models.';
 const SESSION_MANAGER_PAGE_SIZE = 50;
 const SESSION_MANAGER_MAX_ROWS = 24;
 const SESSION_EXPORT_PAGE_SIZE = 200;
@@ -91,7 +91,7 @@ type FeatureRuntime = TuiSessionPort &
   TuiInspectionPort &
   TuiInteractionPort &
   TuiWorkspaceGitPort &
-  McodePluginRuntimeAccess &
+  AlranPluginRuntimeAccess &
   Partial<TuiSessionForkPort>;
 
 type AppendLocalCell = (
@@ -135,8 +135,8 @@ export interface TuiFeatureFlowOptions {
   readonly onArchivedCurrentSession: (sessionId: string) => Promise<void>;
   readonly refreshAutocomplete: () => void;
   /** Starts the `/login` sign-in flow; absent when the host has no auth. */
-  readonly onStartMiniMaxLogin?: () => void;
-  readonly loadProviderTemplates?: () => Promise<readonly McodeProviderTemplate[]>;
+  readonly onStartAlranLogin?: () => void;
+  readonly loadProviderTemplates?: () => Promise<readonly AlranProviderTemplate[]>;
   readonly isStopped?: () => boolean;
   readonly hasLiveRun?: () => boolean;
 }
@@ -148,8 +148,8 @@ export interface TuiSessionManagerOpenOptions {
 
 export class TuiFeatureFlow {
   private readonly modelState: TuiModelState;
-  private readonly providerApplication: McodeProviderApplication;
-  private readonly pluginApplication: McodePluginApplication;
+  private readonly providerApplication: AlranProviderApplication;
+  private readonly pluginApplication: AlranPluginApplication;
   private readonly sessionForkFlow: TuiSessionForkFlow;
   private skillCommandsValue: TuiCommand[] = [];
   private inspectionPanel: Component | undefined;
@@ -182,8 +182,8 @@ export class TuiFeatureFlow {
       onChanged: options.onChanged,
       isStopped: () => this.isStopped(),
     });
-    this.providerApplication = new McodeProviderApplication(options.runtime);
-    this.pluginApplication = new McodePluginApplication(options.runtime);
+    this.providerApplication = new AlranProviderApplication(options.runtime);
+    this.pluginApplication = new AlranPluginApplication(options.runtime);
     this.sessionForkFlow = new TuiSessionForkFlow({
       runtime: options.runtime,
       currentSession: () => options.controller.snapshot().session,
@@ -375,7 +375,7 @@ export class TuiFeatureFlow {
         const session = this.options.controller.snapshot().session;
         return {
           sessionId: session?.sessionId,
-          title: session?.title || 'MCode Transcript',
+          title: session?.title || 'Alran Transcript',
           exportedAtMs: Date.now(),
         };
       },
@@ -424,7 +424,7 @@ export class TuiFeatureFlow {
       if (this.isStopped()) return;
       const panel = new TuiChangelogPanel({
         markdown: extractTuiChangelogMarkdown(source),
-        version: MINIMAX_CODE_VERSION,
+        version: ALRAN_CODE_VERSION,
         onClose: () => this.closeInspectionPanel(panel),
         requestRender: this.options.onChanged,
       });
@@ -434,7 +434,7 @@ export class TuiFeatureFlow {
       this.options.append(
         formatTuiActionFailure(error, {
           summary: "Couldn't load the packaged changelog.",
-          nextStep: 'Reinstall or update MCode, then retry /changelog.',
+          nextStep: 'Reinstall or update Alran, then retry /changelog.',
         }),
         'warning',
       );
@@ -585,13 +585,13 @@ export class TuiFeatureFlow {
     const loadSequence = ++this.modelLoadSequence;
     let models: TuiModel[];
     let managedTokenPresent = false;
-    let codexOAuthStatus: McodeCodexOAuthStatus;
+    let codexOAuthStatus: AlranCodexOAuthStatus;
     try {
       const [modelCatalog, account, codexStatus] = await Promise.all([
         this.options.runtime.listModels(sessionId),
         this.options.runtime.getAccountStatus(sessionId),
         this.options.runtime.getCodexOAuthStatus().catch(
-          (): McodeCodexOAuthStatus => ({
+          (): AlranCodexOAuthStatus => ({
             state: 'hidden',
             providerId: 'openai-codex',
           }),
@@ -698,7 +698,7 @@ export class TuiFeatureFlow {
         if (this.modelPicker === picker) this.modelPicker = undefined;
       },
       {
-        isUnavailable: (model) => model.providerKind === 'minimax-managed' && !managedTokenPresent,
+        isUnavailable: (model) => model.providerKind === 'alran-managed' && !managedTokenPresent,
         onUnavailable: () => this.options.append(OFFICIAL_MODEL_LOGIN_HINT, 'warning'),
         ...(codexOAuthStatus.state === 'hidden'
           ? {}
@@ -759,7 +759,7 @@ export class TuiFeatureFlow {
           await this.showModelPicker('');
         },
         requestRender: this.options.onChanged,
-        ...(!managedTokenPresent && models.some((model) => model.providerKind === 'minimax-managed')
+        ...(!managedTokenPresent && models.some((model) => model.providerKind === 'alran-managed')
           ? { unavailableHint: OFFICIAL_MODEL_LOGIN_HINT }
           : {}),
       },
@@ -780,7 +780,7 @@ export class TuiFeatureFlow {
     const loadSequence = ++this.providerLoadSequence;
     this.options.setHint('Loading provider catalog…');
     this.options.onChanged();
-    let templates: readonly McodeProviderTemplate[] = [];
+    let templates: readonly AlranProviderTemplate[] = [];
     let catalogWarning: string | undefined;
     try {
       templates = await (
@@ -942,16 +942,16 @@ export class TuiFeatureFlow {
       },
       onRefreshModels: (provider) => this.providerApplication.refreshModels(provider),
       onSaveCustom: (input) => this.providerApplication.saveCandidate(input),
-      onSetMiniMaxApiKey: (apiKey) => this.providerApplication.setMiniMaxApiKey(apiKey),
-      onSetMiniMaxSource: (source) =>
-        this.providerApplication.setMiniMaxSource(source).then(() => undefined),
-      ...(this.options.onStartMiniMaxLogin
+      onSetAlranApiKey: (apiKey) => this.providerApplication.setAlranApiKey(apiKey),
+      onSetAlranSource: (source) =>
+        this.providerApplication.setAlranSource(source).then(() => undefined),
+      ...(this.options.onStartAlranLogin
         ? {
             // Sign-in takes over the surface, so the panel closes first and the
             // user reopens `/provider` once the browser round-trip finishes.
             onReLogin: () => {
               this.closeProviderManager();
-              this.options.onStartMiniMaxLogin?.();
+              this.options.onStartAlranLogin?.();
             },
           }
         : {}),
@@ -1037,7 +1037,7 @@ export class TuiFeatureFlow {
           this.options.append(
             formatTuiActionFailure(error, {
               summary: 'Plugin updated, but its Skills could not be refreshed.',
-              nextStep: 'Restart MCode or retry /plugins.',
+              nextStep: 'Restart Alran or retry /plugins.',
             }),
             'warning',
           );
@@ -1045,8 +1045,8 @@ export class TuiFeatureFlow {
       }
     };
     const refreshSkillsAfterMutation = async (
-      operation: () => Promise<McodePluginView>,
-    ): Promise<McodePluginView> => {
+      operation: () => Promise<AlranPluginView>,
+    ): Promise<AlranPluginView> => {
       const plugin = await operation();
       await refreshSkills();
       return plugin;
@@ -1119,7 +1119,7 @@ export class TuiFeatureFlow {
 
   async showAccountStatus(): Promise<void> {
     await this.showReportInspection(
-      'MCode status',
+      'Alran status',
       'Loading status…',
       async (publish) => {
         const session = this.options.controller.snapshot().session;
@@ -1137,7 +1137,7 @@ export class TuiFeatureFlow {
           this.options.runtime.getInstructionSources(workspaceDir).catch(() => undefined),
         ]);
         const presentation = {
-          version: this.options.version ?? MINIMAX_CODE_VERSION,
+          version: this.options.version ?? ALRAN_CODE_VERSION,
           model: this.selectedModel(),
           effort: this.selectedEffort(),
           workspaceDir,

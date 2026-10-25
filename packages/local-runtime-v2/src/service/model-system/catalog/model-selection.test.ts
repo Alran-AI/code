@@ -5,7 +5,7 @@ import {
   readLocalModelThinkingSelection,
   readPersistedLocalModelThinkingSelection,
   readSelectedThinkingEffort,
-  resolveLegacyMinimaxModel,
+  resolveLegacyAlranModel,
   resolveRequestedSessionModel,
   savedSessionModel,
 } from './model-selection.js';
@@ -13,17 +13,17 @@ import type { LocalRuntimeConfig } from '../contracts.js';
 
 it('uses historical model values only for missing columns and preserves explicit clears', () => {
   const historical = {
-    providerId: 'minimax',
-    modelId: 'MiniMax-M3.1',
+    providerId: 'alran',
+    modelId: 'Alran-M3.1',
     variant: 'thinking',
     thinking: { effort: 'high' },
     contextWindow: 450_000,
     maxOutputTokens: 8192,
   };
-  const session = { effectiveModel: 'minimax/MiniMax-M3.1' };
+  const session = { effectiveModel: 'alran/Alran-M3.1' };
   expect(savedSessionModel({}, historical)).toBeUndefined();
-  expect(savedSessionModel({ effectiveModel: 'minimax/MiniMax-M3' }, historical)).toMatchObject({
-    modelId: 'MiniMax-M3',
+  expect(savedSessionModel({ effectiveModel: 'alran/Alran-M3' }, historical)).toMatchObject({
+    modelId: 'Alran-M3',
     thinking: undefined,
     contextWindow: undefined,
     parameterSnapshot: { context: 'selection', effort: 'selection' },
@@ -48,7 +48,7 @@ it('uses historical model values only for missing columns and preserves explicit
   });
 });
 
-it.each(['minimax', 'custom_provider:work'])(
+it.each(['alran', 'custom_provider:work'])(
   'preserves explicit BYOK parameters through ordinary create for %s',
   (providerId) => {
     const configuredModel = {
@@ -58,13 +58,13 @@ it.each(['minimax', 'custom_provider:work'])(
     };
     const config: LocalRuntimeConfig = {
       dataDir: '/isolated-byok-selection',
-      ...(providerId === 'minimax' ? { minimaxModelSource: 'minimax_api_key' as const } : {}),
-      provider: { minimax: { models: { 'MiniMax-M3': configuredModel } } },
-      custom_provider: { work: { models: { 'MiniMax-M3': configuredModel } } },
+      ...(providerId === 'alran' ? { alranModelSource: 'alran_api_key' as const } : {}),
+      provider: { alran: { models: { 'Alran-M3': configuredModel } } },
+      custom_provider: { work: { models: { 'Alran-M3': configuredModel } } },
     };
     const requested = {
       providerId,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
       variant: 'thinking',
       contextLimit: 450_000,
       thinking: { effort: 'provider-effort' },
@@ -73,24 +73,24 @@ it.each(['minimax', 'custom_provider:work'])(
   },
 );
 
-describe('legacy MiniMax compatibility', () => {
+describe('legacy Alran compatibility', () => {
   beforeEach(() => {
     vi.stubEnv('MAVIS_REGION', 'cn');
     vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
   });
   afterEach(() => vi.unstubAllEnvs());
 
-  it.each(['minimax-legacy', 'minimax-legacy-2'])(
+  it.each(['alran-legacy', 'alran-legacy-2'])(
     'recovers %s from an old official endpoint while preserving its configuration',
     (key) => {
       const config: LocalRuntimeConfig = {
         dataDir: '/tmp/legacy-model-selection',
         defaultModel: `custom_provider:${key}/retired`,
-        provider: { minimax: { models: { 'MiniMax-M3.1-Flash': {}, 'MiniMax-M3': {} } } },
+        provider: { alran: { models: { 'Alran-M3.1-Flash': {}, 'Alran-M3': {} } } },
         custom_provider: {
           [key]: {
             options: {
-              baseURL: 'https://agent.minimaxi.com/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
               apiKey: 'sk-xxx',
             },
             models: { retired: {} },
@@ -99,18 +99,18 @@ describe('legacy MiniMax compatibility', () => {
       };
       const before = structuredClone(config);
       expect(
-        resolveLegacyMinimaxModel(config, {
+        resolveLegacyAlranModel(config, {
           providerId: `custom_provider:${key}`,
           modelId: 'retired',
         }),
       ).toEqual({
-        providerId: 'minimax',
-        modelId: 'MiniMax-M3.1-Flash',
+        providerId: 'alran',
+        modelId: 'Alran-M3.1-Flash',
       });
       expect(config).toEqual(before);
       config.custom_provider![key]!.options!.baseURL = 'https://proxy.example/v1';
       expect(
-        resolveLegacyMinimaxModel(config, {
+        resolveLegacyAlranModel(config, {
           providerId: `custom_provider:${key}`,
           modelId: 'retired',
         }),
@@ -165,19 +165,19 @@ describe('model selection input', () => {
   });
 });
 
-it('creates an API-only session before a shared MiniMax catalog exists', () => {
+it('creates an API-only session before a shared Alran catalog exists', () => {
   const config: LocalRuntimeConfig = {
     dataDir: '/tmp/api-only-session-create',
-    defaultModel: 'minimax_api/MiniMax-M3',
+    defaultModel: 'alran_api/Alran-M3',
     provider: {},
-    minimax_api: { apiKey: 'api-only-placeholder' },
+    alran_api: { apiKey: 'api-only-placeholder' },
   };
   expect(
     resolveRequestedSessionModel(config, {
-      providerId: 'minimax_api',
-      modelId: 'MiniMax-M3',
+      providerId: 'alran_api',
+      modelId: 'Alran-M3',
     }),
-  ).toMatchObject({ providerId: 'minimax_api', modelId: 'MiniMax-M3' });
+  ).toMatchObject({ providerId: 'alran_api', modelId: 'Alran-M3' });
 });
 
 describe('ordinary session inherits the selected global effort', () => {
@@ -189,16 +189,16 @@ describe('ordinary session inherits the selected global effort', () => {
   };
   const config: LocalRuntimeConfig = {
     dataDir: '/tmp/global-effort-create',
-    defaultModel: 'minimax/MiniMax-M3.1',
+    defaultModel: 'alran/Alran-M3.1',
     defaultModelThinking: { effort: 'xhigh' },
-    provider: { minimax: { models: { 'MiniMax-M3.1': model, 'MiniMax-M3': model } } },
+    provider: { alran: { models: { 'Alran-M3.1': model, 'Alran-M3': model } } },
   };
 
   it('freezes the global effort when creation supplies only the selected model', () => {
     expect(
       resolveRequestedSessionModel(config, {
-        providerId: 'minimax',
-        modelId: 'MiniMax-M3.1',
+        providerId: 'alran',
+        modelId: 'Alran-M3.1',
         reasoning: true,
       }).thinking,
     ).toEqual({ effort: 'xhigh' });
@@ -207,19 +207,19 @@ describe('ordinary session inherits the selected global effort', () => {
   it('preserves an explicit per-session effort', () => {
     expect(
       resolveRequestedSessionModel(config, {
-        providerId: 'minimax',
-        modelId: 'MiniMax-M3.1',
+        providerId: 'alran',
+        modelId: 'Alran-M3.1',
         thinking: { effort: 'low' },
       }).thinking,
     ).toEqual({ effort: 'low' });
   });
 
   it('does not inherit effort from a different global model', () => {
-    const otherDefault = { ...config, defaultModel: 'minimax/MiniMax-M3' };
+    const otherDefault = { ...config, defaultModel: 'alran/Alran-M3' };
     expect(
       resolveRequestedSessionModel(otherDefault, {
-        providerId: 'minimax',
-        modelId: 'MiniMax-M3.1',
+        providerId: 'alran',
+        modelId: 'Alran-M3.1',
       }).thinking,
     ).toEqual({ effort: 'high' });
   });

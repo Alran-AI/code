@@ -23,7 +23,7 @@ async function openDatabase() {
   return database;
 }
 
-const m3 = { providerId: "minimax", modelId: "MiniMax-M3" };
+const m3 = { providerId: "alran", modelId: "Alran-M3" };
 const kimi = { providerId: "kimi", modelId: "kimi-k3" };
 const deepseek = { providerId: "deepseek", modelId: "deepseek-v4-pro" };
 
@@ -46,7 +46,7 @@ describe("ModelFavoritesPreference", () => {
     upsertPreferenceValue(database.db, "model-favorites", { not: "a list" });
     expect(favorites.list()).toEqual([]);
     upsertPreferenceValue(database.db, "model-favorites", [
-      "minimax/MiniMax-M3",
+      "alran/Alran-M3",
       { providerId: "kimi" },
       { providerId: " kimi ", modelId: " kimi-k3 " },
       { ...kimi },

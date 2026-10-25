@@ -1,5 +1,5 @@
 import type { GlobalEvent } from '@mavis/shared/global-events';
-import { isLegacyManagedMinimaxProvider } from '@mavis/config';
+import { isLegacyManagedAlranProvider } from '@mavis/config';
 
 import {
   annotateModelFavorites,
@@ -91,30 +91,30 @@ export function createProcessLocalApplication(
     account: {
       getStatus: async (input) => {
         let status = await options.peripherals.account.getStatus(input);
-        if (isLegacyManagedMinimaxProvider(selectedProviderId(status) ?? '')) {
+        if (isLegacyManagedAlranProvider(selectedProviderId(status) ?? '')) {
           const selected = (await options.modelProvider.application.list(input)).find(
             (model) => model.selected,
           );
-          if (selected?.providerId === 'minimax') {
+          if (selected?.providerId === 'alran') {
             status = {
               ...status,
               selection: {
-                defaultModel: `minimax/${selected.modelId}`,
+                defaultModel: `alran/${selected.modelId}`,
                 providerId: selected.providerId,
                 modelId: selected.modelId,
               },
               provider: {
                 id: selected.providerId,
-                authMode: selected.providerKind === 'minimax-managed' ? 'managed-login' : 'api-key',
+                authMode: selected.providerKind === 'alran-managed' ? 'managed-login' : 'api-key',
               },
             };
           }
         }
-        if (selectedProviderId(status) !== 'minimax') return status;
-        const source = options.modelProvider.providers.getMinimaxModelSource();
+        if (selectedProviderId(status) !== 'alran') return status;
+        const source = options.modelProvider.providers.getAlranModelSource();
         return {
           ...status,
-          modelSource: source === 'minimax_api_key' ? 'byok' : 'token-plan',
+          modelSource: source === 'alran_api_key' ? 'byok' : 'token-plan',
         };
       },
     },
@@ -136,14 +136,14 @@ export function createProcessLocalApplication(
       cancelCodexOAuthLogin: async (loginId) => options.modelProvider.oauth.cancelLogin(loginId),
       listUser: async () =>
         options.modelProvider.providers.listUserProviders().map(toProviderRecord),
-      getMiniMaxApiKeyStatus: async () => options.modelProvider.providers.getMinimaxApiKeyStatus(),
-      getMiniMaxModelSource: async () => options.modelProvider.providers.getMinimaxModelSource(),
-      setMiniMaxModelSource: async ({ source }) => {
-        await options.modelProvider.providers.setMinimaxModelSource(source);
+      getAlranApiKeyStatus: async () => options.modelProvider.providers.getAlranApiKeyStatus(),
+      getAlranModelSource: async () => options.modelProvider.providers.getAlranModelSource(),
+      setAlranModelSource: async ({ source }) => {
+        await options.modelProvider.providers.setAlranModelSource(source);
         return source;
       },
-      upsertMiniMaxApiKey: async (request) =>
-        options.modelProvider.providers.upsertMinimaxApiKey(request),
+      upsertAlranApiKey: async (request) =>
+        options.modelProvider.providers.upsertAlranApiKey(request),
       create: async ({ models, ...request }) =>
         options.modelProvider.providers.createUserProvider({
           ...request,

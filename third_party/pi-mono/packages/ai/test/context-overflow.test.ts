@@ -397,14 +397,14 @@ describe("Context overflow error handling", () => {
 	});
 
 	// =============================================================================
-	// MiniMax
+	// Alran
 	// Expected pattern: TBD - need to test actual error message
 	// =============================================================================
 
-	describe.skipIf(!process.env.MINIMAX_API_KEY)("MiniMax", () => {
-		it("MiniMax-M2.7 - should detect overflow via isContextOverflow", async () => {
-			const model = getModel("minimax", "MiniMax-M2.7");
-			const result = await testContextOverflow(model, process.env.MINIMAX_API_KEY!);
+	describe.skipIf(!process.env.ALRAN_API_KEY)("Alran", () => {
+		it("Alran-M2.7 - should detect overflow via isContextOverflow", async () => {
+			const model = getModel("alran", "Alran-M2.7");
+			const result = await testContextOverflow(model, process.env.ALRAN_API_KEY!);
 			logResult(result);
 
 			expect(result.stopReason).toBe("error");

@@ -12,7 +12,9 @@ import {
   type ModelRequestImageLimit,
 } from '@mavis/agent-core/pi-turn-runner';
 import {
-  isFirstPartyMinimaxMessagesRoute,
+  isFirstPartyAlranRoute,
+  resolveOttiliApiKey,
+  resolveOttiliModelId,
   resolveProviderAuthMode,
   type ProviderAuthMode,
   type ProviderAuthModeSource,
@@ -35,13 +37,14 @@ import type {
 import { normalizeProviderBaseUrl } from '../connectivity/provider-request.js';
 import {
   isModelProviderApi,
-  MANAGED_MINIMAX_PROVIDER_ID,
+  MANAGED_ALRAN_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
   OPENAI_CODEX_PROVIDER_ID,
 } from '../identity.js';
 import { parseProviderId } from './model-key.js';
 import {
-  isMiniMaxM3ModelId,
-  isMiniMaxM3ThinkingMode,
+  isAlranM3ModelId,
+  isAlranM3ThinkingMode,
   type ByokThinkingProtocol,
   isThinkingEffortDisabled,
   modelRefForModel,
@@ -52,7 +55,7 @@ import {
 import {
   firstBuiltinModel,
   planCustomProviderResolution,
-  planMinimaxApiResolution,
+  planAlranApiResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 import {
@@ -90,7 +93,7 @@ interface ModelIdentity {
   readonly modelId: string;
 }
 
-type ByokResolutionPlan = NonNullable<ReturnType<typeof planMinimaxApiResolution>>;
+type ByokResolutionPlan = NonNullable<ReturnType<typeof planAlranApiResolution>>;
 
 interface SelectedModel {
   readonly identity: ModelIdentity;
@@ -128,7 +131,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     const providerConfig = this.options.providerConfigGetter?.() ?? this.options.providerConfig;
     const selected = selectModel(input.agentConfig, providerConfig, this.options);
     if (selected.byokPlan) return this.finishByok(input, selected);
-    const switched = selectMinimaxByok(selected.identity, providerConfig, this.options);
+    const switched = selectAlranByok(selected.identity, providerConfig, this.options);
     if (switched.byokPlan) return this.finishByok(input, switched);
     return this.resolveManagedModel(input, switched.identity, providerConfig);
   }
@@ -301,12 +304,12 @@ function selectExternalByokPlan(
   providerConfig: LocalModelsConfig | undefined,
   options: LocalModelResolverOptions,
 ): ByokResolutionPlan | undefined {
-  if (parsed.source === 'minimax_api') {
-    return planMinimaxApiResolution({
+  if (parsed.source === 'alran_api') {
+    return planAlranApiResolution({
       byok: options.byokConfigGetter?.(),
       providerConfig,
       modelId: identity.modelId,
-      catalog: lookupLocalModelLimits(MANAGED_MINIMAX_PROVIDER_ID, identity.modelId),
+      catalog: lookupLocalModelLimits(MANAGED_ALRAN_PROVIDER_ID, identity.modelId),
     });
   }
   return planCustomProviderResolution({
@@ -347,25 +350,28 @@ function fallbackBuiltinIdentity(
   };
 }
 
-function selectMinimaxByok(
+function selectAlranByok(
   identity: ModelIdentity,
   providerConfig: LocalModelsConfig | undefined,
   options: LocalModelResolverOptions,
 ): SelectedModel {
   const byok = options.byokConfigGetter?.();
-  if (
-    identity.provider !== MANAGED_MINIMAX_PROVIDER_ID ||
-    byok?.minimaxModelSource !== 'minimax_api_key'
-  ) {
-    return { identity };
-  }
-  const byokPlan = planMinimaxApiResolution({
+  if (identity.provider !== MANAGED_ALRAN_PROVIDER_ID) return { identity };
+  // The first-party provider authenticates with an Ottili API key: a key stored
+  // in the local config, or `ALRAN_API_KEY` in the environment. A deployment that
+  // still runs the managed route keeps it by pinning `alranModelSource`.
+  const hasOttiliKey = Boolean(byok?.alran_api?.apiKey?.trim()) || Boolean(resolveOttiliApiKey());
+  const wantsApiKey =
+    byok?.alranModelSource === 'alran_api_key' ||
+    (byok?.alranModelSource !== 'token_plan' && hasOttiliKey);
+  if (!wantsApiKey) return { identity };
+  const byokPlan = planAlranApiResolution({
     byok,
     providerConfig,
     modelId: identity.modelId,
-    catalog: lookupLocalModelLimits(MANAGED_MINIMAX_PROVIDER_ID, identity.modelId),
+    catalog: lookupLocalModelLimits(MANAGED_ALRAN_PROVIDER_ID, identity.modelId),
   });
-  return byokPlan ? { identity, byokPlan, route: 'minimax_api_key' } : { identity };
+  return byokPlan ? { identity, byokPlan, route: 'alran_api_key' } : { identity };
 }
 
 async function resolveProviderApiKey(
@@ -537,7 +543,7 @@ function selectedEffortPiLevel(
   thinkingLevel: ThinkingLevel | undefined,
   modelId: string | undefined,
 ): PiThinkingLevel | undefined {
-  if (isMiniMaxM3ModelId(modelId) && isMiniMaxM3ThinkingMode(selectedEffort)) {
+  if (isAlranM3ModelId(modelId) && isAlranM3ThinkingMode(selectedEffort)) {
     return piThinkingLevelFor(thinkingLevel);
   }
   return selectedEffort as PiThinkingLevel | undefined;
@@ -632,9 +638,10 @@ function buildResolvedModel(scope: {
   const maxImagesPerRequest =
     normalizeMaxImagesPerRequest(input.modelRef.capabilities?.max_images_per_request) ??
     knownMaxImagesPerRequestForBaseUrl(baseUrl);
+  const requestModelId = resolveRequestModelId(input.provider, input.modelId);
   const model: Model<Api> & ModelRequestImageLimit = {
-    id: input.modelId,
-    name: input.modelId,
+    id: requestModelId,
+    name: requestModelId,
     api: input.api,
     provider: input.runtimeProvider ?? input.provider,
     baseUrl,
@@ -657,6 +664,20 @@ function resolvedThinkingLevelMap(thinking: ResolvedThinking): ThinkingLevelMap 
   return thinking.maxLevel ? { max: thinking.maxLevel } : undefined;
 }
 
+/**
+ * The model id that goes on the wire.
+ *
+ * The Ottili AI Platform only knows its own model ids, so the CLI's internal
+ * model identity is translated here. Custom providers keep the id the user
+ * configured: their ids belong to their own gateway.
+ */
+function resolveRequestModelId(provider: string, modelId: string): string {
+  if (provider === MANAGED_ALRAN_PROVIDER_ID || provider === ALRAN_API_PROVIDER_ID) {
+    return resolveOttiliModelId(modelId);
+  }
+  return modelId;
+}
+
 function resolvedModelCompatibility(
   input: FinishResolveInput,
   thinking: ResolvedThinking,
@@ -668,8 +689,8 @@ function resolvedModelCompatibility(
   ) {
     thinkingCompat = { forceAdaptiveThinking: true };
   }
-  const firstPartyMinimaxMessages = isFirstPartyMinimaxMessagesRoute(input.api, input.provider);
-  const base = firstPartyMinimaxMessages
+  const firstPartyAlranRoute = isFirstPartyAlranRoute(input.provider);
+  const base = firstPartyAlranRoute
     ? { ...thinkingCompat, supportsLongCacheRetention: false }
     : thinkingCompat;
   // Pi applies any field present on `model.compat` ahead of its own provider/baseUrl

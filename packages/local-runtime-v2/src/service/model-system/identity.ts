@@ -1,14 +1,14 @@
 import {
   CUSTOM_PROVIDER_ID_PREFIX,
-  MANAGED_MINIMAX_PROVIDER_ID,
-  MINIMAX_API_PROVIDER_ID,
+  MANAGED_ALRAN_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
 } from '@mavis/config';
 
-export { CUSTOM_PROVIDER_ID_PREFIX, MANAGED_MINIMAX_PROVIDER_ID, MINIMAX_API_PROVIDER_ID };
+export { CUSTOM_PROVIDER_ID_PREFIX, MANAGED_ALRAN_PROVIDER_ID, ALRAN_API_PROVIDER_ID };
 
 export const OPENAI_CODEX_PROVIDER_ID = 'openai-codex';
 
-export const MODEL_PROVIDER_SOURCES = ['provider', 'minimax_api', 'custom_provider'] as const;
+export const MODEL_PROVIDER_SOURCES = ['provider', 'alran_api', 'custom_provider'] as const;
 export type ModelProviderSource = (typeof MODEL_PROVIDER_SOURCES)[number];
 
 /**

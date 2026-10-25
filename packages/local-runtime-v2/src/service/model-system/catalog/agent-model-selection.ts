@@ -2,9 +2,9 @@ import { getRuntimePresetKey, resolveModelAvailability } from '@mavis/config';
 import { ThinkingLevel } from '@mavis/protocol';
 
 import type { LocalConversationRuntimeConfig, LocalModelConfig } from '../contracts.js';
-import { MANAGED_MINIMAX_PROVIDER_ID } from '../identity.js';
+import { MANAGED_ALRAN_PROVIDER_ID } from '../identity.js';
 import { modelConfigForRef } from './list-models.js';
-import { resolveLegacyMinimaxModel } from './model-selection.js';
+import { resolveLegacyAlranModel } from './model-selection.js';
 import {
   CUSTOM_PROVIDER_ID_PREFIX,
   formatModelKey,
@@ -12,9 +12,9 @@ import {
   type ParsedModelKey,
 } from '../resolution/model-key.js';
 import {
-  isMiniMaxM3ThinkingMode,
+  isAlranM3ThinkingMode,
   isThinkingEffortDisabled,
-  resolveMiniMaxM3ThinkingMode,
+  resolveAlranM3ThinkingMode,
   normalizeModelThinkingEffort,
   normalizeModelThinkingEffortOptions,
   resolveModelThinkingMiddleEffort,
@@ -207,8 +207,8 @@ export function resolveAgentModelSelection(input: {
   const context = resolveSelectionContext(input);
   const { sources, modelIndex, modelSource, model, modelConfig, contributors } = context;
   if (
-    model.providerId === MANAGED_MINIMAX_PROVIDER_ID &&
-    input.config.minimaxModelSource !== 'minimax_api_key'
+    model.providerId === MANAGED_ALRAN_PROVIDER_ID &&
+    input.config.alranModelSource !== 'alran_api_key'
   )
     return resolveManagedAgentSelection(input.config, context);
 
@@ -393,7 +393,7 @@ function withRuntimeDefault(
   // an explicit Agent model. Do not carry its old variant to a replacement.
   const replacement =
     parsed && !sources.some(({ selection }) => selection?.model !== undefined)
-      ? resolveLegacyMinimaxModel(config, parsed)
+      ? resolveLegacyAlranModel(config, parsed)
       : undefined;
   const model = replacement
     ? formatModelKey(replacement.providerId, replacement.modelId)
@@ -454,7 +454,7 @@ function resolveModelCatalogReference(
   if (
     !source.allowCustomProviderPrefixFallback ||
     modelConfig ||
-    model.providerId === MANAGED_MINIMAX_PROVIDER_ID ||
+    model.providerId === MANAGED_ALRAN_PROVIDER_ID ||
     Object.hasOwn(config.provider, model.providerId)
   ) {
     return { model, modelConfig };
@@ -510,14 +510,14 @@ function resolveSwitchableOrCatalogEffort(
   input: EffortResolutionInput,
   requested: string | undefined,
 ): string | undefined {
-  const miniMaxM3Mode = resolveMiniMaxM3ThinkingMode(
+  const alranM3Mode = resolveAlranM3ThinkingMode(
     input.providerId.startsWith(CUSTOM_PROVIDER_ID_PREFIX) ? undefined : input.modelId,
     input.modelConfig,
     input.runtimeDefaultVariant,
   );
-  if (miniMaxM3Mode) {
-    if (!requested) return miniMaxM3Mode;
-    return isMiniMaxM3ThinkingMode(requested)
+  if (alranM3Mode) {
+    if (!requested) return alranM3Mode;
+    return isAlranM3ThinkingMode(requested)
       ? requested
       : throwUnsupportedEffort(input, requested);
   }

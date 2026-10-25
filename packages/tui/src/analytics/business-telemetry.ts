@@ -1,42 +1,42 @@
 import { randomUUID } from 'node:crypto';
 import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
 
-export type McodeChatType = 'chat' | 'agent_team' | 'claw' | 'hermes' | 'IM';
-export type McodeLoginSource =
+export type AlranChatType = 'chat' | 'agent_team' | 'claw' | 'hermes' | 'IM';
+export type AlranLoginSource =
   | 'agent_web'
   | 'agent_desktop'
   | 'openplatform'
-  | 'mcode_tui'
-  | 'mcode_cli';
-export type McodeLoginFailReason = '' | '1' | '2' | '3' | '4' | '5';
-export type McodeSlashCommandType =
+  | 'alran_tui'
+  | 'alran_cli';
+export type AlranLoginFailReason = '' | '1' | '2' | '3' | '4' | '5';
+export type AlranSlashCommandType =
   | 'skill'
   | 'new_chat'
   | 'summarize'
   | 'plan_mode'
   | 'goal_mode'
   | 'other';
-export type McodeAtCommandType = 'plugins' | 'goal_mode' | 'plan_mode' | 'file' | 'directory';
-export type McodeDurationBucket =
+export type AlranAtCommandType = 'plugins' | 'goal_mode' | 'plan_mode' | 'file' | 'directory';
+export type AlranDurationBucket =
   'not_applicable' | 'under_1m' | '1m_to_5m' | '5m_to_30m' | 'over_30m';
 
 interface ChatContextProperties {
-  readonly chat_type: McodeChatType;
+  readonly chat_type: AlranChatType;
 }
 
-export interface McodeBusinessEventMap {
+export interface AlranBusinessEventMap {
   readonly tui_launch: { readonly launch_type: 'cold' | 'hot' };
   readonly login_click: Record<string, never>;
   readonly logout_click: Record<string, never>;
   readonly login_result: {
-    readonly source: McodeLoginSource;
+    readonly source: AlranLoginSource;
     readonly result_type: '1' | '2';
-    readonly fail_reason: McodeLoginFailReason;
-    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'minimax_sso' | 'minimax_oauth';
+    readonly fail_reason: AlranLoginFailReason;
+    readonly login_type: 'google' | 'mobile' | 'wechat' | 'apple' | 'alran_sso' | 'alran_oauth';
   };
   readonly btw_session_lifecycle: {
     readonly phase: 'opened' | 'closed';
-    readonly duration_bucket: McodeDurationBucket;
+    readonly duration_bucket: AlranDurationBucket;
     readonly exit_reason: '' | 'ctrl_c' | 'ctrl_d' | 'navigation' | 'replaced';
   };
   readonly chat_send: ChatContextProperties & {
@@ -45,31 +45,31 @@ export interface McodeBusinessEventMap {
   };
   readonly slash_command_menu_view: ChatContextProperties;
   readonly slash_command_click: ChatContextProperties & {
-    readonly command_type: McodeSlashCommandType;
+    readonly command_type: AlranSlashCommandType;
   };
   readonly at_command_menu_view: ChatContextProperties;
   readonly at_command_click: ChatContextProperties & {
-    readonly command_type: McodeAtCommandType;
+    readonly command_type: AlranAtCommandType;
   };
 }
 
-export type McodeBusinessEventName = keyof McodeBusinessEventMap;
-export type McodeBusinessEvent = {
-  [Event in McodeBusinessEventName]: {
+export type AlranBusinessEventName = keyof AlranBusinessEventMap;
+export type AlranBusinessEvent = {
+  [Event in AlranBusinessEventName]: {
     readonly event: Event;
-    readonly properties: McodeBusinessEventMap[Event];
+    readonly properties: AlranBusinessEventMap[Event];
   };
-}[McodeBusinessEventName];
+}[AlranBusinessEventName];
 
-export interface McodeBusinessTelemetry {
-  track<Event extends McodeBusinessEventName>(
+export interface AlranBusinessTelemetry {
+  track<Event extends AlranBusinessEventName>(
     event: Event,
-    properties: McodeBusinessEventMap[Event],
+    properties: AlranBusinessEventMap[Event],
   ): void;
   flush(): Promise<void>;
 }
 
-export interface CreateMcodeBusinessTelemetryOptions {
+export interface CreateAlranBusinessTelemetryOptions {
   readonly region: MavisRegion;
   readonly buildEnv: MavisBuildEnv;
   readonly version: string;
@@ -80,13 +80,13 @@ export interface CreateMcodeBusinessTelemetryOptions {
   readonly timeoutMs?: number;
 }
 
-export interface McodeTelemetryPolicy {
+export interface AlranTelemetryPolicy {
   readonly enabled: boolean;
   readonly configured: boolean;
-  readonly blockedBy?: 'MCODE_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
+  readonly blockedBy?: 'ALRAN_DISABLE_TELEMETRY' | 'DO_NOT_TRACK';
 }
 
-export interface McodeBusinessTelemetryPreview {
+export interface AlranBusinessTelemetryPreview {
   readonly endpoint: string;
   readonly method: 'POST';
   readonly contentType: 'application/x-www-form-urlencoded';
@@ -103,7 +103,7 @@ export interface SensorsPayload {
   };
   readonly properties: Record<string, unknown>;
   readonly type: 'track';
-  readonly event: McodeBusinessEventName;
+  readonly event: AlranBusinessEventName;
   readonly time: number;
 }
 
@@ -120,17 +120,17 @@ const EVENT_PROPERTY_KEYS = {
   at_command_menu_view: ['chat_type'],
   at_command_click: ['chat_type', 'command_type'],
 } as const satisfies {
-  [Event in McodeBusinessEventName]: readonly Extract<keyof McodeBusinessEventMap[Event], string>[];
+  [Event in AlranBusinessEventName]: readonly Extract<keyof AlranBusinessEventMap[Event], string>[];
 };
 
-export function resolveMcodeBusinessTelemetryPolicy(options: {
+export function resolveAlranBusinessTelemetryPolicy(options: {
   readonly configEnabled?: boolean;
   readonly environment?: NodeJS.ProcessEnv;
-}): McodeTelemetryPolicy {
+}): AlranTelemetryPolicy {
   const environment = options.environment ?? process.env;
   const configured = options.configEnabled === true;
-  if (isEnabledEnvironmentFlag(environment.MCODE_DISABLE_TELEMETRY)) {
-    return { enabled: false, configured, blockedBy: 'MCODE_DISABLE_TELEMETRY' };
+  if (isEnabledEnvironmentFlag(environment.ALRAN_DISABLE_TELEMETRY)) {
+    return { enabled: false, configured, blockedBy: 'ALRAN_DISABLE_TELEMETRY' };
   }
   if (isEnabledEnvironmentFlag(environment.DO_NOT_TRACK)) {
     return { enabled: false, configured, blockedBy: 'DO_NOT_TRACK' };
@@ -138,13 +138,13 @@ export function resolveMcodeBusinessTelemetryPolicy(options: {
   return { enabled: configured, configured };
 }
 
-export function createMcodeBusinessTelemetry(
-  options: CreateMcodeBusinessTelemetryOptions,
-): McodeBusinessTelemetry {
+export function createAlranBusinessTelemetry(
+  options: CreateAlranBusinessTelemetryOptions,
+): AlranBusinessTelemetry {
   const fetchImpl = options.fetch ?? fetch;
-  const endpoint = resolveMcodeBusinessTelemetryEndpoint(options.region, options.buildEnv);
+  const endpoint = resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv);
   const queueLimit = Math.max(1, options.queueLimit ?? DEFAULT_QUEUE_LIMIT);
-  const queue: McodeBusinessEvent[] = [];
+  const queue: AlranBusinessEvent[] = [];
   let drainPromise: Promise<void> | undefined;
   let drainScheduled = false;
 
@@ -182,7 +182,7 @@ export function createMcodeBusinessTelemetry(
   return {
     track(event, properties) {
       if (queue.length >= queueLimit) queue.shift();
-      queue.push({ event, properties } as McodeBusinessEvent);
+      queue.push({ event, properties } as AlranBusinessEvent);
       scheduleDrain();
     },
     async flush() {
@@ -193,20 +193,20 @@ export function createMcodeBusinessTelemetry(
   };
 }
 
-export function createMcodeBusinessTelemetryPreview<Event extends McodeBusinessEventName>(
+export function createAlranBusinessTelemetryPreview<Event extends AlranBusinessEventName>(
   event: Event,
-  properties: McodeBusinessEventMap[Event],
-  options: CreateMcodeBusinessTelemetryOptions,
-): McodeBusinessTelemetryPreview {
+  properties: AlranBusinessEventMap[Event],
+  options: CreateAlranBusinessTelemetryOptions,
+): AlranBusinessTelemetryPreview {
   return {
-    endpoint: resolveMcodeBusinessTelemetryEndpoint(options.region, options.buildEnv),
+    endpoint: resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv),
     method: 'POST',
     contentType: 'application/x-www-form-urlencoded',
-    payload: createSensorsPayload({ event, properties } as McodeBusinessEvent, options),
+    payload: createSensorsPayload({ event, properties } as AlranBusinessEvent, options),
   };
 }
 
-export function bucketMcodeDuration(durationMs: number): McodeDurationBucket {
+export function bucketAlranDuration(durationMs: number): AlranDurationBucket {
   if (durationMs < 60_000) return 'under_1m';
   if (durationMs < 5 * 60_000) return '1m_to_5m';
   if (durationMs < 30 * 60_000) return '5m_to_30m';
@@ -214,8 +214,8 @@ export function bucketMcodeDuration(durationMs: number): McodeDurationBucket {
 }
 
 function createSensorsPayload(
-  item: McodeBusinessEvent,
-  options: CreateMcodeBusinessTelemetryOptions,
+  item: AlranBusinessEvent,
+  options: CreateAlranBusinessTelemetryOptions,
 ): SensorsPayload {
   const eventProperties = selectEventProperties(item);
   // A fresh ID satisfies the receiver's envelope without linking separate events.
@@ -238,25 +238,25 @@ function createSensorsPayload(
   };
 }
 
-function selectEventProperties(item: McodeBusinessEvent): Record<string, string | number> {
+function selectEventProperties(item: AlranBusinessEvent): Record<string, string | number> {
   const selected: Record<string, string | number> = {};
   const properties = item.properties as Record<string, string | number>;
   for (const key of EVENT_PROPERTY_KEYS[item.event]) selected[key] = properties[key]!;
   return selected;
 }
 
-export function resolveMcodeBusinessTelemetryEndpoint(
+export function resolveAlranBusinessTelemetryEndpoint(
   region: MavisRegion,
   buildEnv: MavisBuildEnv,
 ): string {
   if (region === 'en') {
     return buildEnv === 'prod'
-      ? 'https://data.hailuo.ai/meerkat-reporter/api/report?project=MiniMaxAgent'
-      : 'https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=MiniMaxAgent';
+      ? 'https://data.hailuo.ai/meerkat-reporter/api/report?project=AlranAgent'
+      : 'https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=AlranAgent';
   }
   return buildEnv === 'prod'
-    ? 'https://data.hailuoai.com/meerkat-reporter/api/report?project=MiniMaxAgent'
-    : 'https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=MiniMaxAgent';
+    ? 'https://data.hailuoai.com/meerkat-reporter/api/report?project=AlranAgent'
+    : 'https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=AlranAgent';
 }
 
 function isEnabledEnvironmentFlag(value: string | undefined): boolean {

@@ -3,17 +3,17 @@ import { ThinkingLevel } from '@mavis/protocol';
 import { getRuntimePresetKey, resolveModelAvailability } from '@mavis/config';
 import {
   LocalModelProviderError,
-  MANAGED_MINIMAX_PROVIDER_ID,
+  MANAGED_ALRAN_PROVIDER_ID,
   formatModelKey,
   freezeManagedQueueModel,
   savedSessionModel,
-  isLegacyMinimaxProvider,
+  isLegacyAlranProvider,
   listLocalRuntimeModels,
   modelConfigForRef,
   modelRefForModel,
   type ManagedModelParameterSnapshot,
   parseSourceQualifiedModelKey,
-  resolveLegacyMinimaxModel,
+  resolveLegacyAlranModel,
   type ModelProviderModelEntry,
 } from '../../service/model-system/index.js';
 
@@ -36,7 +36,7 @@ export class ModelProviderApplication {
       cache: this.deps.providers.loadCacheData(),
       ...(this.deps.implicitCustomProviderThinking ? { implicitCustomProviderThinking: true } : {}),
     });
-    const catalog = models.filter((model) => !isLegacyMinimaxProvider(config, model.providerId));
+    const catalog = models.filter((model) => !isLegacyAlranProvider(config, model.providerId));
     const stored = input.sessionId
       ? session
       : {
@@ -59,7 +59,7 @@ export class ModelProviderApplication {
     const current = selected ?? parseSourceQualifiedModelKey(config.defaultModel);
     if (!current?.providerId || !current.modelId) return selected;
     try {
-      const replacement = resolveLegacyMinimaxModel(config, {
+      const replacement = resolveLegacyAlranModel(config, {
         providerId: current.providerId,
         modelId: current.modelId,
       });
@@ -85,7 +85,7 @@ export class ModelProviderApplication {
   }
 
   async select(input: SelectRuntimeModelInput): Promise<boolean> {
-    const replacement = resolveLegacyMinimaxModel(this.deps.config(), input);
+    const replacement = resolveLegacyAlranModel(this.deps.config(), input);
     let selection: SelectRuntimeModelInput = replacement
       ? { ...replacement, sessionId: input.sessionId, thinking: null }
       : input;
@@ -215,7 +215,7 @@ function isManagedSelection(
   providerId: string,
 ): boolean {
   return (
-    providerId === MANAGED_MINIMAX_PROVIDER_ID && config.minimaxModelSource !== 'minimax_api_key'
+    providerId === MANAGED_ALRAN_PROVIDER_ID && config.alranModelSource !== 'alran_api_key'
   );
 }
 

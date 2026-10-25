@@ -24,7 +24,7 @@ export interface ImageTokenEstimateOptions {
  *
  * The default path uses a single conservative tier (the high-res one:
  * maxEdge=2576, maxTokens=4784) instead of a broad per-model tier table.
- * MiniMax-M is the one explicit exception because its media-token helper is
+ * Alran-M is the one explicit exception because its media-token helper is
  * known locally. Under-estimation is the dangerous direction
  * (context-overflow retry loop), so fallbacks stay conservative.
  */
@@ -33,14 +33,14 @@ const MAX_IMAGE_TOKENS = 4_784;
 const IMAGE_PATCH_SIZE = 28;
 const MAX_MEDIA_DIMENSION = 1_000_000;
 const MAX_BINARY_SEARCH_ITERATIONS = 64;
-const MINIMAX_M_MIN_SHORT_SIDE = 112;
-const MINIMAX_M_FACTOR = 28;
-const MINIMAX_M_IMAGE_LONG_SIDE: Record<MediaDetail, number> = {
+const ALRAN_M_MIN_SHORT_SIDE = 112;
+const ALRAN_M_FACTOR = 28;
+const ALRAN_M_IMAGE_LONG_SIDE: Record<MediaDetail, number> = {
   low: 672,
   default: 2_016,
   high: 3_584,
 };
-const MINIMAX_M_VIDEO_LONG_SIDE: Record<MediaDetail, number> = {
+const ALRAN_M_VIDEO_LONG_SIDE: Record<MediaDetail, number> = {
   low: 504,
   default: 672,
   high: 1_288,
@@ -48,7 +48,7 @@ const MINIMAX_M_VIDEO_LONG_SIDE: Record<MediaDetail, number> = {
 
 /**
  * Default fallback when the header cannot be parsed (unknown format,
- * truncated data, or no dimensions). MiniMax-M uses its own per-detail
+ * truncated data, or no dimensions). Alran-M uses its own per-detail
  * fallback because image/video limits differ there.
  */
 export const FALLBACK_IMAGE_TOKENS = MAX_IMAGE_TOKENS;
@@ -85,10 +85,10 @@ export function estimateImageBlockTokens(
   const isVideo = isVideoBlock(block);
   const dimensions =
     readDimensionsFromBlock(block) ?? readDimensionsFromBase64Block(block, isVideo);
-  if (isMiniMaxMModel(options.model)) {
+  if (isAlranMModel(options.model)) {
     const detail = readMediaDetail(block);
-    if (!dimensions) return minimaxMFallbackTokens(detail, isVideo);
-    return estimateMiniMaxMVisualTokensForDimensions(
+    if (!dimensions) return alranMFallbackTokens(detail, isVideo);
+    return estimateAlranMVisualTokensForDimensions(
       dimensions.height,
       dimensions.width,
       detail,
@@ -137,11 +137,11 @@ export function estimateVisualTokensForDimensions(width: number, height: number)
 }
 
 /**
- * MiniMax-M helper mirrors the provider formula, whose public signature uses
+ * Alran-M helper mirrors the provider formula, whose public signature uses
  * (H, W, detail, is_video, max_long_side_pixel), so height intentionally comes
  * before width here.
  */
-export function estimateMiniMaxMVisualTokensForDimensions(
+export function estimateAlranMVisualTokensForDimensions(
   height: number,
   width: number,
   detail: MediaDetail = 'default',
@@ -149,22 +149,22 @@ export function estimateMiniMaxMVisualTokensForDimensions(
   maxLongSidePixel?: number,
 ): number {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
-    return minimaxMFallbackTokens(detail, isVideo);
+    return alranMFallbackTokens(detail, isVideo);
   }
   const h = Math.floor(height);
   const w = Math.floor(width);
-  const limits = isVideo ? MINIMAX_M_VIDEO_LONG_SIDE : MINIMAX_M_IMAGE_LONG_SIDE;
+  const limits = isVideo ? ALRAN_M_VIDEO_LONG_SIDE : ALRAN_M_IMAGE_LONG_SIDE;
   const longSideLimit = maxLongSidePixel ?? limits[detail];
   let beta: number;
   if (Math.max(h, w) > longSideLimit) {
     beta = longSideLimit / Math.max(h, w);
-  } else if (Math.min(h, w) < MINIMAX_M_MIN_SHORT_SIDE) {
-    beta = MINIMAX_M_MIN_SHORT_SIDE / Math.min(h, w);
+  } else if (Math.min(h, w) < ALRAN_M_MIN_SHORT_SIDE) {
+    beta = ALRAN_M_MIN_SHORT_SIDE / Math.min(h, w);
   } else {
     beta = 1;
   }
   return (
-    ceilScaledPatches(h, beta, MINIMAX_M_FACTOR) * ceilScaledPatches(w, beta, MINIMAX_M_FACTOR)
+    ceilScaledPatches(h, beta, ALRAN_M_FACTOR) * ceilScaledPatches(w, beta, ALRAN_M_FACTOR)
   );
 }
 
@@ -241,16 +241,16 @@ function readMaxLongSidePixel(block: Record<string, unknown>): number | undefine
   );
 }
 
-function isMiniMaxMModel(model: ImageTokenEstimateOptions['model']): boolean {
+function isAlranMModel(model: ImageTokenEstimateOptions['model']): boolean {
   const id = model?.id?.trim() ?? '';
   const name = model?.name?.trim() ?? '';
-  return /^minimax-m(?:\b|[\d.-])/i.test(id) || /^minimax-m(?:\b|[\d.-])/i.test(name);
+  return /^alran-m(?:\b|[\d.-])/i.test(id) || /^alran-m(?:\b|[\d.-])/i.test(name);
 }
 
-function minimaxMFallbackTokens(detail: MediaDetail, isVideo: boolean): number {
-  const limits = isVideo ? MINIMAX_M_VIDEO_LONG_SIDE : MINIMAX_M_IMAGE_LONG_SIDE;
+function alranMFallbackTokens(detail: MediaDetail, isVideo: boolean): number {
+  const limits = isVideo ? ALRAN_M_VIDEO_LONG_SIDE : ALRAN_M_IMAGE_LONG_SIDE;
   const edge = limits[detail];
-  return estimateMiniMaxMVisualTokensForDimensions(edge, edge, detail, isVideo, edge);
+  return estimateAlranMVisualTokensForDimensions(edge, edge, detail, isVideo, edge);
 }
 
 function isVideoBlock(block: Record<string, unknown>): boolean {

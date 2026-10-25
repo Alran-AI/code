@@ -1,7 +1,7 @@
 import {
   SystemReminderService,
   createDefaultRegistry,
-  withMcodeToolsMasterReminder,
+  withAlranToolsMasterReminder,
   type Logger as SystemReminderLogger,
   type SystemReminderDiagnostic,
 } from '@mavis/system-reminder';
@@ -112,10 +112,10 @@ export class LocalSystemReminderService {
       options?.withDiagnostic ? { withDiagnostic: true } : undefined,
     );
     const text =
-      withMcodeToolsMasterReminder({
+      withAlranToolsMasterReminder({
         reminderText: result.text,
         modelID: msg.model?.modelID,
-        enabled: beta?.mcodeTools === true,
+        enabled: beta?.alranTools === true,
       }) ?? '';
     const memoryBlockNames = extractMemoryBlockNames(text);
     const finalizeTelemetry = once(

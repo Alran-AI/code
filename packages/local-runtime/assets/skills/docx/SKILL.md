@@ -4,7 +4,7 @@ metadata:
   version: "4.0.0"
   category: document-processing
   status: stable
-  author: MiniMaxAI
+  author: AlranAI
   sources:
     - "ECMA-376 Office Open XML File Formats"
     - "GB/T 9704-2012 Layout Standard for Official Documents"
@@ -138,7 +138,7 @@ anything on `MINGW*/MSYS*/CYGWIN*` and tell you to switch to `powershell.exe` / 
 > - `references/typography_guide.md`
 > - `references/design_principles.md`
 > - `references/cjk_typography.md`
-> - `scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
+> - `scripts/dotnet/AlranAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 >
 > These are not optional decoration. They are the quality-preserving recipe layer.
 
@@ -210,19 +210,19 @@ Use these after `CREATE_DOCX` / `APPLY_TEMPLATE` is selected:
 | `references/typography_guide.md` | font pairings, sizes, spacing, page layout, table rules |
 | `references/design_principles.md` | visual judgment rules when exact specs are missing |
 | `references/cjk_typography.md` | CJK fonts, 字号, mixed-script rules, 公文 defaults |
-| `scripts/dotnet/MiniMaxAIDocx.Core/Samples/AestheticRecipeSamples*.cs` | benchmarked recipe families; choose one instead of inventing values |
+| `scripts/dotnet/AlranAIDocx.Core/Samples/AestheticRecipeSamples*.cs` | benchmarked recipe families; choose one instead of inventing values |
 
 ## Runtime shorthands
 
 ```bash
 # macOS / Linux / WSL
-CLI="dotnet run --project <skill_dir>/scripts/dotnet/MiniMaxAIDocx.Cli --"
+CLI="dotnet run --project <skill_dir>/scripts/dotnet/AlranAIDocx.Cli --"
 TMPDIR_DOCX="${TMPDIR:-/tmp}"
 ```
 
 ```powershell
 # Windows PowerShell
-$CLI = "dotnet run --project <skill_dir>\scripts\dotnet\MiniMaxAIDocx.Cli --"
+$CLI = "dotnet run --project <skill_dir>\scripts\dotnet\AlranAIDocx.Cli --"
 $TmpDocx = $env:TEMP
 ```
 

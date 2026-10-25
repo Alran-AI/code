@@ -28,7 +28,7 @@ import {
   computePluginDirectoryDigest,
   pluginDigestCacheKey,
 } from '../package/package-contract.js';
-import { readMiniMaxPlugin, scanLocalPluginPackages } from '../package/package-readers.js';
+import { readAlranPlugin, scanLocalPluginPackages } from '../package/package-readers.js';
 import type {
   ReadPluginPackage,
   RuntimeEligibleScannedReadPluginPackage,
@@ -262,7 +262,7 @@ export class PluginPackageStorage {
     packageRoot: string,
   ): Promise<RuntimeEligibleScannedReadPluginPackage | undefined> {
     try {
-      const { miniapp, ...plugin } = await readMiniMaxPlugin(packageRoot, { source: 'OFFICIAL' });
+      const { miniapp, ...plugin } = await readAlranPlugin(packageRoot, { source: 'OFFICIAL' });
       if (!miniapp) return plugin;
       const digests = await computeMiniAppPackageDigests(plugin.rootPath, miniapp.artifacts, {
         rejectHardlinks: true,
@@ -378,7 +378,7 @@ export class PluginPackageStorage {
           force: false,
         });
         const digest = await computePluginDirectoryDigest(stagingRoot, {
-          pathPolicy: entry.plugin.manifestKind === 'MINIMAX' ? 'minimax-portable' : 'agent-plugin',
+          pathPolicy: entry.plugin.manifestKind === 'ALRAN' ? 'alran-portable' : 'agent-plugin',
         });
         if (digest.contentDigest !== entry.contentDigest) {
           throw new PluginSystemError(
@@ -459,7 +459,7 @@ export class PluginPackageStorage {
       const stat = await lstat(root);
       if (stat.isSymbolicLink() || !stat.isDirectory()) return false;
       const digest = await computePluginDirectoryDigest(root, {
-        pathPolicy: entry.plugin.manifestKind === 'MINIMAX' ? 'minimax-portable' : 'agent-plugin',
+        pathPolicy: entry.plugin.manifestKind === 'ALRAN' ? 'alran-portable' : 'agent-plugin',
       });
       return digest.contentDigest === entry.contentDigest;
     } catch {

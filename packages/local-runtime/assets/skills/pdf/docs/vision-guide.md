@@ -9,7 +9,7 @@
 > model, or when native page reading is unavailable. Everything below describes that fallback.
 
 > Detailed reference for the only in-skill wrapped read route — `read_pdf_vision.py`, which exposes
-> MiniMax's native Matrix vision via local-runtime. All other read scenarios (text / tables /
+> Alran's native Matrix vision via local-runtime. All other read scenarios (text / tables /
 > coordinates / raster / decrypt / metadata) are cookbook recipes in [`SKILL.md`](../SKILL.md) §3-§4
 > and §7. There is no wrapped script for them — pdfplumber, pypdfium2, poppler, and qpdf are called
 > directly from a few lines of Python or shell.
@@ -87,7 +87,7 @@ batch.
 | --------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | `502 Bad Gateway` / `413 payload too large`               | Upstream nginx rejected the stitched image       | Add `--max-bytes 2000000` (or 1500000), shrink `--pages`, drop to `--dpi 100`                                           |
 | `gemini analysis failed` / `unexpected end of JSON input` | Transient upstream LLM hiccup                    | Retry the same command unchanged                                                                                        |
-| `Cannot connect to local runtime at port 5321`            | Local runtime is down or the port could not be discovered | Restart the MiniMax Code app; if the runtime is up, pass the port explicitly via `__MAVIS_RUNTIME_PORT` |
+| `Cannot connect to local runtime at port 5321`            | Local runtime is down or the port could not be discovered | Restart the Alran Code app; if the runtime is up, pass the port explicitly via `__MAVIS_RUNTIME_PORT` |
 | `auth failed` / `401`                                     | Matrix backend token expired or environment mismatch | Verify the managed login token matches the managed Matrix host, or set `MATRIX_TOKEN` for a custom `MATRIX_BASE_URL`     |
 
 The script also prints a one-line stderr hint on 502 / 413 so the model does not need to consult
@@ -101,7 +101,7 @@ brew install poppler        # pdftoppm (pdf2image backend) + pdfinfo
 ```
 
 Runtime side: managed Matrix hosts use the Mavis login token. For a custom `MATRIX_BASE_URL`, set
-`MATRIX_TOKEN` in the runtime environment, then restart the MiniMax Code app so local-runtime picks it up.
+`MATRIX_TOKEN` in the runtime environment, then restart the Alran Code app so local-runtime picks it up.
 
 ## Output spill (preventing context blow-up)
 

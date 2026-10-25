@@ -12,12 +12,12 @@ import {
 import { loadConfigFromFile } from "../src/file-loader.js";
 
 const secret = "synthetic-preset-sync-secret";
-const oldBaseURL = "https://agent.minimax.io/mavis/api/v1/llm/v1";
+const oldBaseURL = "https://api.ottili.one/mavis/api/v1/llm/v1";
 const presetBaseURL =
   "https://matrix-overseas-pre.example.invalid/mavis/api/v1/llm/v1";
 const original = yaml.dump({
   logLevel: "debug",
-  provider: { minimax: { options: { baseURL: oldBaseURL, apiKey: secret } } },
+  provider: { alran: { options: { baseURL: oldBaseURL, apiKey: secret } } },
   custom_provider: { example: { options: { apiKey: secret }, models: {} } },
 });
 let root: string;
@@ -28,7 +28,7 @@ beforeEach(() => {
   file = join(root, "config.yaml");
   vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "1");
   vi.stubEnv("__MAVIS_RUNTIME_DATA_DIR", root);
-  vi.stubEnv("MINIMAX_DATA_DIR", root);
+  vi.stubEnv("ALRAN_DATA_DIR", root);
   vi.stubEnv("MAVIS_REGION", "en");
   vi.stubEnv("MAVIS_BUILD_ENV", "staging");
   setLegacyByokProviderMigrationEnabled(false);
@@ -53,7 +53,7 @@ describe.each([
   it("persists the current preset and preserves user settings", () => {
     const config = load();
     expect(config.logLevel).toBe("debug");
-    expect(config.provider.minimax?.options).toMatchObject({
+    expect(config.provider.alran?.options).toMatchObject({
       baseURL: presetBaseURL,
       apiKey: secret,
     });
@@ -61,7 +61,7 @@ describe.each([
     expect(persisted).toMatchObject({
       custom_provider: { example: { options: { apiKey: secret } } },
       provider: {
-        minimax: { options: { baseURL: presetBaseURL, apiKey: secret } },
+        alran: { options: { baseURL: presetBaseURL, apiKey: secret } },
       },
     });
   });
@@ -89,7 +89,7 @@ describe.each([
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const config = load();
       expect(config.logLevel).toBe("debug");
-      expect(config.provider.minimax?.options).toMatchObject({
+      expect(config.provider.alran?.options).toMatchObject({
         baseURL: presetBaseURL,
         apiKey: secret,
       });
@@ -132,7 +132,7 @@ describe.each([
 it("honors the disabled preset synchronization policy", () => {
   setManagedPresetBaseUrlSyncEnabled(false);
   const truncate = vi.spyOn(fs, "ftruncateSync");
-  expect(getConfig().provider.minimax?.options?.baseURL).toBe(presetBaseURL);
+  expect(getConfig().provider.alran?.options?.baseURL).toBe(presetBaseURL);
   expect(truncate).not.toHaveBeenCalled();
   expect(fs.readFileSync(file, "utf8")).toBe(original);
 });
@@ -151,8 +151,8 @@ it.each([
     });
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const config = getConfig();
-    expect(config.provider.minimax?.options?.baseURL).toBe(expectedBaseURL);
-    expect(config.provider.minimax?.options?.apiKey).toBe(secret);
+    expect(config.provider.alran?.options?.baseURL).toBe(expectedBaseURL);
+    expect(config.provider.alran?.options?.apiKey).toBe(secret);
   },
 );
 

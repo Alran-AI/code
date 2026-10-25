@@ -19,7 +19,7 @@ export function feedbackEndpoint(input: {
   readonly buildEnv?: () => MavisBuildEnv;
 }): string {
   if (input.endpoint) return input.endpoint;
-  return `${publicGatewayOrigin(input)}/minimax-cloud/api/v1/feedback/ticket`;
+  return `${publicGatewayOrigin(input)}/alran-cloud/api/v1/feedback/ticket`;
 }
 
 export function feedbackPayload(

@@ -22,10 +22,10 @@ Use these labels independently:
 | Category | Labels and meaning |
 | --- | --- |
 | Type | `bug`: reported malfunction; `enhancement`: requested improvement; `documentation`: missing or incorrect docs; `question`: usage or project-policy question |
-| Product | `desktop`: Desktop app; `cli`: standalone mcode, including TUI, headless, ACP and its source builds/tooling |
+| Product | `desktop`: Desktop app; `cli`: standalone alran, including TUI, headless, ACP and its source builds/tooling |
 | Triage | `needs-triage`: awaiting maintainer assessment; `needs-info`: a maintainer has asked the reporter for specific missing information |
 
-1. Start with [needs-triage](https://github.com/MiniMax-AI/minimax-code/issues?q=is%3Aissue+is%3Aopen+label%3Aneeds-triage) and [unlabelled issues](https://github.com/MiniMax-AI/minimax-code/issues?q=is%3Aissue+is%3Aopen+no%3Alabel). Templates add a type and `needs-triage`; reports created through other routes may need both added manually. A type label describes the report and does not confirm a defect or commit to implementation.
+1. Start with [needs-triage](https://github.com/ottili/alran-code/issues?q=is%3Aissue+is%3Aopen+label%3Aneeds-triage) and [unlabelled issues](https://github.com/ottili/alran-code/issues?q=is%3Aissue+is%3Aopen+no%3Alabel). Templates add a type and `needs-triage`; reports created through other routes may need both added manually. A type label describes the report and does not confirm a defect or commit to implementation.
 2. Confirm one primary type and apply `desktop` or `cli` from the report. Product dropdowns stay in the body; maintainers apply product labels manually. Use both only when the report establishes that both are affected. Leave product labels unset for unclear reports or repository-policy questions. The existing `tui` label may supplement `cli` for interactive-terminal-specific issues; it does not cover headless or ACP.
 3. If information is missing, ask for the specific version, reproduction, or expected behavior, replace `needs-triage` with `needs-info`, and retain any known type/product labels. When the reporter replies, remove `needs-info` and reassess. Do not automatically close issues for inactivity.
 4. Once assessed, remove `needs-triage` and record the next step in a comment. Assign a collaborator when someone takes responsibility; classification alone does not promise a fix or release date. For duplicates, link the original issue before closing with `duplicate`. For declined requests, explain the reason before closing with `wontfix`.
@@ -61,7 +61,7 @@ When migrating older CI configurations, replace required individual OS/Node chec
 CODEOWNERS requests reviewers; it does not enforce protection by itself. The intended administrative configuration is [`.github/branch-protection.json`](../.github/branch-protection.json). Applying it requires repository administration access. Read back the live settings after applying; committing this file does not activate it.
 
 ```bash
-release_repo=MiniMax-AI/minimax-code
+release_repo=Alran-AI/alran-code
 gh api "/repos/$release_repo/branches/main/protection"
 gh api --method PUT "/repos/$release_repo/branches/main/protection" \
   --input .github/branch-protection.json

@@ -10,7 +10,7 @@ import {
   HAILUO_23_MODEL,
   isH3VideoModel,
   MATRIX_TOOL_PATHS,
-  MINIMAX_H3_MODEL,
+  ALRAN_H3_MODEL,
   MatrixQueryVideoGenerationToolDef,
   type MatrixQueryVideoGenerationInput,
 } from '../tool-defs.js';
@@ -37,7 +37,7 @@ export class MatrixQueryVideoGenerationTool implements ToolImpl<
     const toolName = MatrixQueryVideoGenerationToolDef.name;
     const path = MATRIX_TOOL_PATHS[toolName];
     if (!isH3VideoModel(input.model) && input.model !== HAILUO_23_MODEL) {
-      const text = `Invalid video query: model must be ${MINIMAX_H3_MODEL} or ${HAILUO_23_MODEL}.`;
+      const text = `Invalid video query: model must be ${ALRAN_H3_MODEL} or ${HAILUO_23_MODEL}.`;
       return {
         tool_name: toolName,
         text,

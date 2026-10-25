@@ -165,7 +165,7 @@ const LLM_REQUEST_TOO_LARGE_MESSAGE_RE =
   /\brequest_too_large\b|\bREQUEST_BODY_TOO_LARGE\b|\brequest body too large\b|\brequest entity too large\b|\bpayload too large\b/i;
 /**
  * The prompt is over the model context window. Kept to unambiguous provider
- * shapes; MiniMax reports it as `invalid params, context window exceeds limit
+ * shapes; Alran reports it as `invalid params, context window exceeds limit
  * (2013)`, so the bare 2013 code (a generic invalid-params code) is not used.
  */
 const LLM_CONTEXT_OVERFLOW_MESSAGE_RE =
@@ -810,13 +810,13 @@ export function isLLMTpmRateLimitMessage(message: string | undefined): boolean {
 }
 
 /**
- * Map upstream MiniMax / OpenAI-style provider status_code to daemon ErrorCode. Values share the
+ * Map upstream Alran / OpenAI-style provider status_code to daemon ErrorCode. Values share the
  * source of daemon local-proxy-handler.ts::UPSTREAM_CODE_MAP.
  */
 export const UPSTREAM_STATUS_CODE_MAP: Record<number, LLMErrorStatusCode> = {
-  // MiniMax internal status: insufficient balance → 50110.
+  // Alran internal status: insufficient balance → 50110.
   1400010161: LLM_ERROR_CODES.LLM_CREDITS_EXHAUSTED,
-  // MiniMax internal status: usage limit exceeded → 42212.
+  // Alran internal status: usage limit exceeded → 42212.
   2056: LLM_ERROR_CODES.USAGE_LIMIT_EXCEEDED,
   // Token Plan limit reached with automatic credit consumption disabled → 42212.
   2067: LLM_ERROR_CODES.USAGE_LIMIT_EXCEEDED,
@@ -844,7 +844,7 @@ export function tryExtractFromPayload(raw: unknown): {
   // over transport-level codes (outer HTTP `statusCode`). AI SDK
   // APICallError wraps upstream payload as `{statusCode: 500,
   // responseBody: '{"status_code": 1400010161, ...}'}` — the inner 1400010161
-  // is the real cause (MiniMax credit exhausted → 50110), the outer 500 is
+  // is the real cause (Alran credit exhausted → 50110), the outer 500 is
   // just HTTP transport. We collect nested signals FIRST, then let outer
   // fields fill in only what nested didn't provide.
 
@@ -1000,7 +1000,7 @@ export function mapUpstreamHttpError(httpStatus: number): LLMErrorStatusCode | u
  *
  * Priority:
  * 1. Explicit payload errorCode / code (status_code enum).
- * 2. Upstream payload status_code matching UPSTREAM_STATUS_CODE_MAP (MiniMax 1400010161 / 2056 /
+ * 2. Upstream payload status_code matching UPSTREAM_STATUS_CODE_MAP (Alran 1400010161 / 2056 /
  *   2067).
  * 3. Message-only quota/credits signal, e.g. "usage limit exceeded (2056)".
  * 4. HTTP 429 + TPM provider message code → LLM_TPM_RATE_LIMITED(50150).

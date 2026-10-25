@@ -858,7 +858,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     expect(codingZh.persona).toBe(coding.persona);
     expect(codingZh.corePrompt).toBe(coding.corePrompt);
     expect(cli.corePrompt).toContain(
-      "user's active MiniMax Code terminal conversation",
+      "user's active Alran Code terminal conversation",
     );
     expect(coding.corePrompt).toContain("this agent's root session");
     expect(cli.corePrompt).toContain("# Core Judgment");
@@ -867,7 +867,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
       "You help users with software engineering tasks.",
     );
     expect(cliZh.corePrompt).not.toContain("You are Mavis");
-    expect(cliZh.corePrompt).not.toContain("MiniMax As a Jarvis");
+    expect(cliZh.corePrompt).not.toContain("Alran As a Jarvis");
     expect(cli.corePrompt).not.toContain("# Work Rules");
     expect(cli.corePrompt).toContain("# Communication & Delivery");
     expect(cliWithoutDelegation.corePrompt).not.toContain("Task Routing");
@@ -992,13 +992,13 @@ describe("BuiltinAgentCatalog session surfaces", () => {
       catalog.render({ ...common, appMode: "coding", promptMode: "coding" }),
       catalog.render({ ...common, appMode: "work", promptMode: "work" }),
       readFile(
-        join(root, "mavis", "skills", "minimax-code-product", "SKILL.md"),
+        join(root, "mavis", "skills", "alran-code-product", "SKILL.md"),
         "utf8",
       ),
     ]);
 
     for (const rendered of [coding, work]) {
-      expect(rendered.corePrompt).not.toContain("minimax-code-product");
+      expect(rendered.corePrompt).not.toContain("alran-code-product");
       expect(rendered.corePrompt).not.toContain(
         "Do not guess dynamic product facts from model memory.",
       );
@@ -1007,17 +1007,17 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     expect(productSkill).toMatch(
       /核实顺序|verification workflow|official source discovery/i,
     );
-    expect(productSkill).toContain("https://agent.minimax.cn/docs/llms.txt");
+    expect(productSkill).toContain("https://api.ottili.one/docs/llms.txt");
     expect(productSkill).toContain(
-      "https://platform.minimaxi.com/docs/llms.txt",
+      "https://api.ottili.one/docs/llms.txt",
     );
-    expect(productSkill).toContain("https://agent.minimax.io/docs/llms.txt");
-    expect(productSkill).toContain("https://platform.minimax.io/docs/llms.txt");
+    expect(productSkill).toContain("https://api.ottili.one/docs/llms.txt");
+    expect(productSkill).toContain("https://platform.alran.io/docs/llms.txt");
     expect(productSkill).toContain(
-      "https://agent.minimax.cn/docs/changelog.md",
+      "https://api.ottili.one/docs/changelog.md",
     );
     expect(productSkill).toContain(
-      "https://agent.minimax.io/docs/changelog.md",
+      "https://api.ottili.one/docs/changelog.md",
     );
     expect(productSkill).toMatch(
       /current-region Desktop changelog[\s\S]*latest-version/i,
@@ -1025,17 +1025,17 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     expect(productSkill).toMatch(/version\/date[\s\S]*download links/i);
     expect(productSkill).not.toMatch(/latest\.yml|latest-mac\.yml/i);
     expect(productSkill).not.toMatch(
-      /filecdn\.minimax\.chat|file\.cdn\.minimax\.io/i,
+      /filecdn\.alran\.chat|file\.cdn\.alran\.io/i,
     );
     expect(productSkill).not.toMatch(
-      /https:\/\/agent\.minimaxi\.com|process\.platform/,
+      /https:\/\/agent\.alrani\.com|process\.platform/,
     );
     expect(productSkill).not.toContain("web_fetch");
     expect(productSkill).not.toMatch(
-      /国内 Changelog[^\n]*https:\/\/agent\.minimax\.cn\/docs\/changelog(?!\.md)/i,
+      /国内 Changelog[^\n]*https:\/\/agent\.alran\.cn\/docs\/changelog(?!\.md)/i,
     );
     expect(productSkill).not.toMatch(
-      /海外 Changelog[^\n]*https:\/\/agent\.minimax\.io\/docs\/changelog(?!\.md)/i,
+      /海外 Changelog[^\n]*https:\/\/agent\.alran\.io\/docs\/changelog(?!\.md)/i,
     );
     expect(productSkill).not.toMatch(/\b(?:test|staging|inside)\b/i);
     expect(productSkill).not.toMatch(/最新版本\s*[:：]\s*v?\d/i);
@@ -1116,7 +1116,7 @@ describe("BuiltinAgentCatalog TUI prompt profile", () => {
       const enabled = await catalog.render(input);
       const child = await catalog.render({ ...input, surface: "task-child" });
       expect(enabled.corePrompt).toContain(
-        "You are a coding agent running in the MiniMax Code terminal",
+        "You are a coding agent running in the Alran Code terminal",
       );
       expect(enabled.corePrompt).toContain("markdown in a terminal");
       expect(enabled.corePrompt).toContain("## Deliverable Files");
@@ -1218,7 +1218,7 @@ describe("BuiltinAgentCatalog persona assets", () => {
       "Report results faithfully: say what succeeded, what failed, what was skipped, and what remains unverified.",
     );
     expect(persona).toContain("display_name: Mavis");
-    expect(persona).toContain("MiniMax Code");
+    expect(persona).toContain("Alran Code");
     expect(persona).not.toContain("You are Mavis");
     expect(persona).not.toContain("Core Judgment");
     expect(persona).not.toContain("customer service");
@@ -1417,7 +1417,7 @@ describe("BuiltinAgentCatalog prompt modes", () => {
       rendered.push(enabled);
     }
     expect(rendered[0]?.corePrompt).toContain(
-      "You are a coding agent running in the MiniMax Code terminal",
+      "You are a coding agent running in the Alran Code terminal",
     );
     expect(rendered[1]?.corePrompt).toContain(
       "You help users with software engineering tasks.",

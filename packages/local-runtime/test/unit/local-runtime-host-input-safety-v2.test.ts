@@ -11,7 +11,7 @@ const baseTurn = {
   systemPrompt: 'base',
   userMessage: { text: 'question' },
   reviewUserInput: 'question',
-  llm: { model: { api: 'anthropic-messages', provider: 'minimax', id: 'test' } as never },
+  llm: { model: { api: 'anthropic-messages', provider: 'alran', id: 'test' } as never },
 };
 const finalMessage = (content: string): IRuntimeEvent =>
   ({

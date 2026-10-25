@@ -3,7 +3,7 @@ import { parseHeadlessModelOverride } from '../headless/model-selection.js';
 import type { TuiMode } from '../tui/engine/public.js';
 import { parseTuiStartupEnvironment } from './environment.js';
 import type { TuiBuildEnvironment } from '../auth/environment.js';
-import type { McodeContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@mavis/protocol/local';
 import {
   applySystemPromptCliOptions,
   resolveSystemPromptOverrides,
@@ -22,7 +22,7 @@ export interface TuiInteractiveLaunchRequest {
   readonly workspaceDir?: string;
   readonly resumeDraftAfterLogin?: boolean;
   readonly tuiMode?: TuiMode;
-  readonly contextMode?: McodeContextMode;
+  readonly contextMode?: AlranContextMode;
   readonly lane?: string;
   readonly systemPromptOverrides?: SystemPromptOverrides;
 }
@@ -205,7 +205,7 @@ function parseTuiMode(value: string): TuiMode {
   throw new InvalidArgumentError('TUI mode must be regular or fullscreen');
 }
 
-function parseContextMode(value: string): McodeContextMode {
+function parseContextMode(value: string): AlranContextMode {
   if (value === 'standard' || value === 'lightweight') return value;
   throw new InvalidArgumentError('mode must be standard or lightweight');
 }

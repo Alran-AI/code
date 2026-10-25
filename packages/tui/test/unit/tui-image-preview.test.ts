@@ -174,7 +174,7 @@ describe('preview file loader', () => {
   beforeAll(async () => {
     // CI runs workspace source aliases without dist/. Exercise the shipped worker
     // boundary by bundling both entries, instead of relying on a developer's build artifacts.
-    bundleDir = await mkdtemp(join(tmpdir(), 'mcode-preview-bundle-'));
+    bundleDir = await mkdtemp(join(tmpdir(), 'alran-preview-bundle-'));
     const root = fileURLToPath(new URL('../../../../', import.meta.url));
     const location = createTuiBundleModuleLocationConfig();
     const entries = packageExportEntries(root, readExtraction(root).packageRoots);
@@ -231,7 +231,7 @@ describe('preview file loader', () => {
   });
 
   it('skips oversized files and excessive decoded dimensions before launching a decoder', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'mcode-image-limit-'));
+    const dir = await mkdtemp(join(tmpdir(), 'alran-image-limit-'));
     try {
       const path = join(dir, 'large.png');
       const file = await open(path, 'w');
@@ -251,7 +251,7 @@ describe('preview file loader', () => {
   });
 
   it('reads a real PNG without modifying it and rejects cancelled reads', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'mcode-image-preview-'));
+    const dir = await mkdtemp(join(tmpdir(), 'alran-image-preview-'));
     try {
       const path = join(dir, 'a.png');
       await writeFile(path, Buffer.from(png, 'base64'));

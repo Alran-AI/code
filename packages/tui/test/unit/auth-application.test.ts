@@ -3,8 +3,8 @@ import type { LogoutResult } from '@mavis/oauth-core';
 
 import { createLocalAuthFixture } from '../../../oauth-core/test/helpers/local-auth.js';
 
-import type { McodeBusinessEvent } from '../../src/analytics/business-telemetry.js';
-import { McodeAuthApplication } from '../../src/auth/application.js';
+import type { AlranBusinessEvent } from '../../src/analytics/business-telemetry.js';
+import { AlranAuthApplication } from '../../src/auth/application.js';
 
 function sharedCore(status: 'anonymous' | 'authenticated' | 'logout_pending' = 'anonymous') {
   return {
@@ -29,11 +29,11 @@ function sharedCore(status: 'anonymous' | 'authenticated' | 'logout_pending' = '
   };
 }
 
-describe('McodeAuthApplication', () => {
+describe('AlranAuthApplication', () => {
   it('uses Shared OAuth Device Flow as its only login path', async () => {
     const core = sharedCore();
     const onProgress = vi.fn();
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       region: 'cn',
       buildEnv: 'test',
@@ -42,7 +42,7 @@ describe('McodeAuthApplication', () => {
 
     await expect(application.login(onProgress)).resolves.toEqual({
       state: 'authenticated',
-      message: 'Signed in with MiniMax.',
+      message: 'Signed in with Alran.',
     });
     expect(core.login).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenCalledWith({
@@ -55,11 +55,11 @@ describe('McodeAuthApplication', () => {
 
   it('lets Core reuse an authenticated session without forcing a refresh', async () => {
     const core = sharedCore('authenticated');
-    const application = new McodeAuthApplication({ dataDir: '/data', sharedAuthCore: core });
+    const application = new AlranAuthApplication({ dataDir: '/data', sharedAuthCore: core });
 
     await expect(application.login()).resolves.toEqual({
       state: 'already-authenticated',
-      message: 'Already signed in with MiniMax.',
+      message: 'Already signed in with Alran.',
     });
     expect(core.login).toHaveBeenCalledOnce();
     expect(core.login).toHaveBeenCalledWith({ onDeviceAuthorization: expect.any(Function) });
@@ -71,7 +71,7 @@ describe('McodeAuthApplication', () => {
       const fixture = await createLocalAuthFixture();
       try {
         const core = fixture.createManager();
-        const application = new McodeAuthApplication({
+        const application = new AlranAuthApplication({
           dataDir: fixture.dataDir, sharedAuthCore: core, region: 'cn', buildEnv: 'test',
         });
         await application.login();
@@ -91,7 +91,7 @@ describe('McodeAuthApplication', () => {
     const chinaCore = sharedCore('authenticated');
     const globalCore = sharedCore();
     const resolveSharedAuthCore = vi.fn(() => globalCore);
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       region: 'cn',
       buildEnv: 'test',
@@ -101,7 +101,7 @@ describe('McodeAuthApplication', () => {
 
     await expect(application.login(undefined, 'en')).resolves.toEqual({
       state: 'authenticated',
-      message: 'Signed in with MiniMax Global.',
+      message: 'Signed in with Alran Global.',
       restartRequired: true,
     });
     expect(resolveSharedAuthCore).toHaveBeenCalledWith('en');
@@ -112,7 +112,7 @@ describe('McodeAuthApplication', () => {
   it('persists only the non-sensitive selected region after login succeeds', async () => {
     const core = sharedCore();
     const writeRegionPreference = vi.fn();
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       region: 'cn',
       buildEnv: 'test',
@@ -132,7 +132,7 @@ describe('McodeAuthApplication', () => {
     const chinaCore = sharedCore();
     const globalCore = sharedCore('authenticated');
     const resolveSharedAuthCore = vi.fn(() => globalCore);
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       region: 'cn',
       buildEnv: 'test',
@@ -142,7 +142,7 @@ describe('McodeAuthApplication', () => {
 
     await expect(application.login(undefined, 'en')).resolves.toEqual({
       state: 'already-authenticated',
-      message: 'Already signed in with MiniMax Global.',
+      message: 'Already signed in with Alran Global.',
       restartRequired: true,
     });
     expect(resolveSharedAuthCore).toHaveBeenCalledWith('en');
@@ -155,16 +155,16 @@ describe('McodeAuthApplication', () => {
     ['cn', 'dev', 'https://matrix-test.example.invalid'],
     ['cn', 'test', 'https://matrix-test.example.invalid'],
     ['cn', 'staging', 'https://matrix-pre.example.invalid'],
-    ['cn', 'prod', 'https://agent.minimax.cn'],
+    ['cn', 'prod', 'https://api.ottili.one'],
     ['en', 'dev', 'https://matrix-overseas-test.example.invalid'],
     ['en', 'test', 'https://matrix-overseas-test.example.invalid'],
     ['en', 'staging', 'https://matrix-overseas-pre.example.invalid'],
-    ['en', 'prod', 'https://agent.minimax.io'],
+    ['en', 'prod', 'https://api.ottili.one'],
   ] as const)(
     'logs out %s/%s with the matching browser logout page',
     async (region, buildEnv, origin) => {
       const core = sharedCore('authenticated');
-      const application = new McodeAuthApplication({
+      const application = new AlranAuthApplication({
         dataDir: '/data',
         region,
         buildEnv,
@@ -173,7 +173,7 @@ describe('McodeAuthApplication', () => {
 
       await expect(application.logout()).resolves.toEqual({
         state: 'signed-out',
-        message: `Signed out of MiniMax ${region === 'cn' ? 'China' : 'Global'} on Desktop, CLI/TUI, and embedded mcode-tools.`,
+        message: `Signed out of Alran ${region === 'cn' ? 'China' : 'Global'} on Desktop, CLI/TUI, and embedded alran-tools.`,
         logoutUrl: `${origin}/auth/logout?logout_redirect_uri=${encodeURIComponent(origin)}`,
       });
       expect(core.logout).toHaveBeenCalledWith({ revoke: true });
@@ -182,7 +182,7 @@ describe('McodeAuthApplication', () => {
 
   it('treats logout of an already anonymous shared domain as a safe no-op', async () => {
     const core = sharedCore();
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       sharedAuthCore: core,
       region: 'cn',
@@ -191,9 +191,9 @@ describe('McodeAuthApplication', () => {
 
     await expect(application.logout()).resolves.toEqual({
       state: 'already-signed-out',
-      message: 'Already signed out of MiniMax.',
+      message: 'Already signed out of Alran.',
       logoutUrl:
-        'https://agent.minimax.cn/auth/logout?logout_redirect_uri=https%3A%2F%2Fagent.minimax.cn',
+        'https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one',
     });
     expect(core.logout).toHaveBeenCalledWith({ revoke: true });
   });
@@ -201,7 +201,7 @@ describe('McodeAuthApplication', () => {
   it('provides browser logout while server revocation is pending', async () => {
     const core = sharedCore('authenticated');
     core.logout.mockResolvedValue({ status: 'logout_pending', generation: 2 });
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       sharedAuthCore: core,
       region: 'en',
@@ -212,32 +212,32 @@ describe('McodeAuthApplication', () => {
       state: 'signed-out',
       message: expect.stringContaining('Server revocation is pending'),
       logoutUrl:
-        'https://agent.minimax.io/auth/logout?logout_redirect_uri=https%3A%2F%2Fagent.minimax.io',
+        'https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one',
     });
   });
 
   it('reports OAuth telemetry and preserves login failures', async () => {
-    const events: McodeBusinessEvent[] = [];
+    const events: AlranBusinessEvent[] = [];
     const core = sharedCore();
     core.login.mockRejectedValueOnce(new Error('OAuth authorization failed.'));
-    const application = new McodeAuthApplication({
+    const application = new AlranAuthApplication({
       dataDir: '/data',
       sharedAuthCore: core,
       telemetry: {
-        track: (event, properties) => events.push({ event, properties } as McodeBusinessEvent),
+        track: (event, properties) => events.push({ event, properties } as AlranBusinessEvent),
         flush: async () => undefined,
       },
-      telemetrySource: 'mcode_tui',
+      telemetrySource: 'alran_tui',
     });
 
     await expect(application.login()).rejects.toThrow('OAuth authorization failed.');
     expect(events.at(-1)).toEqual({
       event: 'login_result',
       properties: {
-        source: 'mcode_tui',
+        source: 'alran_tui',
         result_type: '2',
         fail_reason: '5',
-        login_type: 'minimax_oauth',
+        login_type: 'alran_oauth',
       },
     });
   });

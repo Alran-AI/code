@@ -3,12 +3,12 @@
 const SYNTHETIC_ORIGIN = 'http://local-runtime.transport';
 const CLOUD_ALIAS_PREFIX = '/archon/api/v1/';
 const MAVIS_API_PREFIX = '/mavis/';
-const DESKTOP_API_PREFIX = '/minimax-desktop/api/';
-const EVENTS_PATH = '/minimax-desktop/api/v1/events';
+const DESKTOP_API_PREFIX = '/alran-desktop/api/';
+const EVENTS_PATH = '/alran-desktop/api/v1/events';
 const EVENT_STREAM_SCOPE_QUERY = '_mavis_stream_scope';
 const EVENT_STREAM_SCOPE_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/u;
 const STREAMING_SUFFIXES = ['/message', '/resume'];
-const SESSION_STREAM_PREFIXES = ['/mavis/api/session/', '/minimax-desktop/api/v1/session/'];
+const SESSION_STREAM_PREFIXES = ['/mavis/api/session/', '/alran-desktop/api/v1/session/'];
 
 function safeDecode(value: string): string {
   try {

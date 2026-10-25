@@ -6,13 +6,13 @@ import type { TuiTokenPlanQuota, TuiTokenPlanSummary } from '../runtime/port.js'
 
 const MATRIX_ORIGINS: Readonly<Record<MavisRegion, Record<MavisBuildEnv, string>>> = {
   cn: {
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://api.ottili.one',
     staging: 'https://matrix-pre.example.invalid',
     test: 'https://matrix-test.example.invalid',
     dev: 'https://matrix-test.example.invalid',
   },
   en: {
-    prod: 'https://agent.minimax.io',
+    prod: 'https://api.ottili.one',
     staging: 'https://matrix-overseas-pre.example.invalid',
     test: 'https://matrix-overseas-test.example.invalid',
     dev: 'https://matrix-overseas-test.example.invalid',
@@ -32,7 +32,7 @@ const NEED_LOGIN_ERROR_CODE = 1_000_048;
 // Requests below carry `yy` / `x-timestamp` / `x-signature` client attribution
 // headers built from two inline literals.
 //
-// Those literals tag a request as coming from a first-party MiniMax client. They are
+// Those literals tag a request as coming from a first-party Alran client. They are
 // shared across clients and are not credentials or a security boundary: request
 // authorization is the `Authorization: Bearer` token sent on the same request.
 //
@@ -41,13 +41,13 @@ const NEED_LOGIN_ERROR_CODE = 1_000_048;
 
 const OPEN_PLATFORM_ORIGINS: Readonly<Record<MavisRegion, Record<MavisBuildEnv, string>>> = {
   cn: {
-    prod: 'https://www.minimaxi.com',
+    prod: 'https://api.ottili.one',
     staging: 'https://open-platform-for-online-test.example.invalid',
     test: 'https://openplatform-test.example.invalid',
     dev: 'https://openplatform-test.example.invalid',
   },
   en: {
-    prod: 'https://platform.minimax.io',
+    prod: 'https://platform.alran.io',
     staging: 'https://mmx-pre.example.invalid',
     test: 'https://mmx-test.example.invalid',
     dev: 'https://mmx-test.example.invalid',
@@ -331,7 +331,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'AlranCode',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_{}${md5(String(requestTime))}ooui`),
@@ -344,10 +344,10 @@ export class TuiMatrixAccountClient {
         throw new TuiAuthenticationError(response.status);
       }
       if (!response.ok) {
-        throw new Error(`MCode account identity request failed with HTTP ${response.status}`);
+        throw new Error(`Alran account identity request failed with HTTP ${response.status}`);
       }
       const body = asRecord(await response.json());
-      if (!body) throw new Error('MCode account identity request returned an invalid response');
+      if (!body) throw new Error('Alran account identity request returned an invalid response');
       assertSuccessfulResponse(body, 'account identity request');
       const data = asRecord(body.data);
       const userInfo =
@@ -359,7 +359,7 @@ export class TuiMatrixAccountClient {
         readString(userInfo, undefined, 'realUserID') ??
         readString(userInfo, undefined, 'real_user_id');
       if (!realUserID) {
-        throw new Error('MCode account identity request returned no account ID');
+        throw new Error('Alran account identity request returned no account ID');
       }
       const identity = {
         realUserID,
@@ -395,7 +395,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'AlranCode',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_${body}${md5(String(requestTime))}ooui`),
@@ -406,10 +406,10 @@ export class TuiMatrixAccountClient {
         signal: scopedSignal.signal,
       });
       if (!response.ok) {
-        throw new Error(`MCode ${operation} failed with HTTP ${response.status}`);
+        throw new Error(`Alran ${operation} failed with HTTP ${response.status}`);
       }
       const responseBody = asRecord(await response.json());
-      if (!responseBody) throw new Error(`MCode ${operation} returned an invalid response`);
+      if (!responseBody) throw new Error(`Alran ${operation} returned an invalid response`);
       assertSuccessfulResponse(responseBody, operation);
       return responseBody;
     } finally {
@@ -433,7 +433,7 @@ export class TuiMatrixAccountClient {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          'User-Agent': 'MiniMaxCode',
+          'User-Agent': 'AlranCode',
           Authorization: `Bearer ${accessToken}`,
           ...this.routingHeaders(),
           yy: md5(`${encodeURIComponent(pathWithSearch)}_{}${md5(String(requestTime))}ooui`),
@@ -446,13 +446,13 @@ export class TuiMatrixAccountClient {
         throw new TuiAuthenticationError(response.status);
       }
       if (!response.ok) {
-        throw new Error(`MCode token renewal failed with HTTP ${response.status}`);
+        throw new Error(`Alran token renewal failed with HTTP ${response.status}`);
       }
       const body = asRecord(await response.json());
-      if (!body) throw new Error('MCode token renewal returned an invalid response');
+      if (!body) throw new Error('Alran token renewal returned an invalid response');
       assertSuccessfulResponse(body, 'token renewal');
       const token = readString(asRecord(body.data), body, 'token');
-      if (!token) throw new Error('MCode token renewal returned no access token');
+      if (!token) throw new Error('Alran token renewal returned no access token');
       return token;
     } finally {
       scopedSignal.dispose();
@@ -463,7 +463,7 @@ export class TuiMatrixAccountClient {
     const url = new URL(pathname, MATRIX_ORIGINS[this.options.region][this.options.buildEnv]);
     const language = this.options.region === 'cn' ? 'zh' : 'en';
     url.search = new URLSearchParams({
-      device_platform: 'mcode',
+      device_platform: 'alran',
       biz_id: '3',
       app_id: '3001',
       version_code: '22201',
@@ -473,9 +473,9 @@ export class TuiMatrixAccountClient {
       lang: language,
       device_id: '0',
       os_name: process.platform,
-      browser_name: 'mcode',
+      browser_name: 'alran',
       user_id: realUserId?.trim() || '0',
-      client: 'mcode',
+      client: 'alran',
     }).toString();
     return url;
   }
@@ -587,7 +587,7 @@ export class TuiAuthenticationError extends Error {
   override readonly name = 'TuiAuthenticationError';
 
   constructor(readonly status: 401 | 403) {
-    super('MiniMax sign-in expired. Run /login, then retry.');
+    super('Alran sign-in expired. Run /login, then retry.');
   }
 }
 
@@ -595,11 +595,11 @@ function assertSuccessfulResponse(body: Record<string, unknown>, operation: stri
   const statusInfo = asRecord(body.statusInfo);
   if (typeof statusInfo?.code === 'number' && statusInfo.code !== 0) {
     if (statusInfo.code === NEED_LOGIN_ERROR_CODE) throw new TuiAuthenticationError(401);
-    throw new Error(`MCode ${operation} failed with status ${statusInfo.code}`);
+    throw new Error(`Alran ${operation} failed with status ${statusInfo.code}`);
   }
   const baseResponse = asRecord(body.base_resp);
   if (typeof baseResponse?.status_code === 'number' && baseResponse.status_code !== 0) {
-    throw new Error(`MCode ${operation} failed with status ${baseResponse.status_code}`);
+    throw new Error(`Alran ${operation} failed with status ${baseResponse.status_code}`);
   }
 }
 

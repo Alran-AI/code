@@ -177,9 +177,9 @@ function resolveCapturedModel(input: {
   const historical = input.historical ? historicalModelSelection(input.session) : undefined;
   const requested = input.input.requestedModel;
   if (
-    requested?.providerId === 'minimax' &&
+    requested?.providerId === 'alran' &&
     requested.modelId &&
-    input.config.minimaxModelSource !== 'minimax_api_key'
+    input.config.alranModelSource !== 'alran_api_key'
   ) {
     // Validate public effort before the Agent's legacy on/off conversion can consume it.
     modelRefForModel(
@@ -206,7 +206,7 @@ function resolveCapturedModel(input: {
         taskModelSelection: input.input.taskModelSelection,
         parentModel: input.input.parentModel,
         requestedModel:
-          input.config.minimaxModelSource !== 'minimax_api_key'
+          input.config.alranModelSource !== 'alran_api_key'
             ? input.input.requestedModel
             : undefined,
         legacyTaskCapture: input.input.session === undefined,
@@ -426,7 +426,7 @@ interface ModelSourcesInput {
 }
 
 function modelSources(input: ModelSourcesInput): readonly AgentModelSelectionSource[] {
-  if (input.requestedModel?.providerId === 'minimax' && input.requestedModel.modelId) {
+  if (input.requestedModel?.providerId === 'alran' && input.requestedModel.modelId) {
     const model = input.requestedModel;
     return [
       {

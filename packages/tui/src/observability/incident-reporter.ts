@@ -132,7 +132,7 @@ const INCIDENT_DIRECTORY = ['v2', 'observability', 'cli', 'incidents'] as const;
 const INCIDENT_SCHEMA_VERSION = 2;
 const EVENT_LOG_WIRE_VERSION = 'v1';
 // Gateway wire compatibility value. It is cryptographic KDF input, not a source identifier.
-const EVENT_LOG_HKDF_SALT = 'mcode-desktop-event-log-v1';
+const EVENT_LOG_HKDF_SALT = 'alran-desktop-event-log-v1';
 const MAX_INCIDENT_FILES = 200;
 const MAX_NON_FATAL_INCIDENTS_PER_RUN = 100;
 const MAX_BREADCRUMBS = 20;
@@ -148,16 +148,16 @@ const ERROR_API_HOST: Readonly<Record<MavisRegion, Readonly<Record<MavisBuildEnv
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://api.ottili.one',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
     test: 'https://matrix-overseas-test.example.invalid',
     staging: 'https://matrix-overseas-pre.example.invalid',
-    prod: 'https://agent.minimax.io',
+    prod: 'https://api.ottili.one',
   },
 };
-const ERROR_BATCH_PATH = '/minimax-cloud/api/v1/observability/desktop-errors/batch';
+const ERROR_BATCH_PATH = '/alran-cloud/api/v1/observability/desktop-errors/batch';
 
 export function resolveTuiIncidentDirectory(dataDir: string): string {
   return join(dataDir, ...INCIDENT_DIRECTORY);
@@ -438,7 +438,7 @@ class LocalTuiIncidentReporter implements TuiIncidentReporter {
       const response = await this.fetchImpl(requestUrl, {
         method: 'POST',
         headers: {
-          'User-Agent': 'MiniMaxAgent',
+          'User-Agent': 'AlranAgent',
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },

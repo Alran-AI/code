@@ -259,12 +259,12 @@ export interface LocalRuntimeApplication {
     ): Promise<CodexOAuthStartResult>;
     cancelCodexOAuthLogin(loginId: string): Promise<CodexOAuthStatus>;
     listUser(): Promise<readonly Record<string, unknown>[]>;
-    getMiniMaxApiKeyStatus(): Promise<Record<string, unknown>>;
-    getMiniMaxModelSource(): Promise<"token_plan" | "minimax_api_key">;
-    setMiniMaxModelSource(input: {
-      source: "token_plan" | "minimax_api_key";
-    }): Promise<"token_plan" | "minimax_api_key">;
-    upsertMiniMaxApiKey(input: {
+    getAlranApiKeyStatus(): Promise<Record<string, unknown>>;
+    getAlranModelSource(): Promise<"token_plan" | "alran_api_key">;
+    setAlranModelSource(input: {
+      source: "token_plan" | "alran_api_key";
+    }): Promise<"token_plan" | "alran_api_key">;
+    upsertAlranApiKey(input: {
       apiKey: string;
       saveAndUse?: boolean;
     }): Promise<unknown>;

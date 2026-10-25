@@ -13,14 +13,14 @@ import {
   renderDecisionHeading,
 } from '../interaction/decision-frame.js';
 import type {
-  McodeUpdateApplyOptions,
-  McodeUpdateOutcome,
-  McodeUpdatePlan,
+  AlranUpdateApplyOptions,
+  AlranUpdateOutcome,
+  AlranUpdatePlan,
 } from '../../../update/application.js';
 import {
-  isMcodeUpdateAdmissionError,
-  isMcodeUpdateCancelledError,
-  type McodeUpdatePhase,
+  isAlranUpdateAdmissionError,
+  isAlranUpdateCancelledError,
+  type AlranUpdatePhase,
 } from '../../../update/progress.js';
 import { redactTuiCredentials } from '../../transcript/export.js';
 import { presentTuiFailure } from '../../../user-facing-failure.js';
@@ -29,32 +29,32 @@ const UPDATE_ANIMATION_INTERVAL_MS = 80;
 const UPDATE_SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'] as const;
 const UPDATE_RECENT_OUTPUT_LINES = 4;
 
-type ActionableMcodeUpdatePlan = Extract<
-  McodeUpdatePlan,
+type ActionableAlranUpdatePlan = Extract<
+  AlranUpdatePlan,
   { kind: 'available' | 'package-manager' }
 >;
 
-type McodeUpdatePanelState =
+type AlranUpdatePanelState =
   | { status: 'review' }
   | {
       status: 'applying';
       startedAtMs: number;
-      phase: McodeUpdatePhase;
+      phase: AlranUpdatePhase;
       cancellable: boolean;
       cancelRequested: boolean;
     }
   | { status: 'paused'; reason: string }
   | { status: 'cancelled' }
   | { status: 'failed'; message: string; diagnostic?: string }
-  | { status: 'succeeded'; outcome: McodeUpdateOutcome };
+  | { status: 'succeeded'; outcome: AlranUpdateOutcome };
 
 export interface TuiUpdatePanelOptions {
-  readonly plan: ActionableMcodeUpdatePlan;
+  readonly plan: ActionableAlranUpdatePlan;
   readonly maxRows: number | (() => number);
   readonly apply: (
-    plan: ActionableMcodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: ActionableAlranUpdatePlan,
+    options?: AlranUpdateApplyOptions,
+  ) => Promise<AlranUpdateOutcome>;
   readonly requestRender: () => void;
   readonly onClose: () => void;
   readonly onRestart: () => Promise<void>;
@@ -63,7 +63,7 @@ export interface TuiUpdatePanelOptions {
 }
 
 export class TuiUpdatePanel implements Component, Focusable {
-  private state: McodeUpdatePanelState = { status: 'review' };
+  private state: AlranUpdatePanelState = { status: 'review' };
   private selectedAction = 0;
   private detailsExpanded = false;
   private frameIndex = 0;
@@ -176,14 +176,14 @@ export class TuiUpdatePanel implements Component, Focusable {
       this.setState({ status: 'succeeded', outcome });
     } catch (error) {
       if (this.disposed) return;
-      if (isMcodeUpdateCancelledError(error)) this.setState({ status: 'cancelled' });
-      else if (isMcodeUpdateAdmissionError(error)) {
+      if (isAlranUpdateCancelledError(error)) this.setState({ status: 'cancelled' });
+      else if (isAlranUpdateAdmissionError(error)) {
         this.setState({ status: 'paused', reason: sanitizeTerminalText(error.message) });
       } else {
         const presentation = presentTuiFailure(error, {
           summary: "The update couldn't be installed.",
           nextStep: 'Retry, or close this panel and try again later.',
-          preservation: 'The previous MCode version is still active.',
+          preservation: 'The previous Alran version is still active.',
         });
         this.detailsExpanded = false;
         this.setState({
@@ -207,8 +207,8 @@ export class TuiUpdatePanel implements Component, Focusable {
       if (this.disposed) return;
       this.restarting = false;
       const presentation = presentTuiFailure(error, {
-        summary: "MCode couldn't restart automatically.",
-        nextStep: 'Close this terminal and start MCode again.',
+        summary: "Alran couldn't restart automatically.",
+        nextStep: 'Close this terminal and start Alran again.',
         preservation: 'The update is already installed.',
       });
       this.detailsExpanded = false;
@@ -224,7 +224,7 @@ export class TuiUpdatePanel implements Component, Focusable {
     const { currentVersion, latestVersion } = this.options.plan;
     return [
       renderDecisionHeading(
-        'MCode update available',
+        'Alran update available',
         sourceLabel(this.options.plan),
         width,
         'signal',
@@ -247,7 +247,7 @@ export class TuiUpdatePanel implements Component, Focusable {
       : this.recentOutput.slice(-Math.min(2, this.recentOutput.length));
     return [
       renderDecisionHeading(
-        `${frame} Updating MCode`,
+        `${frame} Updating Alran`,
         elapsedSeconds > 0 ? `${elapsedSeconds}s` : undefined,
         width,
         'signal',
@@ -281,7 +281,7 @@ export class TuiUpdatePanel implements Component, Focusable {
   }
 
   private renderPaused(width: number): string[] {
-    const reason = this.state.status === 'paused' ? this.state.reason : 'MCode is busy.';
+    const reason = this.state.status === 'paused' ? this.state.reason : 'Alran is busy.';
     return [
       renderDecisionHeading('Update paused', sourceLabel(this.options.plan), width, 'signal'),
       ...renderWrapped(reason, width, colors.warning),
@@ -299,7 +299,7 @@ export class TuiUpdatePanel implements Component, Focusable {
         width,
         'success',
       ),
-      ...renderWrapped('The previous MCode installation remains active.', width, colors.muted),
+      ...renderWrapped('The previous Alran installation remains active.', width, colors.muted),
       '',
       chalk.bold.hex(colors.signal)('› Try again'),
       renderTuiActionHint(fit('Enter retry · Esc close', width)),
@@ -328,7 +328,7 @@ export class TuiUpdatePanel implements Component, Focusable {
     const outcome = this.state.status === 'succeeded' ? this.state.outcome : undefined;
     return [
       renderDecisionHeading(
-        `✓ MCode updated to ${this.options.plan.latestVersion}`,
+        `✓ Alran updated to ${this.options.plan.latestVersion}`,
         undefined,
         width,
         'success',
@@ -336,7 +336,7 @@ export class TuiUpdatePanel implements Component, Focusable {
       ...(outcome ? renderWrapped(outcome.message, width, colors.muted) : []),
       '',
       chalk.bold.hex(colors.signal)(
-        this.restarting ? '⠋ Restarting MCode…' : '› Restart MCode now',
+        this.restarting ? '⠋ Restarting Alran…' : '› Restart Alran now',
       ),
       renderTuiActionHint(fit('Enter restart · Esc restart later', width)),
     ];
@@ -362,12 +362,12 @@ export class TuiUpdatePanel implements Component, Focusable {
     this.options.requestRender();
   }
 
-  private acceptPhase(phase: McodeUpdatePhase, cancellable: boolean): void {
+  private acceptPhase(phase: AlranUpdatePhase, cancellable: boolean): void {
     if (this.disposed || this.state.status !== 'applying') return;
     this.setState({ ...this.state, phase, cancellable });
   }
 
-  private setState(state: McodeUpdatePanelState): void {
+  private setState(state: AlranUpdatePanelState): void {
     this.state = state;
     if (state.status === 'applying') this.startAnimation();
     else this.stopAnimation();
@@ -409,7 +409,7 @@ export class TuiUpdatePanel implements Component, Focusable {
   }
 }
 
-function phaseLabel(phase: McodeUpdatePhase): string {
+function phaseLabel(phase: AlranUpdatePhase): string {
   if (phase === 'checking') return 'Checking';
   if (phase === 'downloading') return 'Downloading';
   if (phase === 'staging') return 'Staging';
@@ -419,7 +419,7 @@ function phaseLabel(phase: McodeUpdatePhase): string {
   return 'Installing';
 }
 
-function sourceLabel(plan: ActionableMcodeUpdatePlan): string {
+function sourceLabel(plan: ActionableAlranUpdatePlan): string {
   return plan.source === 'managed-installer'
     ? 'Official installer'
     : plan.source.replace('-global', '');

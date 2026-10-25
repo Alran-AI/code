@@ -213,7 +213,7 @@ export interface AgentLoopConfig extends SimpleStreamOptions {
 
 	/**
 	 * Called immediately after steering messages have been polled and before another provider request.
-	 * This is a MiniMax host seam for a steering admission hook to stop the current run gracefully.
+	 * This is a Alran host seam for a steering admission hook to stop the current run gracefully.
 	 */
 	shouldStopAfterSteering?: () => boolean | Promise<boolean>;
 

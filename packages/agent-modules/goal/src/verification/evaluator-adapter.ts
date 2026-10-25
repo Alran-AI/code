@@ -11,13 +11,13 @@ import {
 
 export type EvaluatorRouteKind =
   | 'managed_token_plan'
-  | 'minimax_api_key'
+  | 'alran_api_key'
   | 'custom_provider'
   | 'configured_provider';
 
 export interface EvaluatorRouteIdentity {
   readonly kind: EvaluatorRouteKind;
-  /** Required for provider-scoped routes; ignored for platform/BYOK MiniMax routes. */
+  /** Required for provider-scoped routes; ignored for platform/BYOK Alran routes. */
   readonly providerId?: string;
 }
 

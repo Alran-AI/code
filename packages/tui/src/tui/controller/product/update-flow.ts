@@ -1,12 +1,12 @@
 import type {
-  McodeUpdateApplyOptions,
-  McodeUpdateOutcome,
-  McodeUpdatePlan,
+  AlranUpdateApplyOptions,
+  AlranUpdateOutcome,
+  AlranUpdatePlan,
 } from '../../../update/application.js';
 import { disposeComponents, type Component } from '../../rendering/component.js';
 import { TuiUpdatePanel } from '../../features/update/panel.js';
 import type { TuiInteractionSurface } from '../../shell/interaction-surface.js';
-import { McodeUpdateAdmissionError } from '../../../update/progress.js';
+import { AlranUpdateAdmissionError } from '../../../update/progress.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
 type AppendUpdateNotice = (content: string, kind?: 'warning' | 'error') => void;
@@ -14,19 +14,19 @@ type AppendUpdateNotice = (content: string, kind?: 'warning' | 'error') => void;
 export interface TuiUpdateOptions {
   readonly version: string;
   readonly checkForUpdate?: () => Promise<{ latestVersion: string } | undefined>;
-  readonly inspectUpdate?: () => Promise<McodeUpdatePlan>;
+  readonly inspectUpdate?: () => Promise<AlranUpdatePlan>;
   readonly applyUpdate?: (
-    plan: McodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: AlranUpdatePlan,
+    options?: AlranUpdateApplyOptions,
+  ) => Promise<AlranUpdateOutcome>;
 }
 
 export interface TuiUpdateFlowOptions {
-  readonly inspect: () => Promise<McodeUpdatePlan>;
+  readonly inspect: () => Promise<AlranUpdatePlan>;
   readonly apply: (
-    plan: McodeUpdatePlan,
-    options?: McodeUpdateApplyOptions,
-  ) => Promise<McodeUpdateOutcome>;
+    plan: AlranUpdatePlan,
+    options?: AlranUpdateApplyOptions,
+  ) => Promise<AlranUpdateOutcome>;
   readonly append: AppendUpdateNotice;
   readonly showPanel: (panel: Component) => void;
   readonly closePanel: (panel?: Component) => boolean;
@@ -52,7 +52,7 @@ export function createTuiUpdateFlow(
         kind: 'manual',
         source: 'unsupported',
         currentVersion: options.version,
-        command: 'mcode update',
+        command: 'alran update',
       })),
     apply:
       options.applyUpdate ??
@@ -81,13 +81,13 @@ export class TuiUpdateFlow {
     if (this.stopped) return;
     if (this.updateTask) {
       this.options.append(
-        'An MCode update is already running. Please wait for it to finish.',
+        'An Alran update is already running. Please wait for it to finish.',
         'warning',
       );
       return;
     }
     const requestSequence = ++this.requestSequence;
-    let plan: McodeUpdatePlan;
+    let plan: AlranUpdatePlan;
     try {
       plan = await this.options.inspect();
     } catch (error) {
@@ -106,14 +106,14 @@ export class TuiUpdateFlow {
     if (plan.kind === 'current') {
       this.options.append(
         plan.source === 'managed-installer'
-          ? `MCode ${plan.currentVersion} is current on ${plan.channel}.`
-          : `MCode ${plan.currentVersion} is current on @${plan.packageTag}.`,
+          ? `Alran ${plan.currentVersion} is current on ${plan.channel}.`
+          : `Alran ${plan.currentVersion} is current on @${plan.packageTag}.`,
       );
       return;
     }
     if (plan.kind === 'ahead') {
       this.options.append(
-        `MCode ${plan.currentVersion} is newer than ${
+        `Alran ${plan.currentVersion} is newer than ${
           plan.source === 'managed-installer' ? plan.channel : `@${plan.packageTag}`
         } ${plan.latestVersion}.`,
       );
@@ -151,19 +151,19 @@ export class TuiUpdateFlow {
   }
 
   private startBackgroundUpdate(
-    plan: Extract<McodeUpdatePlan, { kind: 'available' | 'package-manager' }>,
+    plan: Extract<AlranUpdatePlan, { kind: 'available' | 'package-manager' }>,
     panel: Component,
   ): void {
     if (this.updateTask) {
       this.options.append(
-        'An MCode update is already running. Please wait for it to finish.',
+        'An Alran update is already running. Please wait for it to finish.',
         'warning',
       );
       return;
     }
     this.close(panel);
     this.options.append(
-      `MCode update started in the background (${plan.currentVersion} → ${plan.latestVersion}).`,
+      `Alran update started in the background (${plan.currentVersion} → ${plan.latestVersion}).`,
     );
     const task = this.requireAdmission()
       .then(() =>
@@ -182,7 +182,7 @@ export class TuiUpdateFlow {
       .then(
         (outcome) => {
           if (!this.stopped) {
-            this.options.append(`MCode update completed: ${outcome.message}`);
+            this.options.append(`Alran update completed: ${outcome.message}`);
             if (outcome.restartRequired) {
               void this.options.restart();
             }
@@ -191,7 +191,7 @@ export class TuiUpdateFlow {
         (error: unknown) => {
           if (!this.stopped) {
             this.options.append(
-              `MCode update failed: ${error instanceof Error ? error.message : String(error)}`,
+              `Alran update failed: ${error instanceof Error ? error.message : String(error)}`,
               'error',
             );
           }
@@ -222,8 +222,8 @@ export class TuiUpdateFlow {
   private async requireAdmission(): Promise<void> {
     const admission = await this.options.admit?.();
     if (admission && !admission.allowed) {
-      throw new McodeUpdateAdmissionError(
-        admission.reason ?? 'Finish active MCode work before updating.',
+      throw new AlranUpdateAdmissionError(
+        admission.reason ?? 'Finish active Alran work before updating.',
       );
     }
   }

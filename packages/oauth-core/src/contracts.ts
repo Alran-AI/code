@@ -1,6 +1,6 @@
-export const MCODE_OAUTH_CLIENT_ID = 'mcode-public' as const;
-export const MCODE_OAUTH_SCOPES = ['agent.default'] as const;
-export const MCODE_OAUTH_AUDIENCE = 'agent-backend' as const;
+export const ALRAN_OAUTH_CLIENT_ID = 'alran-public' as const;
+export const ALRAN_OAUTH_SCOPES = ['agent.default'] as const;
+export const ALRAN_OAUTH_AUDIENCE = 'agent-backend' as const;
 
 export type AuthBuildEnv = 'dev' | 'test' | 'staging' | 'prod';
 export type AuthRegion = 'cn' | 'en';
@@ -17,8 +17,8 @@ export interface AccessTokenLease {
   loginEpoch?: string;
   expiresAtMs: number;
   generation: number;
-  scopes: typeof MCODE_OAUTH_SCOPES;
-  audience: typeof MCODE_OAUTH_AUDIENCE;
+  scopes: typeof ALRAN_OAUTH_SCOPES;
+  audience: typeof ALRAN_OAUTH_AUDIENCE;
 }
 
 export interface UnauthorizedContext {

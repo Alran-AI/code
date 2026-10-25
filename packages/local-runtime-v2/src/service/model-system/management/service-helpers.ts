@@ -10,7 +10,7 @@ import type {
 } from '../contracts.js';
 import {
   cacheStatusView,
-  minimaxApiModels,
+  alranApiModels,
   type ModelCacheStatusView,
 } from '../catalog/list-models.js';
 import { modelConfigFingerprint, type ModelCacheStatusEntry } from '../catalog/model-cache.js';
@@ -115,18 +115,18 @@ export function asLocalModelProviderError(error: unknown): LocalModelProviderErr
   );
 }
 
-export function minimaxContextBaselineFingerprint(
+export function alranContextBaselineFingerprint(
   config: LocalRuntimeConfig,
   modelId: string,
 ): string {
-  const source = config.minimaxModelSource ?? 'token_plan';
+  const source = config.alranModelSource ?? 'token_plan';
   return modelConfigFingerprint({
     source,
-    minimaxApi: config.minimax_api,
+    alranApi: config.alran_api,
     model:
       source === 'token_plan'
-        ? config.provider?.minimax?.models?.[modelId]
-        : minimaxApiModels(config)[modelId],
+        ? config.provider?.alran?.models?.[modelId]
+        : alranApiModels(config)[modelId],
   });
 }
 

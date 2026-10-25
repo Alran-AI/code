@@ -16,7 +16,7 @@ const ARTIFACT_TTL_MS = 24 * 60 * 60 * 1_000;
 const MAX_SESSION_ARTIFACT_BYTES = 8 * 1024 * 1024;
 const MAX_SESSION_ARTIFACT_FILES = 64;
 const MAX_MANAGED_ARTIFACT_BYTES = 64 * 1024 * 1024;
-const MANAGED_OUTPUT_ROOT = join(tmpdir(), 'minimax-plugin-hooks', 'outputs');
+const MANAGED_OUTPUT_ROOT = join(tmpdir(), 'alran-plugin-hooks', 'outputs');
 
 const directoryLanes = new Map<string, Promise<void>>();
 const activeArtifactDirectories = new Set<string>();

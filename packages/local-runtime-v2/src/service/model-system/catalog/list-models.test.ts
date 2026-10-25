@@ -10,7 +10,7 @@ import {
   customProviderKind,
   defaultThinkingVariant,
   enabledCustomProviders,
-  hasMinimaxApiKey,
+  hasAlranApiKey,
   listByokRuntimeModels,
   modelConfigForRef,
   normalizeModelThinkingConfig,
@@ -32,19 +32,19 @@ describe('model catalog helpers', () => {
       'oauth',
     );
     expect(
-      builtinProviderKind(config(), 'minimax', { options: { authMode: 'managed-login' } }),
-    ).toBe('minimax-managed');
+      builtinProviderKind(config(), 'alran', { options: { authMode: 'managed-login' } }),
+    ).toBe('alran-managed');
     expect(
-      builtinProviderKind(config({ minimaxModelSource: 'minimax_api_key' }), 'minimax', {
+      builtinProviderKind(config({ alranModelSource: 'alran_api_key' }), 'alran', {
         options: { authMode: 'managed-login' },
       }),
-    ).toBe('minimax-api-key');
+    ).toBe('alran-api-key');
     expect(builtinProviderKind(config(), 'work', { options: { authMode: 'api-key' } })).toBe(
-      'minimax-api-key',
+      'alran-api-key',
     );
 
-    expect(hasMinimaxApiKey(config())).toBe(false);
-    expect(hasMinimaxApiKey(config({ minimax_api: { apiKey: '  sk-test  ' } }))).toBe(true);
+    expect(hasAlranApiKey(config())).toBe(false);
+    expect(hasAlranApiKey(config({ alran_api: { apiKey: '  sk-test  ' } }))).toBe(true);
   });
 
   it('reads configured models and enabled custom providers', () => {
@@ -65,14 +65,14 @@ describe('model catalog helpers', () => {
     expect(enabledCustomProviders(runtimeConfig).map(([key]) => key)).toEqual(['work']);
   });
 
-  it('uses the user-owned MiniMax API context instead of the managed model entry', () => {
+  it('uses the user-owned Alran API context instead of the managed model entry', () => {
     const runtimeConfig = config({
-      minimaxModelSource: 'minimax_api_key',
-      minimax_api: { modelContextLimits: { 'MiniMax-M3': 1_000_000 } },
+      alranModelSource: 'alran_api_key',
+      alran_api: { modelContextLimits: { 'Alran-M3': 1_000_000 } },
       provider: {
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M3': {
+            'Alran-M3': {
               limit: { context: 256_000 },
               contextWindowOptions: [256_000, 1_000_000],
             },
@@ -82,34 +82,34 @@ describe('model catalog helpers', () => {
     });
 
     expect(
-      routeModelEntries(runtimeConfig, 'minimax', runtimeConfig.provider.minimax ?? {}).find(
-        ([modelId]) => modelId === 'MiniMax-M3',
+      routeModelEntries(runtimeConfig, 'alran', runtimeConfig.provider.alran ?? {}).find(
+        ([modelId]) => modelId === 'Alran-M3',
       )?.[1].limit?.context,
     ).toBe(1_000_000);
-    expect(modelConfigForRef(runtimeConfig, 'minimax', 'MiniMax-M3')?.limit?.context).toBe(
+    expect(modelConfigForRef(runtimeConfig, 'alran', 'Alran-M3')?.limit?.context).toBe(
       1_000_000,
     );
   });
 
-  it.each(['token_plan', 'minimax_api_key'] as const)(
+  it.each(['token_plan', 'alran_api_key'] as const)(
     'lists %s models in the configured catalog order',
-    (minimaxModelSource) => {
+    (alranModelSource) => {
       const runtimeConfig = config({
-        minimaxModelSource,
+        alranModelSource,
         provider: {
-          minimax: {
+          alran: {
             options: { authMode: 'managed-login' },
-            model_order: ['MiniMax-M3.1', 'MiniMax-M3'],
-            models: { 'MiniMax-M3': {}, 'MiniMax-M3.1': {} },
+            model_order: ['Alran-M3.1', 'Alran-M3'],
+            models: { 'Alran-M3': {}, 'Alran-M3.1': {} },
           },
         },
       });
 
       expect(
-        routeModelEntries(runtimeConfig, 'minimax', runtimeConfig.provider.minimax ?? {}).map(
+        routeModelEntries(runtimeConfig, 'alran', runtimeConfig.provider.alran ?? {}).map(
           ([modelId]) => modelId,
         ),
-      ).toEqual(['MiniMax-M3.1', 'MiniMax-M3']);
+      ).toEqual(['Alran-M3.1', 'Alran-M3']);
     },
   );
 
@@ -168,7 +168,7 @@ describe('model catalog entry helpers', () => {
     'keeps managed defaults with context options $contextWindowOptions',
     ({ contextWindowOptions, expectedOptions }) => {
       const entry = buildModelEntry({
-        providerId: 'minimax',
+        providerId: 'alran',
         modelId: 'configured',
         model: {
           limit: { context: 512_000 },
@@ -177,8 +177,8 @@ describe('model catalog entry helpers', () => {
         },
         selected: false,
         providerSource: 'provider',
-        providerKind: 'minimax-managed',
-        providerName: 'MiniMax',
+        providerKind: 'alran-managed',
+        providerName: 'Alran',
       });
       expect(entry).toMatchObject({
         contextLimit: 512_000,
@@ -313,22 +313,22 @@ describe('model catalog entry helpers', () => {
       contextWindowOptionHints: { '1000000': 'higher_usage' as const },
     };
     const managed = buildModelEntry({
-      providerId: 'minimax',
-      modelId: 'MiniMax-M3',
+      providerId: 'alran',
+      modelId: 'Alran-M3',
       model,
       selected: true,
       providerSource: 'provider',
-      providerKind: 'minimax-managed',
-      providerName: 'MiniMax',
+      providerKind: 'alran-managed',
+      providerName: 'Alran',
     });
     const byok = buildModelEntry({
-      providerId: 'minimax',
-      modelId: 'MiniMax-M3',
+      providerId: 'alran',
+      modelId: 'Alran-M3',
       model,
       selected: true,
       providerSource: 'provider',
-      providerKind: 'minimax-api-key',
-      providerName: 'MiniMax API',
+      providerKind: 'alran-api-key',
+      providerName: 'Alran API',
     });
 
     expect(managed).toHaveProperty('contextWindowOptionHints', {

@@ -1,4 +1,4 @@
-# 写一个 MiniMax Code Plugin
+# 写一个 Alran Code Plugin
 
 本文是外部作者的上手路径：从零到一个可提交校验的 Plugin 包。目标是让你在本地
 就能跑出与官方 CI 同一条校验命令，避免提交后才发现格式问题。
@@ -6,8 +6,8 @@
 ## 1. 先跑通环境
 
 ```bash
-git clone https://github.com/MiniMax-AI/minimax-code.git
-cd minimax-code
+git clone https://github.com/ottili/alran-code.git
+cd alran-code
 pnpm install
 pnpm verify --profile docs
 ```
@@ -17,11 +17,11 @@ pnpm verify --profile docs
 
 ## 2. 创建一个 Plugin 包
 
-一个 Plugin 是一个独立目录，根下必须有 `.minimax-plugin/plugin.json`：
+一个 Plugin 是一个独立目录，根下必须有 `.alran-plugin/plugin.json`：
 
 ```text
 my-plugin/
-  .minimax-plugin/plugin.json
+  .alran-plugin/plugin.json
   skills/research/SKILL.md
   my-tool.mcp.json
 ```

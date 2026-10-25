@@ -4,7 +4,7 @@ import path from 'node:path';
 import { readAgentPluginPackage } from './agent-plugin-reader.js';
 import { readCompatiblePluginPackage } from './compatibility-reader.js';
 import { canonicalizePluginRoot, pluginPathExists } from './filesystem.js';
-import { readMiniMaxPluginPackage } from './minimax-reader.js';
+import { readAlranPluginPackage } from './alran-reader.js';
 import {
   computeMiniAppPackageDigests,
   computePluginDirectoryDigest,
@@ -26,11 +26,11 @@ interface LocalPluginCandidate {
   readonly rootPath: string;
 }
 
-export function readMiniMaxPlugin(
+export function readAlranPlugin(
   packageRoot: string,
-  options: { source: 'OFFICIAL' | 'LOCAL_MINIMAX' },
+  options: { source: 'OFFICIAL' | 'LOCAL_ALRAN' },
 ): Promise<ReadPluginPackage> {
-  return readMiniMaxPluginPackage(packageRoot, options);
+  return readAlranPluginPackage(packageRoot, options);
 }
 
 export async function readImportedPluginPackage(
@@ -50,19 +50,19 @@ export async function readImportedPluginPackage(
       agentPluginError = error;
     }
   }
-  const hasMiniMax = await pluginPathExists(root, '.minimax-plugin/plugin.json', 'file');
+  const hasAlran = await pluginPathExists(root, '.alran-plugin/plugin.json', 'file');
   const compatibleManifestPath = '.\u0063\u006c\u0061\u0075\u0064\u0065-plugin/plugin.json';
   const hasCompatible = await pluginPathExists(root, compatibleManifestPath, 'file');
   const hasCodex = await pluginPathExists(root, '.codex-plugin/plugin.json', 'file');
-  if (hasMiniMax) return readMiniMaxPluginPackage(root.path, { source: 'LOCAL_MINIMAX' });
+  if (hasAlran) return readAlranPluginPackage(root.path, { source: 'LOCAL_ALRAN' });
   if (hasCompatible) return readCompatiblePluginPackage(root.path);
   if (hasCodex) return readCompatiblePluginPackage(root.path, { kind: 'CODEX' });
   if (agentPluginError) throw agentPluginError;
   throw new PluginReaderError('PLUGIN_MANIFEST_MISSING', 'Plugin manifest is missing');
 }
 
-/** Reads and digests one Host-selected MiniMax package outside the installed-package catalog. */
-export async function readLocalMiniMaxPluginPackage(
+/** Reads and digests one Host-selected Alran package outside the installed-package catalog. */
+export async function readLocalAlranPluginPackage(
   packageRoot: string,
   options: {
     readonly rejectHardlinks?: boolean;
@@ -70,8 +70,8 @@ export async function readLocalMiniMaxPluginPackage(
   } = {},
 ): Promise<ScannedLocalPluginPackage> {
   const root = await canonicalizePluginRoot(packageRoot, { rejectSymlink: true });
-  const plugin = await readMiniMaxPluginPackage(root.path, {
-    source: 'LOCAL_MINIMAX',
+  const plugin = await readAlranPluginPackage(root.path, {
+    source: 'LOCAL_ALRAN',
     requireMiniApp: options.requireMiniApp,
   });
   return digestScannedPackage(plugin, options);
@@ -153,11 +153,11 @@ async function detectLocalPluginPackage(
   }
   const compatibleManifestPath = '.\u0063\u006c\u0061\u0075\u0064\u0065-plugin/plugin.json';
   const manifests = {
-    hasMiniMax: await pluginPathExists(root, '.minimax-plugin/plugin.json', 'file'),
+    hasAlran: await pluginPathExists(root, '.alran-plugin/plugin.json', 'file'),
     hasCompatible: await pluginPathExists(root, compatibleManifestPath, 'file'),
     hasCodex: await pluginPathExists(root, '.codex-plugin/plugin.json', 'file'),
   };
-  if (!manifests.hasMiniMax && !manifests.hasCompatible && !manifests.hasCodex) return undefined;
+  if (!manifests.hasAlran && !manifests.hasCompatible && !manifests.hasCodex) return undefined;
   return readCandidatePackage(rootPath, manifests);
 }
 
@@ -188,7 +188,7 @@ async function digestScannedPackage(
     };
   }
   const { contentDigest } = await computePluginDirectoryDigest(pluginPackage.rootPath, {
-    pathPolicy: pluginPackage.manifestKind === 'MINIMAX' ? 'minimax-portable' : 'agent-plugin',
+    pathPolicy: pluginPackage.manifestKind === 'ALRAN' ? 'alran-portable' : 'agent-plugin',
     ...options,
   });
   return { plugin: withoutMiniAppContribution(pluginPackage), contentDigest };
@@ -211,13 +211,13 @@ function localScanErrorCode(error: unknown): string {
 async function readCandidatePackage(
   rootPath: string,
   manifests: {
-    readonly hasMiniMax: boolean;
+    readonly hasAlran: boolean;
     readonly hasCompatible: boolean;
     readonly hasCodex: boolean;
   },
 ): Promise<ReadPluginPackage> {
-  if (manifests.hasMiniMax) {
-    return readMiniMaxPluginPackage(rootPath, { source: 'LOCAL_MINIMAX' });
+  if (manifests.hasAlran) {
+    return readAlranPluginPackage(rootPath, { source: 'LOCAL_ALRAN' });
   }
   if (manifests.hasCompatible) return readCompatiblePluginPackage(rootPath);
   if (manifests.hasCodex) return readCompatiblePluginPackage(rootPath, { kind: 'CODEX' });
@@ -228,7 +228,7 @@ async function tryReadAgentPluginPackage(rootPath: string): Promise<ReadPluginPa
   try {
     // A root plugin.json wins only after the Agent Plugins reader accepts the
     // complete portable manifest. An ordinary or malformed root plugin.json
-    // therefore cannot shadow a valid MiniMax or compatible vendor manifest.
+    // therefore cannot shadow a valid Alran or compatible vendor manifest.
     return await readAgentPluginPackage(rootPath, {
       dataDir: path.dirname(path.dirname(rootPath)),
       createPluginData: true,

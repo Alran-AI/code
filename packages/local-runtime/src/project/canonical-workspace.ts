@@ -112,7 +112,7 @@ export function normalizeAbsolutePath(value: string | undefined): string | undef
 
 /**
  * Match the one-way read alias from the historical `.mavis[-profile]` data
- * directory to the current `.minimax[-profile]` data directory.
+ * directory to the current `.alran[-profile]` data directory.
  *
  * The alias is deliberately narrower than a general path migration: both
  * paths must be under the same parent, use the same profile suffix, contain
@@ -217,7 +217,7 @@ function parseAgentWorkspacePath(
     return undefined;
   }
   const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(minimax|mavis)(?:-(.+))?$/i);
+  const match = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
   if (!match?.[1]) return undefined;
   return {
     windows,
@@ -228,7 +228,7 @@ function parseAgentWorkspacePath(
 }
 
 /**
- * Parser-only: lexically parses absolute `<parent>/.{mavis|minimax}[-profile]/sessions/<sessionId>/workspace`
+ * Parser-only: lexically parses absolute `<parent>/.{mavis|alran}[-profile]/sessions/<sessionId>/workspace`
  * candidates and extracts `windows`, `parentDir`, `dataDirBase`, and `profileSuffix`.
  * It validates the exact suffix shape and supplied `sessionId`; the caller compares alias
  * direction and parent/profile equality in `isLegacySessionDefaultWorkspaceDir`.
@@ -263,7 +263,7 @@ function parseSessionDefaultWorkspacePath(
   }
 
   const dataDirPart = parts.at(-4);
-  const dataDirMatch = dataDirPart?.match(/^\.(minimax|mavis)(?:-(.+))?$/i);
+  const dataDirMatch = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
   if (!dataDirMatch) return undefined;
   const dataDirBase = dataDirMatch[1];
   if (!dataDirBase) return undefined;

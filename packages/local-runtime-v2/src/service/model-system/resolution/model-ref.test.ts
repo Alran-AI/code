@@ -21,7 +21,7 @@ describe('modelRefForModel', () => {
       thinking_config: { mode: 'forced_on' },
       thinking: { effortOptions: ['low', 'high', 'max'], defaultEffort: 'high' },
     };
-    const selected = modelRefForModel('minimax', 'MiniMax-M3.1', config, {
+    const selected = modelRefForModel('alran', 'Alran-M3.1', config, {
       managed: true,
       contextLimit: 1_000_000,
       thinking: { effort: 'max' },
@@ -39,7 +39,7 @@ describe('modelRefForModel', () => {
       { thinking: { effort: 'ultra' } },
     ]) {
       expect(() =>
-        modelRefForModel('minimax', 'MiniMax-M3.1', config, { managed: true, ...override }),
+        modelRefForModel('alran', 'Alran-M3.1', config, { managed: true, ...override }),
       ).toThrow();
     }
     const switchable = {
@@ -47,32 +47,32 @@ describe('modelRefForModel', () => {
       thinking_config: { mode: 'switchable', default_value: 'true' },
     } as LocalModelConfig;
     expect(
-      modelRefForModel('minimax', 'MiniMax-M3.1', switchable, { managed: true, reasoning: false }),
+      modelRefForModel('alran', 'Alran-M3.1', switchable, { managed: true, reasoning: false }),
     ).toMatchObject({ thinking_level: ThinkingLevel.OFF });
     expect(
-      modelRefForModel('minimax', 'MiniMax-M3.1', switchable, { managed: true, reasoning: false })
+      modelRefForModel('alran', 'Alran-M3.1', switchable, { managed: true, reasoning: false })
         .thinking_effort,
     ).toBeUndefined();
     expect(
-      modelRefForModel('minimax', 'MiniMax-M3.1', switchable, {
+      modelRefForModel('alran', 'Alran-M3.1', switchable, {
         managed: true,
         reasoning: false,
         thinking: { effort: 'max' },
       }),
     ).not.toHaveProperty('thinking_effort');
     expect(() =>
-      modelRefForModel('minimax', 'MiniMax-M3.1', switchable, {
+      modelRefForModel('alran', 'Alran-M3.1', switchable, {
         managed: true,
         reasoning: false,
         thinking: { effort: 'invalid' },
       }),
     ).toThrow();
-    expect(modelRefForModel('minimax', 'plain', {}, { managed: true })).not.toHaveProperty(
+    expect(modelRefForModel('alran', 'plain', {}, { managed: true })).not.toHaveProperty(
       'thinking_effort',
     );
     expect(
       modelRefForModel(
-        'minimax',
+        'alran',
         'plain',
         { reasoning: true, thinking: { effortOptions: ['low', 'max'] } },
         { managed: true },
@@ -87,7 +87,7 @@ describe('modelRefForModel', () => {
       thinking: { defaultEffort: 'max' },
     };
     expect(
-      modelRefForModel('minimax', 'fixed', config, {
+      modelRefForModel('alran', 'fixed', config, {
         managed: true,
         contextLimit: 512_000,
         thinking: { effort: 'max' },
@@ -97,18 +97,18 @@ describe('modelRefForModel', () => {
       ...config,
       parameterErrors: { contextOptions: true, effortOptions: true },
     };
-    expect(modelRefForModel('minimax', 'fixed', invalid, { managed: true })).not.toHaveProperty(
+    expect(modelRefForModel('alran', 'fixed', invalid, { managed: true })).not.toHaveProperty(
       'thinking_effort',
     );
     expect(() =>
-      modelRefForModel('minimax', 'fixed', invalid, { managed: true, contextLimit: 512_000 }),
+      modelRefForModel('alran', 'fixed', invalid, { managed: true, contextLimit: 512_000 }),
     ).toThrow();
     expect(() =>
-      modelRefForModel('minimax', 'fixed', invalid, { managed: true, thinking: { effort: 'max' } }),
+      modelRefForModel('alran', 'fixed', invalid, { managed: true, thinking: { effort: 'max' } }),
     ).toThrow();
     expect(
       modelRefForModel(
-        'minimax',
+        'alran',
         'fixed',
         { ...config, contextWindowOptions: [1_000_000] },
         { managed: true },
@@ -191,14 +191,14 @@ describe('modelRefForModel', () => {
       },
     };
 
-    const ref = modelRefForModel('minimax', 'Official-M4', config);
+    const ref = modelRefForModel('alran', 'Official-M4', config);
 
     expect(readSelectedThinkingEffort(ref.capabilities)).toBe('low');
     expect(ref.thinking_level).toBe(ThinkingLevel.MEDIUM);
   });
 
   it('does not let a default effort enable a switchable model whose effective default is off', () => {
-    const ref = modelRefForModel('minimax', 'Official-M4', {
+    const ref = modelRefForModel('alran', 'Official-M4', {
       reasoning: true,
       thinking_config: { mode: 'switchable', default_value: 'false' },
       thinking: {
@@ -212,7 +212,7 @@ describe('modelRefForModel', () => {
   });
 
   it('uses the official default effort when thinking is forced on', () => {
-    const ref = modelRefForModel('minimax', 'Official-M4', {
+    const ref = modelRefForModel('alran', 'Official-M4', {
       reasoning: true,
       thinking_config: { mode: 'forced_on' },
       thinking: {
@@ -230,10 +230,10 @@ describe('modelRefForModel thinking compatibility', () => {
   it.each([
     ['on', ThinkingLevel.MEDIUM],
     ['off', ThinkingLevel.OFF],
-  ] as const)('preserves the MiniMax M3 switch %s in the model ref', (effort, thinkingLevel) => {
+  ] as const)('preserves the Alran M3 switch %s in the model ref', (effort, thinkingLevel) => {
     const ref = modelRefForModel(
-      'minimax',
-      'MiniMax-M3',
+      'alran',
+      'Alran-M3',
       {
         thinking_config: { mode: 'switchable', default_value: 'true' },
         variants: {
@@ -248,10 +248,10 @@ describe('modelRefForModel thinking compatibility', () => {
     expect(ref.thinking_level).toBe(thinkingLevel);
   });
 
-  it('does not let stale MiniMax M3 effort re-enable an explicitly disabled variant', () => {
+  it('does not let stale Alran M3 effort re-enable an explicitly disabled variant', () => {
     const ref = modelRefForModel(
-      'minimax',
-      'MiniMax-M3',
+      'alran',
+      'Alran-M3',
       {
         thinking_config: { mode: 'switchable', default_value: 'true' },
         variants: {
@@ -266,14 +266,14 @@ describe('modelRefForModel thinking compatibility', () => {
     expect(ref.thinking_level).toBe(ThinkingLevel.OFF);
   });
 
-  it('uses configured MiniMax M3 effort defaults and explicit selections', () => {
+  it('uses configured Alran M3 effort defaults and explicit selections', () => {
     const modelConfig: LocalModelConfig = {
       thinking_config: { mode: 'switchable', default_value: 'true' },
       thinking: { effortOptions: ['low', 'high'], defaultEffort: 'high' },
     };
 
-    const defaulted = modelRefForModel('minimax', 'MiniMax-M3', modelConfig);
-    const selected = modelRefForModel('minimax', 'MiniMax-M3', modelConfig, {
+    const defaulted = modelRefForModel('alran', 'Alran-M3', modelConfig);
+    const selected = modelRefForModel('alran', 'Alran-M3', modelConfig, {
       thinking: { effort: 'low' },
     });
 
@@ -281,8 +281,8 @@ describe('modelRefForModel thinking compatibility', () => {
     expect(readSelectedThinkingEffort(selected.capabilities)).toBe('low');
   });
 
-  it('does not emit a MiniMax M3 effort when configured thinking is off', () => {
-    const ref = modelRefForModel('minimax', 'MiniMax-M3', {
+  it('does not emit a Alran M3 effort when configured thinking is off', () => {
+    const ref = modelRefForModel('alran', 'Alran-M3', {
       thinking_config: { mode: 'switchable', default_value: 'false' },
       thinking: { effortOptions: ['low', 'high'], defaultEffort: 'high' },
     });
@@ -292,7 +292,7 @@ describe('modelRefForModel thinking compatibility', () => {
   });
 
   it('does not infer Custom BYOK M3 effort from reasoning alone', () => {
-    const ref = modelRefForModel('custom_provider:mafia', 'MiniMax-M3', {
+    const ref = modelRefForModel('custom_provider:mafia', 'Alran-M3', {
       reasoning: true,
       thinking_config: { mode: 'switchable', default_value: 'true' },
     });
@@ -470,13 +470,13 @@ describe('BYOK Think Effort selection', () => {
     ['anthropic-messages', { thinking: { type: 'adaptive' } }, { thinking: { type: 'disabled' } }],
     ['openai-completions', { thinking: { type: 'adaptive' } }, { thinking: { type: 'disabled' } }],
     ['openai-responses', { reasoning: { effort: 'minimal' } }, { reasoning: { effort: 'none' } }],
-  ] as const)('maps MiniMax M3 on/off through the %s protocol', (api, on, off) => {
-    expect(resolveByokThinkingProtocol(api, 'on', 'MiniMax-M3')).toMatchObject({
+  ] as const)('maps Alran M3 on/off through the %s protocol', (api, on, off) => {
+    expect(resolveByokThinkingProtocol(api, 'on', 'Alran-M3')).toMatchObject({
       effort: 'on',
       enabled: true,
       requestPatch: on,
     });
-    expect(resolveByokThinkingProtocol(api, 'off', 'MiniMax-M3')).toMatchObject({
+    expect(resolveByokThinkingProtocol(api, 'off', 'Alran-M3')).toMatchObject({
       effort: 'off',
       enabled: false,
       requestPatch: off,
@@ -518,7 +518,7 @@ describe('modelRefForModel think-effort vs variant', () => {
     // configured level. The effort must survive, because a defined variant alone
     // would otherwise suppress the catalog default and the provider would apply
     // its own.
-    const withEffort = modelRefForModel('minimax', 'deep-reasoner-1', config, {
+    const withEffort = modelRefForModel('alran', 'deep-reasoner-1', config, {
       variant: 'thinking',
       thinking: { effort: 'xhigh' },
     });
@@ -526,7 +526,7 @@ describe('modelRefForModel think-effort vs variant', () => {
 
     // Without the explicit level the same selection resolves to no effort, which
     // is the failure the picker fix prevents.
-    const withoutEffort = modelRefForModel('minimax', 'deep-reasoner-1', config, {
+    const withoutEffort = modelRefForModel('alran', 'deep-reasoner-1', config, {
       variant: 'thinking',
     });
     expect(readSelectedThinkingEffort(withoutEffort.capabilities)).toBeUndefined();
@@ -539,7 +539,7 @@ describe('modelRefForModel think-effort vs variant', () => {
       thinking: { effortOptions: ['xhigh'], defaultEffort: 'xhigh' },
     };
 
-    const ref = modelRefForModel('minimax', 'deep-reasoner-1', config, {
+    const ref = modelRefForModel('alran', 'deep-reasoner-1', config, {
       variant: 'thinking',
       thinking: { effort: 'xhigh' },
     });
@@ -555,7 +555,7 @@ describe('modelRefForModel think-effort vs variant', () => {
     };
 
     for (const variant of ['', 'none-thinking']) {
-      const ref = modelRefForModel('minimax', 'deep-reasoner-1', config, {
+      const ref = modelRefForModel('alran', 'deep-reasoner-1', config, {
         variant,
         thinking: { effort: 'xhigh' },
       });

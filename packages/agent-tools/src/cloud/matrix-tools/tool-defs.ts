@@ -166,33 +166,33 @@ export type MatrixImageReverseSearchInput = Static<typeof MatrixImageReverseSear
 export const MAX_VIDEO_GENERATION_PROMPT_LENGTH = 7000;
 export const MAX_H3_REFERENCE_AUDIO_COUNT = 3;
 export const MAX_H3_REFERENCE_MEDIA_COUNT = 12;
-export const MINIMAX_H3_MODEL = 'MiniMax-H3';
-export const HAILUO_23_MODEL = 'MiniMax-Hailuo-2.3';
+export const ALRAN_H3_MODEL = 'Alran-H3';
+export const HAILUO_23_MODEL = 'Alran-Hailuo-2.3';
 
 export function isH3VideoModel(model: string): boolean {
-  return model === MINIMAX_H3_MODEL;
+  return model === ALRAN_H3_MODEL;
 }
 
 const H3_REFERENCE_TOTAL_RULE =
   'Across reference_image_paths, reference_video_paths, and reference_audio_paths, allow at most 12 files total.';
 
 const VIDEO_MODEL_DESCRIPTION =
-  'Required and must be chosen in a separate first step. We recommend MiniMax-H3 for quality: it is ' +
-  'newer and more capable. MiniMax-H3 natively generates synchronized audio together with the video ' +
+  'Required and must be chosen in a separate first step. We recommend Alran-H3 for quality: it is ' +
+  'newer and more capable. Alran-H3 natively generates synchronized audio together with the video ' +
   'directly from the prompt, without reference_audio_paths; reference audio is optional guidance, ' +
-  'not a prerequisite for sound. MiniMax-Hailuo-2.3 accepts exactly one image; MiniMax-H3 ' +
+  'not a prerequisite for sound. Alran-Hailuo-2.3 accepts exactly one image; Alran-H3 ' +
   'supports either first/last-frame keyframes or multimodal references: 1-9 reference images, ' +
   '1-3 reference videos, and 1-3 reference audio files only together with reference images/videos, ' +
   'with at most 12 files total across all reference collections. If the ' +
   'user did not choose a model, ' +
   'explain only these model differences and ask which model to use. Do not ask about resolution, ' +
-  'duration, keyframes, or reference media until the model is selected. After MiniMax-H3 is selected, ' +
+  'duration, keyframes, or reference media until the model is selected. After Alran-H3 is selected, ' +
   'ask for input mode, an integer duration from 4 through 15, and a resolution of 768P or 2K; ' +
   'offer a concrete ratio for text-only mode and adaptive or a concrete ratio for reference mode. ' +
-  'Use MiniMax-H3 as the Tool and Matrix model value.';
+  'Use Alran-H3 as the Tool and Matrix model value.';
 
 const VideoModelSchema = Type.Union(
-  [Type.Literal(MINIMAX_H3_MODEL), Type.Literal(HAILUO_23_MODEL)],
+  [Type.Literal(ALRAN_H3_MODEL), Type.Literal(HAILUO_23_MODEL)],
   { description: VIDEO_MODEL_DESCRIPTION },
 );
 
@@ -200,14 +200,14 @@ export const MatrixSubmitVideoGenerationToolDef = {
   name: 'submit_video_generation',
   description: [
     'Submit exactly one asynchronous video task and return task_id immediately.',
-    'For MiniMax-H3 this Tool adapts the official POST /v2/video_generation contract to the current Matrix MCP wrapper: one required non-empty prompt becomes the single text content item, and frame/reference path fields become image_url/video_url/audio_url content roles.',
+    'For Alran-H3 this Tool adapts the official POST /v2/video_generation contract to the current Matrix MCP wrapper: one required non-empty prompt becomes the single text content item, and frame/reference path fields become image_url/video_url/audio_url content roles.',
     "Use a strict two-step conversation: first resolve the video model; after the user selects a model, ask only that model's remaining applicable options.",
-    'The video model choice is mandatory unless the current user request or terminal `<video-generation-options>` explicitly names H3.0 (MiniMax-H3) or H2.3 (MiniMax-Hailuo-2.3). Never infer a default model from the Plugin name, a recommendation, or an omitted value.',
+    'The video model choice is mandatory unless the current user request or terminal `<video-generation-options>` explicitly names H3.0 (Alran-H3) or H2.3 (Alran-Hailuo-2.3). Never infer a default model from the Plugin name, a recommendation, or an omitted value.',
     'When the video model is missing and the `ask_user` tool is available, make one actual `ask_user` tool call before any submission. Use this exact call shape, keeping `steps` and every `options` value as literal JSON arrays: { "mode": "questionnaire", "title": "Video specifications", "steps": [{ "question": "Which model?", "options": [{ "label": "H3.0 (Recommended)" }, { "label": "H2.3" }], "selectionMode": "single" }] }. Never wrap either array in an `item` container such as `{ "item": [...] }`. Use `selectionMode`; never `multiSelect`.',
-    'Write the questionnaire in the same language as the user. H3.0 maps to `MiniMax-H3`; H2.3 maps to `MiniMax-Hailuo-2.3`. Do not call `submit_video_generation` until the user replies. When `ask_user` is unavailable, ask the same unresolved choices in concise prose and wait for the reply.',
-    'MiniMax-H3 is recommended for quality and supports 768P or 2K; ask the user to choose a resolution unless it is already explicit or delegated. When the user delegates or omits the choice, use 2K.',
-    'MiniMax-H3 natively generates synchronized audio together with the video. Put requested dialogue, ambience, and sound effects in the prompt; native sound works without reference_audio_paths. Reference audio is optional guidance, not a prerequisite for an audible video. Do not use a separate audio-generation tool unless the user explicitly asks for a separate audio output.',
-    'After MiniMax-H3 is selected, first ask whether the input mode is text-only, first-frame, last-frame, first+last-frame, or multimodal reference, then ask for an integer duration from 4 through 15 and a resolution. Text-only mode uses one non-adaptive ratio from 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16 and defaults to 16:9 when omitted or delegated. Keyframe mode is always adaptive. Reference mode defaults to adaptive and also accepts any concrete ratio.',
+    'Write the questionnaire in the same language as the user. H3.0 maps to `Alran-H3`; H2.3 maps to `Alran-Hailuo-2.3`. Do not call `submit_video_generation` until the user replies. When `ask_user` is unavailable, ask the same unresolved choices in concise prose and wait for the reply.',
+    'Alran-H3 is recommended for quality and supports 768P or 2K; ask the user to choose a resolution unless it is already explicit or delegated. When the user delegates or omits the choice, use 2K.',
+    'Alran-H3 natively generates synchronized audio together with the video. Put requested dialogue, ambience, and sound effects in the prompt; native sound works without reference_audio_paths. Reference audio is optional guidance, not a prerequisite for an audible video. Do not use a separate audio-generation tool unless the user explicitly asks for a separate audio output.',
+    'After Alran-H3 is selected, first ask whether the input mode is text-only, first-frame, last-frame, first+last-frame, or multimodal reference, then ask for an integer duration from 4 through 15 and a resolution. Text-only mode uses one non-adaptive ratio from 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16 and defaults to 16:9 when omitted or delegated. Keyframe mode is always adaptive. Reference mode defaults to adaptive and also accepts any concrete ratio.',
     'Reference images allow 1-9 items, reference videos allow 1-3 items, reference audio allows 1-3 items and must accompany reference images or videos, and all reference collections together allow at most 12 files total. Do not submit until duration and applicable media choices are explicit; ratio and resolution may use their documented defaults when omitted or delegated.',
     'The official V2 video_url content item contains only url and role. The current Matrix wrapper additionally requires duration_seconds on each reference_videos item; this is Matrix wrapper metadata, not a Video Generation V2 content field. Workspace MP4/MOV duration is inspected automatically before upload; for public reference-video URLs, supply reference_video_duration_seconds in the same order because those URLs must not be downloaded or re-uploaded.',
     'Every media input accepts either a public HTTP/HTTPS URL or a workspace-relative path. Public URLs are passed through unchanged without downloading or uploading them again. Every workspace media path, including first/last keyframes and image/video/audio references, is fenced, validated, and uploaded through the dedicated temporary public upload flow before submission; internal OSS hosts are never sent upstream. The agent Tool intentionally does not expose mm_file:// or data URI inputs because its supported local-file path must use the workspace fence and real temporary public upload flow.',
@@ -220,18 +220,18 @@ export const MatrixSubmitVideoGenerationToolDef = {
         minLength: 1,
         maxLength: MAX_VIDEO_GENERATION_PROMPT_LENGTH,
         description:
-          'The one required non-empty V2 text/prompt item, up to 7000 characters. For MiniMax-H3 native audio generation, describe the desired dialogue, ambience, and sound effects here; reference audio is optional.',
+          'The one required non-empty V2 text/prompt item, up to 7000 characters. For Alran-H3 native audio generation, describe the desired dialogue, ambience, and sound effects here; reference audio is optional.',
       }),
       input_image_path: Type.Optional(
         Type.String({
           description:
-            'Optional public HTTP/HTTPS URL or workspace-relative path to a first-frame or last-frame image. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL before submission. MiniMax-H3 accepts .jpg/.jpeg/.png/.webp/.heic/.heif. MiniMax-Hailuo-2.3 accepts .jpg/.png/.webp and exactly one image for first-frame or legacy subject mode. MiniMax-H3 uses this only for a keyframe, not as multimodal reference media. Cannot be combined with reference collections.',
+            'Optional public HTTP/HTTPS URL or workspace-relative path to a first-frame or last-frame image. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL before submission. Alran-H3 accepts .jpg/.jpeg/.png/.webp/.heic/.heif. Alran-Hailuo-2.3 accepts .jpg/.png/.webp and exactly one image for first-frame or legacy subject mode. Alran-H3 uses this only for a keyframe, not as multimodal reference media. Cannot be combined with reference collections.',
         }),
       ),
       last_frame_image_path: Type.Optional(
         Type.String({
           description:
-            'MiniMax-H3 first+last-frame mode only. Public HTTP/HTTPS URL or workspace-relative .jpg/.jpeg/.png/.webp/.heic/.heif path for the ending frame. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL. Requires input_image_path as the first frame; reference_type must be first_frame or omitted. Cannot be combined with reference collections.',
+            'Alran-H3 first+last-frame mode only. Public HTTP/HTTPS URL or workspace-relative .jpg/.jpeg/.png/.webp/.heic/.heif path for the ending frame. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL. Requires input_image_path as the first frame; reference_type must be first_frame or omitted. Cannot be combined with reference collections.',
         }),
       ),
       reference_type: Type.Optional(
@@ -239,7 +239,7 @@ export const MatrixSubmitVideoGenerationToolDef = {
           [Type.Literal('first_frame'), Type.Literal('last_frame'), Type.Literal('subject')],
           {
             description:
-              'How input_image_path is used. MiniMax-H3 supports first_frame or last_frame keyframes; omit it to default input_image_path to first_frame. MiniMax-Hailuo-2.3 supports first_frame or legacy subject mode. Requires input_image_path and cannot be combined with reference collections.',
+              'How input_image_path is used. Alran-H3 supports first_frame or last_frame keyframes; omit it to default input_image_path to first_frame. Alran-Hailuo-2.3 supports first_frame or legacy subject mode. Requires input_image_path and cannot be combined with reference collections.',
           },
         ),
       ),
@@ -247,14 +247,14 @@ export const MatrixSubmitVideoGenerationToolDef = {
         Type.Array(Type.String(), {
           minItems: 1,
           maxItems: 9,
-          description: `MiniMax-H3 only. 1-9 public HTTP/HTTPS URLs or workspace-relative reference image paths; local paths are automatically uploaded to temporary public URLs. Each must be .jpg/.jpeg/.png/.webp/.heic/.heif, no larger than 30 MB, with width and height each in [256, 5760] and width/height ratio in [0.4, 2.5]. ${H3_REFERENCE_TOTAL_RULE} MiniMax-Hailuo-2.3 does not accept this collection. Cannot be combined with keyframes.`,
+          description: `Alran-H3 only. 1-9 public HTTP/HTTPS URLs or workspace-relative reference image paths; local paths are automatically uploaded to temporary public URLs. Each must be .jpg/.jpeg/.png/.webp/.heic/.heif, no larger than 30 MB, with width and height each in [256, 5760] and width/height ratio in [0.4, 2.5]. ${H3_REFERENCE_TOTAL_RULE} Alran-Hailuo-2.3 does not accept this collection. Cannot be combined with keyframes.`,
         }),
       ),
       reference_video_paths: Type.Optional(
         Type.Array(Type.String(), {
           minItems: 1,
           maxItems: 3,
-          description: `MiniMax-H3 only. 1-3 public HTTP/HTTPS URLs or workspace-relative .mp4/.mov video paths; local paths are automatically uploaded to temporary public URLs. Videos must use H.264/AVC or H.265/HEVC (embedded audio AAC/MP3); each no larger than 50 MB and 2-15 seconds, total video duration at most 15 seconds, width and height each in [256, 5760], aspect ratio in [0.4, 2.5], and frame rate in [23.976, 60]. ${H3_REFERENCE_TOTAL_RULE} Workspace MP4/MOV size and duration are checked before upload. Every public URL requires a same-index value in reference_video_duration_seconds. Dimensions, frame rate, and codecs are validated upstream. Cannot be combined with keyframes.`,
+          description: `Alran-H3 only. 1-3 public HTTP/HTTPS URLs or workspace-relative .mp4/.mov video paths; local paths are automatically uploaded to temporary public URLs. Videos must use H.264/AVC or H.265/HEVC (embedded audio AAC/MP3); each no larger than 50 MB and 2-15 seconds, total video duration at most 15 seconds, width and height each in [256, 5760], aspect ratio in [0.4, 2.5], and frame rate in [23.976, 60]. ${H3_REFERENCE_TOTAL_RULE} Workspace MP4/MOV size and duration are checked before upload. Every public URL requires a same-index value in reference_video_duration_seconds. Dimensions, frame rate, and codecs are validated upstream. Cannot be combined with keyframes.`,
         }),
       ),
       reference_video_duration_seconds: Type.Optional(
@@ -262,26 +262,26 @@ export const MatrixSubmitVideoGenerationToolDef = {
           minItems: 1,
           maxItems: 3,
           description:
-            'MiniMax-H3 Matrix-wrapper reference-video durations in seconds, in the same order as reference_video_paths. A value is required for every public URL because URLs are passed through without downloading; workspace MP4/MOV durations are inspected automatically when this field is omitted. When provided, the array length must equal reference_video_paths length and every value must be between 2 and 15.',
+            'Alran-H3 Matrix-wrapper reference-video durations in seconds, in the same order as reference_video_paths. A value is required for every public URL because URLs are passed through without downloading; workspace MP4/MOV durations are inspected automatically when this field is omitted. When provided, the array length must equal reference_video_paths length and every value must be between 2 and 15.',
         }),
       ),
       reference_audio_paths: Type.Optional(
         Type.Array(Type.String(), {
           minItems: 1,
           maxItems: MAX_H3_REFERENCE_AUDIO_COUNT,
-          description: `MiniMax-H3 only. Optional audio guidance; it is not required for native audio generation because MiniMax-H3 can generate synchronized sound directly from the prompt. Accepts 1-3 public HTTP/HTTPS URLs or workspace-relative .wav/.mp3 reference audio paths; local paths are automatically uploaded to temporary public URLs. Each must be no larger than 15 MB and 2-15 seconds, with total audio duration at most 15 seconds. ${H3_REFERENCE_TOTAL_RULE} Reference audio cannot be used alone: include at least one reference image or video. Duration is validated upstream. Cannot be combined with keyframes.`,
+          description: `Alran-H3 only. Optional audio guidance; it is not required for native audio generation because Alran-H3 can generate synchronized sound directly from the prompt. Accepts 1-3 public HTTP/HTTPS URLs or workspace-relative .wav/.mp3 reference audio paths; local paths are automatically uploaded to temporary public URLs. Each must be no larger than 15 MB and 2-15 seconds, with total audio duration at most 15 seconds. ${H3_REFERENCE_TOTAL_RULE} Reference audio cannot be used alone: include at least one reference image or video. Duration is validated upstream. Cannot be combined with keyframes.`,
         }),
       ),
       duration: Type.Integer({
         minimum: 4,
         maximum: 15,
         description:
-          'Required after model selection. MiniMax-H3 supports an integer from 4 through 15 seconds. MiniMax-Hailuo-2.3 supports exactly 6s or 10s.',
+          'Required after model selection. Alran-H3 supports an integer from 4 through 15 seconds. Alran-Hailuo-2.3 supports exactly 6s or 10s.',
       }),
       resolution: Type.Optional(
         Type.Union([Type.Literal('768P'), Type.Literal('1080P'), Type.Literal('2K')], {
           description:
-            'MiniMax-H3 supports 768P or 2K and defaults to 2K when omitted or delegated. MiniMax-Hailuo-2.3 supports 768P (default) or 1080P; 10s requires 768P.',
+            'Alran-H3 supports 768P or 2K and defaults to 2K when omitted or delegated. Alran-Hailuo-2.3 supports 768P (default) or 1080P; 10s requires 768P.',
         }),
       ),
       ratio: Type.Optional(
@@ -297,14 +297,14 @@ export const MatrixSubmitVideoGenerationToolDef = {
           ],
           {
             description:
-              'MiniMax-H3 text-only mode accepts 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16, defaults to 16:9 when omitted, and cannot use adaptive. Keyframe mode is forced to adaptive. Reference mode defaults to adaptive and also accepts any concrete ratio.',
+              'Alran-H3 text-only mode accepts 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16, defaults to 16:9 when omitted, and cannot use adaptive. Keyframe mode is forced to adaptive. Reference mode defaults to adaptive and also accepts any concrete ratio.',
           },
         ),
       ),
       aigc_watermark: Type.Optional(
         Type.Boolean({
           description:
-            'MiniMax-H3 V2 AIGC watermark switch. Omit or set false for the upstream default; set true only when the user requests the AIGC watermark.',
+            'Alran-H3 V2 AIGC watermark switch. Omit or set false for the upstream default; set true only when the user requests the AIGC watermark.',
           default: false,
         }),
       ),
@@ -319,7 +319,7 @@ export type MatrixSubmitVideoGenerationInput = Static<
 export const MatrixQueryVideoGenerationToolDef = {
   name: 'query_video_generation',
   description:
-    'Query one previously submitted video task once. This read-only call does not create another charge. Pass the same model returned by submit and keep using the same output_file_path while polling. Returns queued/running/failed/cancelled without writing a file. When status is succeeded, downloads video_url immediately to output_file_path because MiniMax-H3 signed URLs are valid for only about 9 hours.',
+    'Query one previously submitted video task once. This read-only call does not create another charge. Pass the same model returned by submit and keep using the same output_file_path while polling. Returns queued/running/failed/cancelled without writing a file. When status is succeeded, downloads video_url immediately to output_file_path because Alran-H3 signed URLs are valid for only about 9 hours.',
   schema: Type.Object(
     {
       task_id: Type.String({

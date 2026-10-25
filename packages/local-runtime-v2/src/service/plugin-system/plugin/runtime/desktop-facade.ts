@@ -39,7 +39,7 @@ import { effectiveInstallationPolicy } from './repository.js';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 200;
-const BUILTIN_AGENT_PLUGIN_ICON_URL = 'minimax-builtin://plugin-icons/github';
+const BUILTIN_AGENT_PLUGIN_ICON_URL = 'alran-builtin://plugin-icons/github';
 
 interface StandaloneSkillIdentities {
   readonly names: ReadonlySet<string>;

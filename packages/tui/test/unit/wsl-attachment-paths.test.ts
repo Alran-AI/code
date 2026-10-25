@@ -38,7 +38,7 @@ beforeEach(async () => {
   vi.stubEnv("WSL_DISTRO_NAME", "");
   vi.stubEnv("WSL_INTEROP", "");
   vi.stubEnv("WSLENV", "");
-  workspaceDir = await mkdtemp(join(tmpdir(), "mcode-wsl-path-"));
+  workspaceDir = await mkdtemp(join(tmpdir(), "alran-wsl-path-"));
   imagePath = join(workspaceDir, "截图.png");
   await writeFile(imagePath, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
   host.executeFile.mockResolvedValue({ stdout: `${imagePath}\n`, stderr: "" });

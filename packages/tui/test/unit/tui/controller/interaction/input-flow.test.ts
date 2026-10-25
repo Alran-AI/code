@@ -218,7 +218,7 @@ describe("TuiInputFlow steer Draft handling", () => {
   it.skipIf(process.platform === "win32")(
     "attaches a pasted screenshot with escaped spaces without changing draft text",
     async () => {
-      const workspaceDir = await mkdtemp(join(tmpdir(), "minimax-code-paste-"));
+      const workspaceDir = await mkdtemp(join(tmpdir(), "alran-code-paste-"));
       const imagePath = join(
         workspaceDir,
         "Screen shots",
@@ -766,7 +766,7 @@ describe("TuiInputFlow steer Draft handling", () => {
     expect(harness.returnFromSideSession).not.toHaveBeenCalled();
   });
 
-  it("closes the side conversation on empty Ctrl+D instead of quitting MCode", () => {
+  it("closes the side conversation on empty Ctrl+D instead of quitting Alran", () => {
     const harness = createHarness(
       "",
       { attachments: [] },

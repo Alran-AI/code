@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,8 +13,8 @@ const applySeccompPathCache = new Map<string, string | null>();
 // Cache for global npm paths (computed once per process)
 let cachedGlobalNpmPaths: string[] | null = null;
 const GLOBAL_PACKAGE_PATH_PARTS = [
-  "@minimax",
-  "mcode-sandbox-runtime",
+  "@alran",
+  "alran-sandbox-runtime",
 ] as const;
 
 /**

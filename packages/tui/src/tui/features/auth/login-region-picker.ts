@@ -13,8 +13,8 @@ const LOGIN_REGIONS: readonly {
   label: string;
   description: string;
 }[] = [
-  { value: 'cn', label: 'China (CN)', description: 'MiniMax China account' },
-  { value: 'en', label: 'Global', description: 'MiniMax international account' },
+  { value: 'cn', label: 'China (CN)', description: 'Alran China account' },
+  { value: 'en', label: 'Global', description: 'Alran international account' },
 ];
 
 export class TuiLoginRegionPicker implements Component {
@@ -47,7 +47,7 @@ export class TuiLoginRegionPicker implements Component {
     const layout = panelLayout(width, height, '↑↓ select · Enter continue · Esc cancel');
     const helper =
       layout.bodyHeight >= 4
-        ? [chalk.hex(colors.muted)('Only one MiniMax account region can be signed in at a time.')]
+        ? [chalk.hex(colors.muted)('Only one Alran account region can be signed in at a time.')]
         : [];
     return layout.render({
       title: 'Choose account region',

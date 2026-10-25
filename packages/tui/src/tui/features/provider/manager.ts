@@ -10,33 +10,33 @@ import {
   tuiColors as colors,
 } from '../../theme/runtime.js';
 import type {
-  McodeProviderSnapshot,
-  McodeProviderTestResult,
-  McodeProviderView,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
+  AlranProviderSnapshot,
+  AlranProviderTestResult,
+  AlranProviderView,
+  AlranSaveProviderCandidateInput,
+  AlranSaveProviderCandidateResult,
 } from '../../../provider/contract.js';
 import { TuiProviderEditor } from './editor.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 
 /**
- * `/provider` owns the independent Codex connect action and MiniMax credential
- * source. The MiniMax API Key can be replaced and OAuth can start a fresh
+ * `/provider` owns the independent Codex connect action and Alran credential
+ * source. The Alran API Key can be replaced and OAuth can start a fresh
  * sign-in. Custom connections are edited through revision-checked candidate saves.
  */
 type ProviderManagerMode =
   | { readonly kind: 'list' }
-  | { readonly kind: 'minimax-key'; readonly replacing: boolean };
+  | { readonly kind: 'alran-key'; readonly replacing: boolean };
 
 export interface TuiProviderManagerOptions {
-  snapshot: McodeProviderSnapshot;
-  onRefresh(): Promise<McodeProviderSnapshot>;
-  onRefreshModels?(provider: McodeProviderView): Promise<number>;
-  onTest(providerId: string, modelId?: string): Promise<McodeProviderTestResult>;
+  snapshot: AlranProviderSnapshot;
+  onRefresh(): Promise<AlranProviderSnapshot>;
+  onRefreshModels?(provider: AlranProviderView): Promise<number>;
+  onTest(providerId: string, modelId?: string): Promise<AlranProviderTestResult>;
   onConnectCodex?(): void;
-  onSaveCustom?(input: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult>;
-  onSetMiniMaxApiKey(apiKey: string): Promise<void>;
-  onSetMiniMaxSource(source: 'token_plan' | 'minimax_api_key'): Promise<void>;
+  onSaveCustom?(input: AlranSaveProviderCandidateInput): Promise<AlranSaveProviderCandidateResult>;
+  onSetAlranApiKey(apiKey: string): Promise<void>;
+  onSetAlranSource(source: 'token_plan' | 'alran_api_key'): Promise<void>;
   /** Starts the same sign-in flow as `/login`; absent when the host has no auth. */
   onReLogin?(): void;
   onCancel(): void;
@@ -45,7 +45,7 @@ export interface TuiProviderManagerOptions {
 
 export class TuiProviderManager implements Component, Focusable {
   private editor?: TuiProviderEditor;
-  private snapshotValue: McodeProviderSnapshot;
+  private snapshotValue: AlranProviderSnapshot;
   private selectedIndex = 0;
   private mode: ProviderManagerMode = { kind: 'list' };
   private readonly secretInput = new Input({ mask: '•' });
@@ -58,7 +58,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.snapshotValue = options.snapshot;
     const activeIndex = this.providers().findIndex((provider) => provider.active);
     this.selectedIndex = Math.max(0, activeIndex);
-    this.secretInput.onSubmit = (value) => this.submitMiniMaxKey(value);
+    this.secretInput.onSubmit = (value) => this.submitAlranKey(value);
     this.secretInput.onEscape = () => this.exitMode();
   }
 
@@ -77,7 +77,7 @@ export class TuiProviderManager implements Component, Focusable {
       this.editor.handleInput(data);
       return;
     }
-    if (this.mode.kind === 'minimax-key') {
+    if (this.mode.kind === 'alran-key') {
       this.secretInput.handleInput(data);
       this.requestRender();
       return;
@@ -122,8 +122,8 @@ export class TuiProviderManager implements Component, Focusable {
     if (safeWidth === 0) return [];
     if (this.editor) return this.editor.render(safeWidth);
     const lines =
-      this.mode.kind === 'minimax-key'
-        ? this.renderMiniMaxKey(safeWidth)
+      this.mode.kind === 'alran-key'
+        ? this.renderAlranKey(safeWidth)
         : this.renderList(safeWidth);
     return lines.map((line) => truncateToWidth(line, safeWidth, chalk.hex(colors.dim)('…')));
   }
@@ -200,13 +200,13 @@ export class TuiProviderManager implements Component, Focusable {
     return lines;
   }
 
-  private renderMiniMaxKey(width: number): string[] {
-    const replacing = this.mode.kind === 'minimax-key' && this.mode.replacing;
+  private renderAlranKey(width: number): string[] {
+    const replacing = this.mode.kind === 'alran-key' && this.mode.replacing;
     return [
       frameTop(width),
       frameRow(
         chalk.bold.hex(colors.signal)(
-          replacing ? 'Replace MiniMax API Key' : 'Configure MiniMax API Key',
+          replacing ? 'Replace Alran API Key' : 'Configure Alran API Key',
         ),
         width,
       ),
@@ -227,11 +227,11 @@ export class TuiProviderManager implements Component, Focusable {
     ];
   }
 
-  private providers(): readonly McodeProviderView[] {
+  private providers(): readonly AlranProviderView[] {
     return this.snapshotValue.providers;
   }
 
-  private selectedProvider(): McodeProviderView | undefined {
+  private selectedProvider(): AlranProviderView | undefined {
     return this.providers()[this.selectedIndex];
   }
 
@@ -277,36 +277,36 @@ export class TuiProviderManager implements Component, Focusable {
       await this.connectCodex(provider);
       return;
     }
-    if (provider.kind === 'minimax-oauth') {
-      await this.setMiniMaxSource('token_plan');
+    if (provider.kind === 'alran-oauth') {
+      await this.setAlranSource('token_plan');
       return;
     }
-    if (provider.kind === 'minimax-api-key') {
+    if (provider.kind === 'alran-api-key') {
       if (!provider.hasApiKey) {
-        this.startMiniMaxKey();
+        this.startAlranKey();
         return;
       }
-      await this.setMiniMaxSource('minimax_api_key');
+      await this.setAlranSource('alran_api_key');
       return;
     }
     this.editSelected();
   }
 
   /**
-   * `e` edits the credential behind the highlighted MiniMax row. OAuth has no
+   * `e` edits the credential behind the highlighted Alran row. OAuth has no
    * local secret to type, so it hands off to the same sign-in flow as
    * `/login`; the API Key row opens the masked input, replacing any saved key.
    */
   private editSelected(): void {
     const provider = this.selectedProvider();
     if (!provider) return;
-    if (provider.kind === 'minimax-api-key') {
-      this.startMiniMaxKey(provider.hasApiKey);
+    if (provider.kind === 'alran-api-key') {
+      this.startAlranKey(provider.hasApiKey);
       return;
     }
-    if (provider.kind === 'minimax-oauth') {
+    if (provider.kind === 'alran-oauth') {
       if (!this.options.onReLogin) {
-        this.setStatus('MiniMax sign-in is unavailable in this host.', 'error');
+        this.setStatus('Alran sign-in is unavailable in this host.', 'error');
         return;
       }
       this.options.onReLogin();
@@ -356,7 +356,7 @@ export class TuiProviderManager implements Component, Focusable {
     this.requestRender();
   }
 
-  private async connectCodex(provider: McodeProviderView): Promise<void> {
+  private async connectCodex(provider: AlranProviderView): Promise<void> {
     const state = provider.status?.state;
     if (state === 'connected') {
       this.setStatus('OpenAI Codex is already connected.', 'info');
@@ -369,8 +369,8 @@ export class TuiProviderManager implements Component, Focusable {
     this.options.onConnectCodex();
   }
 
-  private startMiniMaxKey(replacing = false): void {
-    this.mode = { kind: 'minimax-key', replacing };
+  private startAlranKey(replacing = false): void {
+    this.mode = { kind: 'alran-key', replacing };
     this.status = undefined;
     this.secretInput.setValue('');
     this.secretInput.moveCursorToEnd();
@@ -378,20 +378,20 @@ export class TuiProviderManager implements Component, Focusable {
     this.requestRender();
   }
 
-  private submitMiniMaxKey(value: string): void {
-    if (this.mode.kind !== 'minimax-key') return;
+  private submitAlranKey(value: string): void {
+    if (this.mode.kind !== 'alran-key') return;
     const replacing = this.mode.replacing;
     if (!value.trim()) {
       this.setStatus('API key is required.', 'error');
       return;
     }
     void this.perform(async () => {
-      await this.options.onSetMiniMaxApiKey(value.trim());
+      await this.options.onSetAlranApiKey(value.trim());
       if (this.disposed) return;
       await this.refresh(
         replacing
-          ? 'MiniMax API Key replaced and selected.'
-          : 'MiniMax API Key saved and selected.',
+          ? 'Alran API Key replaced and selected.'
+          : 'Alran API Key saved and selected.',
       );
       if (this.disposed) return;
       this.mode = { kind: 'list' };
@@ -405,8 +405,8 @@ export class TuiProviderManager implements Component, Focusable {
       this.setStatus('Codex OAuth connectivity is managed by its sign-in flow.', 'info');
       return;
     }
-    if (provider.kind === 'minimax-oauth') {
-      this.setStatus('MiniMax OAuth sign-in and connectivity are managed by /login.', 'info');
+    if (provider.kind === 'alran-oauth') {
+      this.setStatus('Alran OAuth sign-in and connectivity are managed by /login.', 'info');
       return;
     }
     await this.perform(async () => {
@@ -424,12 +424,12 @@ export class TuiProviderManager implements Component, Focusable {
     });
   }
 
-  private async setMiniMaxSource(source: 'token_plan' | 'minimax_api_key'): Promise<void> {
+  private async setAlranSource(source: 'token_plan' | 'alran_api_key'): Promise<void> {
     await this.perform(async () => {
-      await this.options.onSetMiniMaxSource(source);
+      await this.options.onSetAlranSource(source);
       if (this.disposed) return;
       await this.refresh(
-        source === 'token_plan' ? 'Using MiniMax Token Plan.' : 'Using MiniMax API Key.',
+        source === 'token_plan' ? 'Using Alran Token Plan.' : 'Using Alran API Key.',
       );
     });
   }
@@ -485,7 +485,7 @@ export class TuiProviderManager implements Component, Focusable {
   }
 
   private syncFocus(): void {
-    this.secretInput.focused = this._focused && this.mode.kind === 'minimax-key' && !this.editor;
+    this.secretInput.focused = this._focused && this.mode.kind === 'alran-key' && !this.editor;
     if (this.editor) this.editor.focused = this._focused;
   }
 
@@ -495,18 +495,18 @@ export class TuiProviderManager implements Component, Focusable {
 }
 
 /**
- * `●` answers one question only: which MiniMax credential source is in use.
+ * `●` answers one question only: which Alran credential source is in use.
  * A custom provider holding the selected model is a different fact, so it
  * never claims the glyph — rendering both made two rows look simultaneously
  * selected.
  */
-function isSelectedSource(provider: McodeProviderView): boolean {
+function isSelectedSource(provider: AlranProviderView): boolean {
   return (
-    (provider.kind === 'minimax-oauth' || provider.kind === 'minimax-api-key') && provider.active
+    (provider.kind === 'alran-oauth' || provider.kind === 'alran-api-key') && provider.active
   );
 }
 
-function markerFor(provider: McodeProviderView): string {
+function markerFor(provider: AlranProviderView): string {
   if (provider.kind === 'codex-oauth') {
     return provider.status?.state === 'connected' ? '✓' : '○';
   }
@@ -514,14 +514,14 @@ function markerFor(provider: McodeProviderView): string {
   return provider.active ? '●' : '○';
 }
 
-function providerModelList(provider: McodeProviderView): string | undefined {
+function providerModelList(provider: AlranProviderView): string | undefined {
   if (provider.models.length === 0) return undefined;
   return sanitizeTerminalText(
     provider.models.map((model) => model.displayName ?? model.modelId).join(', '),
   );
 }
 
-function providerDetail(provider: McodeProviderView): string {
+function providerDetail(provider: AlranProviderView): string {
   if (provider.kind === 'codex-oauth') {
     if (provider.status?.state === 'connected') return 'Connected with OpenAI OAuth';
     if (provider.status?.state === 'pending') {
@@ -532,10 +532,10 @@ function providerDetail(provider: McodeProviderView): string {
     }
     return 'Not connected · Enter or Space to connect';
   }
-  if (provider.kind === 'minimax-oauth') {
+  if (provider.kind === 'alran-oauth') {
     return 'Sign-in managed by /login · Space to use · e to sign in again';
   }
-  if (provider.kind === 'minimax-api-key') {
+  if (provider.kind === 'alran-api-key') {
     return provider.hasApiKey
       ? `${provider.maskedApiKey ?? 'key saved'} · Space to use · e to replace`
       : 'No API key saved · Space or e to add one';
@@ -548,17 +548,17 @@ function providerDetail(provider: McodeProviderView): string {
   ].join(' · ');
 }
 
-function providerSummary(provider: McodeProviderView): string {
+function providerSummary(provider: AlranProviderView): string {
   if (provider.kind === 'codex-oauth') {
     if (provider.status?.state === 'connected') return 'Connected';
     if (provider.status?.state === 'pending') return 'Waiting for sign-in';
     if (provider.status?.state === 'failed') return 'Sign-in failed';
     return 'Not connected';
   }
-  if (provider.kind === 'minimax-oauth') {
+  if (provider.kind === 'alran-oauth') {
     return provider.active ? 'Active · Token Plan' : 'Token Plan';
   }
-  if (provider.kind === 'minimax-api-key') {
+  if (provider.kind === 'alran-api-key') {
     return provider.hasApiKey
       ? provider.active
         ? 'Active · Key saved'

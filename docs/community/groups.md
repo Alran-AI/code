@@ -18,9 +18,9 @@ members is not created; the rule applies to the existing group until the volume 
 
 Every layer carries the same pinned card, pointing at the same three places:
 
-1. **Report an issue** — `https://github.com/MiniMax-AI/minimax-code/issues/new/choose`
+1. **Report an issue** — `https://github.com/ottili/alran-code/issues/new/choose`
 2. **Claim a task** — the `good first issue` label:
-   `https://github.com/MiniMax-AI/minimax-code/labels/good%20first%20issue`
+   `https://github.com/ottili/alran-code/labels/good%20first%20issue`
 3. **See the on-call rota and the weekly replay** — [Community on-call](oncall.md)
 
 Feedback posted in chat without an issue number is not tracked. If a chat report is not converted into

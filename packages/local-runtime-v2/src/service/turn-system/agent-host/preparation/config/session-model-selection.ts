@@ -5,7 +5,7 @@
 // rest of preparation together with its source: the source decides what an
 // unavailable model means. A historical managed Session pinned to a model its
 // backend retired must be repaired locally and never reach the upstream.
-// Retired managed minimax-legacy aliases resolve to an available official model.
+// Retired managed alran-legacy aliases resolve to an available official model.
 // Other BYOK Session overrides stay intact and are delegated to the BYOK resolver, which
 // owns transient config-switch races and dangling-provider fallback like v1.
 // An explicit request or a broken default still fails locally instead of
@@ -25,7 +25,7 @@ import {
 
 import type { SessionModelSnapshot, SessionRecord } from '../../../../session-system/index.js';
 import {
-  resolveLegacyMinimaxModel,
+  resolveLegacyAlranModel,
   type ManagedModelParameterSnapshot,
   type LocalConversationRuntimeConfig,
 } from '../../../../model-system/index.js';
@@ -91,7 +91,7 @@ export async function resolveTurnModelSelection(
   input: ResolveTurnModelSelectionInput,
 ): Promise<TurnModelSelection> {
   let selection = selectRequestedModel(input);
-  const replacement = resolveLegacyMinimaxModel(input.config, selection);
+  const replacement = resolveLegacyAlranModel(input.config, selection);
   if (replacement) {
     // Repair only the current Session selection. An explicit queued override
     // must not overwrite a newer model the user selected for the Session.
@@ -154,7 +154,7 @@ function shouldDeferUnavailableByokSession(
 ): boolean {
   return (
     selection.source === 'session_override' &&
-    (route === 'minimax_api_key' || route === 'custom_provider')
+    (route === 'alran_api_key' || route === 'custom_provider')
   );
 }
 

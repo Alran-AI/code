@@ -581,7 +581,7 @@ describe("LocalRuntimeTurnExecutor", () => {
     const handlers = [
       {
         kind: "command" as const,
-        sourceFormat: "MINIMAX" as const,
+        sourceFormat: "ALRAN" as const,
         pluginName: "context-plugin",
         pluginRoot: "/tmp/context-plugin",
         sourcePath: "hooks/hooks.json",
@@ -760,7 +760,7 @@ describe("LocalRuntimeTurnExecutor", () => {
   it("releases a transcript created before durable ownership preparation fails", async () => {
     const handler = {
       kind: "command" as const,
-      sourceFormat: "MINIMAX" as const,
+      sourceFormat: "ALRAN" as const,
       pluginName: "prepare-failure-plugin",
       pluginRoot: "/tmp/prepare-failure-plugin",
       sourcePath: "hooks/hooks.json",
@@ -1760,7 +1760,7 @@ describe("LocalRuntimeTurnExecutor structured output", () => {
           response_format: {
             type: "json_schema",
             json_schema: {
-              name: "mcode_output",
+              name: "alran_output",
               strict: true,
               schema: outputSchema,
             },
@@ -1838,8 +1838,8 @@ describe("LocalRuntimeTurnExecutor File API", () => {
         agentConfig: {
           ...base.preparation.agentConfig,
           model: {
-            provider: "minimax",
-            model_id: "MiniMax-M3",
+            provider: "alran",
+            model_id: "Alran-M3",
             capabilities: {
               support_files_api: true,
               files_api_upload_endpoint: "/v1/files/upload",
@@ -2952,7 +2952,7 @@ describe("LocalRuntimeTurnExecutor Plugin lifecycle hooks", () => {
         pluginHooks: [
           {
             kind: "command",
-            sourceFormat: "MINIMAX",
+            sourceFormat: "ALRAN",
             pluginName: "stop-steering-plugin",
             pluginRoot: "/tmp/stop-steering-plugin",
             sourcePath: "hooks/hooks.json",
@@ -3070,7 +3070,7 @@ describe("LocalRuntimeTurnExecutor Plugin lifecycle closure hooks", () => {
         pluginHooks: [
           {
             kind: "command",
-            sourceFormat: "MINIMAX",
+            sourceFormat: "ALRAN",
             pluginName: "lifecycle-plugin",
             pluginRoot: "/tmp/lifecycle-plugin",
             sourcePath: "hooks/hooks.json",
@@ -3364,7 +3364,7 @@ describe("LocalRuntimeTurnExecutor Plugin tool-boundary decisions", () => {
       pluginHooks: [
         {
           kind: "command",
-          sourceFormat: "MINIMAX",
+          sourceFormat: "ALRAN",
           pluginName: "tool-plugin",
           pluginRoot: "/tmp/tool-plugin",
           sourcePath: "hooks/hooks.json",
@@ -3375,7 +3375,7 @@ describe("LocalRuntimeTurnExecutor Plugin tool-boundary decisions", () => {
         },
         {
           kind: "command",
-          sourceFormat: "MINIMAX",
+          sourceFormat: "ALRAN",
           pluginName: "tool-plugin",
           pluginRoot: "/tmp/tool-plugin",
           sourcePath: "hooks/hooks.json",
@@ -3804,7 +3804,7 @@ describe("LocalRuntimeTurnExecutor after-tool context and ordering", () => {
           pluginHooks: [
             {
               kind: "command",
-              sourceFormat: "MINIMAX",
+              sourceFormat: "ALRAN",
               pluginName: "tail-plugin",
               pluginRoot: "/tmp/tail-plugin",
               sourcePath: "hooks/hooks.json",
@@ -5066,7 +5066,7 @@ describe("LocalRuntimeTurnExecutor beforeLlmCall and reconcile", () => {
       pluginHooks: [
         {
           kind: "command",
-          sourceFormat: "MINIMAX",
+          sourceFormat: "ALRAN",
           pluginName: "compact-plugin",
           pluginRoot: "/tmp/compact-plugin",
           sourcePath: "hooks/hooks.json",

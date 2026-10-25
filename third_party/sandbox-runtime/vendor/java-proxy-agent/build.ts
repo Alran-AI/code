@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 /**
  * Build the JVM proxy agent (vendor/java-proxy-agent-src) into
@@ -28,7 +28,7 @@ import { run } from '../build-common.js'
 const here = dirname(fileURLToPath(import.meta.url))
 const SRC = join(here, '..', 'java-proxy-agent-src')
 const OUT = join(here, 'srt-proxy-agent.jar')
-const AGENT_CLASS = 'com.minimax.mcode.srt.ProxyAgent'
+const AGENT_CLASS = 'com.alran.srt.ProxyAgent'
 
 const bin = (tool: string) =>
   process.env.JAVA_HOME ? join(process.env.JAVA_HOME, 'bin', tool) : tool
@@ -52,7 +52,7 @@ function walk(dir: string): string[] {
   return out
 }
 
-const work = mkdtempSync(join(tmpdir(), 'mcode-sandbox-java-agent-'))
+const work = mkdtempSync(join(tmpdir(), 'alran-sandbox-java-agent-'))
 try {
   const classes = join(work, 'classes')
   const sources = walk(SRC).filter(f => f.endsWith('.java'))

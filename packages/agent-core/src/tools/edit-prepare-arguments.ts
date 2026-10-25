@@ -4,7 +4,7 @@
  * Two model-side quirks are normalized before schema validation runs (both
  * mirror Pi 0.79's builtin edit tool shim):
  *
- * 1. Some models (MiniMax-M3 / GLM-5.1) emit `edits` as a JSON string even
+ * 1. Some models (Alran-M3 / GLM-5.1) emit `edits` as a JSON string even
  *    though the public schema is `edits[]` — parse it back into an array.
  * 2. Legacy single-edit input (`oldText` / `newText` at the top level) is
  *    folded into `edits[]`.

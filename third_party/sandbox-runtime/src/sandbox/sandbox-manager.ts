@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { createHttpProxyServer } from "./http-proxy.js";
 import { createSocksProxyServer } from "./socks-proxy.js";
@@ -352,7 +352,7 @@ async function filterNetworkRequest(
     }
   }
 
-  // MCode allow-all mode still traverses the proxy so explicit deny rules
+  // Alran allow-all mode still traverses the proxy so explicit deny rules
   // remain authoritative and the policy can be swapped live.
   if (config.network.allowAll) {
     logForDebugging(`Allowed by allowAll after deny rules: ${host}:${port}`);
@@ -877,7 +877,7 @@ async function initialize(
     }
   }
 
-  // MCODE-008: network.disabled=true skips the entire network subsystem —
+  // ALRAN-008: network.disabled=true skips the entire network subsystem —
   // no mux proxy, no Linux socat bridge, no Java agent jar resolution. A
   // network-infrastructure failure therefore can never block the
   // filesystem sandbox, and wrap-time needsNetworkProxy stays false for
@@ -1683,7 +1683,7 @@ async function wrapWithSandbox(
   // 2. OR config has network.allowedDomains defined (even if empty array = block all)
   // An empty allowedDomains array means "no domains allowed" = block all network access
   //
-  // MCODE-008: network.disabled=true turns network enforcement off entirely,
+  // ALRAN-008: network.disabled=true turns network enforcement off entirely,
   // regardless of allowedDomains — no restriction, no proxy.
   const networkDisabled =
     customConfig?.network?.disabled ?? config?.network?.disabled ?? false;
@@ -1844,7 +1844,7 @@ async function wrapWithSandboxArgv(
 
   if (platform === "windows") {
     const baseEnv = options?.baseEnv ?? process.env;
-    // MCODE-008: same disabled short-circuit as wrapWithSandbox, so the
+    // ALRAN-008: same disabled short-circuit as wrapWithSandbox, so the
     // Windows path can never fork semantically from macOS/Linux.
     const networkDisabled =
       customConfig?.network?.disabled ?? config?.network?.disabled ?? false;

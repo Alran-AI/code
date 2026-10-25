@@ -7,7 +7,7 @@
  * context parsing escape sequences, and matplotlib outputs (hundreds of KB
  * of base64) flood straight into the context window. Benefit: cell-structured
  * text the model can navigate, image outputs delivered as real vision blocks
- * (MiniMax-M3 supports image input), and oversized outputs replaced with an
+ * (Alran-M3 supports image input), and oversized outputs replaced with an
  * actionable jq escape hatch instead of raw base64.
  *
  * Rendering contract is copied from reference CLI (src/utils/notebook.ts):

@@ -52,7 +52,7 @@ export async function writeWorkspaceMiniAppScaffold(
 function workspaceScaffoldFiles(pluginId: string): readonly WorkspaceScaffoldFile[] {
   return [
     {
-      relativePath: '.minimax-plugin/plugin.json',
+      relativePath: '.alran-plugin/plugin.json',
       content: json({
         schemaVersion: 1,
         name: pluginId,
@@ -71,7 +71,7 @@ function workspaceScaffoldFiles(pluginId: string): readonly WorkspaceScaffoldFil
     {
       relativePath: 'package.json',
       content: json({
-        mcode: {
+        alran: {
           schemaVersion: 2,
           miniApp: './miniapp/miniapp.json',
         },

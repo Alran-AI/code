@@ -207,7 +207,7 @@ export function canonicalFrozenProjectWorkspaceDir(
  * Frozen compatibility for v1's default Project classifier.
  *
  * A per-session fallback is reserved by its exact Session id, including custom
- * dataDir layouts. The runtime fallback is limited to the current `.minimax`
+ * dataDir layouts. The runtime fallback is limited to the current `.alran`
  * dataDir shape so an arbitrary directory named `workspace` stays explicit.
  */
 export function isFrozenSessionDefaultWorkspaceDir(
@@ -228,7 +228,7 @@ export function isFrozenSessionDefaultWorkspaceDir(
     return true;
   }
   const dataDirName = parts.at(-2);
-  const pattern = /^\.minimax(?:-.+)?$/u;
+  const pattern = /^\.alran(?:-.+)?$/u;
   return (
     dataDirName !== undefined && pattern.test(windows ? dataDirName.toLowerCase() : dataDirName)
   );

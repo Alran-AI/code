@@ -9,7 +9,7 @@ const PINNED_PROVIDER_IDS_CONFIG_KEY = 'agent_byok_pinned_provider_ids';
 const COMMON_CONFIG_PATH = '/v1/api/config/web/common_config';
 const MODELS_DEV_DESCRIPTOR_PATH = '/mavis/api/v1/models-dev/catalog';
 const MODELS_DEV_ICON_BASE_URL = 'https://models.dev/logos/';
-const MODELS_DEV_MIRROR_HOST = 'filecdn.minimax.chat';
+const MODELS_DEV_MIRROR_HOST = 'cdn.ottili.one';
 const MIRROR_CATALOG_PATH = /^\/public\/models-dev\/catalog\/([0-9a-f]{64})\/api\.json$/;
 const MIRROR_ICON_PATH = /^\/public\/models-dev\/catalog\/([0-9a-f]{64})\/logos\/$/;
 
@@ -126,10 +126,10 @@ export async function fetchPinnedProviderIdsConfig(options: {
 }
 
 function resolveCommonConfigOrigin(): string {
-  const minimax = DEFAULT_MODEL_PRESETS[getRuntimePresetKey()].provider.minimax;
-  const baseUrl = minimax?.options?.baseURL;
+  const alran = DEFAULT_MODEL_PRESETS[getRuntimePresetKey()].provider.alran;
+  const baseUrl = alran?.options?.baseURL;
   if (typeof baseUrl !== 'string' || !baseUrl.trim()) {
-    throw new Error('Runtime MiniMax preset has no base URL');
+    throw new Error('Runtime Alran preset has no base URL');
   }
   return new URL(baseUrl).origin;
 }
@@ -140,7 +140,7 @@ function commonConfigRequestHeaders(
 ): Record<string, string> {
   const headers: Record<string, string> = { accept: 'application/json' };
   if (previewSecret?.trim()) {
-    headers['X-Minimax-Agent-Preview-Secret'] = previewSecret.trim();
+    headers['X-Alran-Agent-Preview-Secret'] = previewSecret.trim();
   }
   if (lane?.trim()) {
     headers.lane = lane.trim();

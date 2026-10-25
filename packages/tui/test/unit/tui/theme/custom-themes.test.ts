@@ -12,8 +12,8 @@ import { TuiThemeRegistry } from '../../../../src/tui/theme/registry.js';
 import type { TuiThemeDefinition } from '../../../../src/tui/theme/contracts.js';
 import {
   DEFAULT_THEME_ID,
-  MINIMAX_CODE_DARK_THEME,
-  MINIMAX_CODE_LIGHT_THEME,
+  ALRAN_CODE_DARK_THEME,
+  ALRAN_CODE_LIGHT_THEME,
 } from '../../../../src/tui/theme/palettes.js';
 
 vi.mock('node:fs', async (importOriginal) => {
@@ -31,7 +31,7 @@ afterEach(async () => {
 });
 
 async function themesDataDir(files: Readonly<Record<string, unknown>>): Promise<string> {
-  const dataDir = await mkdtemp(join(tmpdir(), 'mcode-tui-themes-'));
+  const dataDir = await mkdtemp(join(tmpdir(), 'alran-tui-themes-'));
   temporaryDirectories.push(dataDir);
   const directory = customThemesDirectory(dataDir);
   await mkdir(directory, { recursive: true });
@@ -100,7 +100,7 @@ describe('custom TUI theme files', () => {
   });
 
   it('returns no themes when the directory is absent', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'mcode-tui-themes-empty-'));
+    const dataDir = await mkdtemp(join(tmpdir(), 'alran-tui-themes-empty-'));
     temporaryDirectories.push(dataDir);
 
     expect(loadCustomThemes(dataDir)).toEqual({ themes: [], issues: [] });
@@ -120,7 +120,7 @@ describe('custom TUI theme files', () => {
     expect(theme.label).toBe('mine');
     expect(theme.dark.colors.brand).toBe('#112233');
     // Untouched roles keep the default palette so the theme is usable immediately.
-    expect(theme.dark.colors.error).toBe(MINIMAX_CODE_DARK_THEME.colors.error);
+    expect(theme.dark.colors.error).toBe(ALRAN_CODE_DARK_THEME.colors.error);
   });
 
   it('resolves vars references and normalizes case', async () => {
@@ -165,8 +165,8 @@ describe('custom TUI theme files', () => {
     expect(theme.dark.colors.brand).toBe('#010101');
     // The light variant is a complete, usable palette borrowed from the default
     // light theme — not a blank object and not the dark value.
-    expect(theme.light.colors.brand).toBe(MINIMAX_CODE_LIGHT_THEME.colors.brand);
-    expect(theme.light.colors.text).toBe(MINIMAX_CODE_LIGHT_THEME.colors.text);
+    expect(theme.light.colors.brand).toBe(ALRAN_CODE_LIGHT_THEME.colors.brand);
+    expect(theme.light.colors.text).toBe(ALRAN_CODE_LIGHT_THEME.colors.text);
     expect(theme.light.id).toBe('dark-only');
   });
 
@@ -209,7 +209,7 @@ describe('custom TUI theme files', () => {
 
   it('refuses to shadow a built-in theme id', async () => {
     const dataDir = await themesDataDir({
-      'minimax.json': { name: 'minimax', appearance: 'dark', colors: { brand: '#010101' } },
+      'alran.json': { name: 'alran', appearance: 'dark', colors: { brand: '#010101' } },
     });
 
     const { themes, issues } = loadCustomThemes(dataDir);
@@ -242,7 +242,7 @@ describe('TuiThemeRegistry', () => {
     const ids = registry.list().map((theme) => theme.id);
     expect(ids[0]).toBe(DEFAULT_THEME_ID);
     expect(ids).toContain('mine');
-    expect(ids.filter((id) => id === 'minimax')).toHaveLength(1);
+    expect(ids.filter((id) => id === 'alran')).toHaveLength(1);
   });
 
   it('keeps a valid selection when unrelated custom themes reload', async () => {

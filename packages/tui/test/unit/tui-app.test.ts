@@ -33,7 +33,7 @@ import {
 } from "../../src/runtime/event-normalizer.js";
 import type { SendMessageReq } from "@mavis/local-runtime-v2/cli-service";
 import type { TuiObservability } from "../../src/observability/local-observability.js";
-import type { McodeAuthProgress } from "../../src/auth/application.js";
+import type { AlranAuthProgress } from "../../src/auth/application.js";
 import { formatTuiShortcut } from "../../src/tui/shell/shortcut-labels.js";
 import { createTuiHostKeybindings } from "../../src/tui/shell/keybindings.js";
 import { stripAnsi } from "../../src/tui/rendering/text.js";
@@ -43,8 +43,8 @@ import {
 } from "../../src/tui/features/composer/draft-recovery.js";
 import { composerText } from "../../src/tui/features/composer/copy.js";
 import type {
-  McodeBusinessEvent,
-  McodeBusinessTelemetry,
+  AlranBusinessEvent,
+  AlranBusinessTelemetry,
 } from "../../src/analytics/business-telemetry.js";
 import { VirtualTerminalScreen } from "../helpers/virtual-terminal.js";
 import { VirtualTerminal } from "../pi-084-upstream/virtual-terminal.js";
@@ -125,7 +125,7 @@ function createObservability(): TuiObservability {
     recordProcessStop: vi.fn(),
     observeRender: vi.fn(),
     snapshot: vi.fn(() => ({
-      filePath: "/tmp/mcode-observability.jsonl",
+      filePath: "/tmp/alran-observability.jsonl",
       eventCounts: {
         startup: 0,
         runtimeAccess: 0,
@@ -333,14 +333,14 @@ function createRuntime(): TuiRuntime {
       surface: "cli-standalone",
       runtimeMode: "clean",
       runtimeOwnerKind: "cli",
-      runtimeOwnerId: "minimax-code",
-      dataDir: "/home/dev/.minimax",
-      configPath: "/home/dev/.minimax/config.yaml",
+      runtimeOwnerId: "alran-code",
+      dataDir: "/home/dev/.alran",
+      configPath: "/home/dev/.alran/config.yaml",
       configPresent: true,
       authCachePresent: true,
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       authModeSource: "explicit",
       managedTokenPresent: true,
@@ -353,7 +353,7 @@ function createRuntime(): TuiRuntime {
       draftId: "feedback-draft-1",
       description,
       diagnostics: [
-        { label: "Client", value: "mcode 0.1.0" },
+        { label: "Client", value: "alran 0.1.0" },
         { label: "Runtime", value: "clean · cli" },
         { label: "Session", value: sessionId ?? "not included" },
       ],
@@ -385,9 +385,9 @@ function createRuntime(): TuiRuntime {
     })),
     getAccountStatus: vi.fn(async () => ({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       managedTokenPresent: true,
       warnings: [],
@@ -412,10 +412,10 @@ function createRuntime(): TuiRuntime {
     replyPermission: vi.fn(async () => true),
     listModels: vi.fn(async () => [
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M2.7",
-        displayName: "MiniMax M2.7",
-        providerKind: "minimax-managed",
+        providerId: "alran",
+        modelId: "Alran-M2.7",
+        displayName: "Alran M2.7",
+        providerKind: "alran-managed",
         selected: true,
       },
     ]),
@@ -1228,7 +1228,7 @@ describe("createTuiApp", () => {
     },
   );
 
-  it("shows the MCode prompt in an empty Composer and hides it after input", async () => {
+  it("shows the Alran prompt in an empty Composer and hides it after input", async () => {
     const app = createTuiApp({
       runtime: createRuntime(),
       terminal: new FakeTerminal(),
@@ -1241,13 +1241,13 @@ describe("createTuiApp", () => {
       await app.ready;
 
       expect(stripAnsi(app.tui.render(80).join("\n"))).toContain(
-        "Ask Mcode to do anything",
+        "Ask Alran to do anything",
       );
 
       app.editor.handleInput("R");
 
       expect(stripAnsi(app.tui.render(80).join("\n"))).not.toContain(
-        "Ask Mcode to do anything",
+        "Ask Alran to do anything",
       );
       expect(app.editor.getText()).toBe("R");
     } finally {
@@ -1327,10 +1327,10 @@ describe("createTuiApp", () => {
   });
 
   it("wires complete chat and autocomplete business events into the TUI surface", async () => {
-    const events: McodeBusinessEvent[] = [];
-    const businessTelemetry: McodeBusinessTelemetry = {
+    const events: AlranBusinessEvent[] = [];
+    const businessTelemetry: AlranBusinessTelemetry = {
       track: (event, properties) =>
-        events.push({ event, properties } as McodeBusinessEvent),
+        events.push({ event, properties } as AlranBusinessEvent),
       flush: async () => undefined,
     };
     const app = createTuiApp({
@@ -1595,24 +1595,24 @@ describe("createTuiApp", () => {
     await app.ready;
     await vi.waitFor(() => {
       expect(terminal.writes.join("")).toContain(
-        "A new version of MCode is available",
+        "A new version of Alran is available",
       );
     });
 
     const rendered = terminal.writes.join("");
     expect(checkForUpdate).toHaveBeenCalledTimes(1);
-    expect(rendered).toContain("Run '/update' to install MCode 1.2.4");
+    expect(rendered).toContain("Run '/update' to install Alran 1.2.4");
 
     await app.submit("Start working");
     expect(app.getSurface()).toBe("conversation");
     expect(app.tui.render(80).join("\n")).not.toContain(
-      "A new version of MCode is available",
+      "A new version of Alran is available",
     );
 
     await app.submit("/new");
     expect(app.getSurface()).toBe("welcome");
     expect(app.tui.render(80).join("\n")).toContain(
-      "A new version of MCode is available",
+      "A new version of Alran is available",
     );
     await app.stop();
   });
@@ -1777,7 +1777,7 @@ describe("createTuiApp", () => {
       await app.stop();
 
       expect(terminal.writes.join("")).not.toContain(
-        "A new version of MCode is available",
+        "A new version of Alran is available",
       );
       expect(
         app.transcript.snapshot().filter((cell) => cell.kind === "error"),
@@ -1797,7 +1797,7 @@ describe("createTuiApp", () => {
     const applyUpdate = vi.fn(async () => ({
       applied: true,
       message:
-        "MCode 1.2.4 is installed. Restart running MCode sessions to use it.",
+        "Alran 1.2.4 is installed. Restart running Alran sessions to use it.",
     }));
     const app = createTuiApp({
       runtime: createRuntime(),
@@ -1813,7 +1813,7 @@ describe("createTuiApp", () => {
 
     expect(inspectUpdate).toHaveBeenCalledOnce();
     expect(app.interaction.current()?.render(80).join("\n")).toContain(
-      "MCode update",
+      "Alran update",
     );
     app.interaction.current()?.handleInput?.("\r");
     await vi.waitFor(() =>
@@ -1828,7 +1828,7 @@ describe("createTuiApp", () => {
       expect(
         app.transcript
           .snapshot()
-          .some((cell) => cell.content.includes("MCode update completed")),
+          .some((cell) => cell.content.includes("Alran update completed")),
       ).toBe(true),
     );
     await app.stop();
@@ -1857,7 +1857,7 @@ describe("createTuiApp", () => {
       applyUpdate: async () => ({
         applied: true,
         restartRequired: true,
-        message: "MCode 1.2.4 is staged safely.",
+        message: "Alran 1.2.4 is staged safely.",
       }),
       requestRestart,
     });
@@ -1910,7 +1910,7 @@ describe("createTuiApp", () => {
           .snapshot()
           .some((cell) =>
             cell.content.includes(
-              "MCode update failed: Finish or stop the active response before updating.",
+              "Alran update failed: Finish or stop the active response before updating.",
             ),
           ),
       ).toBe(true),
@@ -1989,7 +1989,7 @@ describe("createTuiApp", () => {
     await app.ready;
     app.start();
     const rendered = app.tui.render(80).join("\n");
-    expect(rendered).not.toContain("Starting MiniMax Code");
+    expect(rendered).not.toContain("Starting Alran Code");
     expect(rendered).not.toContain("Loading session");
     await app.stop();
   });
@@ -2061,7 +2061,7 @@ describe("createTuiApp", () => {
       expect(runtime.createSession).not.toHaveBeenCalled();
       resolveAccount({
         status: "ready",
-        defaultModel: "minimax/MiniMax-M2.7",
+        defaultModel: "alran/Alran-M2.7",
         managedTokenPresent: true,
         warnings: [],
       });
@@ -2086,7 +2086,7 @@ describe("createTuiApp", () => {
     } finally {
       resolveAccount({
         status: "ready",
-        defaultModel: "minimax/MiniMax-M2.7",
+        defaultModel: "alran/Alran-M2.7",
         managedTokenPresent: true,
         warnings: [],
       });
@@ -2099,9 +2099,9 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     const baseAccount = {
       status: "ready" as const,
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       managedTokenPresent: true,
       modelSource: "token-plan" as const,
@@ -2213,9 +2213,9 @@ describe("createTuiApp", () => {
       const runtime = createRuntime();
       vi.mocked(runtime.getAccountStatus).mockResolvedValue({
         status: "ready",
-        defaultModel: "custom_provider:innerTest/MiniMax-M3",
+        defaultModel: "custom_provider:innerTest/Alran-M3",
         providerId: "custom_provider:innerTest",
-        modelId: "MiniMax-M3",
+        modelId: "Alran-M3",
         authMode: "byok",
         managedTokenPresent,
         modelSource: "byok",
@@ -2224,7 +2224,7 @@ describe("createTuiApp", () => {
       vi.mocked(runtime.listModels).mockResolvedValue([
         {
           providerId: "custom_provider:innerTest",
-          modelId: "MiniMax-M3",
+          modelId: "Alran-M3",
           displayName: "m3.05",
           selected: true,
         },
@@ -2253,7 +2253,7 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
       authMode: "managed-login",
       modelSource: "token-plan",
       managedTokenPresent: false,
@@ -2283,7 +2283,7 @@ describe("createTuiApp", () => {
         expect.objectContaining({
           kind: "warning",
           content:
-            "Sign in to MiniMax to use Agent features. Run /login, then retry.",
+            "Sign in to Alran to use Agent features. Run /login, then retry.",
         }),
       ]),
     );
@@ -2338,9 +2338,9 @@ describe("createTuiApp", () => {
     await vi.waitFor(() => expect(resolveAccount).toBeTypeOf("function"));
     resolveAccount?.({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       managedTokenPresent: true,
       warnings: [],
@@ -2357,9 +2357,9 @@ describe("createTuiApp", () => {
       authenticated
         ? {
             status: "ready",
-            defaultModel: "minimax/MiniMax-M2.7",
-            providerId: "minimax",
-            modelId: "MiniMax-M2.7",
+            defaultModel: "alran/Alran-M2.7",
+            providerId: "alran",
+            modelId: "Alran-M2.7",
             authMode: "managed-login",
             modelSource: "token-plan",
             managedTokenPresent: true,
@@ -2378,12 +2378,12 @@ describe("createTuiApp", () => {
         authenticated = true;
         return {
           state: "authenticated" as const,
-          message: "Signed in with MiniMax.",
+          message: "Signed in with Alran.",
         };
       }),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2427,7 +2427,7 @@ describe("createTuiApp", () => {
     await app.stop();
   });
 
-  it("runs /checkin immediately for a signed-in MiniMax account", async () => {
+  it("runs /checkin immediately for a signed-in Alran account", async () => {
     const runtime = createRuntime();
     const app = createTuiApp({
       runtime,
@@ -2485,7 +2485,7 @@ describe("createTuiApp", () => {
       login: vi.fn(),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2509,7 +2509,7 @@ describe("createTuiApp", () => {
     await app.stop();
   });
 
-  it("starts MiniMax login and resumes /checkin once after authentication", async () => {
+  it("starts Alran login and resumes /checkin once after authentication", async () => {
     const runtime = createRuntime();
     let authenticated = false;
     vi.mocked(runtime.getAccountStatus).mockImplementation(async () => ({
@@ -2524,12 +2524,12 @@ describe("createTuiApp", () => {
         authenticated = true;
         return {
           state: "authenticated" as const,
-          message: "Signed in with MiniMax.",
+          message: "Signed in with Alran.",
         };
       }),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2567,7 +2567,7 @@ describe("createTuiApp", () => {
       login: vi.fn(),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2601,7 +2601,7 @@ describe("createTuiApp", () => {
       }),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2634,11 +2634,11 @@ describe("createTuiApp", () => {
       login: vi.fn(async () => ({
         state: "authenticated" as const,
         restartRequired: true,
-        message: "Signed in with MiniMax Global.",
+        message: "Signed in with Alran Global.",
       })),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2679,11 +2679,11 @@ describe("createTuiApp", () => {
       login: vi.fn(async () => ({
         state: "authenticated" as const,
         restartRequired: true,
-        message: "Signed in with MiniMax Global.",
+        message: "Signed in with Alran Global.",
       })),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -2722,8 +2722,8 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M3",
-      providerId: "minimax",
+      defaultModel: "alran/Alran-M3",
+      providerId: "alran",
       authMode: "managed-login",
       modelSource: "byok",
       managedTokenPresent: false,
@@ -2785,11 +2785,11 @@ describe("createTuiApp", () => {
     expect(conversation).toContain("Say hello");
     expect(conversation).toContain("Hello from the Agent");
     expect(terminal.started).toBe(true);
-    expect(terminal.title).toBe("Done | workspace (session-) | MCode");
+    expect(terminal.title).toBe("Done | workspace (session-) | Alran");
     const programReports = () =>
       terminal.writes.filter((value) => value.startsWith("\u001b]7501;"));
-    expect(programReports()).toContain("\u001b]7501;state=working:app=mcode\u001b\\");
-    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=mcode\u001b\\");
+    expect(programReports()).toContain("\u001b]7501;state=working:app=alran\u001b\\");
+    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=alran\u001b\\");
     expect(runtime.createSession).toHaveBeenCalledWith({
       workspaceDir: "/workspace",
     });
@@ -2805,7 +2805,7 @@ describe("createTuiApp", () => {
 
     await app.stop();
     expect(terminal.stopped).toBe(true);
-    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=mcode\u001b\\");
+    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=alran\u001b\\");
   });
 
   it("syncs the generated Session title to the terminal without duplicate writes", async () => {
@@ -2874,14 +2874,14 @@ describe("createTuiApp", () => {
       terminal.writes.filter((value) => value.startsWith("\u001b]7501;"));
     await app.suspend();
     expect(terminal.title).toBe("");
-    expect(programReports().at(-1)).toBe("\u001b]7501;state=idle:app=mcode\u001b\\");
+    expect(programReports().at(-1)).toBe("\u001b]7501;state=idle:app=alran\u001b\\");
     const reportCount = programReports().length;
     await app.controller.renameCurrentSession("Renamed while suspended");
     expect(programReports()).toHaveLength(reportCount);
     expect(terminal.title).toBe("");
     await app.resume();
     expect(terminal.title).toBe("Renamed while suspended");
-    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=mcode\u001b\\");
+    expect(programReports().at(-1)).toBe("\u001b]7501;state=done:app=alran\u001b\\");
 
     await app.stop();
     expect(terminal.title).toBe("");
@@ -3453,7 +3453,7 @@ describe("createTuiApp", () => {
       expect(rendered).toContain("Running");
       expect(rendered).not.toContain("Running · 0s");
       expect(rendered).not.toContain("Running · Read");
-      expect(rendered).not.toContain("MCode · Running");
+      expect(rendered).not.toContain("Alran · Running");
       expect(rendered).toContain("Ctrl+O details");
       expect(rendered).toContain("Esc stop");
       expect(rendered).not.toContain("Enter run next");
@@ -3554,7 +3554,7 @@ describe("createTuiApp", () => {
         .filter(
           (line) =>
             line.includes("Inspecting the repository") &&
-            !line.includes("MCode"),
+            !line.includes("Alran"),
         ).length;
     let expandedThinkingRows = 0;
 
@@ -3574,7 +3574,7 @@ describe("createTuiApp", () => {
         expect(rendered).toContain("Ctrl+O details");
         expect(rendered).toContain("Esc stop");
         expect(rendered).toContain("Thinking…");
-        expect(rendered).not.toContain("MCode ·");
+        expect(rendered).not.toContain("Alran ·");
         expect(rendered).not.toContain("Thinking · Inspecting the repository");
         expandedThinkingRows = countThinkingBodyRows(rendered);
         expect(expandedThinkingRows).toBeGreaterThan(0);
@@ -4024,7 +4024,7 @@ describe("createTuiApp", () => {
         sessionId: "session-1",
         source: "api",
         message: { content: "focus on the failing test" },
-        producerId: "mcode",
+        producerId: "alran",
         idempotencyKey: expect.stringMatching(/^run_action_/u),
       }),
     );
@@ -4111,7 +4111,7 @@ describe("createTuiApp", () => {
             sessionId: "session-1",
             source: "api",
             message: { content: "focus on the failing test" },
-            producerId: "mcode",
+            producerId: "alran",
             idempotencyKey: expect.stringMatching(/^run_action_/u),
             requestedTurnId: "turn-active",
           }),
@@ -4267,7 +4267,7 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getContextSnapshot).mockResolvedValue({
       status: "live",
-      model: { provider: "minimax", id: "MiniMax-M3", contextWindow: 10_000 },
+      model: { provider: "alran", id: "Alran-M3", contextWindow: 10_000 },
       contextUsage: {
         contextWindowTokens: 10_000,
         usedTokens: 3_000,
@@ -4690,9 +4690,9 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       managedTokenPresent: true,
       modelSource: "token-plan",
@@ -4727,9 +4727,9 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M3",
-      providerId: "minimax",
-      modelId: "MiniMax-M3",
+      defaultModel: "alran/Alran-M3",
+      providerId: "alran",
+      modelId: "Alran-M3",
       authMode: "managed-login",
       managedTokenPresent: true,
       modelSource: "token-plan",
@@ -4749,7 +4749,7 @@ describe("createTuiApp", () => {
 
     await vi.waitFor(() => {
       const rendered = app.tui.render(120).join("\n");
-      expect(rendered).toContain("✦ MiniMax M2.7");
+      expect(rendered).toContain("✦ Alran M2.7");
       expect(rendered).not.toMatch(/Context 5%|Quota|Plan|5h|Week/u);
     });
     await app.stop();
@@ -4964,8 +4964,8 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.listModels).mockResolvedValue([
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M2.7",
+        providerId: "alran",
+        modelId: "Alran-M2.7",
         selected: true,
         variant: "",
       },
@@ -4996,7 +4996,7 @@ describe("createTuiApp", () => {
       {
         attachments: [],
         clientIntent: "plan-entry",
-        model: { providerId: "minimax", modelId: "MiniMax-M2.7", variant: "" },
+        model: { providerId: "alran", modelId: "Alran-M2.7", variant: "" },
       },
     );
     expect(app.tui.render(100).join("\n")).not.toContain("PLAN queued");
@@ -5042,7 +5042,7 @@ describe("createTuiApp", () => {
       "Queue a follow-up while admission is quiet",
       {
         attachments: [],
-        model: { providerId: "minimax", modelId: "MiniMax-M2.7" },
+        model: { providerId: "alran", modelId: "Alran-M2.7" },
       },
     );
 
@@ -5609,7 +5609,7 @@ describe("createTuiApp", () => {
       terminal,
       version: "0.1.0",
       workspaceDir: "/workspace",
-      runtimeLogDirectory: "/home/dev/.minimax/v2/observability/logs",
+      runtimeLogDirectory: "/home/dev/.alran/v2/observability/logs",
     });
 
     await app.submit("/logs");
@@ -5706,7 +5706,7 @@ describe("createTuiApp", () => {
     const panel = app.interaction.current();
     expect(panel?.render(80).join("\n")).toContain("Review feedback");
     panel?.handleInput?.("d");
-    expect(panel?.render(80).join("\n")).toContain("Client  mcode 0.1.0");
+    expect(panel?.render(80).join("\n")).toContain("Client  alran 0.1.0");
 
     terminal.input?.("\r");
     await vi.waitFor(() =>
@@ -5770,7 +5770,7 @@ describe("createTuiApp", () => {
     expect(app.interaction.isActive()).toBe(true);
     expect(app.transcript.snapshot()).toEqual(transcriptBeforeStatus);
     const statusOutput = app.tui.render(80).join("\n");
-    expect(statusOutput).toContain("MCode status");
+    expect(statusOutput).toContain("Alran status");
     expect(statusOutput).toContain("Model");
     expect(statusOutput).not.toContain("/status");
     expect(statusOutput).toContain("/workspace");
@@ -5822,15 +5822,15 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     const openedTargets: string[] = [];
     const logoutUrl =
-      "https://agent.minimax.io/auth/logout?logout_redirect_uri=https%3A%2F%2Fagent.minimax.io";
+      "https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one";
     let authenticated = false;
     vi.mocked(runtime.getAccountStatus).mockImplementation(async () =>
       authenticated
         ? {
             status: "ready",
-            defaultModel: "minimax/MiniMax-M2.7",
-            providerId: "minimax",
-            modelId: "MiniMax-M2.7",
+            defaultModel: "alran/Alran-M2.7",
+            providerId: "alran",
+            modelId: "Alran-M2.7",
             authMode: "managed-login",
             managedTokenPresent: true,
             warnings: [],
@@ -5845,7 +5845,7 @@ describe("createTuiApp", () => {
     const auth = {
       login: vi.fn(
         async (
-          onProgress?: (progress: McodeAuthProgress) => void,
+          onProgress?: (progress: AlranAuthProgress) => void,
           _region?: "cn" | "en",
         ) => {
           authenticated = true;
@@ -5859,8 +5859,8 @@ describe("createTuiApp", () => {
             state: "authenticated" as const,
             message:
               _region === "en"
-                ? "Signed in with MiniMax Global. Restart MCode to use this account region."
-                : "Signed in with MiniMax.",
+                ? "Signed in with Alran Global. Restart Alran to use this account region."
+                : "Signed in with Alran.",
           };
         },
       ),
@@ -5868,7 +5868,7 @@ describe("createTuiApp", () => {
         authenticated = false;
         return {
           state: "signed-out" as const,
-          message: "Signed out of MiniMax.",
+          message: "Signed out of Alran.",
           logoutUrl,
         };
       }),
@@ -5917,7 +5917,7 @@ describe("createTuiApp", () => {
 
     expect(auth.login).toHaveBeenCalledWith(expect.any(Function), "en");
     expect(openedTargets).toEqual([
-      "https://account.example.test/device?client_surface=tui&download_source=mcode-internal",
+      "https://account.example.test/device?client_surface=tui&download_source=alran-internal",
       logoutUrl,
     ]);
     await vi.waitFor(() =>
@@ -5941,7 +5941,7 @@ describe("createTuiApp", () => {
       {
         kind: "final-summary",
         content:
-          "Complete MiniMax login in your browser:\nhttps://account.example.test/device?client_surface=tui&download_source=mcode-internal\nCode: ABCD-EFGH",
+          "Complete Alran login in your browser:\nhttps://account.example.test/device?client_surface=tui&download_source=alran-internal\nCode: ABCD-EFGH",
       },
       {
         kind: "warning",
@@ -5951,11 +5951,11 @@ describe("createTuiApp", () => {
       {
         kind: "final-summary",
         content:
-          "Signed in with MiniMax Global. Restart MCode to use this account region.",
+          "Signed in with Alran Global. Restart Alran to use this account region.",
       },
       {
         kind: "final-summary",
-        content: "Signed out of MiniMax.",
+        content: "Signed out of Alran.",
       },
       {
         kind: "final-summary",
@@ -5993,7 +5993,7 @@ describe("createTuiApp", () => {
   it("clears Runtime auth context when the shared account is already signed out", async () => {
     const notifyAuthContextChanged = vi.fn(async () => undefined);
     const logoutUrl =
-      "https://agent.minimax.cn/auth/logout?logout_redirect_uri=https%3A%2F%2Fagent.minimax.cn";
+      "https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one";
     const openExternalTarget = vi.fn(() => new Promise<void>(() => {}));
     const app = createTuiApp({
       runtime: createRuntime(),
@@ -6001,7 +6001,7 @@ describe("createTuiApp", () => {
         login: vi.fn(),
         logout: vi.fn(async () => ({
           state: "already-signed-out" as const,
-          message: "Already signed out of MiniMax.",
+          message: "Already signed out of Alran.",
           logoutUrl,
         })),
       },
@@ -6036,9 +6036,9 @@ describe("createTuiApp", () => {
       authenticated
         ? {
             status: "ready",
-            defaultModel: "minimax/MiniMax-M2.7",
-            providerId: "minimax",
-            modelId: "MiniMax-M2.7",
+            defaultModel: "alran/Alran-M2.7",
+            providerId: "alran",
+            modelId: "Alran-M2.7",
             authMode: "managed-login",
             managedTokenPresent: true,
             warnings: [],
@@ -6056,12 +6056,12 @@ describe("createTuiApp", () => {
         authenticated = true;
         return {
           state: "already-authenticated" as const,
-          message: "Already signed in with MiniMax.",
+          message: "Already signed in with Alran.",
         };
       }),
       logout: vi.fn(async () => ({
         state: "signed-out" as const,
-        message: "Signed out of MiniMax.",
+        message: "Signed out of Alran.",
       })),
     };
     const app = createTuiApp({
@@ -6113,7 +6113,7 @@ describe("createTuiApp", () => {
   });
 
   it("does not restore /quit after reopening the exited Session", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-quit-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-quit-draft-"));
     try {
       const first = createTuiApp({
         runtime: createRuntime(),
@@ -6152,9 +6152,9 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "warning",
-      defaultModel: "minimax/MiniMax-M2.7",
-      providerId: "minimax",
-      modelId: "MiniMax-M2.7",
+      defaultModel: "alran/Alran-M2.7",
+      providerId: "alran",
+      modelId: "Alran-M2.7",
       authMode: "managed-login",
       managedTokenPresent: true,
       warnings: ["Desktop login should be refreshed soon."],
@@ -6256,7 +6256,7 @@ describe("createTuiApp", () => {
     expect(app.tui.hasOverlay()).toBe(false);
     expect(app.interaction.isActive()).toBe(true);
     expect(app.transcript.snapshot()).toEqual(transcriptBeforeStatus);
-    expect(app.tui.render(80).join("\n")).toContain("MCode status");
+    expect(app.tui.render(80).join("\n")).toContain("Alran status");
 
     resolveSessionPage?.({
       sessions: [
@@ -6590,7 +6590,7 @@ describe("createTuiApp", () => {
         expect(history.filter((line) => line.trimEnd().endsWith(`› Message ${index}`))).toHaveLength(1);
       }
       expect(history.join("\n")).not.toContain("Session usage");
-      expect(terminal.getViewport().join("\n")).toContain("Ask Mcode to do anything");
+      expect(terminal.getViewport().join("\n")).toContain("Ask Alran to do anything");
       expect(terminal.getViewport().join("\n")).toContain("/workspace");
     } finally {
       await app.stop();
@@ -6603,8 +6603,8 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.getAccountStatus).mockResolvedValue({
       status: "ready",
-      defaultModel: "minimax/MiniMax-M3",
-      providerId: "minimax-cn-coding-plan",
+      defaultModel: "alran/Alran-M3",
+      providerId: "alran-cn-coding-plan",
       authMode: "managed-login",
       managedTokenPresent: true,
       modelSource: "token-plan",
@@ -7183,7 +7183,7 @@ describe("createTuiApp", () => {
     expect(runtime.getSession).toHaveBeenCalledWith("session-existing");
     expect(app.interaction.current()).toBeDefined();
     expect(app.transcript.snapshot()).toEqual(transcriptBeforeStatus);
-    expect(app.tui.render(100).join("\n")).toContain("MCode status");
+    expect(app.tui.render(100).join("\n")).toContain("Alran status");
     expect(runtime.renameSession).toHaveBeenCalledWith(
       "session-existing",
       "Renamed session",
@@ -8430,9 +8430,9 @@ describe("createTuiApp", () => {
           releaseAdmission = () =>
             resolve({
               status: "ready",
-              defaultModel: "minimax/MiniMax-M2.7",
-              providerId: "minimax",
-              modelId: "MiniMax-M2.7",
+              defaultModel: "alran/Alran-M2.7",
+              providerId: "alran",
+              modelId: "Alran-M2.7",
               authMode: "managed-login",
               managedTokenPresent: true,
               warnings: [],
@@ -9907,18 +9907,18 @@ describe("createTuiApp", () => {
     await app.ready;
     await app.submit("/resume session-existing");
     await vi.waitFor(() =>
-      expect(terminal.title).toBe("Needs approval | Existing session | MCode"),
+      expect(terminal.title).toBe("Needs approval | Existing session | Alran"),
     );
     expect(programReports().at(-1)).toBe(
-      "\u001b]7501;state=blocked:kind=permission:app=mcode\u001b\\",
+      "\u001b]7501;state=blocked:kind=permission:app=alran\u001b\\",
     );
 
     await app.submit("/allow");
     await vi.waitFor(() =>
-      expect(terminal.title).toBe("Needs input | Existing session | MCode"),
+      expect(terminal.title).toBe("Needs input | Existing session | Alran"),
     );
     expect(programReports().at(-1)).toBe(
-      "\u001b]7501;state=blocked:kind=question:app=mcode\u001b\\",
+      "\u001b]7501;state=blocked:kind=question:app=alran\u001b\\",
     );
     expect(app.tui.render(120).join("\n")).not.toContain("[V]");
     await app.stop();
@@ -9938,7 +9938,7 @@ describe("createTuiApp", () => {
     app.start();
     await app.ready;
     await app.submit("Say hello");
-    expect(terminal.title).toBe("Done | workspace (session-) | MCode");
+    expect(terminal.title).toBe("Done | workspace (session-) | Alran");
     await app.stop();
     expect(terminal.writes.some((value) => value.includes("\u001b]7501;"))).toBe(false);
   });
@@ -10037,7 +10037,7 @@ describe("createTuiApp", () => {
       content: "Proceed?  Yes",
     });
     expect(app.interaction.current()).toBeDefined();
-    expect(app.tui.render(80).join("\n")).toContain("MCode status");
+    expect(app.tui.render(80).join("\n")).toContain("Alran status");
     expect(app.transcript.snapshot()).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -10442,7 +10442,7 @@ describe("createTuiApp", () => {
     await vi.waitFor(() =>
       expect(app.transcript.get("question:question-review")).toMatchObject({
         status: "resolved",
-        detail: "Answer sent · MCode is continuing…",
+        detail: "Answer sent · Alran is continuing…",
       }),
     );
 
@@ -10531,7 +10531,7 @@ describe("createTuiApp", () => {
         app.transcript.get("question:question-delayed-reply"),
       ).toMatchObject({
         status: "resolved",
-        detail: "Answer sent · MCode is continuing…",
+        detail: "Answer sent · Alran is continuing…",
       }),
     );
     await vi.waitFor(() =>
@@ -11475,7 +11475,7 @@ describe("createTuiApp", () => {
     const readClipboardImage = vi.fn(async () => ({
       attachment: {
         type: "image" as const,
-        filePath: "/tmp/minimax-code-clipboard/diagram.png",
+        filePath: "/tmp/alran-code-clipboard/diagram.png",
         fileName: "diagram.png",
         mimeType: "image/png",
         sizeBytes: 2048,
@@ -11503,7 +11503,7 @@ describe("createTuiApp", () => {
         content: "Inspect the diagram",
         attachments: [
           expect.objectContaining({
-            local: { filePath: "/tmp/minimax-code-clipboard/diagram.png" },
+            local: { filePath: "/tmp/alran-code-clipboard/diagram.png" },
             meta: expect.objectContaining({ mimeType: "image/png" }),
           }),
         ],
@@ -11537,7 +11537,7 @@ describe("createTuiApp", () => {
         content: "Try again",
         attachments: [
           expect.objectContaining({
-            local: { filePath: "/tmp/minimax-code-clipboard/diagram.png" },
+            local: { filePath: "/tmp/alran-code-clipboard/diagram.png" },
           }),
         ],
       }),
@@ -11649,7 +11649,7 @@ describe("createTuiApp", () => {
     const readClipboardImage = vi.fn(async () => ({
       attachment: {
         type: "image" as const,
-        filePath: "/tmp/minimax-code-clipboard/clipboard-1.png",
+        filePath: "/tmp/alran-code-clipboard/clipboard-1.png",
         fileName: "clipboard-1.png",
         mimeType: "image/png",
         sizeBytes: 4096,
@@ -11686,7 +11686,7 @@ describe("createTuiApp", () => {
         content: "Keep this draft",
         attachments: [
           expect.objectContaining({
-            local: { filePath: "/tmp/minimax-code-clipboard/clipboard-1.png" },
+            local: { filePath: "/tmp/alran-code-clipboard/clipboard-1.png" },
             meta: expect.objectContaining({ mimeType: "image/png" }),
           }),
         ],
@@ -11706,7 +11706,7 @@ describe("createTuiApp", () => {
       .mockResolvedValueOnce({
         attachment: {
           type: "image" as const,
-          filePath: "/tmp/minimax-code-clipboard/clipboard-2.png",
+          filePath: "/tmp/alran-code-clipboard/clipboard-2.png",
           fileName: "clipboard-2.png",
           mimeType: "image/png",
           sizeBytes: 1024,
@@ -11809,7 +11809,7 @@ describe("createTuiApp", () => {
     const readClipboardImage = vi.fn(async () => ({
       attachment: {
         type: "image" as const,
-        filePath: "/tmp/minimax-code-clipboard/clipboard-queue.png",
+        filePath: "/tmp/alran-code-clipboard/clipboard-queue.png",
         fileName: "clipboard-queue.png",
         mimeType: "image/png",
         sizeBytes: 2048,
@@ -11870,12 +11870,12 @@ describe("createTuiApp", () => {
     const runtime = createRuntime();
     vi.mocked(runtime.listModels).mockResolvedValue([
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
-        displayName: "MiniMax M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
+        displayName: "Alran M3",
         variant: "thinking",
         thinkingConfig: { mode: "switchable", defaultValue: "true" },
-        providerKind: "minimax-managed",
+        providerKind: "alran-managed",
         selected: true,
       },
     ]);
@@ -11901,8 +11901,8 @@ describe("createTuiApp", () => {
     await vi.waitFor(() =>
       expect(runtime.selectModel).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           variant: "thinking",
         }),
         "session-1",
@@ -11910,9 +11910,9 @@ describe("createTuiApp", () => {
     );
     await vi.waitFor(() => {
       const rendered = app.tui.render(120).join("\n");
-      expect(rendered).toContain("✦ MiniMax M3");
+      expect(rendered).toContain("✦ Alran M3");
       expect(rendered).toContain("Thinking On");
-      expect(rendered).not.toContain("MiniMax M3#thinking");
+      expect(rendered).not.toContain("Alran M3#thinking");
     });
     await app.stop();
   });
@@ -11923,7 +11923,7 @@ describe("createTuiApp", () => {
     let finishTurn: (() => void) | undefined;
     vi.mocked(runtime.listModels).mockResolvedValue([
       {
-        providerId: "minimax",
+        providerId: "alran",
         modelId: "deep-reasoner-1",
         displayName: "deep-reasoner-1",
         selected: true,
@@ -11964,7 +11964,7 @@ describe("createTuiApp", () => {
       "Queued turn",
       expect.objectContaining({
         model: expect.objectContaining({
-          providerId: "minimax",
+          providerId: "alran",
           modelId: "deep-reasoner-1",
           variant: "thinking",
           thinking: { effort: "xhigh" },
@@ -12121,7 +12121,7 @@ describe("createTuiApp", () => {
     });
     expect(app.tui.render(80).join("\n")).toContain("Loading");
     expect(app.tui.render(80).join("\n")).not.toContain("Loading · 0s");
-    expect(app.tui.render(80).join("\n")).not.toContain("MCode ·");
+    expect(app.tui.render(80).join("\n")).not.toContain("Alran ·");
     terminal.input?.("\x1b");
     await vi.waitFor(() =>
       expect(app.controller.snapshot().activeTurnId).toBeUndefined(),
@@ -12735,7 +12735,7 @@ describe("createTuiApp", () => {
   it.each([false, true])(
     "restores a mixed submission after abort (local attachment removed: %s)",
     async (removeLocal) => {
-      const directory = await mkdtemp(join(tmpdir(), "mcode-mixed-abort-"));
+      const directory = await mkdtemp(join(tmpdir(), "alran-mixed-abort-"));
       try {
         const localPath = join(directory, "local.png");
         await writeFile(localPath, "png");
@@ -13072,7 +13072,7 @@ describe("createTuiApp", () => {
   });
 
   it("does not duplicate the restored prompt after relaunch", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-abort-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-abort-draft-"));
     try {
       const terminal = new FakeTerminal();
       const runtime = createRuntime();
@@ -13122,7 +13122,7 @@ describe("createTuiApp", () => {
   });
 
   it("preserves restored asset and hidden submission metadata after relaunch", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-abort-metadata-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-abort-metadata-"));
     try {
       const localPath = join(dataDir, "local.png");
       await writeFile(localPath, "png");
@@ -13209,7 +13209,7 @@ describe("createTuiApp", () => {
   it.each([false, true])(
     "preserves review metadata after relaunch only when unchanged (edited: %s)",
     async (edited) => {
-      const dataDir = await mkdtemp(join(tmpdir(), "mcode-abort-review-"));
+      const dataDir = await mkdtemp(join(tmpdir(), "alran-abort-review-"));
       try {
         const runtime = createRuntime();
         vi.mocked(runtime.sendMessage).mockImplementation(
@@ -13323,12 +13323,12 @@ describe("createTuiApp", () => {
     expect(terminal.stopped).toBe(true);
   });
 
-  it.each(["minimax", "custom_provider:work"])(
+  it.each(["alran", "custom_provider:work"])(
     "hydrates the Runtime-selected startup model for %s",
     async (providerId) => {
       const runtime = createRuntime();
       vi.mocked(runtime.listModels).mockResolvedValue([
-        { providerId, modelId: "MiniMax-M3", selected: true },
+        { providerId, modelId: "Alran-M3", selected: true },
       ]);
       const app = createTuiApp({
         runtime,
@@ -13713,7 +13713,7 @@ describe("createTuiApp", () => {
       "Second turn",
       {
         attachments: [attachment],
-        model: { providerId: "minimax", modelId: "MiniMax-M2.7" },
+        model: { providerId: "alran", modelId: "Alran-M2.7" },
       },
     );
     expect(runtime.enqueueMessage).toHaveBeenNthCalledWith(
@@ -13722,7 +13722,7 @@ describe("createTuiApp", () => {
       "Third turn",
       {
         attachments: [],
-        model: { providerId: "minimax", modelId: "MiniMax-M2.7" },
+        model: { providerId: "alran", modelId: "Alran-M2.7" },
       },
     );
     expect(app.transcript.get("queue:queue-1")).toBeUndefined();
@@ -14505,7 +14505,7 @@ describe("createTuiApp", () => {
   });
 
   it("writes one structured result when an auto-drained queued turn finishes", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-queued-result-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-queued-result-"));
     const resultPath = join(dataDir, "results.jsonl");
     const terminal = new FakeTerminal();
     const runtime = createRuntime();
@@ -14663,7 +14663,7 @@ describe("createTuiApp", () => {
         expect(screen.getScrollBuffer().filter((line) => line.match(/Answer (\d+)/u)?.[1] === String(index))).toHaveLength(1);
       }
       screen.scrollLines(10000);
-      expect(screen.getViewport().join("\n")).toContain("Ask Mcode to do anything");
+      expect(screen.getViewport().join("\n")).toContain("Ask Alran to do anything");
     } finally {
       finish?.();
       await app.stop();
@@ -14922,7 +14922,7 @@ describe("createTuiApp", () => {
   });
 
   it("continues sending and switching sessions when draft cleanup fails", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-draft-warning-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-draft-warning-"));
     const runtime = createRuntime();
     const app = createTuiApp({
       runtime,
@@ -14976,7 +14976,7 @@ describe("createTuiApp", () => {
   });
 
   it("does not read or restore a persisted Draft during TUI startup", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-draft-"));
     try {
       const first = createTuiApp({
         runtime: createRuntime(),
@@ -15014,7 +15014,7 @@ describe("createTuiApp", () => {
   });
 
   it("does not resume a persisted Draft during startup when login recovery is enabled", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-login-restart-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-login-restart-draft-"));
     try {
       const first = createTuiApp({
         runtime: createRuntime(),
@@ -15050,7 +15050,7 @@ describe("createTuiApp", () => {
   });
 
   it("keeps the submitted Draft recoverable when shutdown wins before Runtime admission", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-pending-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-pending-draft-"));
     try {
       const runtime = createRuntime();
       vi.spyOn(runtime, "sendMessage").mockImplementation(
@@ -15111,7 +15111,7 @@ describe("createTuiApp", () => {
   });
 
   it("does not restore a submitted Draft after Runtime accepts the turn", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-accepted-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-accepted-draft-"));
     try {
       const runtime = createRuntime();
       vi.mocked(runtime.sendMessage).mockImplementation(
@@ -15159,7 +15159,7 @@ describe("createTuiApp", () => {
   });
 
   it("serializes rapid Session switches without mixing their Drafts", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-draft-"));
     try {
       const app = createTuiApp({
         runtime: createRuntime(),
@@ -15192,7 +15192,7 @@ describe("createTuiApp", () => {
   });
 
   it("moves to the new-session Draft namespace after archiving the current Session", async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-app-draft-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-app-draft-"));
     try {
       const app = createTuiApp({
         runtime: createRuntime(),
@@ -15230,7 +15230,7 @@ describe.each([
     ["new session", {}, "regular", 0],
     ["fullscreen session", { sessionId: "existing" }, "fullscreen", 2],
   ] as const)("rebuilds %s without stale transcript above the banner", async (_scenario, resume, mode, count) => {
-    const dataDir = await mkdtemp(join(tmpdir(), "mcode-banner-startup-"));
+    const dataDir = await mkdtemp(join(tmpdir(), "alran-banner-startup-"));
     const terminal = new Terminal(100, 50);
     // Model the inherited terminal after the old process exits: both native
     // scrollback and the viewport still contain the previous conversation.
@@ -15341,7 +15341,7 @@ describe("interactive CLI model startup", () => {
   ] as const)(
     "routes %s through launch, hydration and submission",
     async (_name, args, sessionId, hasPrompt) => {
-      const dataDir = await mkdtemp(join(tmpdir(), "mcode-model-startup-"));
+      const dataDir = await mkdtemp(join(tmpdir(), "alran-model-startup-"));
       const terminal = new FakeTerminal();
       const runtime = createRuntime();
       runtime.listBackgroundTasks = vi.fn(async () => []);

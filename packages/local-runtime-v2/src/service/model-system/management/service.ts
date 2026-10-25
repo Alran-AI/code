@@ -1,7 +1,7 @@
 import type { DiscoveredModel } from '../connectivity/discover-models.js';
 import { enabledCustomProviders, type ModelCacheStatusView } from '../catalog/list-models.js';
 import type { ModelCacheData } from '../catalog/model-cache.js';
-import { MINIMAX_API_PROVIDER_ID } from '../identity.js';
+import { ALRAN_API_PROVIDER_ID } from '../identity.js';
 import { LocalModelProviderError } from '../contracts.js';
 import {
   discoverUserModelsCandidate as discoverUserModelsCandidateOperation,
@@ -24,12 +24,12 @@ import {
   updateUserProvider as updateUserProviderOperation,
 } from './service-custom-provider-operations.js';
 import {
-  getMinimaxApiKeyStatus as getMinimaxApiKeyStatusOperation,
-  getMinimaxModelSource as getMinimaxModelSourceOperation,
-  setMinimaxModelSource as setMinimaxModelSourceOperation,
-  updateMinimaxModelContext as updateMinimaxModelContextOperation,
-  upsertMinimaxApiKey as upsertMinimaxApiKeyOperation,
-} from './service-minimax-operations.js';
+  getAlranApiKeyStatus as getAlranApiKeyStatusOperation,
+  getAlranModelSource as getAlranModelSourceOperation,
+  setAlranModelSource as setAlranModelSourceOperation,
+  updateAlranModelContext as updateAlranModelContextOperation,
+  upsertAlranApiKey as upsertAlranApiKeyOperation,
+} from './service-alran-operations.js';
 import {
   type LocalModelProviderServiceDeps,
   type ModelContextUpdateOutcome,
@@ -70,7 +70,7 @@ export class LocalModelProviderService {
   listEffectiveProviders(): ModelProviderView[] {
     const config = this.context.deps.configGetter();
     const cache = this.context.deps.cache.load();
-    // minimax_api models share the builtin MiniMax catalog. Source routing is
+    // alran_api models share the builtin Alran catalog. Source routing is
     // resolved at inference time, so only custom providers are appended here.
     const providers: ModelProviderView[] = Object.entries(config.provider ?? {}).map(
       ([providerId, provider]) => buildBuiltinProviderView(config, cache, providerId, provider),
@@ -91,10 +91,10 @@ export class LocalModelProviderService {
 
   revealModelProviderApiKey(input: { providerId: string }): string {
     const config = this.context.deps.configGetter();
-    if (input.providerId === MINIMAX_API_PROVIDER_ID) {
-      const apiKey = config.minimax_api?.apiKey;
+    if (input.providerId === ALRAN_API_PROVIDER_ID) {
+      const apiKey = config.alran_api?.apiKey;
       if (!apiKey?.trim()) {
-        throw new LocalModelProviderError(400, 'MiniMax API key is not configured', 'NO_API_KEY');
+        throw new LocalModelProviderError(400, 'Alran API key is not configured', 'NO_API_KEY');
       }
       return apiKey;
     }
@@ -124,35 +124,35 @@ export class LocalModelProviderService {
     return apiKey;
   }
 
-  getMinimaxApiKeyStatus(): {
+  getAlranApiKeyStatus(): {
     hasApiKey: boolean;
     maskedApiKey?: string;
     cachedStatus?: ModelCacheStatusView;
   } {
-    return getMinimaxApiKeyStatusOperation(this.context);
+    return getAlranApiKeyStatusOperation(this.context);
   }
 
-  getMinimaxModelSource(): 'token_plan' | 'minimax_api_key' {
-    return getMinimaxModelSourceOperation(this.context);
+  getAlranModelSource(): 'token_plan' | 'alran_api_key' {
+    return getAlranModelSourceOperation(this.context);
   }
 
-  async setMinimaxModelSource(source: 'token_plan' | 'minimax_api_key'): Promise<string> {
-    return setMinimaxModelSourceOperation(this.context, source);
+  async setAlranModelSource(source: 'token_plan' | 'alran_api_key'): Promise<string> {
+    return setAlranModelSourceOperation(this.context, source);
   }
 
-  async updateMinimaxModelContext(input: {
+  async updateAlranModelContext(input: {
     modelId: string;
     contextLimit: number;
     expectedContextLimit: number;
   }): Promise<ModelContextUpdateOutcome> {
-    return updateMinimaxModelContextOperation(this.context, input);
+    return updateAlranModelContextOperation(this.context, input);
   }
 
-  async upsertMinimaxApiKey(input: {
+  async upsertAlranApiKey(input: {
     apiKey: string;
     saveAndUse?: boolean;
   }): Promise<ModelProviderView> {
-    return upsertMinimaxApiKeyOperation(this.context, input);
+    return upsertAlranApiKeyOperation(this.context, input);
   }
 
   async createUserProvider(input: {

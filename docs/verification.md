@@ -2,7 +2,7 @@
 
 ## Initial repository import, 2026-09-18
 
-The reviewed 0.4.12 CLI snapshot was imported at `c59cf5377045aa1a3e699c242d089b73b7cdc2ad` on top of the existing MiniMax Code Desktop support history. Commit `4e2e7bb5f771e9c42b2edefb1046483819b9032f` restored the Desktop image above the download links. The resulting tree ID, `327eb838c8bdc3da70d9e5f165ca6162a1d15545`, matched the reviewed source tree, and internal Git history was not imported.
+The reviewed 0.4.12 CLI snapshot was imported at `c59cf5377045aa1a3e699c242d089b73b7cdc2ad` on top of the existing Alran Code Desktop support history. Commit `4e2e7bb5f771e9c42b2edefb1046483819b9032f` restored the Desktop image above the download links. The resulting tree ID, `327eb838c8bdc3da70d9e5f165ca6162a1d15545`, matched the reviewed source tree, and internal Git history was not imported.
 
 Before import, `pnpm verify` passed all 14 applicable gates at implementation revision `1670bafd684ebf8dbb03dd41330ac2b099ffaf23` on macOS arm64 with Node.js 26.4.0 and pnpm 9.12.0, including 3,352 capability tests. History, exported-source, and built-distribution Gitleaks scans completed without unaddressed findings. Issue-form routing and Feishu payload generation used synthetic offline inputs and sent no notification.
 
@@ -65,7 +65,7 @@ This record preserves the clean-directory baseline from managed-capability resto
 
 ## Clean-directory acceptance
 
-Final source was copied outside the repository without `.git`, `node_modules`, `dist`, or `.cache`. A new pnpm store and public npm only were used for a frozen-lockfile install. The build downloaded the pinned MCode package again and extracted mcode-tools without reusing development artifacts.
+Final source was copied outside the repository without `.git`, `node_modules`, `dist`, or `.cache`. A new pnpm store and public npm only were used for a frozen-lockfile install. The build downloaded the pinned Alran package again and extracted alran-tools without reusing development artifacts.
 
 | Check | Result |
 | --- | --- |
@@ -74,7 +74,7 @@ Final source was copied outside the repository without `.git`, `node_modules`, `
 | TypeScript check of the complete entry point | Passed |
 | Standalone build and dependency boundaries | Passed; key managed capabilities remained in the output |
 | Login, leases, accounts, plugins, connectors, feedback, updates, ACP, Matrix configuration | 21 explicitly selected test files; 321 tests passed |
-| Original mcode-tools archive / file hashes, tamper rejection, actual CLI startup | 3 passed |
+| Original alran-tools archive / file hashes, tamper rejection, actual CLI startup | 3 passed |
 | CLI, providers, SQLite, ACP initialization, internal-switch rejection, offline local plugins | 7 passed |
 | BYOK, session resume, actual file tools, managed-model authentication gate | 1 passed |
 | Existing permission facade | 115 passed |
@@ -92,7 +92,7 @@ After managed capabilities were restored, startup could request the model catalo
 A real PTY with an isolated data directory and the network guard confirmed:
 
 - Welcome shows Token Plan as unauthenticated.
-- `/provider` presents both MiniMax OAuth / Token Plan and API key options.
+- `/provider` presents both Alran OAuth / Token Plan and API key options.
 - `/login` opens a cancellable China / international region selector.
 - `/plugins` shows a clear error for an injected 503. Successful loading and source switching have component / application coverage; this manual check did not connect successfully to the official marketplace.
 - `/exit` exits normally and restores terminal state.
@@ -110,11 +110,11 @@ That offline PTY check did not open a browser or call a real model. Subsequent o
 
 Using the user-authorized existing login and dedicated temporary workspaces, the following were confirmed:
 
-- A Token Plan MiniMax-M3 session succeeded; resume recovered the previous marker.
+- A Token Plan Alran-M3 session succeeded; resume recovered the previous marker.
 - BYOK provider connectivity and a real model session succeeded.
 - Events confirmed a successful actual `web_search` call. A separate response that returned a URL without calling the tool was not counted.
 - The official plugin marketplace returned 54 available plugins.
-- Real bash → mcode-tools → host-lease authentication succeeded. Connector discovery returned 13 tools with no provider failures.
+- Real bash → alran-tools → host-lease authentication succeeded. Connector discovery returned 13 tools with no provider failures.
 
 Actual service responses, credentials, and local account paths were not committed. The recorded acceptance results summarize sessions run with synthetic inputs; they do not claim business calls for every plugin or generation tool.
 

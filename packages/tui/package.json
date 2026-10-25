@@ -1,9 +1,8 @@
 {
-  "name": "@minimax/code",
+  "name": "@ottili/alran-code",
   "version": "0.6.5",
   "private": true,
-  "description": "Minimax Code CLI and TUI product entry.",
-  "type": "module",
+  "description": "Alran Code CLI and TUI product entry.",  "type": "module",
   "exports": {
     "./package.json": "./package.json"
   },
@@ -41,7 +40,7 @@
     "ws": "^8.20.0",
     "@mavis/oauth-core": "workspace:*",
     "@mavis/oauth-lease-protocol": "workspace:*",
-    "@mavis/mcode-tools-host": "workspace:*"
+    "@mavis/alran-tools-host": "workspace:*"
   },
   "optionalDependencies": {
     "@mariozechner/clipboard": "0.3.9"

@@ -137,7 +137,7 @@ function adaptToolInput(
     const command = codexApplyPatchCommand(value, nativeName, cwd);
     return command ? { command } : value;
   }
-  if (sourceFormat === 'MINIMAX') return value;
+  if (sourceFormat === 'ALRAN') return value;
   if (sourceFormat === 'CLAUDE' && !isLosslesslyAdaptableCompatibleToolInput(nativeName, value))
     return value;
   if (nativeName === 'bash' && sourceFormat === 'CLAUDE') {

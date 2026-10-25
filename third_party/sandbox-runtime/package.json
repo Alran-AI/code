@@ -1,10 +1,10 @@
 {
-  "name": "@minimax/mcode-sandbox-runtime",
-  "version": "0.0.74-mcode.2",
+  "name": "@ottili/alran-sandbox-runtime",
+  "version": "0.0.74-alran.2",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "description": "Vendored sandbox runtime used by MiniMax Code",
+  "description": "Vendored sandbox runtime used by Alran Code",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

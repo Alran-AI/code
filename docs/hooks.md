@@ -11,7 +11,7 @@ Write one JSON object to stdout and exit with code 0. For example, a Node.js
 script can use `console.log(JSON.stringify({ systemMessage: "Checks complete." }))`.
 This is the script's output, not the Hook registration document.
 
-For a MiniMax-format Plugin, reference the Hook file in the manifest's `hooks`
+For a Alran-format Plugin, reference the Hook file in the manifest's `hooks`
 array, for example `"hooks": ["hooks/notify.json"]`. A registration document for
 an existing Plugin with a `scripts/notice.cjs` file looks like this:
 
@@ -75,7 +75,7 @@ Build with `pnpm build` in the repository. To select a test workspace, change th
 shell's working directory before launching the built CLI by its absolute path.
 The interactive TUI does not accept the headless `exec --cwd` option.
 
-With a dedicated `MINIMAX_DATA_DIR` and an enabled test Plugin:
+With a dedicated `ALRAN_DATA_DIR` and an enabled test Plugin:
 
 1. Ask for a short answer without tools. Confirm one Stop notice after completion.
 2. Repeat the prompt. Confirm a second notice even when its text is identical.

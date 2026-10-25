@@ -1,6 +1,6 @@
 # Advanced Reference
 
-Maintained by MiniMax (MIT). This reference collects PDF features and
+Maintained by Alran (MIT). This reference collects PDF features and
 libraries that are too situational for the main `SKILL.md`. Reach for
 it when the standard recipes in `create-guide.md` / `forms-guide.md` /
 `read-guide.md` are not enough.

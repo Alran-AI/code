@@ -1,6 +1,6 @@
 # 主题配置指南
 
-mcode TUI 的配色由**具名主题**决定，每个主题同时提供深色和浅色两套调色板。终端深浅背景默认由
+alran TUI 的配色由**具名主题**决定，每个主题同时提供深色和浅色两套调色板。终端深浅背景默认由
 终端证据自动探测，`/theme` 在此之上让用户切换主题、锁定明暗，并支持自己编写主题文件。
 
 ## TL;DR
@@ -17,12 +17,12 @@ mcode TUI 的配色由**具名主题**决定，每个主题同时提供深色和
 
 | 主题 ID | 名称 | 特点 |
 | --- | --- | --- |
-| `minimax` | MCode | 默认主题。MiniMax 蓝 + Catppuccin 语法高亮 |
+| `alran` | Alran | 默认主题。Alran 蓝 + Catppuccin 语法高亮 |
 | `midnight` | Midnight | 更深的蓝黑背景，抬高了前景对比度 |
 | `graphite` | Graphite | 中性低彩度表面，长输出更安静 |
 | `aurora` | Aurora | 偏青绿的次级色阶 |
 
-每个主题都定义了完整的深色和浅色版本，因此终端切换到浅色时不会出现缺色或错配。`minimax`
+每个主题都定义了完整的深色和浅色版本，因此终端切换到浅色时不会出现缺色或错配。`alran`
 的取值与主题系统引入前完全一致，现有用户不会看到任何视觉变化。
 
 内置主题的正文色与 `line` 非文本色需要满足
@@ -31,7 +31,7 @@ mcode TUI 的配色由**具名主题**决定，每个主题同时提供深色和
 
 ## 配置落点
 
-- 文件：`~/.minimax/tui/tui-settings.json`（即运行时数据目录下的 `tui/tui-settings.json`）。
+- 文件：`~/.alran/tui/tui-settings.json`（即运行时数据目录下的 `tui/tui-settings.json`）。
 - 键：`theme`，值是主题 ID，或 `主题ID/light`、`主题ID/dark` 锁定外观。
 
 ```json
@@ -46,7 +46,7 @@ mcode TUI 的配色由**具名主题**决定，每个主题同时提供深色和
 
 ## 自定义主题文件
 
-MCode 从运行时数据目录下的 `tui/themes/*.json` 读取用户主题。
+Alran 从运行时数据目录下的 `tui/themes/*.json` 读取用户主题。
 
 - 一个文件提供一种外观。`aurora.json` 提供深色，`aurora-light.json` 提供浅色；两个文件的
   `name` 相同即组成一个可选主题。
@@ -61,7 +61,7 @@ MCode 从运行时数据目录下的 `tui/themes/*.json` 读取用户主题。
 {
   "name": "my-theme",
   "label": "My Theme",
-  "description": "A custom MCode palette",
+  "description": "A custom Alran palette",
   "appearance": "dark",
   "vars": {
     "brand": "#68c0ff",

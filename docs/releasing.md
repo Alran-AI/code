@@ -1,4 +1,4 @@
-# Releasing MiniMax Code
+# Releasing Alran Code
 
 ## Tag-triggered CLI installation packages
 
@@ -19,7 +19,7 @@ files, creating commits or pushing. The release command then:
 4. Atomically pushes the release branch and tag, without pushing `main`.
 5. Opens a version PR back to `main`; merge it through the normal review process.
 
-CI requires the tag, both committed source versions and `mcode --version` to agree.
+CI requires the tag, both committed source versions and `alran --version` to agree.
 It does not override the source version during a build. An existing tag or release
 branch, a non-increasing version, uncommitted files, or a starting commit other
 than the latest `origin/main` stops the command before version changes.
@@ -32,9 +32,9 @@ recreate an already distributed tag. Merge the version PR before starting the
 next release so `main` carries the released version.
 
 The workflow runs the full verification profile and secret scans, builds one
-`minimax-code-X.Y.Z.tar.gz` npm installation package, and authenticates and installs
+`alran-code-X.Y.Z.tar.gz` npm installation package, and authenticates and installs
 that same archive on Linux and macOS with Node 22.19.0, 24.2.0, 25 and 26. Each
-installation checks the generated `mcode` launcher, native SQLite, ripgrep, and
+installation checks the generated `alran` launcher, native SQLite, ripgrep, and
 the offline smoke/BYOK suites. Windows validation remains paused.
 
 Only after every installation succeeds does CI create a GitHub Release with the
@@ -55,10 +55,10 @@ To reproduce the packaging and installation checks locally, use a clean reviewed
 commit and keep output outside the repository:
 
 ```bash
-export MCODE_RELEASE_TAG="v$(node -p 'require("./package.json").version')"
+export ALRAN_RELEASE_TAG="v$(node -p 'require("./package.json").version')"
 pnpm verify
-node scripts/package-cli-release.mjs "$MCODE_RELEASE_TAG" /tmp/mcode-release
-MCODE_RELEASE_ARCHIVE="/tmp/mcode-release/minimax-code-${MCODE_RELEASE_TAG#v}.tar.gz" pnpm verify --profile package
+node scripts/package-cli-release.mjs "$ALRAN_RELEASE_TAG" /tmp/alran-release
+ALRAN_RELEASE_ARCHIVE="/tmp/alran-release/alran-code-${ALRAN_RELEASE_TAG#v}.tar.gz" pnpm verify --profile package
 ```
 
 The `package` profile validates installation of an existing archive; it does not
@@ -70,7 +70,7 @@ This workflow does not publish to the npm registry or change the official instal
 
 ## Source previews
 
-The current source target is MiniMax Code 0.6.3. Workspace and local-build manifests remain `private: true` to prevent accidental npm publication. A source release, npm package, and installer are separate artifacts with separate verification.
+The current source target is Alran Code 0.6.3. Workspace and local-build manifests remain `private: true` to prevent accidental npm publication. A source release, npm package, and installer are separate artifacts with separate verification.
 
 ## Prepare a release
 
@@ -91,7 +91,7 @@ Windows full validation is temporarily paused for Node compatibility and source 
 
 After both platform jobs pass, the workflow creates a `source-candidate-<full-SHA>` artifact containing:
 
-- `minimax-code-source.tar.gz`
+- `alran-code-source.tar.gz`
 - The archive receipt and SHA-256 file
 - `candidate.json` with the revision and platform summary
 - Per-platform verification reports
@@ -107,6 +107,6 @@ The intermediate `unverified-source-<full-SHA>` artifact is not a release candid
 
 ## Initial repository import
 
-The initial CLI source snapshot was imported on 2026-09-18 at `c59cf5377045aa1a3e699c242d089b73b7cdc2ad`, on top of the existing MiniMax Code Desktop support history. The follow-up commit `4e2e7bb5f771e9c42b2edefb1046483819b9032f` restored the Desktop image. The import kept the existing issue forms and Feishu support workflow, used `README_ZH.md` as the Chinese entry point, and excluded internal Git history.
+The initial CLI source snapshot was imported on 2026-09-18 at `c59cf5377045aa1a3e699c242d089b73b7cdc2ad`, on top of the existing Alran Code Desktop support history. The follow-up commit `4e2e7bb5f771e9c42b2edefb1046483819b9032f` restored the Desktop image. The import kept the existing issue forms and Feishu support workflow, used `README_ZH.md` as the Chinese entry point, and excluded internal Git history.
 
 `release/extraction.json` remains the shared-source baseline. Future updates arrive through reviewed synchronization PRs; the initial import is not repeated.

@@ -94,7 +94,7 @@ const KNOWN_DATA_DIR_SOURCES = new Set([
   'default',
   'profile',
   'desktop_custom',
-  'minimax_env',
+  'alran_env',
   'mavis_env',
   'legacy_runtime_env',
   'test_isolation',
@@ -711,9 +711,9 @@ function dataDirSource(): string {
   return source && KNOWN_DATA_DIR_SOURCES.has(source) ? source : 'unknown';
 }
 
-function agentDirectoryRootKind(root: string): '.minimax' | '.mavis' | 'other' {
+function agentDirectoryRootKind(root: string): '.alran' | '.mavis' | 'other' {
   const name = basename(root).toLowerCase();
-  if (name === '.minimax' || name.startsWith('.minimax-')) return '.minimax';
+  if (name === '.alran' || name.startsWith('.alran-')) return '.alran';
   if (name === '.mavis' || name.startsWith('.mavis-')) return '.mavis';
   return 'other';
 }
@@ -753,16 +753,16 @@ async function isExpectedDefaultDataDirTarget(
   try {
     return samePath(
       resolvedTarget,
-      await realpath(join(dirname(root), expectedDefaultMinimaxDataDirName(root))),
+      await realpath(join(dirname(root), expectedDefaultAlranDataDirName(root))),
     );
   } catch {
     return false;
   }
 }
 
-function expectedDefaultMinimaxDataDirName(root: string): string {
+function expectedDefaultAlranDataDirName(root: string): string {
   const name = basename(root);
-  return name.startsWith('.mavis-') ? `.minimax${name.slice('.mavis'.length)}` : '.minimax';
+  return name.startsWith('.mavis-') ? `.alran${name.slice('.mavis'.length)}` : '.alran';
 }
 
 function samePath(left: string, right: string): boolean {

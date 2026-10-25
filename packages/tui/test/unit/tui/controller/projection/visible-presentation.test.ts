@@ -165,8 +165,8 @@ describe("visible presentation selector", () => {
     expect(
       resolve({
         selectedModel: {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           contextLimit: 1_000_000,
         },
       }).shell.contextWindowTokens,
@@ -176,8 +176,8 @@ describe("visible presentation selector", () => {
   it("uses only the active Session snapshot instead of a global selection", () => {
     const input = {
       selectedModel: {
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
         contextLimit: 1_000_000,
       },
       snapshot: {
@@ -194,8 +194,8 @@ describe("visible presentation selector", () => {
           contextSnapshot: {
             status: "live",
             model: {
-              provider: "minimax",
-              id: "MiniMax-M3",
+              provider: "alran",
+              id: "Alran-M3",
               contextWindow: 200_000,
             },
           },
@@ -647,7 +647,7 @@ describe("visible presentation selector", () => {
   ] as const)(
     "renders the selected route's readiness: %s",
     (_name, authMode, tokenPresent, warnings, activity, loginRequired) => {
-      const providerId = authMode === "api-key" ? "custom_provider:test" : "minimax";
+      const providerId = authMode === "api-key" ? "custom_provider:test" : "alran";
       const account = normalizeAccountStatus({
         selection: {
           providerId,
@@ -702,8 +702,8 @@ describe("visible presentation selector", () => {
     const presentation = resolve({
       currentLiveRunId: "turn-1",
       selectedModel: {
-        providerId: "minimax",
-        modelId: "MiniMax-M2.7",
+        providerId: "alran",
+        modelId: "Alran-M2.7",
         displayName: "m2.7",
         variant: "high",
       },
@@ -739,39 +739,39 @@ describe("visible presentation selector", () => {
     expect(
       resolve({
         selectedModel: {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
           variant: "thinking",
           thinkingConfig: { mode: "switchable", defaultValue: "true" },
         },
       }).shell,
-    ).toMatchObject({ model: "MiniMax-M3", thinking: "on" });
+    ).toMatchObject({ model: "Alran-M3", thinking: "on" });
     expect(
       resolve({
         selectedModel: {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
-          displayName: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
+          displayName: "Alran-M3",
           selected: true,
           variant: "",
           thinkingConfig: { mode: "switchable", defaultValue: "false" },
         },
       }).shell,
-    ).toMatchObject({ model: "MiniMax-M3", thinking: "off" });
+    ).toMatchObject({ model: "Alran-M3", thinking: "off" });
   });
 
   it("projects forced Thinking and hides undisclosed Thinking state", () => {
     expect(
       resolve({
         selectedModel: {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           thinkingConfig: { mode: "forced_on" },
         },
       }).shell,
-    ).toMatchObject({ model: "minimax/MiniMax-M3", thinking: "on" });
+    ).toMatchObject({ model: "alran/Alran-M3", thinking: "on" });
     expect(
       resolve({
         selectedModel: {
@@ -818,7 +818,7 @@ describe("visible presentation selector", () => {
   it("omits think effort for models that expose no levels", () => {
     expect(
       resolve({
-        selectedModel: { providerId: "minimax", modelId: "MiniMax-M3" },
+        selectedModel: { providerId: "alran", modelId: "Alran-M3" },
         selectedEffort: "high",
       }).shell,
     ).not.toHaveProperty("effort");

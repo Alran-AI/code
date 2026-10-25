@@ -167,7 +167,7 @@ export class CloudSessionReader {
       return current;
     };
     const url = new URL(
-      `/minimax-cloud/api/v1/session/${encodeURIComponent(id)}${suffix}`,
+      `/alran-cloud/api/v1/session/${encodeURIComponent(id)}${suffix}`,
       endpoint.baseUrl,
     );
     url.search = query?.toString() ?? '';

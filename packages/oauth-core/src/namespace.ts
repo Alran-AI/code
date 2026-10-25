@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { join, resolve } from 'node:path';
 
-import { MCODE_OAUTH_CLIENT_ID, type AuthNamespaceInput } from './contracts.js';
+import { ALRAN_OAUTH_CLIENT_ID, type AuthNamespaceInput } from './contracts.js';
 import type { CredentialKey } from './credential-store/types.js';
 
 export interface AuthNamespace {
@@ -20,10 +20,10 @@ export interface AuthNamespace {
 
 export function createAuthNamespace(input: AuthNamespaceInput): AuthNamespace {
   const authHome = join(resolve(input.dataDir), 'auth');
-  const namespaceHome = join(authHome, input.buildEnv, input.region, MCODE_OAUTH_CLIENT_ID);
-  const service = `com.minimax.mcode.oauth.${input.buildEnv}.${input.region}`;
+  const namespaceHome = join(authHome, input.buildEnv, input.region, ALRAN_OAUTH_CLIENT_ID);
+  const service = `com.alran.oauth.${input.buildEnv}.${input.region}`;
   const account = createHash('sha256')
-    .update(`${authHome}\0${MCODE_OAUTH_CLIENT_ID}`)
+    .update(`${authHome}\0${ALRAN_OAUTH_CLIENT_ID}`)
     .digest('base64url');
 
   return {

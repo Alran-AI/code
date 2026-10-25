@@ -21,7 +21,7 @@ import {
   HAILUO_23_MODEL,
   isH3VideoModel,
   MATRIX_TOOL_PATHS,
-  MINIMAX_H3_MODEL,
+  ALRAN_H3_MODEL,
   MatrixSubmitVideoGenerationToolDef,
   type MatrixSubmitVideoGenerationInput,
 } from '../tool-defs.js';
@@ -455,7 +455,7 @@ function isPublicIpv6(address: string): boolean {
 
 function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): string | undefined {
   if (!isH3VideoModel(input.model) && input.model !== HAILUO_23_MODEL) {
-    return `model must be ${MINIMAX_H3_MODEL} or ${HAILUO_23_MODEL}`;
+    return `model must be ${ALRAN_H3_MODEL} or ${HAILUO_23_MODEL}`;
   }
   if (!input.prompt?.trim()) return 'prompt is required';
   if (Array.from(input.prompt).length > MAX_VIDEO_GENERATION_PROMPT_LENGTH) {
@@ -465,7 +465,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     return 'duration is required after model selection and must be an integer number of seconds';
   }
   if (isH3VideoModel(input.model) && (input.duration < 4 || input.duration > 15)) {
-    return `${MINIMAX_H3_MODEL} duration must be between 4 and 15 seconds`;
+    return `${ALRAN_H3_MODEL} duration must be between 4 and 15 seconds`;
   }
   const collectionError =
     validateCollection(input.reference_image_paths, 'reference_image_paths', 9) ??
@@ -524,7 +524,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
   if (input.model === HAILUO_23_MODEL && hasCollections) {
     return (
       `${HAILUO_23_MODEL} accepts exactly one input_image_path; ` +
-      `reference collections are supported only by ${MINIMAX_H3_MODEL}`
+      `reference collections are supported only by ${ALRAN_H3_MODEL}`
     );
   }
   if (input.model === HAILUO_23_MODEL && !input.input_image_path?.trim()) {
@@ -550,7 +550,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
   }
   if (input.last_frame_image_path !== undefined) {
     if (!isH3VideoModel(input.model)) {
-      return 'last_frame_image_path is supported only by MiniMax-H3';
+      return 'last_frame_image_path is supported only by Alran-H3';
     }
     if (input.input_image_path === undefined) {
       return 'last_frame_image_path requires input_image_path as the first frame';
@@ -565,7 +565,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     input.reference_type !== 'first_frame' &&
     input.reference_type !== 'last_frame'
   ) {
-    return `${MINIMAX_H3_MODEL} supports first_frame or last_frame keyframe mode`;
+    return `${ALRAN_H3_MODEL} supports first_frame or last_frame keyframe mode`;
   }
   if (
     input.model === HAILUO_23_MODEL &&
@@ -582,7 +582,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     input.resolution !== '768P' &&
     input.resolution !== '2K'
   ) {
-    return `${MINIMAX_H3_MODEL} supports 768P or 2K`;
+    return `${ALRAN_H3_MODEL} supports 768P or 2K`;
   }
   if (
     input.model === HAILUO_23_MODEL &&
@@ -601,7 +601,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     }
   }
   if (isH3VideoModel(input.model) && input.ratio !== undefined && !H3_RATIOS.has(input.ratio)) {
-    return `${MINIMAX_H3_MODEL} ratio must be adaptive, 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16`;
+    return `${ALRAN_H3_MODEL} ratio must be adaptive, 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16`;
   }
   const hasKeyframes =
     input.input_image_path !== undefined || input.last_frame_image_path !== undefined;
@@ -611,7 +611,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     !hasCollections &&
     input.ratio === 'adaptive'
   ) {
-    return `${MINIMAX_H3_MODEL} text-only ratio cannot be adaptive`;
+    return `${ALRAN_H3_MODEL} text-only ratio cannot be adaptive`;
   }
 
   const formatError =

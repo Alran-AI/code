@@ -37,7 +37,7 @@ export {
 } from './plugin-hook-permission-contracts.js';
 
 /**
- * MiniMax-owned projection of Compatible permission updates.
+ * Alran-owned projection of Compatible permission updates.
  *
  * All persistent destinations live in one versioned document, so a mixed
  * user/project/local update commits with one atomic rename. Session state is

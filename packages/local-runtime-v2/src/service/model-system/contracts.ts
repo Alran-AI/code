@@ -92,7 +92,7 @@ export interface LocalProviderConfig {
 
 export type LocalModelsConfig = Record<string, LocalProviderConfig>;
 
-export interface LocalMinimaxApiConfig {
+export interface LocalAlranApiConfig {
   apiKey?: string;
   baseURL?: string;
   modelContextLimits?: Record<string, number>;
@@ -110,9 +110,9 @@ export type LocalBetaConfig = Partial<Config['beta']>;
 /** Model configuration read by the resolution and management capabilities. */
 export interface LocalRuntimeConfig {
   provider: LocalModelsConfig;
-  minimax_api?: LocalMinimaxApiConfig;
+  alran_api?: LocalAlranApiConfig;
   custom_provider?: LocalCustomProvidersConfig;
-  minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  alranModelSource?: 'token_plan' | 'alran_api_key';
   defaultModel?: string;
   defaultModelVariant?: string;
   defaultModelThinking?: { effort?: string };
@@ -198,9 +198,9 @@ export interface LocalRuntimeAuthContext {
 }
 
 export interface LocalByokProviderConfig {
-  readonly minimax_api?: LocalMinimaxApiConfig;
+  readonly alran_api?: LocalAlranApiConfig;
   readonly custom_provider?: LocalCustomProvidersConfig;
-  readonly minimaxModelSource?: 'token_plan' | 'minimax_api_key';
+  readonly alranModelSource?: 'token_plan' | 'alran_api_key';
 }
 
 export interface LocalModelResolverLogger {
@@ -258,7 +258,7 @@ export interface LocalModelResolverLike {
   resolveModel(input: LocalModelResolveInput): Promise<LocalResolvedModelConfig>;
 }
 
-export type MiniMaxM3ThinkingMode = 'on' | 'off';
+export type AlranM3ThinkingMode = 'on' | 'off';
 
 export type ModelProviderTestApi = ModelProviderApi;
 
@@ -304,7 +304,7 @@ export interface ModelCacheStatusView {
   lastErrorMessage?: string;
 }
 
-export type ModelProviderKind = 'minimax-managed' | 'minimax-api-key' | 'oauth' | 'custom';
+export type ModelProviderKind = 'alran-managed' | 'alran-api-key' | 'oauth' | 'custom';
 
 export interface ModelThinkingConfigView {
   mode: 'switchable' | 'forced_on' | 'forced_off' | 'hidden';
@@ -381,7 +381,7 @@ export interface ModelConnectionTestTarget {
   modelId: string;
   headers?: Record<string, string>;
   effort?: string;
-  minimaxM3ThinkingMode?: MiniMaxM3ThinkingMode;
+  alranM3ThinkingMode?: AlranM3ThinkingMode;
   /**
    * Output budget the probe requests, taken from the model's configured output
    * limit. Mirrors what a real turn sends so an output-budget rejection can

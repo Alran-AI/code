@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Public Plugin manifest validator for the MiniMax Code Plugin format V1.
+// Public Plugin manifest validator for the Alran Code Plugin format V1.
 //
 // This is the entry point an external author runs to check a Plugin package
 // before submitting it. It validates the parts of the V1 contract that are
@@ -416,12 +416,12 @@ function validateSkill(skillPath, location) {
 }
 
 function validatePackage(root) {
-  const manifestPath = join(root, ".minimax-plugin", "plugin.json");
+  const manifestPath = join(root, ".alran-plugin", "plugin.json");
   if (!existsSync(manifestPath)) {
     fail("MANIFEST_MISSING", `${manifestPath} does not exist`);
     return;
   }
-  const manifest = parseJsonObject(readFileSync(manifestPath, "utf8"), ".minimax-plugin/plugin.json");
+  const manifest = parseJsonObject(readFileSync(manifestPath, "utf8"), ".alran-plugin/plugin.json");
   if (!manifest) return;
 
   const pluginSchema = readSchema("plugin-v1");

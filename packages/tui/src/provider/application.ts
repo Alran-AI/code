@@ -1,60 +1,60 @@
 import type {
-  McodeCodexOAuthStartResult,
-  McodeCodexOAuthLoginOptions,
-  McodeCodexOAuthStatus,
-  McodeCreateProviderInput,
-  McodeDiscoverProviderModelsInput,
-  McodeMiniMaxModelSource,
-  McodeProviderRuntimePort,
-  McodeSaveProviderCandidateInput,
-  McodeSaveProviderCandidateResult,
-  McodeProviderSnapshot,
-  McodeProviderTestResult,
-  McodeProviderView,
-  McodeRuntimeProviderView,
-  McodeUpdateProviderInput,
+  AlranCodexOAuthStartResult,
+  AlranCodexOAuthLoginOptions,
+  AlranCodexOAuthStatus,
+  AlranCreateProviderInput,
+  AlranDiscoverProviderModelsInput,
+  AlranAlranModelSource,
+  AlranProviderRuntimePort,
+  AlranSaveProviderCandidateInput,
+  AlranSaveProviderCandidateResult,
+  AlranProviderSnapshot,
+  AlranProviderTestResult,
+  AlranProviderView,
+  AlranRuntimeProviderView,
+  AlranUpdateProviderInput,
 } from './contract.js';
 import { isModelProviderApiFormat } from './contract.js';
 
-export class McodeProviderApplication {
-  constructor(private readonly port: McodeProviderRuntimePort) {}
+export class AlranProviderApplication {
+  constructor(private readonly port: AlranProviderRuntimePort) {}
 
   async snapshot(
     options: { readonly includeCodexOAuth?: boolean } = {},
-  ): Promise<McodeProviderSnapshot> {
-    const [customProviders, minimaxStatus, minimaxModelSource, codexOAuthStatus] =
+  ): Promise<AlranProviderSnapshot> {
+    const [customProviders, alranStatus, alranModelSource, codexOAuthStatus] =
       await Promise.all([
         this.port.listUserModelProviders(),
-        this.port.getMiniMaxApiKeyStatus(),
-        this.port.getMiniMaxModelSource(),
+        this.port.getAlranApiKeyStatus(),
+        this.port.getAlranModelSource(),
         options.includeCodexOAuth ? this.port.getCodexOAuthStatus() : undefined,
       ]);
     return {
-      minimaxModelSource,
+      alranModelSource,
       providers: [
         ...(!codexOAuthStatus || codexOAuthStatus.state === 'hidden'
           ? []
           : [normalizeCodexOAuthProvider(codexOAuthStatus)]),
         {
-          providerId: 'minimax_oauth',
-          name: 'MiniMax OAuth',
-          kind: 'minimax-oauth',
-          active: minimaxModelSource === 'token_plan',
+          providerId: 'alran_oauth',
+          name: 'Alran OAuth',
+          kind: 'alran-oauth',
+          active: alranModelSource === 'token_plan',
           enabled: true,
           readOnly: true,
           hasApiKey: false,
           models: [],
         },
         {
-          providerId: 'minimax_api',
-          name: 'MiniMax API Key',
-          kind: 'minimax-api-key',
-          active: minimaxModelSource === 'minimax_api_key',
+          providerId: 'alran_api',
+          name: 'Alran API Key',
+          kind: 'alran-api-key',
+          active: alranModelSource === 'alran_api_key',
           enabled: true,
           readOnly: false,
-          hasApiKey: minimaxStatus.hasApiKey,
-          ...(minimaxStatus.maskedApiKey ? { maskedApiKey: minimaxStatus.maskedApiKey } : {}),
-          ...(minimaxStatus.cachedStatus ? { status: minimaxStatus.cachedStatus } : {}),
+          hasApiKey: alranStatus.hasApiKey,
+          ...(alranStatus.maskedApiKey ? { maskedApiKey: alranStatus.maskedApiKey } : {}),
+          ...(alranStatus.cachedStatus ? { status: alranStatus.cachedStatus } : {}),
           models: [],
         },
         ...customProviders.map(normalizeCustomProvider),
@@ -62,39 +62,39 @@ export class McodeProviderApplication {
     };
   }
 
-  setMiniMaxSource(source: McodeMiniMaxModelSource): Promise<McodeMiniMaxModelSource> {
-    return this.port.setMiniMaxModelSource(source);
+  setAlranSource(source: AlranAlranModelSource): Promise<AlranAlranModelSource> {
+    return this.port.setAlranModelSource(source);
   }
 
-  connectCodexOAuth(options?: McodeCodexOAuthLoginOptions): Promise<McodeCodexOAuthStartResult> {
+  connectCodexOAuth(options?: AlranCodexOAuthLoginOptions): Promise<AlranCodexOAuthStartResult> {
     return this.port.startCodexOAuthLogin(options);
   }
 
-  getCodexOAuthStatus(): Promise<McodeCodexOAuthStatus> {
+  getCodexOAuthStatus(): Promise<AlranCodexOAuthStatus> {
     return this.port.getCodexOAuthStatus();
   }
 
-  cancelCodexOAuthLogin(loginId: string): Promise<McodeCodexOAuthStatus> {
+  cancelCodexOAuthLogin(loginId: string): Promise<AlranCodexOAuthStatus> {
     return this.port.cancelCodexOAuthLogin(loginId);
   }
 
-  async setMiniMaxApiKey(apiKey: string, saveAndUse = true): Promise<void> {
-    await this.port.upsertMiniMaxApiKey({ apiKey, saveAndUse });
+  async setAlranApiKey(apiKey: string, saveAndUse = true): Promise<void> {
+    await this.port.upsertAlranApiKey({ apiKey, saveAndUse });
   }
 
-  async create(input: McodeCreateProviderInput): Promise<void> {
+  async create(input: AlranCreateProviderInput): Promise<void> {
     await this.port.createUserModelProvider(input);
   }
 
-  saveCandidate(input: McodeSaveProviderCandidateInput): Promise<McodeSaveProviderCandidateResult> {
+  saveCandidate(input: AlranSaveProviderCandidateInput): Promise<AlranSaveProviderCandidateResult> {
     return this.port.saveUserModelProviderCandidate(input);
   }
 
-  discoverModels(input: McodeDiscoverProviderModelsInput) {
+  discoverModels(input: AlranDiscoverProviderModelsInput) {
     return this.port.discoverUserModelsCandidate(input);
   }
 
-  async refreshModels(provider: McodeProviderView): Promise<number> {
+  async refreshModels(provider: AlranProviderView): Promise<number> {
     if (
       provider.kind !== 'custom' ||
       provider.readOnly ||
@@ -138,7 +138,7 @@ export class McodeProviderApplication {
     return added.length;
   }
 
-  async update(input: McodeUpdateProviderInput): Promise<void> {
+  async update(input: AlranUpdateProviderInput): Promise<void> {
     await this.port.updateUserModelProvider(input);
   }
 
@@ -146,14 +146,14 @@ export class McodeProviderApplication {
     await this.port.deleteUserModelProvider(providerId);
   }
 
-  test(providerId: string, modelId?: string): Promise<McodeProviderTestResult> {
+  test(providerId: string, modelId?: string): Promise<AlranProviderTestResult> {
     return modelId
       ? this.port.testUserModel(providerId, modelId)
       : this.port.testUserModelProvider(providerId);
   }
 }
 
-function normalizeCodexOAuthProvider(status: McodeCodexOAuthStatus): McodeProviderView {
+function normalizeCodexOAuthProvider(status: AlranCodexOAuthStatus): AlranProviderView {
   return {
     providerId: status.providerId,
     name: 'OpenAI Codex',
@@ -170,7 +170,7 @@ function normalizeCodexOAuthProvider(status: McodeCodexOAuthStatus): McodeProvid
   };
 }
 
-function normalizeCustomProvider(provider: McodeRuntimeProviderView): McodeProviderView {
+function normalizeCustomProvider(provider: AlranRuntimeProviderView): AlranProviderView {
   const apiFormat = isModelProviderApiFormat(provider.apiFormat) ? provider.apiFormat : undefined;
   return {
     providerId: provider.providerId,
@@ -203,9 +203,9 @@ function normalizeCustomProvider(provider: McodeRuntimeProviderView): McodeProvi
 }
 
 export type {
-  McodeCreateProviderInput,
-  McodeDiscoverProviderModelsInput,
-  McodeProviderRuntimePort,
-  McodeProviderSnapshot,
-  McodeUpdateProviderInput,
+  AlranCreateProviderInput,
+  AlranDiscoverProviderModelsInput,
+  AlranProviderRuntimePort,
+  AlranProviderSnapshot,
+  AlranUpdateProviderInput,
 } from './contract.js';

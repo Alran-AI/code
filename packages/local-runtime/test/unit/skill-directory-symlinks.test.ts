@@ -13,7 +13,7 @@ let workspace: string;
 let watcher: SkillRegistryWatcher | undefined;
 
 beforeEach(async () => {
-  fixture = await realpath(await mkdtemp(join(tmpdir(), 'mcode-skill-links-')));
+  fixture = await realpath(await mkdtemp(join(tmpdir(), 'alran-skill-links-')));
   workspace = join(fixture, 'workspace');
   await mkdir(join(workspace, '.git'), { recursive: true });
 });
@@ -50,7 +50,7 @@ async function linkDirectory(target: string, link: string, relativeTarget = fals
 }
 
 describe('configured workspace skill directory links', () => {
-  it.each(['.agents', '.claude', '.minimax'])(
+  it.each(['.agents', '.claude', '.alran'])(
     'discovers a linked %s/skills root',
     async (source) => {
       const target = join(workspace, 'skills', 'linked');

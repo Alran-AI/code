@@ -33,28 +33,28 @@ import {
   type TuiIncidentReporter,
   type TuiObservability,
 } from '../observability/index.js';
-import { resolveMcodeAuthEnvironment } from '../auth/environment.js';
+import { resolveAlranAuthEnvironment } from '../auth/environment.js';
 import { TuiMatrixAccountClient } from '../account/matrix-account-client.js';
 import {
-  createMcodeBusinessTelemetry,
-  resolveMcodeBusinessTelemetryPolicy,
-  type CreateMcodeBusinessTelemetryOptions,
-  type McodeBusinessTelemetry,
+  createAlranBusinessTelemetry,
+  resolveAlranBusinessTelemetryPolicy,
+  type CreateAlranBusinessTelemetryOptions,
+  type AlranBusinessTelemetry,
 } from '../analytics/business-telemetry.js';
-import { createDefaultMcodeAuthApplication } from '../auth/factory.js';
-import { createMcodeSharedAuthSession } from '../runtime/auth-session.js';
+import { createDefaultAlranAuthApplication } from '../auth/factory.js';
+import { createAlranSharedAuthSession } from '../runtime/auth-session.js';
 import {
-  MCODE_OAUTH_SCOPES,
-  resolveMCodeOAuthEndpointConfig,
+  ALRAN_OAUTH_SCOPES,
+  resolveAlranOAuthEndpointConfig,
   type AccessTokenLease,
-  type MCodeOAuthCore,
+  type AlranOAuthCore,
 } from '@mavis/oauth-core';
 import {
   resolveTuiManagedBackendLane,
   resolveTuiStartupEnvironmentOption,
 } from '../cli/environment.js';
-import { resolveMcodeStartupUpdateNotice } from '../update/startup-notice.js';
-import type { McodeUpdateApplication } from '../update/application.js';
+import { resolveAlranStartupUpdateNotice } from '../update/startup-notice.js';
+import type { AlranUpdateApplication } from '../update/application.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import { getConfig, resetConfig, writeTuiStatusLineSetting, type MavisRegion } from '@mavis/config';
 import { markLoginRestartHandoff } from './login-restart-handoff.js';
@@ -64,16 +64,16 @@ import {
   writeTuiModeSetting,
   writeTuiThemeSetting,
 } from '../host/tui-settings.js';
-import { schedulePendingMcodePrefixUpdate } from '../update/prefix-update.js';
+import { schedulePendingAlranPrefixUpdate } from '../update/prefix-update.js';
 import {
   systemPromptRestartArguments,
   type SystemPromptOverrides,
 } from '../cli/system-prompt-options.js';
-import { MCODE_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
+import { ALRAN_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
 import { startTuiStartupStatus, type TuiStartupStatus } from './startup-status.js';
-import type { McodeContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@mavis/protocol/local';
 
-const MINIMAX_CODE_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
+const ALRAN_CODE_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
 export interface LaunchTuiOptions {
   version: string;
   initialPrompt?: string;
@@ -90,7 +90,7 @@ export interface LaunchTuiOptions {
   theme?: string;
   externalEditorCommand?: string;
   resumeDraftAfterLogin?: boolean;
-  contextMode?: McodeContextMode;
+  contextMode?: AlranContextMode;
   lane?: string;
   systemPromptOverrides?: SystemPromptOverrides;
 }
@@ -114,7 +114,7 @@ interface RuntimeLifecycleModule {
       version: string;
       surface: 'tui';
       observability: TuiObservability;
-      contextMode?: McodeContextMode;
+      contextMode?: AlranContextMode;
       lane?: string;
       systemPromptOverrides?: SystemPromptOverrides;
     },
@@ -133,7 +133,7 @@ export interface LaunchTuiDependencies {
   loadRuntimeLifecycle?: () => Promise<RuntimeLifecycleModule>;
   loadUpdateApplication?: (
     currentVersion: string,
-  ) => Promise<Pick<McodeUpdateApplication, 'inspect' | 'apply'>>;
+  ) => Promise<Pick<AlranUpdateApplication, 'inspect' | 'apply'>>;
   writeExitMessage?: (message: string) => void;
   prepareDataDir?: typeof prepareTuiDataDir;
   restartProcess?: (
@@ -141,29 +141,29 @@ export interface LaunchTuiDependencies {
     region?: MavisRegion,
     initialPrompt?: string,
   ) => Promise<void>;
-  createBusinessTelemetry?: typeof createMcodeBusinessTelemetry;
+  createBusinessTelemetry?: typeof createAlranBusinessTelemetry;
   readTelemetryEnabled?: () => boolean;
   createIncidentReporter?: typeof createTuiIncidentReporter;
   readTuiMode?: typeof readTuiModeSetting;
   writeTuiMode?: typeof writeTuiModeSetting;
   readTuiTheme?: typeof readTuiThemeSetting;
   writeTuiTheme?: typeof writeTuiThemeSetting;
-  createSharedAuthSession?: typeof createMcodeSharedAuthSession;
-  createAuthApplication?: typeof createDefaultMcodeAuthApplication;
+  createSharedAuthSession?: typeof createAlranSharedAuthSession;
+  createAuthApplication?: typeof createDefaultAlranAuthApplication;
 }
 
 export function createConfiguredTuiBusinessTelemetry(options: {
   readonly configEnabled: boolean;
   readonly environment: NodeJS.ProcessEnv;
-  readonly telemetryOptions: CreateMcodeBusinessTelemetryOptions;
-  readonly createTelemetry?: typeof createMcodeBusinessTelemetry;
-}): McodeBusinessTelemetry | undefined {
-  const policy = resolveMcodeBusinessTelemetryPolicy({
+  readonly telemetryOptions: CreateAlranBusinessTelemetryOptions;
+  readonly createTelemetry?: typeof createAlranBusinessTelemetry;
+}): AlranBusinessTelemetry | undefined {
+  const policy = resolveAlranBusinessTelemetryPolicy({
     configEnabled: options.configEnabled,
     environment: options.environment,
   });
   if (!policy.enabled) return undefined;
-  return (options.createTelemetry ?? createMcodeBusinessTelemetry)(options.telemetryOptions);
+  return (options.createTelemetry ?? createAlranBusinessTelemetry)(options.telemetryOptions);
 }
 
 export async function launchTui(
@@ -177,7 +177,7 @@ export async function launchTui(
     );
   }
   if (!options.terminal && (!process.stdin.isTTY || !process.stdout.isTTY)) {
-    throw new Error('Minimax Code interactive mode requires a TTY.');
+    throw new Error('Alran Code interactive mode requires a TTY.');
   }
 
   const homeDirectory = options.homeDir ?? homedir();
@@ -187,17 +187,17 @@ export async function launchTui(
   const tuiMode = options.tuiMode ?? (dependencies.readTuiMode ?? readTuiModeSetting)(dataDir);
   const theme = options.theme ?? (dependencies.readTuiTheme ?? readTuiThemeSetting)(dataDir);
   const terminalCapabilities = detectProcessTerminalCapabilities();
-  const authEnvironment = resolveMcodeAuthEnvironment({
+  const authEnvironment = resolveAlranAuthEnvironment({
     runtimeRegion: process.env.MAVIS_REGION === 'en' ? 'en' : 'cn',
   });
   const bedrockLane = resolveTuiManagedBackendLane(options.lane, authEnvironment.buildEnv);
   const routingContext = bedrockLane ? { bedrockLane } : undefined;
-  const sharedAuthCore: MCodeOAuthCore = (
-    dependencies.createSharedAuthSession ?? createMcodeSharedAuthSession
+  const sharedAuthCore: AlranOAuthCore = (
+    dependencies.createSharedAuthSession ?? createAlranSharedAuthSession
   )({
     dataDir,
     ...authEnvironment,
-    oauthEndpoints: resolveMCodeOAuthEndpointConfig(process.env, authEnvironment),
+    oauthEndpoints: resolveAlranOAuthEndpointConfig(process.env, authEnvironment),
   });
   let accountAuthContext: { accessToken: string; realUserID?: string } | undefined;
   const accountIdentityClient = new TuiMatrixAccountClient({
@@ -208,7 +208,7 @@ export async function launchTui(
   const resolveAccessTokenLease = async (): Promise<AccessTokenLease | undefined> => {
     try {
       const lease = await sharedAuthCore.getAccessToken({
-        requiredScopes: [...MCODE_OAUTH_SCOPES],
+        requiredScopes: [...ALRAN_OAUTH_SCOPES],
         minValidityMs: 30_000,
       });
       if (accountAuthContext?.accessToken !== lease.accessToken) {
@@ -312,8 +312,8 @@ export async function launchTui(
   const loadUpdateApplication =
     dependencies.loadUpdateApplication ??
     (async (currentVersion: string) => {
-      const { McodeUpdateApplication } = await import('../update/application.js');
-      return new McodeUpdateApplication({ currentVersion });
+      const { AlranUpdateApplication } = await import('../update/application.js');
+      return new AlranUpdateApplication({ currentVersion });
     });
   let updateApplicationPromise: ReturnType<typeof loadUpdateApplication> | undefined;
   const updateApplication = () => {
@@ -419,8 +419,8 @@ export async function launchTui(
         ...(presentationConfig.programStatus === undefined
           ? {}
           : { programStatus: presentationConfig.programStatus }),
-        ...(process.env[MCODE_TUI_RESULT_PATH_ENV]
-          ? { automationResultPath: process.env[MCODE_TUI_RESULT_PATH_ENV] }
+        ...(process.env[ALRAN_TUI_RESULT_PATH_ENV]
+          ? { automationResultPath: process.env[ALRAN_TUI_RESULT_PATH_ENV] }
           : {}),
         ...(options.workspaceRoots ? { workspaceRoots: options.workspaceRoots } : {}),
         homeDir: homeDirectory,
@@ -436,12 +436,12 @@ export async function launchTui(
         observability,
         incidentReporter,
         ...(businessTelemetry ? { businessTelemetry } : {}),
-        auth: (dependencies.createAuthApplication ?? createDefaultMcodeAuthApplication)({
+        auth: (dependencies.createAuthApplication ?? createDefaultAlranAuthApplication)({
           dataDir,
           ...authEnvironment,
           sharedAuthCore,
           ...(businessTelemetry ? { telemetry: businessTelemetry } : {}),
-          telemetrySource: 'mcode_tui',
+          telemetrySource: 'alran_tui',
         }),
         notifyAuthContextChanged: async (authState: 'authenticated' | 'logged_out') => {
           const activeRuntime = await initializingRuntime;
@@ -490,7 +490,7 @@ export async function launchTui(
         },
         ...(options.resumeDraftAfterLogin ? { resumeDraftAfterLogin: true } : {}),
         checkForUpdate: async () =>
-          resolveMcodeStartupUpdateNotice(await (await updateApplication()).inspect()),
+          resolveAlranStartupUpdateNotice(await (await updateApplication()).inspect()),
         inspectUpdate: async () => (await updateApplication()).inspect(),
         applyUpdate: async (plan, progress) => (await updateApplication()).apply(plan, progress),
       });
@@ -504,7 +504,7 @@ export async function launchTui(
         report: (error) => {
           try {
             process.stderr.write(
-              `Minimax Code TUI stopped unexpectedly: ${tuiErrorDiagnostic(error)}. Restart MCode; if it keeps happening, report it through an available support channel.\n`,
+              `Alran Code TUI stopped unexpectedly: ${tuiErrorDiagnostic(error)}. Restart Alran; if it keeps happening, report it through an available support channel.\n`,
             );
           } catch {
             // The terminal may already be disconnected.
@@ -628,7 +628,7 @@ export async function launchTui(
             captureShutdownFailure(incidentReporter, step, error);
             try {
               process.stderr.write(
-                `[minimax-code] ${step} cleanup failed: ${tuiErrorDiagnostic(error)}\n`,
+                `[alran-code] ${step} cleanup failed: ${tuiErrorDiagnostic(error)}\n`,
               );
             } catch {
               // The terminal may already be disconnected.
@@ -838,7 +838,7 @@ export async function restartTuiProcess(
   const args = resolveRestartArguments(process.execPath, process.argv, sessionId, initialPrompt);
   const environment = resolveRestartEnvironment(process.env, region);
   if (
-    await schedulePendingMcodePrefixUpdate(
+    await schedulePendingAlranPrefixUpdate(
       process.argv[1],
       process.execPath,
       process.pid,
@@ -889,7 +889,7 @@ export function resolveRestartArguments(
   }
   const entryFile = argv[1];
   if (!entryFile || !isExistingFile(entryFile)) {
-    throw new Error('Unable to restart MCode because its Node.js entry file is unavailable.');
+    throw new Error('Unable to restart Alran because its Node.js entry file is unavailable.');
   }
   return [entryFile, ...environmentArgs, ...systemPromptArgs, ...resumeArgs, ...promptArgs];
 }
@@ -916,13 +916,13 @@ function isExistingFile(file: string): boolean {
 
 export function formatTuiExitMessage(sessionId?: string): string {
   const sessionHint = sessionId ? formatTuiSessionHint(sessionId) : undefined;
-  return `${sessionHint ?? '\n'}${sessionHint ? '\n' : ''}${MINIMAX_CODE_EXIT_SLOGAN}\n`;
+  return `${sessionHint ?? '\n'}${sessionHint ? '\n' : ''}${ALRAN_CODE_EXIT_SLOGAN}\n`;
 }
 
 export function formatTuiSessionHint(sessionId: string): string | undefined {
   const normalized = sessionId.trim();
   if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/u.test(normalized)) return undefined;
-  return `\nContinue this session with:\n  mcode --session ${normalized}\n`;
+  return `\nContinue this session with:\n  alran --session ${normalized}\n`;
 }
 
 async function prepareInitialTuiState(

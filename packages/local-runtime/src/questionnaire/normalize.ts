@@ -71,7 +71,7 @@ export function isAllowedImageSrc(src: string): boolean {
   if (trimmed === '') return false;
   if (trimmed.startsWith('https://')) return true;
   if (trimmed.startsWith('/mavis/api/')) return true;
-  if (trimmed.startsWith('/minimax-desktop/api/')) return true;
+  if (trimmed.startsWith('/alran-desktop/api/')) return true;
   return false;
 }
 

@@ -67,7 +67,7 @@ describe('PluginSystemCloudTransport admission credential', () => {
 
     await transport.request({
       method: 'POST',
-      path: '/minimax-cloud/api/v1/connectors/tools/call',
+      path: '/alran-cloud/api/v1/connectors/tools/call',
       auth: 'required',
       authContext: { accessToken: 'token-a', realUserID: 'alice' },
       body: { provider: 'drive' },
@@ -97,7 +97,7 @@ describe('PluginSystemCloudTransport dispatch boundary', () => {
     await expect(
       transport.request({
         method: 'POST',
-        path: '/minimax-cloud/api/v1/connectors/tools/call',
+        path: '/alran-cloud/api/v1/connectors/tools/call',
         auth: 'required',
         onDispatch,
       }),
@@ -120,7 +120,7 @@ describe('PluginSystemCloudTransport dispatch boundary', () => {
     await expect(
       transport.request({
         method: 'POST',
-        path: '/minimax-cloud/api/v1/connectors/tools/call',
+        path: '/alran-cloud/api/v1/connectors/tools/call',
         auth: 'none',
         onDispatch,
       }),
@@ -144,7 +144,7 @@ describe('PluginSystemCloudTransport dispatch boundary', () => {
 
     await transport.request({
       method: 'POST',
-      path: '/minimax-cloud/api/v1/connectors/tools/call',
+      path: '/alran-cloud/api/v1/connectors/tools/call',
       auth: 'none',
       onDispatch,
     });
@@ -172,7 +172,7 @@ describe('PluginSystemCloudTransport', () => {
 
     await transport.request({
       method: 'GET',
-      path: '/minimax-cloud/api/v1/marketplace/plugins',
+      path: '/alran-cloud/api/v1/marketplace/plugins',
       query: { keyword: 'notes' },
       auth: 'optional',
     });
@@ -185,7 +185,7 @@ describe('PluginSystemCloudTransport', () => {
     identity = { accessToken: 'token-new', realUserID: '42' };
     await transport.request({
       method: 'GET',
-      path: '/minimax-cloud/api/v1/marketplace/plugins',
+      path: '/alran-cloud/api/v1/marketplace/plugins',
       auth: 'none',
     });
     const forcedAnonymous = fetchImpl.mock.calls[1];
@@ -195,7 +195,7 @@ describe('PluginSystemCloudTransport', () => {
 
     await transport.request({
       method: 'GET',
-      path: '/minimax-cloud/api/v1/marketplace/plugins',
+      path: '/alran-cloud/api/v1/marketplace/plugins',
       auth: 'optional',
     });
     const optionallyAuthenticated = fetchImpl.mock.calls[2];
@@ -207,7 +207,7 @@ describe('PluginSystemCloudTransport', () => {
 
     await transport.request({
       method: 'POST',
-      path: '/minimax-cloud/api/v1/plugins/notes/enable',
+      path: '/alran-cloud/api/v1/plugins/notes/enable',
       body: { action: 'enable', common_param: { user_id: 'forged' } },
       auth: 'required',
     });
@@ -219,7 +219,7 @@ describe('PluginSystemCloudTransport', () => {
     expect(headers.has('token')).toBe(false);
     expect(headers.get('yy')).toMatch(/^[0-9a-f]{32}$/u);
     expect(headers.get('x-signature')).toMatch(/^[0-9a-f]{32}$/u);
-    expect(headers.get('X-Minimax-Agent-Preview-Secret')).toBe('preview');
+    expect(headers.get('X-Alran-Agent-Preview-Secret')).toBe('preview');
     expect(headers.get('bedrock-lane')).toBe('blue');
   });
 

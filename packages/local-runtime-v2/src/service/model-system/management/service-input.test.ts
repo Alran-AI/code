@@ -218,17 +218,17 @@ describe('model provider input normalization', () => {
     ).not.toHaveProperty('thinking');
   });
 
-  it('removes incompatible MiniMax M3 state and rejects invalid model fields', () => {
+  it('removes incompatible Alran M3 state and rejects invalid model fields', () => {
     const merged = mergeModelsFromInputs(
       {
-        'MiniMax-M3': {
+        'Alran-M3': {
           thinking_config: { mode: 'switchable' },
           variants: { thinking: {}, 'none-thinking': {} },
         },
       },
-      [{ modelId: 'MiniMax-M3', reasoning: false }],
+      [{ modelId: 'Alran-M3', reasoning: false }],
     );
-    expect(merged['MiniMax-M3']).toEqual({ reasoning: false });
+    expect(merged['Alran-M3']).toEqual({ reasoning: false });
 
     expect(() => modelsFromInputs([{ modelId: '   ' }])).toThrowError(
       expect.objectContaining({ code: 'VALIDATION_ERROR' }),

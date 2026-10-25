@@ -697,7 +697,7 @@ importers:
       '@mavis/system-reminder':
         specifier: workspace:^
         version: link:../agent-modules/system-reminder
-      '@minimax/mcode-sandbox-runtime':
+      '@ottili/alran-sandbox-runtime':
         specifier: workspace:*
         version: link:../../third_party/sandbox-runtime
       '@sinclair/typebox':
@@ -759,7 +759,7 @@ importers:
         specifier: 4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@4.1.11)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
 
-  packages/mcode-tools-host:
+  packages/alran-tools-host:
     dependencies:
       '@mavis/oauth-lease-protocol':
         specifier: workspace:*
@@ -817,9 +817,9 @@ importers:
       '@mavis/local-runtime-v2':
         specifier: workspace:*
         version: link:../local-runtime-v2
-      '@mavis/mcode-tools-host':
+      '@mavis/alran-tools-host':
         specifier: workspace:*
-        version: link:../mcode-tools-host
+        version: link:../alran-tools-host
       '@mavis/oauth-core':
         specifier: workspace:*
         version: link:../oauth-core

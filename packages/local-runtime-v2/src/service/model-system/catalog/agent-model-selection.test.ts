@@ -58,9 +58,9 @@ describe('resolveAgentModelSelection', () => {
         config: {
           ...config,
           provider: {
-            minimax: {
+            alran: {
               models: {
-                'MiniMax-M3.1': {
+                'Alran-M3.1': {
                   limit: { context: 512_000, output: 128_000 },
                   contextWindowOptions: [512_000],
                   thinking_config: { mode: 'forced_on' },
@@ -74,7 +74,7 @@ describe('resolveAgentModelSelection', () => {
           { source: 'agent-override', selection },
           {
             source: 'accepted-parent',
-            selection: { model: 'minimax/MiniMax-M3.1', contextWindow: 1_000_000, effort: 'max' },
+            selection: { model: 'alran/Alran-M3.1', contextWindow: 1_000_000, effort: 'max' },
             parameterSnapshot: { context: 'selection', effort: 'selection' },
           },
         ],
@@ -94,13 +94,13 @@ describe('resolveAgentModelSelection', () => {
   it('uses the managed catalog for task capture, including forced-on defaults and discrete context', () => {
     const managed: LocalConversationRuntimeConfig = {
       ...config,
-      defaultModel: 'minimax/MiniMax-M3.1',
+      defaultModel: 'alran/Alran-M3.1',
       defaultModelThinking: { effort: 'max' },
       defaultModelContextWindow: 1_000_000,
       provider: {
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M3.1': {
+            'Alran-M3.1': {
               limit: { context: 512_000, output: 128_000 },
               contextWindowOptions: [512_000, 1_000_000],
               thinking_config: { mode: 'forced_on' },
@@ -116,29 +116,29 @@ describe('resolveAgentModelSelection', () => {
         sources: selection ? [{ source: 'task', selection }] : [],
       });
     expect(capture()).toMatchObject({ effort: 'max', contextWindow: 1_000_000 });
-    expect(capture({ model: 'minimax/MiniMax-M3.1' })).toMatchObject({
+    expect(capture({ model: 'alran/Alran-M3.1' })).toMatchObject({
       effort: 'high',
       contextWindow: 512_000,
     });
     expect(
-      capture({ model: 'minimax/MiniMax-M3.1', effort: 'max', contextWindow: 1_000_000 }),
+      capture({ model: 'alran/Alran-M3.1', effort: 'max', contextWindow: 1_000_000 }),
     ).toMatchObject({ effort: 'max', contextWindow: 1_000_000, diagnostics: [] });
-    expect(() => capture({ model: 'minimax/MiniMax-M3.1', effort: 'off' })).toThrow();
-    expect(() => capture({ model: 'minimax/MiniMax-M3.1', contextWindow: 768_000 })).toThrow();
+    expect(() => capture({ model: 'alran/Alran-M3.1', effort: 'off' })).toThrow();
+    expect(() => capture({ model: 'alran/Alran-M3.1', contextWindow: 768_000 })).toThrow();
     expect(() =>
-      capture({ model: 'minimax/MiniMax-M3.1', contextWindow: 2_147_483_648 }),
+      capture({ model: 'alran/Alran-M3.1', contextWindow: 2_147_483_648 }),
     ).toThrow();
   });
   it('captures an official model from a dangling legacy default without changing config', () => {
     const legacyConfig = {
       ...config,
-      defaultModel: 'custom_provider:minimax-legacy/retired',
+      defaultModel: 'custom_provider:alran-legacy/retired',
       provider: {
         ...config.provider,
-        minimax: {
+        alran: {
           models: {
-            'MiniMax-M3.1-Flash': { limit: { context: 512_000, output: 128_000 } },
-            'MiniMax-M3': { limit: { context: 512_000, output: 128_000 } },
+            'Alran-M3.1-Flash': { limit: { context: 512_000, output: 128_000 } },
+            'Alran-M3': { limit: { context: 512_000, output: 128_000 } },
           },
         },
       },
@@ -146,11 +146,11 @@ describe('resolveAgentModelSelection', () => {
     expect(
       resolveEffectiveAgentModelSelection({ config: legacyConfig, sources: [] }),
     ).toMatchObject({
-      providerId: 'minimax',
-      modelId: 'MiniMax-M3.1-Flash',
+      providerId: 'alran',
+      modelId: 'Alran-M3.1-Flash',
       contextWindow: 512_000,
     });
-    expect(legacyConfig.defaultModel).toBe('custom_provider:minimax-legacy/retired');
+    expect(legacyConfig.defaultModel).toBe('custom_provider:alran-legacy/retired');
     expect(
       resolveAgentModelSelection({
         config: { ...legacyConfig, provider: config.provider },
@@ -164,21 +164,21 @@ describe('resolveAgentModelSelection', () => {
   registerCustomProviderPrefixFallbackTests();
   registerAgentModelInputValidationTests();
   registerExplicitParentSelectionTest();
-  registerMiniMaxM3SelectionTests();
+  registerAlranM3SelectionTests();
   registerBuiltinAgentGroupTests();
   registerResolverBoundaryCoverageTest();
 });
 
 function registerContextTierSelectionTests(): void {
-  it.each(['minimax', 'minimax_api'])(
+  it.each(['alran', 'alran_api'])(
     'separates official M3 tier from its maximum for %s',
     (providerId) => {
       const runtimeConfig: LocalConversationRuntimeConfig = {
         ...config,
         provider: {
-          minimax: {
+          alran: {
             models: {
-              'MiniMax-M3': {
+              'Alran-M3': {
                 limit: { context: 512_000, output: 128_000 },
                 contextWindowOptions: [512_000, 1_000_000],
               },
@@ -192,14 +192,14 @@ function registerContextTierSelectionTests(): void {
           sources: [
             {
               source: 'agent-config',
-              selection: { model: `${providerId}/MiniMax-M3`, contextWindow, maxOutputTokens },
+              selection: { model: `${providerId}/Alran-M3`, contextWindow, maxOutputTokens },
             },
           ],
         });
       expect(select()).toMatchObject({ contextWindow: 512_000, diagnostics: [] });
       expect(select(512_000)).toMatchObject({ contextWindow: 512_000, diagnostics: [] });
       expect(select(1_000_000)).toMatchObject({ contextWindow: 1_000_000, diagnostics: [] });
-      if (providerId === 'minimax') {
+      if (providerId === 'alran') {
         expect(() => select(2_000_000, 256_000)).toThrow('Invalid model context_limit');
         return;
       }
@@ -215,12 +215,12 @@ function registerContextTierSelectionTests(): void {
   );
 
   it.each([
-    ['minimax', 'MiniMax-M3.1-Flash', [2_000_000, 128_000], 2_000_000],
-    ['minimax_api', 'future-model', [2_000_000, 128_000], 2_000_000],
-    ['minimax_api', 'MiniMax-M3', [128_000, 256_000], 256_000],
-    ['minimax_api', 'MiniMax-M3', undefined, 128_000],
-    ['minimax_api', 'MiniMax-M3', [], 128_000],
-    ['minimax_api', 'future-model', [0, -1, NaN, Infinity, 1.5], 128_000],
+    ['alran', 'Alran-M3.1-Flash', [2_000_000, 128_000], 2_000_000],
+    ['alran_api', 'future-model', [2_000_000, 128_000], 2_000_000],
+    ['alran_api', 'Alran-M3', [128_000, 256_000], 256_000],
+    ['alran_api', 'Alran-M3', undefined, 128_000],
+    ['alran_api', 'Alran-M3', [], 128_000],
+    ['alran_api', 'future-model', [0, -1, NaN, Infinity, 1.5], 128_000],
   ] as const)(
     'uses catalog Context options for %s/%s (%j)',
     (providerId, modelId, options, ceiling) => {
@@ -228,9 +228,9 @@ function registerContextTierSelectionTests(): void {
         resolveAgentModelSelection({
           config: {
             ...config,
-            minimaxModelSource: 'minimax_api_key',
+            alranModelSource: 'alran_api_key',
             provider: {
-              minimax: {
+              alran: {
                 models: {
                   [modelId]: {
                     limit: { context: 128_000 },
@@ -263,8 +263,8 @@ function registerContextTierSelectionTests(): void {
     (provider) => {
       const runtimeConfig: LocalConversationRuntimeConfig = {
         ...config,
-        provider: { other: { models: { 'MiniMax-M3': { limit: { context: 512_000 } } } } },
-        custom_provider: { other: { models: { 'MiniMax-M3': { limit: { context: 512_000 } } } } },
+        provider: { other: { models: { 'Alran-M3': { limit: { context: 512_000 } } } } },
+        custom_provider: { other: { models: { 'Alran-M3': { limit: { context: 512_000 } } } } },
       };
       expect(
         resolveAgentModelSelection({
@@ -272,7 +272,7 @@ function registerContextTierSelectionTests(): void {
           sources: [
             {
               source: 'agent-config',
-              selection: { model: `${provider}/MiniMax-M3`, contextWindow: 1_000_000 },
+              selection: { model: `${provider}/Alran-M3`, contextWindow: 1_000_000 },
             },
           ],
         }),
@@ -586,14 +586,14 @@ function registerCustomProviderPrefixFallbackTests(): void {
       }),
     ).toThrow('Model mafia/model');
     expect(() =>
-      selectFromAgentProfile('minimax/model', {
+      selectFromAgentProfile('alran/model', {
         ...byokConfig,
         custom_provider: {
           ...byokConfig.custom_provider,
-          minimax: { models: { model: {} } },
+          alran: { models: { model: {} } },
         },
       }),
-    ).toThrow('Model minimax/model');
+    ).toThrow('Model alran/model');
 
     expect(() =>
       resolveAgentModelSelection({
@@ -636,7 +636,7 @@ function registerAgentModelInputValidationTests(): void {
   });
 }
 
-function registerMiniMaxM3SelectionTests(): void {
+function registerAlranM3SelectionTests(): void {
   it.each([
     ['thinking', 'true', 'on'],
     ['none-thinking', 'true', 'off'],
@@ -644,7 +644,7 @@ function registerMiniMaxM3SelectionTests(): void {
     [undefined, 'false', 'off'],
     [undefined, 'true', 'on'],
   ] as const)(
-    'normalizes the Runtime-default MiniMax M3 switch (%s, catalog %s) to %s',
+    'normalizes the Runtime-default Alran M3 switch (%s, catalog %s) to %s',
     (defaultModelVariant, defaultValue, effort) => {
       const result = resolveAgentModelSelection({
         config: m3Config({ defaultModelVariant, defaultValue }),
@@ -653,21 +653,21 @@ function registerMiniMaxM3SelectionTests(): void {
 
       expect(result).toMatchObject({
         providerId: 'runtime',
-        modelId: 'MiniMax-M3',
+        modelId: 'Alran-M3',
         source: 'runtime-default',
         effort,
       });
     },
   );
 
-  it.each(['on', 'off'] as const)('accepts explicit MiniMax M3 switch %s', (effort) => {
+  it.each(['on', 'off'] as const)('accepts explicit Alran M3 switch %s', (effort) => {
     expect(
       resolveAgentModelSelection({
         config: m3Config(),
         sources: [
           {
             source: 'agent-config',
-            selection: { model: 'runtime/MiniMax-M3', effort },
+            selection: { model: 'runtime/Alran-M3', effort },
             requireCatalog: true,
           },
         ],
@@ -680,7 +680,7 @@ function registerMiniMaxM3SelectionTests(): void {
     expect(
       resolveAgentModelSelection({
         config: configWithEffortOptions,
-        sources: [{ source: 'agent-config', selection: { model: 'runtime/MiniMax-M3' } }],
+        sources: [{ source: 'agent-config', selection: { model: 'runtime/Alran-M3' } }],
       }),
     ).toMatchObject({ effort: 'on' });
 
@@ -691,7 +691,7 @@ function registerMiniMaxM3SelectionTests(): void {
         sources: [
           {
             source: 'agent-config',
-            selection: { model: 'runtime/MiniMax-M3', effort: 'on' },
+            selection: { model: 'runtime/Alran-M3', effort: 'on' },
           },
         ],
       }),
@@ -702,7 +702,7 @@ function registerMiniMaxM3SelectionTests(): void {
         sources: [
           {
             source: 'agent-config',
-            selection: { model: 'runtime/MiniMax-M3', effort: 'low' },
+            selection: { model: 'runtime/Alran-M3', effort: 'low' },
           },
         ],
       });
@@ -715,7 +715,7 @@ function registerMiniMaxM3SelectionTests(): void {
   it('uses Custom BYOK M3 effort options instead of its model name or reasoning flag', () => {
     const customM3 = (model: Record<string, unknown>): LocalConversationRuntimeConfig => ({
       ...config,
-      custom_provider: { mafia: { models: { 'MiniMax-M3': model } } },
+      custom_provider: { mafia: { models: { 'Alran-M3': model } } },
     });
     const select = (runtimeConfig: LocalConversationRuntimeConfig, effort: string) =>
       resolveAgentModelSelection({
@@ -723,7 +723,7 @@ function registerMiniMaxM3SelectionTests(): void {
         sources: [
           {
             source: 'agent-config',
-            selection: { model: 'custom_provider:mafia/MiniMax-M3', effort },
+            selection: { model: 'custom_provider:mafia/Alran-M3', effort },
             requireCatalog: true,
           },
         ],
@@ -844,13 +844,13 @@ function m3Config(
   };
   return {
     ...config,
-    defaultModel: 'runtime/MiniMax-M3',
+    defaultModel: 'runtime/Alran-M3',
     ...(input.defaultModelVariant === undefined
       ? {}
       : { defaultModelVariant: input.defaultModelVariant }),
     provider: {
       ...config.provider,
-      runtime: { models: { 'MiniMax-M3': m3 } },
+      runtime: { models: { 'Alran-M3': m3 } },
     },
   };
 }

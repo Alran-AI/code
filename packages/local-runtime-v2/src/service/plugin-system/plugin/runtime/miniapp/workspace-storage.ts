@@ -18,13 +18,13 @@ import type { WorkspaceMiniAppInitializationResult } from '../../../contracts.js
 import { PluginSystemError } from '../../../errors.js';
 import { runAllFinally } from '../../../plugin-system-helpers.js';
 import { canonicalizePluginRoot, readPluginJsonObject } from '../../package/filesystem.js';
-import { readMiniAppMcode } from '../../package/miniapp/reader.js';
+import { readMiniAppAlran } from '../../package/miniapp/reader.js';
 import {
   computePluginDirectoryDigest,
   validatePluginPortablePath,
 } from '../../package/package-contract.js';
 import { isMiniAppRuntimePayloadExcludedPath } from '../../package/miniapp/path.js';
-import { readLocalMiniMaxPluginPackage } from '../../package/package-readers.js';
+import { readLocalAlranPluginPackage } from '../../package/package-readers.js';
 import type { ScannedLocalPluginPackage } from '../../package/types.js';
 import { writeWorkspaceMiniAppScaffold } from './workspace-scaffold.js';
 
@@ -72,7 +72,7 @@ export class WorkspaceMiniAppStorage {
   ) {}
 
   async readPackageRoot(packageRoot: string): Promise<ScannedLocalPluginPackage> {
-    return readLocalMiniMaxPluginPackage(packageRoot, { rejectHardlinks: true });
+    return readLocalAlranPluginPackage(packageRoot, { rejectHardlinks: true });
   }
 
   async materializeRuntimePackage(input: {
@@ -193,7 +193,7 @@ async function initializeWorkspacePackage(input: {
   let committed = false;
   try {
     await writeWorkspaceMiniAppScaffold(stagingRoot, input.pluginId);
-    const staged = await readLocalMiniMaxPluginPackage(await realpath(stagingRoot), {
+    const staged = await readLocalAlranPluginPackage(await realpath(stagingRoot), {
       rejectHardlinks: true,
       requireMiniApp: true,
     });
@@ -233,7 +233,7 @@ async function assertWorkspaceTargetIdentity(
   pluginName: string,
 ): Promise<void> {
   try {
-    const installed = await readLocalMiniMaxPluginPackage(canonicalRoot, {
+    const installed = await readLocalAlranPluginPackage(canonicalRoot, {
       rejectHardlinks: true,
     });
     if (
@@ -257,7 +257,7 @@ async function assertInstalledWorkspaceCandidate(
   rootPath: string,
   expected: ScannedLocalPluginPackage,
 ): Promise<void> {
-  const observed = await readLocalMiniMaxPluginPackage(rootPath, { rejectHardlinks: true });
+  const observed = await readLocalAlranPluginPackage(rootPath, { rejectHardlinks: true });
   if (
     observed.plugin.name === expected.plugin.name &&
     observed.plugin.miniapp &&
@@ -360,7 +360,7 @@ async function assertExistingWorkspacePackage(
   await assertWorkspaceInitCommitted(canonicalTarget);
   await computePluginDirectoryDigest(canonicalTarget, { rejectHardlinks: true });
   const root = await canonicalizePluginRoot(canonicalTarget, { rejectSymlink: true });
-  const manifest = await readPluginJsonObject(root, '.minimax-plugin/plugin.json', {
+  const manifest = await readPluginJsonObject(root, '.alran-plugin/plugin.json', {
     portable: true,
   });
   const packageJson = await readPluginJsonObject(root, 'package.json', { portable: true });
@@ -368,7 +368,7 @@ async function assertExistingWorkspacePackage(
     throw new Error('workspace MiniApp package identity mismatch');
   }
   try {
-    readMiniAppMcode(packageJson.value.mcode);
+    readMiniAppAlran(packageJson.value.alran);
   } catch {
     // Update identity historically exposes one stable workspace reason rather
     // than the package reader's detailed authoring-schema diagnostic.
@@ -565,7 +565,7 @@ async function resolveWorkspaceCandidate(input: {
   ) {
     throw new Error('unsafe workspace MiniApp candidate root');
   }
-  const packageRead = await readLocalMiniMaxPluginPackage(source, {
+  const packageRead = await readLocalAlranPluginPackage(source, {
     rejectHardlinks: true,
     requireMiniApp: true,
   });
@@ -576,7 +576,7 @@ async function resolveWorkspaceCandidate(input: {
     throw new PluginSystemError(
       'WORKSPACE_CANDIDATE_INVALID',
       'workspace MiniApp candidate is invalid',
-      { reasonCode: 'MINIAPP_MCODE_SCHEMA_INVALID' },
+      { reasonCode: 'MINIAPP_ALRAN_SCHEMA_INVALID' },
     );
   }
   return { source, package: packageRead };
@@ -605,7 +605,7 @@ async function stageStableDirectoryCandidate(
   try {
     await copyRuntimePayload(source.source, stagingRoot);
     throwIfAborted(input.signal);
-    const stagedPackage = await readLocalMiniMaxPluginPackage(await realpath(stagingRoot), {
+    const stagedPackage = await readLocalAlranPluginPackage(await realpath(stagingRoot), {
       rejectHardlinks: true,
       requireMiniApp: true,
     });
@@ -650,7 +650,7 @@ async function resolveSuppliedCandidate(
   }
   await assertSourceOutsideInstallation(source, path.join(dataDir, 'plugins', input.pluginId));
   try {
-    const sourcePackage = await readLocalMiniMaxPluginPackage(source, {
+    const sourcePackage = await readLocalAlranPluginPackage(source, {
       rejectHardlinks: true,
       requireMiniApp: true,
     });

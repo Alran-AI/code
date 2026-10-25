@@ -34,8 +34,8 @@ if (profile === 'package' && !['darwin', 'linux'].includes(process.platform))
 // Listing must not leave a temporary export directory behind.
 const temporary = values.list
   ? undefined
-  : mkdtempSync(path.join(tmpdir(), "mcode-verify-"));
-const preview = path.join(temporary ?? tmpdir(), "minimax-code-source.tar.gz");
+  : mkdtempSync(path.join(tmpdir(), "alran-verify-"));
+const preview = path.join(temporary ?? tmpdir(), "alran-code-source.tar.gz");
 
 const steps = [
   { name: "check:source", script: "check:source", docs: true, windows: true },
@@ -144,8 +144,8 @@ const report = {
     revision.status === 0
       ? revision.stdout.trim()
       : profile === "archive" &&
-          /^[a-f0-9]{40}$/u.test(process.env.MCODE_VERIFY_REVISION ?? "")
-        ? process.env.MCODE_VERIFY_REVISION
+          /^[a-f0-9]{40}$/u.test(process.env.ALRAN_VERIFY_REVISION ?? "")
+        ? process.env.ALRAN_VERIFY_REVISION
         : null,
   platform: process.platform,
   arch: process.arch,
@@ -161,7 +161,7 @@ const report = {
     durationMs: null,
   })),
 };
-const reportDir = process.env.MCODE_VERIFY_REPORT_DIR;
+const reportDir = process.env.ALRAN_VERIFY_REPORT_DIR;
 function saveReport() {
   report.durationMs = Math.round(performance.now() - started);
   if (!reportDir) return;

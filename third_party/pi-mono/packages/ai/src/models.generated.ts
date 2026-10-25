@@ -819,9 +819,9 @@ export const MODELS = {
 			contextWindow: 3500000,
 			maxTokens: 16384,
 		} satisfies Model<"bedrock-converse-stream">,
-		"minimax.minimax-m2": {
-			id: "minimax.minimax-m2",
-			name: "MiniMax M2",
+		"alran.alran-m2": {
+			id: "alran.alran-m2",
+			name: "Alran M2",
 			api: "bedrock-converse-stream",
 			provider: "amazon-bedrock",
 			baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
@@ -836,9 +836,9 @@ export const MODELS = {
 			contextWindow: 204608,
 			maxTokens: 128000,
 		} satisfies Model<"bedrock-converse-stream">,
-		"minimax.minimax-m2.1": {
-			id: "minimax.minimax-m2.1",
-			name: "MiniMax M2.1",
+		"alran.alran-m2.1": {
+			id: "alran.alran-m2.1",
+			name: "Alran M2.1",
 			api: "bedrock-converse-stream",
 			provider: "amazon-bedrock",
 			baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
@@ -853,9 +853,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"bedrock-converse-stream">,
-		"minimax.minimax-m2.5": {
-			id: "minimax.minimax-m2.5",
-			name: "MiniMax M2.5",
+		"alran.alran-m2.5": {
+			id: "alran.alran-m2.5",
+			name: "Alran M2.5",
 			api: "bedrock-converse-stream",
 			provider: "amazon-bedrock",
 			baseUrl: "https://bedrock-runtime.us-east-1.amazonaws.com",
@@ -3980,9 +3980,9 @@ export const MODELS = {
 			contextWindow: 262000,
 			maxTokens: 262000,
 		} satisfies Model<"anthropic-messages">,
-		"accounts/fireworks/models/minimax-m2p5": {
-			id: "accounts/fireworks/models/minimax-m2p5",
-			name: "MiniMax-M2.5",
+		"accounts/fireworks/models/alran-m2p5": {
+			id: "accounts/fireworks/models/alran-m2p5",
+			name: "Alran-M2.5",
 			api: "anthropic-messages",
 			provider: "fireworks",
 			baseUrl: "https://api.fireworks.ai/inference",
@@ -3998,9 +3998,9 @@ export const MODELS = {
 			contextWindow: 196608,
 			maxTokens: 196608,
 		} satisfies Model<"anthropic-messages">,
-		"accounts/fireworks/models/minimax-m2p7": {
-			id: "accounts/fireworks/models/minimax-m2p7",
-			name: "MiniMax-M2.7",
+		"accounts/fireworks/models/alran-m2p7": {
+			id: "accounts/fireworks/models/alran-m2p7",
+			name: "Alran-M2.7",
 			api: "anthropic-messages",
 			provider: "fireworks",
 			baseUrl: "https://api.fireworks.ai/inference",
@@ -5331,9 +5331,9 @@ export const MODELS = {
 		} satisfies Model<"openai-completions">,
 	},
 	"huggingface": {
-		"MiniMaxAI/MiniMax-M2.1": {
-			id: "MiniMaxAI/MiniMax-M2.1",
-			name: "MiniMax-M2.1",
+		"AlranAI/Alran-M2.1": {
+			id: "AlranAI/Alran-M2.1",
+			name: "Alran-M2.1",
 			api: "openai-completions",
 			provider: "huggingface",
 			baseUrl: "https://router.huggingface.co/v1",
@@ -5349,9 +5349,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"MiniMaxAI/MiniMax-M2.5": {
-			id: "MiniMaxAI/MiniMax-M2.5",
-			name: "MiniMax-M2.5",
+		"AlranAI/Alran-M2.5": {
+			id: "AlranAI/Alran-M2.5",
+			name: "Alran-M2.5",
 			api: "openai-completions",
 			provider: "huggingface",
 			baseUrl: "https://router.huggingface.co/v1",
@@ -5367,9 +5367,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"MiniMaxAI/MiniMax-M2.7": {
-			id: "MiniMaxAI/MiniMax-M2.7",
-			name: "MiniMax-M2.7",
+		"AlranAI/Alran-M2.7": {
+			id: "AlranAI/Alran-M2.7",
+			name: "Alran-M2.7",
 			api: "openai-completions",
 			provider: "huggingface",
 			baseUrl: "https://router.huggingface.co/v1",
@@ -5766,13 +5766,13 @@ export const MODELS = {
 			maxTokens: 32768,
 		} satisfies Model<"anthropic-messages">,
 	},
-	"minimax": {
-		"MiniMax-M2.7": {
-			id: "MiniMax-M2.7",
-			name: "MiniMax-M2.7",
+	"alran": {
+		"Alran-M2.7": {
+			id: "Alran-M2.7",
+			name: "Alran-M2.7",
 			api: "anthropic-messages",
-			provider: "minimax",
-			baseUrl: "https://api.minimax.io/anthropic",
+			provider: "alran",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -5784,12 +5784,12 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"MiniMax-M2.7-highspeed": {
-			id: "MiniMax-M2.7-highspeed",
-			name: "MiniMax-M2.7-highspeed",
+		"Alran-M2.7-highspeed": {
+			id: "Alran-M2.7-highspeed",
+			name: "Alran-M2.7-highspeed",
 			api: "anthropic-messages",
-			provider: "minimax",
-			baseUrl: "https://api.minimax.io/anthropic",
+			provider: "alran",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -5801,12 +5801,12 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"MiniMax-M3": {
-			id: "MiniMax-M3",
-			name: "MiniMax-M3",
+		"Alran-M3": {
+			id: "Alran-M3",
+			name: "Alran-M3",
 			api: "anthropic-messages",
-			provider: "minimax",
-			baseUrl: "https://api.minimax.io/anthropic",
+			provider: "alran",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -5819,13 +5819,13 @@ export const MODELS = {
 			maxTokens: 128000,
 		} satisfies Model<"anthropic-messages">,
 	},
-	"minimax-cn": {
-		"MiniMax-M2.7": {
-			id: "MiniMax-M2.7",
-			name: "MiniMax-M2.7",
+	"alran-cn": {
+		"Alran-M2.7": {
+			id: "Alran-M2.7",
+			name: "Alran-M2.7",
 			api: "anthropic-messages",
-			provider: "minimax-cn",
-			baseUrl: "https://api.minimaxi.com/anthropic",
+			provider: "alran-cn",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -5837,12 +5837,12 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"MiniMax-M2.7-highspeed": {
-			id: "MiniMax-M2.7-highspeed",
-			name: "MiniMax-M2.7-highspeed",
+		"Alran-M2.7-highspeed": {
+			id: "Alran-M2.7-highspeed",
+			name: "Alran-M2.7-highspeed",
 			api: "anthropic-messages",
-			provider: "minimax-cn",
-			baseUrl: "https://api.minimaxi.com/anthropic",
+			provider: "alran-cn",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text"],
 			cost: {
@@ -5854,12 +5854,12 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"MiniMax-M3": {
-			id: "MiniMax-M3",
-			name: "MiniMax-M3",
+		"Alran-M3": {
+			id: "Alran-M3",
+			name: "Alran-M3",
 			api: "anthropic-messages",
-			provider: "minimax-cn",
-			baseUrl: "https://api.minimaxi.com/anthropic",
+			provider: "alran-cn",
+			baseUrl: "https://api.ottili.one/anthropic",
 			reasoning: true,
 			input: ["text", "image"],
 			cost: {
@@ -8650,9 +8650,9 @@ export const MODELS = {
 			contextWindow: 200000,
 			maxTokens: 32000,
 		} satisfies Model<"openai-completions">,
-		"minimax-m2.5": {
-			id: "minimax-m2.5",
-			name: "MiniMax M2.5",
+		"alran-m2.5": {
+			id: "alran-m2.5",
+			name: "Alran M2.5",
 			api: "openai-completions",
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
@@ -8668,9 +8668,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"minimax-m2.7": {
-			id: "minimax-m2.7",
-			name: "MiniMax M2.7",
+		"alran-m2.7": {
+			id: "alran-m2.7",
+			name: "Alran M2.7",
 			api: "openai-completions",
 			provider: "opencode",
 			baseUrl: "https://opencode.ai/zen/v1",
@@ -8905,9 +8905,9 @@ export const MODELS = {
 			contextWindow: 1048576,
 			maxTokens: 128000,
 		} satisfies Model<"openai-completions">,
-		"minimax-m2.5": {
-			id: "minimax-m2.5",
-			name: "MiniMax M2.5",
+		"alran-m2.5": {
+			id: "alran-m2.5",
+			name: "Alran M2.5",
 			api: "anthropic-messages",
 			provider: "opencode-go",
 			baseUrl: "https://opencode.ai/zen/go",
@@ -8922,9 +8922,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 65536,
 		} satisfies Model<"anthropic-messages">,
-		"minimax-m2.7": {
-			id: "minimax-m2.7",
-			name: "MiniMax M2.7",
+		"alran-m2.7": {
+			id: "alran-m2.7",
+			name: "Alran M2.7",
 			api: "openai-completions",
 			provider: "opencode-go",
 			baseUrl: "https://opencode.ai/zen/go/v1",
@@ -8940,9 +8940,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"minimax-m3": {
-			id: "minimax-m3",
-			name: "MiniMax M3",
+		"alran-m3": {
+			id: "alran-m3",
+			name: "Alran M3",
 			api: "anthropic-messages",
 			provider: "opencode-go",
 			baseUrl: "https://opencode.ai/zen/go",
@@ -10263,9 +10263,9 @@ export const MODELS = {
 			contextWindow: 10000000,
 			maxTokens: 16384,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m1": {
-			id: "minimax/minimax-m1",
-			name: "MiniMax: MiniMax M1",
+		"alran/alran-m1": {
+			id: "alran/alran-m1",
+			name: "Alran: Alran M1",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -10280,9 +10280,9 @@ export const MODELS = {
 			contextWindow: 1000000,
 			maxTokens: 40000,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m2": {
-			id: "minimax/minimax-m2",
-			name: "MiniMax: MiniMax M2",
+		"alran/alran-m2": {
+			id: "alran/alran-m2",
+			name: "Alran: Alran M2",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -10297,9 +10297,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 196608,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m2.1": {
-			id: "minimax/minimax-m2.1",
-			name: "MiniMax: MiniMax M2.1",
+		"alran/alran-m2.1": {
+			id: "alran/alran-m2.1",
+			name: "Alran: Alran M2.1",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -10314,9 +10314,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 196608,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m2.5": {
-			id: "minimax/minimax-m2.5",
-			name: "MiniMax: MiniMax M2.5",
+		"alran/alran-m2.5": {
+			id: "alran/alran-m2.5",
+			name: "Alran: Alran M2.5",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -10331,9 +10331,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 196608,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m2.7": {
-			id: "minimax/minimax-m2.7",
-			name: "MiniMax: MiniMax M2.7",
+		"alran/alran-m2.7": {
+			id: "alran/alran-m2.7",
+			name: "Alran: Alran M2.7",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -10348,9 +10348,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"minimax/minimax-m3": {
-			id: "minimax/minimax-m3",
-			name: "MiniMax: MiniMax M3",
+		"alran/alran-m3": {
+			id: "alran/alran-m3",
+			name: "Alran: Alran M3",
 			api: "openai-completions",
 			provider: "openrouter",
 			baseUrl: "https://openrouter.ai/api/v1",
@@ -13407,9 +13407,9 @@ export const MODELS = {
 		} satisfies Model<"openai-completions">,
 	},
 	"together": {
-		"MiniMaxAI/MiniMax-M2.5": {
-			id: "MiniMaxAI/MiniMax-M2.5",
-			name: "MiniMax-M2.5",
+		"AlranAI/Alran-M2.5": {
+			id: "AlranAI/Alran-M2.5",
+			name: "Alran-M2.5",
 			api: "openai-completions",
 			provider: "together",
 			baseUrl: "https://api.together.ai/v1",
@@ -13426,9 +13426,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"openai-completions">,
-		"MiniMaxAI/MiniMax-M2.7": {
-			id: "MiniMaxAI/MiniMax-M2.7",
-			name: "MiniMax-M2.7",
+		"AlranAI/Alran-M2.7": {
+			id: "AlranAI/Alran-M2.7",
+			name: "Alran-M2.7",
 			api: "openai-completions",
 			provider: "together",
 			baseUrl: "https://api.together.ai/v1",
@@ -14949,9 +14949,9 @@ export const MODELS = {
 			contextWindow: 128000,
 			maxTokens: 8192,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2": {
-			id: "minimax/minimax-m2",
-			name: "MiniMax M2",
+		"alran/alran-m2": {
+			id: "alran/alran-m2",
+			name: "Alran M2",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -14966,9 +14966,9 @@ export const MODELS = {
 			contextWindow: 205000,
 			maxTokens: 205000,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.1": {
-			id: "minimax/minimax-m2.1",
-			name: "MiniMax M2.1",
+		"alran/alran-m2.1": {
+			id: "alran/alran-m2.1",
+			name: "Alran M2.1",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -14983,9 +14983,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.1-lightning": {
-			id: "minimax/minimax-m2.1-lightning",
-			name: "MiniMax M2.1 Lightning",
+		"alran/alran-m2.1-lightning": {
+			id: "alran/alran-m2.1-lightning",
+			name: "Alran M2.1 Lightning",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -15000,9 +15000,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131072,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.5": {
-			id: "minimax/minimax-m2.5",
-			name: "MiniMax M2.5",
+		"alran/alran-m2.5": {
+			id: "alran/alran-m2.5",
+			name: "Alran M2.5",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -15017,9 +15017,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131000,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.5-highspeed": {
-			id: "minimax/minimax-m2.5-highspeed",
-			name: "MiniMax M2.5 High Speed",
+		"alran/alran-m2.5-highspeed": {
+			id: "alran/alran-m2.5-highspeed",
+			name: "Alran M2.5 High Speed",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -15034,9 +15034,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131000,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.7": {
-			id: "minimax/minimax-m2.7",
-			name: "MiniMax M2.7",
+		"alran/alran-m2.7": {
+			id: "alran/alran-m2.7",
+			name: "Alran M2.7",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -15051,9 +15051,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131000,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m2.7-highspeed": {
-			id: "minimax/minimax-m2.7-highspeed",
-			name: "MiniMax M2.7 High Speed",
+		"alran/alran-m2.7-highspeed": {
+			id: "alran/alran-m2.7-highspeed",
+			name: "Alran M2.7 High Speed",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",
@@ -15068,9 +15068,9 @@ export const MODELS = {
 			contextWindow: 204800,
 			maxTokens: 131100,
 		} satisfies Model<"anthropic-messages">,
-		"minimax/minimax-m3": {
-			id: "minimax/minimax-m3",
-			name: "MiniMax M3",
+		"alran/alran-m3": {
+			id: "alran/alran-m3",
+			name: "Alran M3",
 			api: "anthropic-messages",
 			provider: "vercel-ai-gateway",
 			baseUrl: "https://ai-gateway.vercel.sh",

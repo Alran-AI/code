@@ -323,7 +323,7 @@ describe('runTuiExec', () => {
   });
 
   it('renders validated findings as comments and keeps exit code zero', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-exec-review-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-exec-review-'));
     try {
       const stdout = vi.fn();
       const runtime = runtimeWith([
@@ -365,7 +365,7 @@ describe('runTuiExec', () => {
   });
 
   it('retains invalid JSON and its selected message without polluting stdout', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-runner-diagnostics-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-runner-diagnostics-'));
     try {
       const stdout = vi.fn();
       const runtime = runtimeWith();
@@ -478,11 +478,11 @@ describe('runTuiExec', () => {
       status: 'failed',
       error: { code: 'REVIEW_RESULT_INVALID' },
     });
-    expect(stderr).toHaveBeenCalledWith(expect.stringContaining('mcode exec failed'));
+    expect(stderr).toHaveBeenCalledWith(expect.stringContaining('alran exec failed'));
   });
 
   it('writes the raw final message and reports durable per-Turn model and usage facts', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-exec-result-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-exec-result-'));
     try {
       const stdout = vi.fn();
       const runtime = runtimeWith();
@@ -552,7 +552,7 @@ describe('runTuiExec', () => {
   });
 
   it('publishes shutdown failure as the terminal result before writing the final message', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'mcode-exec-shutdown-'));
+    const root = await mkdtemp(join(tmpdir(), 'alran-exec-shutdown-'));
     try {
       const stdout = vi.fn();
       const lastMessage = join(root, 'last-message.txt');
@@ -607,7 +607,7 @@ describe('runTuiExec', () => {
     expect(runtime.createSession).not.toHaveBeenCalled();
     expect(runtime.sendMessage).not.toHaveBeenCalled();
     expect(stderr).toHaveBeenCalledWith(
-      'mcode exec failed: Sign in to MiniMax to use Agent features. Run `mcode login`, then retry.\n',
+      'alran exec failed: Sign in to Alran to use Agent features. Run `alran login`, then retry.\n',
     );
   });
 
@@ -822,7 +822,7 @@ describe('runTuiExec', () => {
     const runtime = runtimeWith();
     runtime.listModels.mockResolvedValue([
       {
-        providerId: 'minimax',
+        providerId: 'alran',
         modelId: 'Official-M4',
         selected: true,
         variant: '',
@@ -837,7 +837,7 @@ describe('runTuiExec', () => {
           prompt: 'Fix it',
           workspaceDir: '/tmp/workspace',
           version: '0.1.0',
-          model: 'minimax/Official-M4',
+          model: 'alran/Official-M4',
           effort: 'high',
         },
         { runtime, stdout: vi.fn(), stderr, shutdown: async () => undefined },

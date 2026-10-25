@@ -61,7 +61,7 @@ Use the three-question test to decide where the skill lives:
 
 - **Will the answer change for a different user?** → User skill (`{{DATA_DIR}}/skills/`)
 - **Does it hold true across projects?** → Agent skill (`{{DATA_DIR}}/agents/<name>/skills/`)
-- **Only relevant to the current project?** → Project skill (`<repo>/.minimax/skills/` — the native workspace skill root; existing workspace skill roots also work)
+- **Only relevant to the current project?** → Project skill (`<repo>/.alran/skills/` — the native workspace skill root; existing workspace skill roots also work)
 
 3. Capture the reusable workflow from the lightest source available.
 
@@ -89,7 +89,7 @@ Write the skill into the location determined in step 2:
 ```
 {{DATA_DIR}}/skills/<skill-name>/
 {{DATA_DIR}}/agents/<agent-name>/skills/<skill-name>/
-<repo>/.minimax/skills/<skill-name>/
+<repo>/.alran/skills/<skill-name>/
 ```
 
 Use this structure only when needed:

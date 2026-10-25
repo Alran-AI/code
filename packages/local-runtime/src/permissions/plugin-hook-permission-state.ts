@@ -23,7 +23,7 @@ export function validateRuntimeModes(input: LocalPluginHookPermissionMutationInp
     if (update.type !== 'setMode') continue;
     if (update.mode === 'plan') {
       throw new LocalPluginHookPermissionMutationError(
-        'Plugin Hook setMode(plan) is not supported because MiniMax Plan mode has a separate Turn lifecycle.',
+        'Plugin Hook setMode(plan) is not supported because Alran Plan mode has a separate Turn lifecycle.',
         'UNSUPPORTED_MODE',
       );
     }

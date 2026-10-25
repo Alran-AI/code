@@ -17,12 +17,12 @@ export const MARKETPLACE_CATEGORY_NAMES = [
 export type MarketplaceCategoryName = (typeof MARKETPLACE_CATEGORY_NAMES)[number];
 export type PluginPackageSource =
   | 'OFFICIAL'
-  | 'LOCAL_MINIMAX'
+  | 'LOCAL_ALRAN'
   | 'LOCAL_AGENT_PLUGIN'
   | 'LOCAL_\u0043\u004c\u0041\u0055\u0044\u0045'
   | 'LOCAL_CODEX';
 type PluginManifestKind =
-  | 'MINIMAX'
+  | 'ALRAN'
   | 'AGENT_PLUGINS_V1'
   | '\u0043\u004c\u0041\u0055\u0044\u0045_CODE'
   | 'CODEX';
@@ -67,7 +67,7 @@ interface PluginHostCapabilityReference {
 }
 
 /**
- * Declarative request for a MiniMax Plugin to reuse a Host-owned capability.
+ * Declarative request for a Alran Plugin to reuse a Host-owned capability.
  * The package supplies no executable implementation and receives no permission
  * by declaring this record; resolution remains a Host policy decision.
  */

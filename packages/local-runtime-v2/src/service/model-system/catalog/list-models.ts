@@ -16,24 +16,24 @@ import {
   formatModelKey,
   parseProviderId,
 } from '../resolution/model-key.js';
-import { MANAGED_MINIMAX_PROVIDER_ID, MINIMAX_API_PROVIDER_ID } from '../identity.js';
+import { MANAGED_ALRAN_PROVIDER_ID, ALRAN_API_PROVIDER_ID } from '../identity.js';
 import { type ModelCacheData, type ModelCacheStatusEntry } from './model-cache.js';
 import { byokModelTestStatus } from './config-fingerprint.js';
 import {
-  MINIMAX_API_DEFAULT_BASE_URL,
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
-} from './minimax-api.js';
+  ALRAN_API_DEFAULT_BASE_URL,
+  ALRAN_API_FORMAT,
+  ALRAN_API_PROVIDER_NAME,
+  alranApiBaseUrl,
+  alranApiModels,
+} from './alran-api.js';
 import { normalizeModelThinkingEffortOptions } from '../resolution/model-ref.js';
 
 export {
-  MINIMAX_API_DEFAULT_BASE_URL,
-  MINIMAX_API_FORMAT,
-  MINIMAX_API_PROVIDER_NAME,
-  minimaxApiBaseUrl,
-  minimaxApiModels,
+  ALRAN_API_DEFAULT_BASE_URL,
+  ALRAN_API_FORMAT,
+  ALRAN_API_PROVIDER_NAME,
+  alranApiBaseUrl,
+  alranApiModels,
 };
 export type {
   ModelCacheStatusView,
@@ -64,13 +64,13 @@ export function builtinProviderKind(
   }).authMode;
   if (authMode === 'oauth') return 'oauth';
   return authMode === 'managed-login' &&
-    !(providerId === MANAGED_MINIMAX_PROVIDER_ID && config.minimaxModelSource === 'minimax_api_key')
-    ? 'minimax-managed'
-    : 'minimax-api-key';
+    !(providerId === MANAGED_ALRAN_PROVIDER_ID && config.alranModelSource === 'alran_api_key')
+    ? 'alran-managed'
+    : 'alran-api-key';
 }
 
-export function hasMinimaxApiKey(config: LocalRuntimeConfig): boolean {
-  return Boolean(config.minimax_api?.apiKey?.trim());
+export function hasAlranApiKey(config: LocalRuntimeConfig): boolean {
+  return Boolean(config.alran_api?.apiKey?.trim());
 }
 
 /** Models the builtin provider can route under the active runtime preset. */
@@ -79,11 +79,11 @@ export function routeModelEntries(
   providerId: string,
   provider: LocalProviderConfig,
 ): Array<[string, LocalModelConfig]> {
-  const usesMinimaxApiCatalog =
-    providerId === MINIMAX_API_PROVIDER_ID ||
-    (providerId === MANAGED_MINIMAX_PROVIDER_ID && config.minimaxModelSource === 'minimax_api_key');
-  const configured = usesMinimaxApiCatalog ? minimaxApiModels(config) : (provider.models ?? {});
-  const fallback = providerId === MANAGED_MINIMAX_PROVIDER_ID ? minimaxApiModels(config) : {};
+  const usesAlranApiCatalog =
+    providerId === ALRAN_API_PROVIDER_ID ||
+    (providerId === MANAGED_ALRAN_PROVIDER_ID && config.alranModelSource === 'alran_api_key');
+  const configured = usesAlranApiCatalog ? alranApiModels(config) : (provider.models ?? {});
+  const fallback = providerId === MANAGED_ALRAN_PROVIDER_ID ? alranApiModels(config) : {};
   return listRouteModelIds(config, providerId, getRuntimePresetKey()).flatMap((modelId) => {
     const model = configured[modelId] ?? fallback[modelId];
     return model ? [[modelId, model] as [string, LocalModelConfig]] : [];
@@ -97,10 +97,10 @@ export function modelConfigForRef(
 ): LocalModelConfig | undefined {
   const parsed = parseProviderId(provider);
   if (
-    parsed?.source === 'minimax_api' ||
-    (provider === MANAGED_MINIMAX_PROVIDER_ID && config.minimaxModelSource === 'minimax_api_key')
+    parsed?.source === 'alran_api' ||
+    (provider === MANAGED_ALRAN_PROVIDER_ID && config.alranModelSource === 'alran_api_key')
   ) {
-    return minimaxApiModels(config)[modelId];
+    return alranApiModels(config)[modelId];
   }
   if (parsed?.source === 'custom_provider') {
     return config.custom_provider?.[parsed.providerKey]?.models?.[modelId];
@@ -212,7 +212,7 @@ export function buildModelEntry(input: BuildModelEntryInput): ModelProviderModel
     ...(input.apiFormat ? { apiFormat: input.apiFormat } : {}),
     ...modelLimitFields(model),
     ...modelContextWindowOptionHintFields(input),
-    ...modelCapabilityFields(model, input.providerKind === 'minimax-managed'),
+    ...modelCapabilityFields(model, input.providerKind === 'alran-managed'),
     ...modelThinkingFields(input),
     ...modelStatusFields(input.status),
   };
@@ -221,7 +221,7 @@ export function buildModelEntry(input: BuildModelEntryInput): ModelProviderModel
 function modelContextWindowOptionHintFields(
   input: BuildModelEntryInput,
 ): Partial<ModelProviderModelEntry> {
-  if (input.providerKind !== 'minimax-managed') return {};
+  if (input.providerKind !== 'alran-managed') return {};
   const contextWindowOptions = normalizeContextWindowOptions(
     input.model.contextWindowOptions,
     undefined,
@@ -382,7 +382,7 @@ export interface ByokModelSelection {
  * Models contributed by enabled custom providers. Entries mirror the builtin
  * model list shape plus source metadata and cached test status.
  *
- * Note: minimax_api models are no longer listed separately — minimax builtin
+ * Note: alran_api models are no longer listed separately — alran builtin
  * models cover the same catalog, and source routing is handled by the resolver.
  */
 export function listByokRuntimeModels(

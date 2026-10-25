@@ -14,13 +14,13 @@ const PUBLIC_GATEWAY_ORIGINS: Readonly<
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
     staging: 'https://matrix-pre.example.invalid',
-    prod: 'https://agent.minimaxi.com',
+    prod: 'https://api.ottili.one',
   },
   en: {
     dev: 'https://matrix-overseas-test.example.invalid',
     test: 'https://matrix-overseas-test.example.invalid',
     staging: 'https://matrix-overseas-pre.example.invalid',
-    prod: 'https://agent.minimax.io',
+    prod: 'https://api.ottili.one',
   },
 };
 
@@ -59,13 +59,13 @@ export function createPublicGatewayRequest(input: {
     lang: language,
     device_id: '0',
     os_name: process.platform,
-    browser_name: 'mcode',
+    browser_name: 'alran',
     user_id: input.realUserID.trim(),
-    client: 'mcode',
+    client: 'alran',
   }).toString();
   // `yy` / `x-timestamp` / `x-signature` below are client attribution headers built
   // from two inline literals. Those literals tag a request as coming from a
-  // first-party MiniMax client. They are shared across clients and are not
+  // first-party Alran client. They are shared across clients and are not
   // credentials or a security boundary: request authorization is the
   // `Authorization: Bearer` token sent on the same request.
   //
@@ -81,7 +81,7 @@ export function createPublicGatewayRequest(input: {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'User-Agent': 'MiniMaxCode',
+      'User-Agent': 'AlranCode',
       Authorization: `Bearer ${input.token}`,
       yy: md5(`${encodeURIComponent(pathWithSearch)}_${yyBody}${md5(String(input.nowMs))}ooui`),
       'x-timestamp': String(second),

@@ -710,44 +710,44 @@ export class CliService {
     ).cancelCodexOAuthLogin(loginId);
   }
 
-  getMiniMaxApiKeyStatus() {
+  getAlranApiKeyStatus() {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).getMiniMaxApiKeyStatus();
+    ).getAlranApiKeyStatus();
   }
 
-  getMiniMaxModelSource() {
+  getAlranModelSource() {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).getMiniMaxModelSource();
+    ).getAlranModelSource();
   }
 
-  setMiniMaxModelSource(
+  setAlranModelSource(
     input: Parameters<
       NonNullable<
         LocalRuntimeApplication["modelProviders"]
-      >["setMiniMaxModelSource"]
+      >["setAlranModelSource"]
     >[0],
   ) {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).setMiniMaxModelSource(input);
+    ).setAlranModelSource(input);
   }
 
-  upsertMiniMaxApiKey(
+  upsertAlranApiKey(
     input: Parameters<
       NonNullable<
         LocalRuntimeApplication["modelProviders"]
-      >["upsertMiniMaxApiKey"]
+      >["upsertAlranApiKey"]
     >[0],
   ) {
     return this.requireCapability(
       "modelProviders",
       "Model Provider",
-    ).upsertMiniMaxApiKey(input);
+    ).upsertAlranApiKey(input);
   }
 
   createUserModelProvider(

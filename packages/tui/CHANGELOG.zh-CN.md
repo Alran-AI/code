@@ -1,6 +1,6 @@
-# MCode TUI 更新日志
+# Alran TUI 更新日志
 
-这里记录 MCode
+这里记录 Alran
 TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用户影响为准，而不是以代码目录为准：
 
 - TUI 本身的功能、交互、显示、兼容性、安装和更新变化；
@@ -29,7 +29,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 启动时可通过 `--system-prompt`、`--system-prompt-file` 替换主 Agent 的系统提示词，或通过 `--append-system-prompt`、`--append-system-prompt-file` 追加内容；交互式 TUI、`exec`、`exec review` 和 ACP 均支持。
 - 替换与追加可同时使用，只对当前进程生效，保留运行规则和项目指令，不影响 Task 子 Agent。提示词文件缺失或为空时直接终止启动，不会在缺少该内容的情况下继续运行。
 - 可用 `--mode lightweight` 以轻量对话模式创建新会话：只发送精简的对话系统提示词，不发送工具 schema，并省略工作区指令、Skills、memory 块和 MCP schema，因此不能检查或修改本地文件。模式在根会话创建时固定，不能与 `--session` 或 `--continue` 同时使用；子 Agent、`/compact` 与 ACP 仍使用标准上下文。重新打开轻量会话时保留该模式，并在状态栏显示 `Lightweight`。
-- 每次模型请求新增首个响应时限与流空闲时限，默认各 300 秒。超过时限的请求会中止并按可重试超时处理，走常规模型请求重试，不再一直等待始终不响应的 Provider。可用 `MCODE_LLM_FIRST_EVENT_TIMEOUT_MS` 和 `MCODE_LLM_STREAM_IDLE_TIMEOUT_MS` 以毫秒覆盖，设为 `0` 表示关闭。
+- 每次模型请求新增首个响应时限与流空闲时限，默认各 300 秒。超过时限的请求会中止并按可重试超时处理，走常规模型请求重试，不再一直等待始终不响应的 Provider。可用 `ALRAN_LLM_FIRST_EVENT_TIMEOUT_MS` 和 `ALRAN_LLM_STREAM_IDLE_TIMEOUT_MS` 以毫秒覆盖，设为 `0` 表示关闭。
 
 ### 体验改进
 
@@ -64,7 +64,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 体验改进
 
-- 未选择模型时，官方默认模型改为 `MiniMax-M3.1-Flash-Preview`。
+- 未选择模型时，官方默认模型改为 `Alran-M3.1-Flash-Preview`。
 - Goal 标记完成后，Agent 会再写一条最终回复，说明完成了什么、交付物在哪里，不再在状态更新后直接结束。
 - 模型提供方的安全拒答不再重试（BYOK 同样适用），直接展示原始错误，并标识为模型提供方拒答。
 - 模型请求中出现 TLS 记录校验错误时，会和其他临时网络故障一样自动重试。
@@ -95,7 +95,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 - BYOK 请求对大体积媒体和累积的历史上下文增加字节上限，减少请求体过大导致的问题。
 - 长对话的文件列表和历史导航读取更少数据，浏览更快。
-- MiniMax API Key 路线改为与登录账号路线共用官方模型列表。
+- Alran API Key 路线改为与登录账号路线共用官方模型列表。
 
 ### 问题修复
 
@@ -135,7 +135,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增功能
 
-- 终端标题显示当前状态、会话名称和 MCode，例如 `Needs approval | Fix login | MCode`，并随会话重命名和切换更新。回合完成、失败、权限请求和提问的通知会标明所属会话并去重；完成通知会等待该会话的排队消息执行完毕。可在 `config.yaml` 中通过 `tui.terminalTitle` 和 `tui.notifications` 配置。
+- 终端标题显示当前状态、会话名称和 Alran，例如 `Needs approval | Fix login | Alran`，并随会话重命名和切换更新。回合完成、失败、权限请求和提问的通知会标明所属会话并去重；完成通知会等待该会话的排队消息执行完毕。可在 `config.yaml` 中通过 `tui.terminalTitle` 和 `tui.notifications` 配置。
 
 ### 体验改进
 
@@ -167,7 +167,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - Bash 工具按实际 Shell 和本轮后台能力提供指引；托管前台命令最多等待 60 秒后返回任务 ID，前台与后台共用同一命令截止时间。
 - 大量 Bash 输出保留首尾内容，分别报告进程结果与输出持久化状态，并限制后台任务回执长度。
 - `/theme` 使用左右方向键切换浅色、自动和深色外观；自定义主题监听启动时会主动同步，减少保存后未立即生效的情况。
-- 工作区 Skill 目录（`.agents/skills`、`.claude/skills`、`.minimax/skills`）支持指向其他位置的符号链接，并监听链接目录内的新增和修改。
+- 工作区 Skill 目录（`.agents/skills`、`.claude/skills`、`.alran/skills`）支持指向其他位置的符号链接，并监听链接目录内的新增和修改。
 
 ### 问题修复
 
@@ -182,7 +182,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增功能
 
-- 新增 `/theme` 主题面板，支持实时预览切换。可在 `minimax`、`midnight`、`graphite`、`aurora` 等内置主题中选择，也可以自己在 `tui/themes/*.json` 下编写主题文件。每个主题都提供深色和浅色两套配色，默认跟随终端背景自动切换，也可以锁定明暗。
+- 新增 `/theme` 主题面板，支持实时预览切换。可在 `alran`、`midnight`、`graphite`、`aurora` 等内置主题中选择，也可以自己在 `tui/themes/*.json` 下编写主题文件。每个主题都提供深色和浅色两套配色，默认跟随终端背景自动切换，也可以锁定明暗。
 - 自定义主题文件支持局部覆盖、颜色别名和语法色板，并支持热重载：正在使用的主题改完保存即生效，无需重启。
 - 主题选择保存在 `tui/tui-settings.json`，与 `tuiMode` 共用同一份文件，也可以写成 `<主题ID>/light` 或 `<主题ID>/dark` 锁定外观。无法识别的值会回退到默认主题，不会阻断启动。
 
@@ -212,7 +212,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 修复工具执行期间 `/btw` 侧会话创建失败的问题。
 - 修复部分终端粘贴多行文本时逐行意外提交的问题。
 - 修复重绘时输入法候选框偏离输入框（包括 Windows 终端），以及历史内容变化后残留旧行的问题。
-- 使用自定义 Provider 或 API Key 的本地会话处理标题时，不再依赖托管账号登录；所选自定义 Provider 不需要 MiniMax 账号时，欢迎页也不再提示登录。
+- 使用自定义 Provider 或 API Key 的本地会话处理标题时，不再依赖托管账号登录；所选自定义 Provider 不需要 Alran 账号时，欢迎页也不再提示登录。
 - Z.AI 与智谱 Coding Plan 端点的 Token 估算不再因计数请求失败而退回本地近似值。
 - Memory 编辑内容中的 `$&`、`$$` 等序列会按原文写入。
 
@@ -220,17 +220,17 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增功能
 
-- 交互模式支持 `mcode -m <provider/model>`，为当前会话指定模型。
+- 交互模式支持 `alran -m <provider/model>`，为当前会话指定模型。
 - Provider 配置支持显式声明上下文和输出上限、图片输入能力（`--support-image`），并通过 `--use` 在保存前测试模型。
 - ACP 客户端可在原生命令之外，发现当前会话 Agent 和工作区中已启用的 Skill。
 - 全屏对话记录支持点击和拖动滚动条；状态栏可选 `context-meter`，显示剩余上下文刻度。
-- 每个 GitHub Release 都附带带版本号的 npm 安装包 `minimax-code-X.Y.Z.tar.gz` 及 `.sha256` 校验文件。
+- 每个 GitHub Release 都附带带版本号的 npm 安装包 `alran-code-X.Y.Z.tar.gz` 及 `.sha256` 校验文件。
 
 ### 体验改进
 
 - 减少长对话中重复的历史处理和 Token 估算。
 - Provider 预设会导入其明确声明的推理强度选项。
-- 源码构建的默认数据目录改为 `~/.minimax`，与已发布的 npm CLI 一致。原先默认的 `~/.minimax-code` 中的数据不会被迁移；如需继续使用，请设置 `MINIMAX_DATA_DIR`。
+- 源码构建的默认数据目录改为 `~/.alran`，与已发布的 npm CLI 一致。原先默认的 `~/.alran-code` 中的数据不会被迁移；如需继续使用，请设置 `ALRAN_DATA_DIR`。
 - 自动上传指标和诊断信息默认关闭，需要单独同意；同时遵循全局退出设置。
 
 ### 问题修复
@@ -243,7 +243,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 内容审核失败会如实报告，不再误报为网络连接问题。
 - 上下文压缩后重新计算上下文用量，不再显示压缩前的数值。
 - Bash 的拒绝和询问规则同样匹配带 `nohup`、`timeout` 等透明包装前缀的命令。
-- 模型输出中的终端控制序列会在显示前清理；读取 MCode 私有运行数据需要授权。
+- 模型输出中的终端控制序列会在显示前清理；读取 Alran 私有运行数据需要授权。
 - 可能包含凭据的配置文件仅限所有者访问。
 - `replace_all` 编辑保留字面 `$` 序列。
 - 会话 diff 按目标路径报告重命名文件，并保留 Unicode 路径。
@@ -282,7 +282,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增
 
-- `mcode exec` 和 `mcode exec review` 支持通过 `--effort` 指定本次运行的思考强度；不支持的档位会在执行前报错，且不会改写会话已保存的强度。
+- `alran exec` 和 `alran exec review` 支持通过 `--effort` 指定本次运行的思考强度；不支持的档位会在执行前报错，且不会改写会话已保存的强度。
 
 ### 修复
 
@@ -313,7 +313,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增
 
-- 非交互执行支持通过 `mcode exec --prompt-mode tui|coding|work`
+- 非交互执行支持通过 `alran exec --prompt-mode tui|coding|work`
   选择终端、编程或通用工作指令，默认仍为终端模式。
 
 ### 改进
@@ -396,7 +396,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增
 
-- 支持通过 `/review` 或 `mcode exec review` 审查本地代码变更，审查结果附带文件位置。
+- 支持通过 `/review` 或 `alran exec review` 审查本地代码变更，审查结果附带文件位置。
 - 支持以 `!` 执行 Shell 命令、以 `!!` 将结果保留在本地，并通过 Tab 补全命令和路径。
 - 支持通过 `/statusline` 交互配置状态栏并即时生效，也可展示自定义命令输出。
 
@@ -438,7 +438,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - `/status`
   补齐运行版本、账号与套餐、指令文件来源、Default/Plan 切换状态，以及 5 小时和每周额度的剩余比例与重置倒计时。
 - 状态面板采用紧凑布局，长路径自动换行；账号信息加载中或查询失败时，仍可查看本地配置。
-- `/logout` 和 `mcode logout`
+- `/logout` 和 `alran logout`
   会打印完整的浏览器登出链接，并打开当前地区和环境对应的登出页。开发机或无图形界面环境可复制链接手动打开，命令完成无需等待浏览器或页面结果。
 
 ### 问题修复
@@ -464,9 +464,9 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 问题修复
 
-- 与 MiniMax 桌面端共用数据目录时，官方模型地址改为在 TUI 内按当前环境解析：读取配置和首次初始化不再向共享配置文件写入新的官方地址，避免影响旧版桌面端；自定义（BYOK）服务地址行为不变。
+- 与 Alran 桌面端共用数据目录时，官方模型地址改为在 TUI 内按当前环境解析：读取配置和首次初始化不再向共享配置文件写入新的官方地址，避免影响旧版桌面端；自定义（BYOK）服务地址行为不变。
 - 遗留模型自动恢复扩展到编号模型别名和已下线的默认模型，并统一覆盖模型列表、Goal模型校验和登录检查：指向旧官方网关的模型选择依次解析为官方同名模型、配置默认模型和当前官方默认模型；共享默认模型、会话模型引用和迁移记录保持不变，仅用户主动选择模型才会写回配置。
-- 修复 npm 12 下安装或更新导致 SQLite 原生模块损坏的问题：安装和更新会授权 MCode 与 `better-sqlite3`
+- 修复 npm 12 下安装或更新导致 SQLite 原生模块损坏的问题：安装和更新会授权 Alran 与 `better-sqlite3`
   的安装脚本并保留可选原生依赖；原生模块加载失败时，启动会按安装来源给出对应的修复命令，启动早期错误也会如实报告而不是静默失败。
 
 ## 0.3.5 · 2026-09-07
@@ -476,7 +476,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 旧版自定义渠道模型的自动修复从启动时扩展到恢复会话和排队消息:遗留模型选择会切换为官方渠道同名模型,同名模型不可用时使用官方默认模型,并保存到对应会话或默认配置;模型列表不再显示遗留渠道入口。
 - 响应失败或被停止后,尚未执行的排队消息会保留并显示暂停状态。运行 `/queue` 后按 `c`
   可从队首继续,也可以编辑、恢复或删除待发送消息;暂停期间发送新消息时,可选择先发送新消息再继续原队列,或先清空待发送消息,取消则保留草稿。重新打开会话会显示暂停队列,等待主动继续。
-- TUI 内更新改用 MCode 自带的 Node 运行 npm,并在激活前用同一运行时校验新版本的原生模块,修复系统 Node 版本不同导致更新后无法启动的问题;校验失败时保持旧版本可用。
+- TUI 内更新改用 Alran 自带的 Node 运行 npm,并在激活前用同一运行时校验新版本的原生模块,修复系统 Node 版本不同导致更新后无法启动的问题;校验失败时保持旧版本可用。
 - macOS/Linux 安装器将所选 Node 解析为真实路径,统一用于安装、启动器和安装回执,重跑时按该运行时检查原生模块;同版本安装损坏时自动进入修复安装,无需手动清理安装目录。
 
 ## 0.3.4 · 2026-09-06
@@ -532,9 +532,9 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增功能
 
-- TUI 与 Desktop 统一使用 Shared OAuth Core 管理同一账号登录态；Runtime 与内嵌 `mcode-tools`
+- TUI 与 Desktop 统一使用 Shared OAuth Core 管理同一账号登录态；Runtime 与内嵌 `alran-tools`
   只消费短期 Access Token lease，不读取 Refresh Token。
-- 受管 `mcode-tools` launcher 启用前会校验 version lock、package identity、lease protocol 和 CLI
+- 受管 `alran-tools` launcher 启用前会校验 version lock、package identity、lease protocol 和 CLI
   SHA-256；任一校验失败都保持 fail-closed。
 - 新增统一 `/tasks` 任务中心，集中展示 Agent
   Team 和 Runtime 后台任务；Composer 上方使用按严重程度排序的紧凑摘要，并可进一步查看子 Session
@@ -546,13 +546,13 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 ### 体验改进
 
 - 内部 test / staging 构建支持显式全局参数 `--lane <name>`
-  进行 OAuth 联调；prod 构建拒绝该参数，MCode 也不会从环境变量隐式读取 lane。
+  进行 OAuth 联调；prod 构建拒绝该参数，Alran 也不会从环境变量隐式读取 lane。
 - Composer 会在提交前区分 Prompt、Command 和 Skill 输入，展示本地化空状态提示，并将无参数 slash 命令后跟随正文的整句按普通提示词发送。
 - Provider 配置支持更完整的 models.dev 搜索、更清晰的模型浏览和更安全的 API Key 编辑。
 - Queue 和 Steer 在暂停、取消、恢复和后续消息交付期间会持续与当前 Turn 对齐。
 - 模型重试、Goal 完成和上下文压缩会展示更清晰的进度与实际 Provider token 用量；Plan
   Review 正文保持在 Transcript 中可滚动查看。
-- 安装 MCode 后无需启动 TUI 即可使用受管 `mcode-tools` 命令，更新时会保持包自有 launcher 干净。
+- 安装 Alran 后无需启动 TUI 即可使用受管 `alran-tools` 命令，更新时会保持包自有 launcher 干净。
 
 ### 问题修复
 
@@ -596,7 +596,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 ### 问题修复
 
 - 修复剩余使用额度显示小数的问题，按实际积分单位统一显示为整数。
-- 修复启动首帧保留旧 Shell 提示符的问题，进入 MCode 时会先刷新当前终端画面。
+- 修复启动首帧保留旧 Shell 提示符的问题，进入 Alran 时会先刷新当前终端画面。
 
 ## 0.2.5 · 2026-08-27
 
@@ -638,7 +638,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
   verifier 等子任务的显式模型路由被 Agent 配置覆盖的问题。
 - 修复旧版本遗留的 `main` / `mavis` Agent 数据可能导致 Runtime 启动失败的问题。
 - 修复 `/fork` 在当前仓库无法安全创建隔离 worktree 时仍展示该选项、选择后才失败的问题。
-- 修复 MiniMax Plugin Hook 收到错误的 Tool 名称或输入结构，导致 Hook 匹配和输入改写失效的问题。
+- 修复 Alran Plugin Hook 收到错误的 Tool 名称或输入结构，导致 Hook 匹配和输入改写失效的问题。
 - 修复内置 Matrix 工具访问受管服务时使用错误鉴权方式的问题。
 - 修复安装或更新重复执行、下载中断或激活失败时可能留下不完整版本的问题，并支持从事务记录恢复。
 
@@ -646,12 +646,12 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 新增功能
 
-- `mcode acp` 扩展 Session 控制面，支持 Session
+- `alran acp` 扩展 Session 控制面，支持 Session
   fork、模式与配置切换、队列/Steer、Goal 和 delegation，并在连接重绑、取消和权限/问卷交互中保持状态归属一致。
 - 安装后的 Plugin Skills 可以直接通过 `/` 搜索和调用。
 - 支持兼容 Plugin 格式的生命周期 Hooks，并补齐 Runtime 侧的兼容性处理。
 - Goal 支持运行时预算、自动结算和独立验证；Ask 等待自动继续时会展示倒计时。
-- `mcode exec` 补齐自动化场景的结构化事件与输出。
+- `alran exec` 补齐自动化场景的结构化事件与输出。
 - 可以按 Ctrl+U 接续最近一个 Codex Session。
 
 ### 体验改进
@@ -692,14 +692,14 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - Ctrl+C 退出确认改为“再次按键即退出”的 armed 状态，清空 Draft 后可用 Ctrl+Z 恢复，不再受固定 500ms 窗口限制。
 - 优化了启动性能，非启动项依赖滞后启动
 
-- MiniMax
+- Alran
   Code 产品知识 Skill 改为首层路由，携带可信 region 上下文并按 account、Agent、extension、workflow 等主题加载对应参考资料。
 
 ### 问题修复
 
 - 修复 Turn 内发生压缩后历史收口仍引用过期身份的问题，避免长会话继续执行时状态对账错误。
 - 修复 `tool_trim` 持久化改写用户消息导致 Turn 失败的问题，保留原始用户 payload。
-- 修复 `mcode update` 在 npm 返回单元素版本数组时的解析问题。
+- 修复 `alran update` 在 npm 返回单元素版本数组时的解析问题。
 - 修复运行结果、Agent Team 和 Runtime 事件在重连、重复或乱序到达时的结算一致性问题。
 
 ## 0.2.2 · 2026-08-21
@@ -711,7 +711,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 体验改进
 
-- `/update` 在有多个 MCode
+- `/update` 在有多个 Alran
   session 运行时会显示实际阻塞数量，并持续等待旧进程安全退出后再激活，避免更新因固定超时停在中间状态。
 - Slash
   Review 在上下文预算不足时自动切换到紧凑的 Git 自发现 Prompt，保留 Review 结果和恢复路径，长会话更不容易因输入过大失败。
@@ -771,7 +771,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 修复后台 Subagent 完成后复用上一条 Query 的折叠状态和计时，以及 `/review`
   排队消息来源与气泡无法正确对账的问题。
 - 修复开启加速索引时，已经失效的 Workspace 阻断当前 Session 继续发送的问题。
-- 修复 Windows 本地文件工具的 Read-Before-Write 路径身份不一致，以及 PowerShell 将 `mcode.ps1`
+- 修复 Windows 本地文件工具的 Read-Before-Write 路径身份不一致，以及 PowerShell 将 `alran.ps1`
   解析为启动器时被安装器误判失败的问题。
 - 修复 `/update` 在 npm prefix 内原地覆盖导致 native
   module 锁冲突的问题，更新改为隔离 staging 后原子切换。
@@ -812,9 +812,9 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 - 新增 `/goal`，可以在 TUI 中创建、查看和管理当前 Session
   Goal，并查看目标状态、进度和耗时；Goal 语义与 Desktop 和 Runtime 保持一致。
-- 新增 Plugin 管理：`mcode plugin` 和交互式 Plugin
+- 新增 Plugin 管理：`alran plugin` 和交互式 Plugin
   manager 支持浏览官方与本地来源、安装、启用、停用和移除 Plugin。
-- 完善 `/provider` 与 `/model`：可以查看和测试 Provider，在 MiniMax OAuth 与 API
+- 完善 `/provider` 与 `/model`：可以查看和测试 Provider，在 Alran OAuth 与 API
   Key 之间切换，并选择模型和推理强度；当前模型与推理档位会同步显示在状态栏和 `/status` 中。
 - 完善 ACP 与持续协作：支持持久化 Session 的列举、加载、恢复和关闭；运行中可以 Queue 后续消息并 steer 当前 Draft 或下一条排队消息，`/new`
   不再破坏 Session 的对应关系。
@@ -830,7 +830,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 ### 问题修复
 
 - 修复拖拽选区滚动时的复制错位，以及 Queue 消息延迟上屏的问题。
-- 修复启用 `mcode-tools` 开关后内置 Matrix 工具被错误裁剪的问题。
+- 修复启用 `alran-tools` 开关后内置 Matrix 工具被错误裁剪的问题。
 - 修复 Windows 与 WSL 图片粘贴，以及 TUI 生成文件路径展示中的兼容性问题。
 
 ## 0.1.3 · 2026-08-17
@@ -839,7 +839,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 - 通过 ACP 接入编辑器时，可以在重启后重新打开或继续之前的 Session，并修复 `/new`
   可能导致的 Session 错乱。
-- `mcode exec` 的 JSON 输出会携带实际使用的模型信息，方便统计用量。
+- `alran exec` 的 JSON 输出会携带实际使用的模型信息，方便统计用量。
 - 新增 `/copy`
   命令，将最近一条 Assistant 回复复制到系统剪贴板并保留 Markdown 格式；没有可复制回复或剪贴板不可用时，会给出明确提示和手动复制路径。
 
@@ -850,6 +850,6 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 
 ### 问题修复
 
-- 使用 MiniMax API Key 时，未登录状态也能正常开始对话。
+- 使用 Alran API Key 时，未登录状态也能正常开始对话。
 - 修复交付文件路径后粘连额外文本，以及输入框光标和边框频繁闪烁的问题。
 - 改进 WSL 登录和 Windows PowerShell 安装器的兼容性。

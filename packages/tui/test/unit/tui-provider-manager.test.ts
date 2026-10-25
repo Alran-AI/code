@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { stripAnsi } from "../../src/tui/rendering/text.js";
 import { TuiProviderManager } from "../../src/tui/features/provider/manager.js";
-import type { McodeProviderSnapshot } from "../../src/provider/contract.js";
+import type { AlranProviderSnapshot } from "../../src/provider/contract.js";
 
-const snapshot: McodeProviderSnapshot = {
-  minimaxModelSource: "token_plan",
+const snapshot: AlranProviderSnapshot = {
+  alranModelSource: "token_plan",
   providers: [
     {
-      providerId: "minimax_oauth",
-      name: "MiniMax OAuth",
-      kind: "minimax-oauth",
+      providerId: "alran_oauth",
+      name: "Alran OAuth",
+      kind: "alran-oauth",
       active: true,
       enabled: true,
       readOnly: true,
@@ -17,9 +17,9 @@ const snapshot: McodeProviderSnapshot = {
       models: [],
     },
     {
-      providerId: "minimax_api",
-      name: "MiniMax API Key",
-      kind: "minimax-api-key",
+      providerId: "alran_api",
+      name: "Alran API Key",
+      kind: "alran-api-key",
       active: false,
       enabled: true,
       readOnly: false,
@@ -43,7 +43,7 @@ const snapshot: McodeProviderSnapshot = {
   ],
 };
 
-const snapshotWithCodex: McodeProviderSnapshot = {
+const snapshotWithCodex: AlranProviderSnapshot = {
   ...snapshot,
   providers: [
     {
@@ -62,18 +62,18 @@ const snapshotWithCodex: McodeProviderSnapshot = {
 };
 
 function withSource(
-  source: "token_plan" | "minimax_api_key",
-): McodeProviderSnapshot {
+  source: "token_plan" | "alran_api_key",
+): AlranProviderSnapshot {
   return {
     ...snapshot,
-    minimaxModelSource: source,
+    alranModelSource: source,
     providers: snapshot.providers.map((provider) =>
-      provider.providerId === "minimax_oauth"
+      provider.providerId === "alran_oauth"
         ? { ...provider, active: source === "token_plan" }
-        : provider.providerId === "minimax_api"
+        : provider.providerId === "alran_api"
           ? {
               ...provider,
-              active: source === "minimax_api_key",
+              active: source === "alran_api_key",
               hasApiKey: true,
             }
           : provider,
@@ -91,8 +91,8 @@ function createManager(
       success: true,
       status: { state: "available" },
     })),
-    onSetMiniMaxApiKey: vi.fn(async () => undefined),
-    onSetMiniMaxSource: vi.fn(async () => undefined),
+    onSetAlranApiKey: vi.fn(async () => undefined),
+    onSetAlranSource: vi.fn(async () => undefined),
     onCancel: vi.fn(),
     requestRender: vi.fn(),
     ...overrides,
@@ -126,7 +126,7 @@ describe("TuiProviderManager", () => {
       providerId: "openai-codex" as const,
       authUrl: "https://auth.openai.example/authorize",
     }));
-    const pendingSnapshot: McodeProviderSnapshot = {
+    const pendingSnapshot: AlranProviderSnapshot = {
       ...snapshotWithCodex,
       providers: snapshotWithCodex.providers.map((provider) =>
         provider.kind === "codex-oauth"
@@ -158,9 +158,9 @@ describe("TuiProviderManager", () => {
     const rendered = stripAnsi(createManager().render(84).join("\n"));
 
     expect(rendered).toContain("Providers");
-    expect(rendered).toContain("MiniMax OAuth");
+    expect(rendered).toContain("Alran OAuth");
     expect(rendered).toContain("Active · Token Plan");
-    expect(rendered).toContain("MiniMax API Key");
+    expect(rendered).toContain("Alran API Key");
     expect(rendered).toContain("OpenAI");
     expect(rendered).toContain(
       "Sign-in managed by /login · Space to use · e to sign in again",
@@ -171,65 +171,65 @@ describe("TuiProviderManager", () => {
     expect(rendered).not.toContain("d delete");
   });
 
-  it("switches from MiniMax API Key back to MiniMax OAuth with space", async () => {
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
+  it("switches from Alran API Key back to Alran OAuth with space", async () => {
+    const onSetAlranSource = vi.fn(async () => undefined);
     const onRefresh = vi.fn(async () => withSource("token_plan"));
     const manager = createManager({
-      snapshot: withSource("minimax_api_key"),
+      snapshot: withSource("alran_api_key"),
       onRefresh,
-      onSetMiniMaxSource,
+      onSetAlranSource,
     });
 
     manager.handleInput("\u001b[A");
     manager.handleInput(" ");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxSource).toHaveBeenCalledWith("token_plan"),
+      expect(onSetAlranSource).toHaveBeenCalledWith("token_plan"),
     );
     await vi.waitFor(() => {
       const rendered = stripAnsi(manager.render(84).join("\n"));
-      expect(rendered).toContain("Using MiniMax Token Plan.");
+      expect(rendered).toContain("Using Alran Token Plan.");
       expect(rendered).toContain("Active · Token Plan");
     });
     expect(onRefresh).toHaveBeenCalledOnce();
   });
 
   it("selects OAuth with enter and never sends it to the test API", async () => {
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
+    const onSetAlranSource = vi.fn(async () => undefined);
     const onTest = vi.fn(async () => ({
       success: true,
       status: { state: "available" },
     }));
-    const manager = createManager({ onSetMiniMaxSource, onTest });
+    const manager = createManager({ onSetAlranSource, onTest });
 
     manager.handleInput("\r");
 
     await vi.waitFor(() =>
       expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-        "Using MiniMax Token Plan.",
+        "Using Alran Token Plan.",
       ),
     );
-    expect(onSetMiniMaxSource).toHaveBeenCalledWith("token_plan");
+    expect(onSetAlranSource).toHaveBeenCalledWith("token_plan");
     expect(stripAnsi(manager.render(84).join("\n"))).not.toContain(
-      "Configure MiniMax API Key",
+      "Configure Alran API Key",
     );
 
     manager.handleInput("t");
     expect(onTest).not.toHaveBeenCalled();
     expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-      "MiniMax OAuth sign-in and connectivity are managed by /login.",
+      "Alran OAuth sign-in and connectivity are managed by /login.",
     );
   });
 
-  it("captures the MiniMax API key when the row has none yet", async () => {
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
-    const onRefresh = vi.fn(async () => withSource("minimax_api_key"));
-    const manager = createManager({ onSetMiniMaxApiKey, onRefresh });
+  it("captures the Alran API key when the row has none yet", async () => {
+    const onSetAlranApiKey = vi.fn(async () => undefined);
+    const onRefresh = vi.fn(async () => withSource("alran_api_key"));
+    const manager = createManager({ onSetAlranApiKey, onRefresh });
 
     manager.handleInput("\u001b[B");
     manager.handleInput(" ");
     expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-      "Configure MiniMax API Key",
+      "Configure Alran API Key",
     );
 
     manager.handleInput("sk-live-key");
@@ -239,11 +239,11 @@ describe("TuiProviderManager", () => {
     manager.handleInput("\r");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxApiKey).toHaveBeenCalledWith("sk-live-key"),
+      expect(onSetAlranApiKey).toHaveBeenCalledWith("sk-live-key"),
     );
     await vi.waitFor(() =>
       expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-        "MiniMax API Key saved and selected.",
+        "Alran API Key saved and selected.",
       ),
     );
   });
@@ -261,12 +261,12 @@ describe("TuiProviderManager", () => {
     expect(onRefresh).not.toHaveBeenCalled();
   });
 
-  it("replaces a saved MiniMax API key with e", async () => {
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
-    const onRefresh = vi.fn(async () => withSource("minimax_api_key"));
+  it("replaces a saved Alran API key with e", async () => {
+    const onSetAlranApiKey = vi.fn(async () => undefined);
+    const onRefresh = vi.fn(async () => withSource("alran_api_key"));
     const manager = createManager({
-      snapshot: withSource("minimax_api_key"),
-      onSetMiniMaxApiKey,
+      snapshot: withSource("alran_api_key"),
+      onSetAlranApiKey,
       onRefresh,
     });
 
@@ -276,7 +276,7 @@ describe("TuiProviderManager", () => {
     manager.handleInput("e");
 
     const prompt = stripAnsi(manager.render(84).join("\n"));
-    expect(prompt).toContain("Replace MiniMax API Key");
+    expect(prompt).toContain("Replace Alran API Key");
     expect(prompt).toContain("The saved key is overwritten once you submit.");
 
     manager.handleInput("sk-rotated");
@@ -286,25 +286,25 @@ describe("TuiProviderManager", () => {
     manager.handleInput("\r");
 
     await vi.waitFor(() =>
-      expect(onSetMiniMaxApiKey).toHaveBeenCalledWith("sk-rotated"),
+      expect(onSetAlranApiKey).toHaveBeenCalledWith("sk-rotated"),
     );
     await vi.waitFor(() =>
       expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-        "MiniMax API Key replaced and selected.",
+        "Alran API Key replaced and selected.",
       ),
     );
   });
 
   it("starts a fresh sign-in from the OAuth row with e", () => {
     const onReLogin = vi.fn();
-    const onSetMiniMaxSource = vi.fn(async () => undefined);
-    const manager = createManager({ onReLogin, onSetMiniMaxSource });
+    const onSetAlranSource = vi.fn(async () => undefined);
+    const manager = createManager({ onReLogin, onSetAlranSource });
 
     manager.handleInput("e");
 
     expect(onReLogin).toHaveBeenCalledOnce();
     // Sign-in is not a source switch; the panel must not write the source too.
-    expect(onSetMiniMaxSource).not.toHaveBeenCalled();
+    expect(onSetAlranSource).not.toHaveBeenCalled();
   });
 
   it("reports a host without auth instead of silently dropping e", () => {
@@ -313,33 +313,33 @@ describe("TuiProviderManager", () => {
     manager.handleInput("e");
 
     expect(stripAnsi(manager.render(84).join("\n"))).toContain(
-      "MiniMax sign-in is unavailable in this host.",
+      "Alran sign-in is unavailable in this host.",
     );
   });
 
   it("explains when a host does not support editing a custom row", () => {
     const onReLogin = vi.fn();
-    const onSetMiniMaxApiKey = vi.fn(async () => undefined);
-    const manager = createManager({ onReLogin, onSetMiniMaxApiKey });
+    const onSetAlranApiKey = vi.fn(async () => undefined);
+    const manager = createManager({ onReLogin, onSetAlranApiKey });
 
     manager.handleInput("\u001b[B");
     manager.handleInput("\u001b[B");
     manager.handleInput("e");
 
     expect(onReLogin).not.toHaveBeenCalled();
-    expect(onSetMiniMaxApiKey).not.toHaveBeenCalled();
+    expect(onSetAlranApiKey).not.toHaveBeenCalled();
     expect(stripAnsi(manager.render(84).join("\n"))).toContain(
       "This connection cannot be edited in this host.",
     );
   });
 
   it("never marks a custom provider as the in-use source", () => {
-    // Regression caught in review: `active` means "current MiniMax credential
-    // source" for MiniMax rows but "owns the selected model" for custom rows.
+    // Regression caught in review: `active` means "current Alran credential
+    // source" for Alran rows but "owns the selected model" for custom rows.
     // Rendering both as ● made two rows look selected at once.
-    const withSelectedCustomModel: McodeProviderSnapshot = {
-      ...withSource("minimax_api_key"),
-      providers: withSource("minimax_api_key").providers.map((provider) =>
+    const withSelectedCustomModel: AlranProviderSnapshot = {
+      ...withSource("alran_api_key"),
+      providers: withSource("alran_api_key").providers.map((provider) =>
         provider.providerId === "custom_provider:openai"
           ? { ...provider, active: true }
           : provider,
@@ -349,7 +349,7 @@ describe("TuiProviderManager", () => {
 
     const lines = stripAnsi(manager.render(90).join("\n")).split("\n");
     const customRow = lines.find((line) => line.includes("OpenAI"));
-    const apiKeyRow = lines.find((line) => line.includes("MiniMax API Key"));
+    const apiKeyRow = lines.find((line) => line.includes("Alran API Key"));
 
     expect(apiKeyRow).toContain("●");
     expect(customRow).not.toContain("●");
@@ -371,7 +371,7 @@ describe("TuiProviderManager", () => {
   });
 
   it("redacts credentials and URL parameters from a custom provider", () => {
-    const credentialed: McodeProviderSnapshot = {
+    const credentialed: AlranProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.providerId === "custom_provider:openai"
@@ -430,7 +430,7 @@ describe("TuiProviderManager", () => {
   it("renders a disabled custom provider without the in-use marker", () => {
     // Regression caught: a leftover selected model rendered `● … Disabled`,
     // claiming a provider Runtime no longer resolves is the active source.
-    const disabled: McodeProviderSnapshot = {
+    const disabled: AlranProviderSnapshot = {
       ...snapshot,
       providers: snapshot.providers.map((provider) =>
         provider.providerId === "custom_provider:openai"
@@ -458,8 +458,8 @@ describe("TuiProviderManager", () => {
     const requestRender = vi.fn();
     const onRefresh = vi.fn(async () => withSource("token_plan"));
     const manager = createManager({
-      snapshot: withSource("minimax_api_key"),
-      onSetMiniMaxSource: vi.fn(() => sourceChange),
+      snapshot: withSource("alran_api_key"),
+      onSetAlranSource: vi.fn(() => sourceChange),
       onRefresh,
       requestRender,
     });

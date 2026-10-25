@@ -1,6 +1,6 @@
 ---
 name: testing-workflow
-description: Select and report verification for MiniMax Code changes using the repository's declared test suites and CI gates. Use when validating code, skills, documentation, build tooling or source-distribution changes.
+description: Select and report verification for Alran Code changes using the repository's declared test suites and CI gates. Use when validating code, skills, documentation, build tooling or source-distribution changes.
 ---
 
 # Testing Workflow
@@ -33,7 +33,7 @@ suites are outside this distribution's verification.
 | Permission facade on macOS/Linux | `pnpm test:policy` |
 | Sandbox on macOS | `pnpm test:sandbox` |
 | Source-sync, workflow and release tools | `pnpm test:release-tools` |
-| npm release archive installation | `MCODE_RELEASE_TAG=vX.Y.Z MCODE_RELEASE_ARCHIVE=/path/to/package.tar.gz pnpm verify --profile package` |
+| npm release archive installation | `ALRAN_RELEASE_TAG=vX.Y.Z ALRAN_RELEASE_ARCHIVE=/path/to/package.tar.gz pnpm verify --profile package` |
 | TUI source and test lint | `pnpm lint:tui` |
 | Types and standalone build boundary | `pnpm typecheck`, `pnpm build`, `pnpm check:standalone` |
 | Published files and generated paths | `pnpm check:source`, `pnpm check:tsconfig` |
@@ -65,7 +65,7 @@ bypass the clean-commit export requirement.
 
 The `package` profile authenticates an npm release archive, installs it into a
 temporary npm prefix, and exercises its launcher, native dependencies and offline
-smoke/BYOK suites. It requires `MCODE_RELEASE_TAG` and `MCODE_RELEASE_ARCHIVE` and
+smoke/BYOK suites. It requires `ALRAN_RELEASE_TAG` and `ALRAN_RELEASE_ARCHIVE` and
 does not replace source validation. The release command commits matching root/TUI source versions before tagging.
 The release workflow rejects version mismatches and runs the full profile before
 package installation checks.

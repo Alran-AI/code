@@ -8,7 +8,7 @@ import type { LLMModelConfig } from '@mavis/agent-core/pi-turn-runner';
 
 import type { LocalRuntimeAuthContext } from '../contracts.js';
 
-const MANAGED_PROVIDER_USER_AGENT = 'MiniMaxAgent';
+const MANAGED_PROVIDER_USER_AGENT = 'AlranAgent';
 
 export function buildLocalProviderHeaders(input: {
   readonly headers?: Record<string, string>;

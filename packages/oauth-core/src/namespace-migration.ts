@@ -51,7 +51,7 @@ function toFileStoreAnonymousState(state: AuthState, namespace: AuthNamespace): 
     schemaVersion: AUTH_STATE_SCHEMA_VERSION,
     status: 'anonymous',
     storeKind: 'file',
-    clientId: 'mcode-public',
+    clientId: 'alran-public',
     scopes: ['agent.default'],
     audience: 'agent-backend',
     buildEnv: namespace.buildEnv,

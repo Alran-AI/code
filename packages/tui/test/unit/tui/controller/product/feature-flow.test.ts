@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { TuiModel } from "../../../../../src/runtime/port.js";
 import type { TuiMessage } from "../../../../../src/runtime/stream-events.js";
-import type { McodeProviderTemplate } from "../../../../../src/provider/contract.js";
+import type { AlranProviderTemplate } from "../../../../../src/provider/contract.js";
 import { TuiFeatureFlow } from "../../../../../src/tui/controller/product/feature-flow.js";
 import { stripAnsi } from "../../../../../src/tui/rendering/text.js";
 import { TranscriptStore } from "../../../../../src/tui/transcript/store.js";
@@ -19,7 +19,7 @@ function createHarness(
     readonly writeClipboardText?: (text: string) => Promise<void>;
     readonly openExternalTarget?: (target: string) => Promise<void>;
     readonly loadProviderTemplates?: () => Promise<
-      readonly McodeProviderTemplate[]
+      readonly AlranProviderTemplate[]
     >;
     readonly hasLiveRun?: () => boolean;
   } = {},
@@ -92,8 +92,8 @@ function createHarness(
       authUrl: "https://auth.openai.example/authorize",
     })),
     listUserModelProviders: vi.fn(async () => []),
-    getMiniMaxApiKeyStatus: vi.fn(async () => ({ hasApiKey: false })),
-    getMiniMaxModelSource: vi.fn(async () => "token_plan" as const),
+    getAlranApiKeyStatus: vi.fn(async () => ({ hasApiKey: false })),
+    getAlranModelSource: vi.fn(async () => "token_plan" as const),
     deleteUserModelProvider: vi.fn(async () => undefined),
   };
   const transcript = new TranscriptStore();
@@ -620,10 +620,10 @@ describe("TuiFeatureFlow", () => {
     const harness = createHarness();
     harness.runtime.listModels.mockResolvedValue([
       {
-        providerId: "minimax",
-        providerName: "MiniMax",
-        modelId: "MiniMax-M3",
-        displayName: "MiniMax-M3",
+        providerId: "alran",
+        providerName: "Alran",
+        modelId: "Alran-M3",
+        displayName: "Alran-M3",
       },
       {
         providerId: "deepseek",
@@ -640,7 +640,7 @@ describe("TuiFeatureFlow", () => {
     expect(rendered).toContain("Search: deepseek");
     expect(rendered).toContain("DeepSeek · 1");
     expect(rendered).toContain("deepseek-v4-pro");
-    expect(rendered).not.toContain("MiniMax-M3");
+    expect(rendered).not.toContain("Alran-M3");
   });
 
   it("keeps the independent Codex OAuth entry visible from /model", async () => {
@@ -794,7 +794,7 @@ describe("TuiFeatureFlow", () => {
   });
 
   it("adds a known API Key provider from /model and selects its model for the Session", async () => {
-    const template: McodeProviderTemplate = {
+    const template: AlranProviderTemplate = {
       providerId: "deepseek",
       name: "DeepSeek",
       baseUrl: "https://api.deepseek.com/v1",
@@ -1006,7 +1006,7 @@ describe("TuiFeatureFlow", () => {
       status: "ok",
       runtimeMode: "clean",
       runtimeOwnerKind: "cli",
-      runtimeOwnerId: "mcode",
+      runtimeOwnerId: "alran",
       configPresent: true,
       authCachePresent: true,
       managedTokenPresent: true,
@@ -1087,10 +1087,10 @@ describe("TuiFeatureFlow", () => {
     expect(harness.shown).toHaveLength(1);
     const panel = harness.shown[0] as { render(width: number): string[] };
     const output = stripAnsi(panel.render(100).join("\n"));
-    expect(output).toContain("MCode status");
+    expect(output).toContain("Alran status");
     expect(output).toContain("/workspace");
     expect(output).toContain("Unavailable · Unavailable");
-    expect(output).toContain("MiniMax account unavailable");
+    expect(output).toContain("Alran account unavailable");
     expect(output).toMatch(/Instructions:\s+Unavailable/u);
   });
 
@@ -1244,9 +1244,9 @@ describe("TuiFeatureFlow", () => {
     const harness = createHarness();
     harness.runtime.listModels.mockResolvedValue([
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M2.7",
-        providerKind: "minimax-managed",
+        providerId: "alran",
+        modelId: "Alran-M2.7",
+        providerKind: "alran-managed",
       },
     ]);
 
@@ -1257,13 +1257,13 @@ describe("TuiFeatureFlow", () => {
     };
 
     expect(picker.render(80).join("\n")).toContain(
-      "Sign in with /login to use official MiniMax models.",
+      "Sign in with /login to use official Alran models.",
     );
     picker.handleInput("\r");
 
     expect(harness.runtime.selectModel).not.toHaveBeenCalled();
     expect(harness.append).toHaveBeenCalledWith(
-      "Sign in with /login to use official MiniMax models.",
+      "Sign in with /login to use official Alran models.",
       "warning",
     );
   });
@@ -1285,9 +1285,9 @@ describe("TuiFeatureFlow", () => {
     });
     harness.runtime.listModels.mockResolvedValue([
       {
-        providerId: "minimax",
-        modelId: "MiniMax-M3",
-        displayName: "MiniMax-M3",
+        providerId: "alran",
+        modelId: "Alran-M3",
+        displayName: "Alran-M3",
         selected: true,
         variant: "thinking",
         contextLimit: 512_000,
@@ -1308,8 +1308,8 @@ describe("TuiFeatureFlow", () => {
     await vi.waitFor(() =>
       expect(harness.runtime.selectModel).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           variant: "",
           contextLimit: 1_000_000,
         }),
@@ -1317,7 +1317,7 @@ describe("TuiFeatureFlow", () => {
       ),
     );
     expect(harness.append).toHaveBeenCalledWith(
-      "Model selected: minimax/MiniMax-M3 · Thinking Off · Context 1M for this session and saved as the default.",
+      "Model selected: alran/Alran-M3 · Thinking Off · Context 1M for this session and saved as the default.",
     );
     expect(
       harness.append.mock.calls.filter(([, kind]) => kind === "warning"),

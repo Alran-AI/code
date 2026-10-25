@@ -6,12 +6,12 @@ import {
   configureTuiRuntimeEnvironment,
   resolveTuiStartupEnvironmentOption,
 } from './cli/environment.js';
-import { prepareMcodePrefixProcess } from './update/prefix-update.js';
-import { isInternalMcodePackageName, resolveMcodePackageName } from './update/install-source.js';
+import { prepareAlranPrefixProcess } from './update/prefix-update.js';
+import { isInternalAlranPackageName, resolveAlranPackageName } from './update/install-source.js';
 
 async function main(): Promise<void> {
-  const packageName = resolveMcodePackageName(fileURLToPath(import.meta.url));
-  const internalPackage = isInternalMcodePackageName(packageName);
+  const packageName = resolveAlranPackageName(fileURLToPath(import.meta.url));
+  const internalPackage = isInternalAlranPackageName(packageName);
   let startupBuildEnvironment: ReturnType<typeof resolveTuiStartupEnvironmentOption>;
   try {
     startupBuildEnvironment = resolveTuiStartupEnvironmentOption(
@@ -28,7 +28,7 @@ async function main(): Promise<void> {
     dataDir: getTuiDataDirPath(),
     ...(startupBuildEnvironment ? { startupBuildEnvironment } : {}),
   });
-  const prefixProcess = await prepareMcodePrefixProcess();
+  const prefixProcess = await prepareAlranPrefixProcess();
   try {
     const { runTuiCli } = await import('./cli/main.js');
     await runTuiCli({ allowStartupEnvironmentSelection: internalPackage });

@@ -153,7 +153,7 @@ function isHostOnlyMessage(message: AgentMessage): boolean {
 }
 
 function isSourceQualifiedByokProvider(provider: string): boolean {
-  return provider === 'minimax_api' || provider.startsWith('custom_provider:');
+  return provider === 'alran_api' || provider.startsWith('custom_provider:');
 }
 
 function shouldDropPortableThinking(message: AssistantMessage, targetModel: Model<Api>): boolean {

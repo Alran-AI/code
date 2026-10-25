@@ -199,7 +199,7 @@ describe("Frozen Session deletion continuity", () => {
         skills: [],
         extensionSkills: [],
       },
-      model: { providerId: "minimax", modelId: "MiniMax-M3" },
+      model: { providerId: "alran", modelId: "Alran-M3" },
       project: { workspaceDir: "/original-project", isDefaultWorkspace: false },
     };
     await sessions.create({
@@ -745,7 +745,7 @@ function registerDisplayNameConflictTests(): void {
     const before = await service.getConfigDocument("agent:alpha");
     const modelOnlyContent = before.content.replace(
       "description: Same name\n",
-      "description: Same name\nmodel: minimax/MiniMax-M3\n",
+      "description: Same name\nmodel: alran/Alran-M3\n",
     );
 
     await expect(
@@ -755,7 +755,7 @@ function registerDisplayNameConflictTests(): void {
         expectedRevision: before.revision,
         expectedOwnerInstanceId: before.ownerInstanceId,
       }),
-    ).resolves.toMatchObject({ configured: { model: "minimax/MiniMax-M3" } });
+    ).resolves.toMatchObject({ configured: { model: "alran/Alran-M3" } });
   });
 }
 
@@ -819,14 +819,14 @@ function registerConfigDocumentPublicationTests(): void {
       async ({ profile, configuredModelSelection }) => {
         if (!configuredModelSelection.model) return undefined;
         expect(profile.configSelection).toMatchObject({
-          model: "minimax/MiniMax-M3",
+          model: "alran/Alran-M3",
         });
         expect(configuredModelSelection).toMatchObject({
-          model: "minimax/MiniMax-M3",
+          model: "alran/Alran-M3",
         });
         return {
-          providerId: "minimax",
-          modelId: "MiniMax-M3",
+          providerId: "alran",
+          modelId: "Alran-M3",
           contextWindow: 512_000,
           maxOutputTokens: 128_000,
         };
@@ -845,7 +845,7 @@ function registerConfigDocumentPublicationTests(): void {
     expect(initial.ownerInstanceId).toEqual(expect.any(String));
 
     const changedContent =
-      "---\nname: config-api\ndescription: Config API\nmodel: minimax/MiniMax-M3\n---\nChanged prompt\n";
+      "---\nname: config-api\ndescription: Config API\nmodel: alran/Alran-M3\n---\nChanged prompt\n";
     const updated = await service.putConfigDocument({
       requestRef: "config-api",
       content: changedContent,
@@ -855,10 +855,10 @@ function registerConfigDocumentPublicationTests(): void {
     expect(updated).toMatchObject({
       content: changedContent,
       configured: {
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         systemPrompt: "Changed prompt\n",
       },
-      effectiveForNewSession: { providerId: "minimax", modelId: "MiniMax-M3" },
+      effectiveForNewSession: { providerId: "alran", modelId: "Alran-M3" },
     });
     expect(resolveEffective).toHaveBeenCalled();
 
@@ -1032,8 +1032,8 @@ function registerBuiltinCanonicalPublicationTests(): void {
       });
       expect(profile.corePrompt).toContain(
         promptMode === "tui"
-          ? "You are a coding agent running in the MiniMax Code terminal"
-          : "You run inside MiniMax Code",
+          ? "You are a coding agent running in the Alran Code terminal"
+          : "You run inside Alran Code",
       );
       expect(profile.corePrompt).toContain("# Harness");
       expect(profile.corePrompt.includes("## Media Output")).toBe(
@@ -1056,7 +1056,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
       expect(profile.corePrompt).toContain("# Memory");
       expect(frozen.corePrompt).not.toContain("# Memory");
       expect(frozen.corePrompt).not.toContain(
-        "user's active MiniMax Code terminal conversation",
+        "user's active Alran Code terminal conversation",
       );
       expect(frozen.corePrompt).not.toContain("this agent's root session");
       expect(frozen.surfacePrompt).toContain("hidden TUI child Agent");
@@ -1122,7 +1122,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
     const resolveModelGroup = vi.fn(async (input) => {
       if (input.previous?.model === "provider/model") {
         return {
-          model: "minimax/MiniMax-M3",
+          model: "alran/Alran-M3",
           effort: "on",
           contextWindow: 64_000,
           maxOutputTokens: 2_048,
@@ -1145,7 +1145,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
     const rebuilt = await repository.getBuiltinCanonicalConfig("explore");
     expect(rebuilt).toMatchObject({
       name: "explore",
-      model: "minimax/MiniMax-M3",
+      model: "alran/Alran-M3",
       effort: "on",
       xMavis: { contextWindow: 64_000, maxOutputTokens: 2_048 },
       systemPrompt: expect.not.stringContaining("stale prompt"),
@@ -1192,7 +1192,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
     const { repository, dataDir } = await createRepository();
     const service = createTestAgentService({ repository, nowMs: () => 10 });
     const initialModel = {
-      model: "minimax/MiniMax-M3",
+      model: "alran/Alran-M3",
       effort: "high",
       contextWindow: 32_768,
       maxOutputTokens: 4_096,
@@ -1205,7 +1205,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
 
     const initial = await service.getConfigDocument("explore");
     const modelOnlyContent = initial.content
-      .replace("model: minimax/MiniMax-M3", "model: openai/gpt-6")
+      .replace("model: alran/Alran-M3", "model: openai/gpt-6")
       .replace("effort: high", "effort: low")
       .replace("contextWindow: 32768", "contextWindow: 65536")
       .replace("maxOutputTokens: 4096", "maxOutputTokens: 8192");
@@ -1606,7 +1606,7 @@ function registerAtomicDefinitionPublicationTests(): void {
       initialDefinition: {
         name: "presentation-only-name",
         description,
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         effort: "none",
         tools: ["read", "write"],
         disallowedTools: ["shell"],
@@ -1638,7 +1638,7 @@ function registerAtomicDefinitionPublicationTests(): void {
       configured: {
         name: "atomic-writer",
         description,
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         effort: "none",
         tools: ["read", "write"],
         disallowedTools: ["shell"],
@@ -1704,7 +1704,7 @@ function registerAtomicDefinitionCreationTests(): void {
       initialDefinition: {
         name: "测试删除",
         description: "",
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         mavis: { displayName: "测试删除", avatar: PNG_DATA_URL },
         systemPrompt,
       },
@@ -1725,7 +1725,7 @@ function registerAtomicDefinitionCreationTests(): void {
       configured: {
         name: created.exactOwnerName,
         description: "测试删除",
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         mavis: { displayName: "测试删除", avatar: "./avatar.png" },
         systemPrompt,
       },
@@ -1741,7 +1741,7 @@ function registerAtomicDefinitionCreationTests(): void {
         initialDefinition: {
           name: "测试删除",
           description: "",
-          model: "minimax/MiniMax-M3",
+          model: "alran/Alran-M3",
           mavis: { displayName: "测试删除", avatar: PNG_DATA_URL },
           systemPrompt,
         },
@@ -1762,7 +1762,7 @@ function registerAtomicDefinitionCreationTests(): void {
       initialDefinition: {
         name: "测试删除",
         description: "",
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         mavis: { displayName: "测试删除" },
         systemPrompt: "Keep the route owner.",
       },
@@ -1777,7 +1777,7 @@ function registerAtomicDefinitionCreationTests(): void {
       configured: {
         name: "desktop-writer",
         description: "测试删除",
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
       },
     });
     await expect(application.createDefinition(input)).rejects.toMatchObject({
@@ -2478,7 +2478,7 @@ function registerCanonicalSourceCutoverTests(): void {
         `name: ${owner}`,
         "description: Original Agent intent",
         "# Preserve this comment",
-        "model: minimax/MiniMax-M3",
+        "model: alran/Alran-M3",
         "x-mavis:",
         "  displayName: Custom name",
         "  contextWindow: 1000000",
@@ -2645,7 +2645,7 @@ function registerCanonicalSourceCutoverTests(): void {
 
 describe("DrizzleAgentRepository canonical Custom field boundary", () => {
   it.each(["on", "off"] as const)(
-    "reads an unquoted MiniMax M3 thinking mode %s through repository and service config selection",
+    "reads an unquoted Alran M3 thinking mode %s through repository and service config selection",
     async (effort) => {
       const { repository } = await createRepository();
       const owner = "field-owner";
@@ -2664,7 +2664,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
         "---",
         "name: portable-declaration",
         `description: ${description}`,
-        "model: minimax/MiniMax-M3",
+        "model: alran/Alran-M3",
         `effort: ${effort}`,
         "tools: [Read]",
         "disallowedTools: [Write]",
@@ -2691,7 +2691,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
         {
           name: "portable-declaration",
           description,
-          model: "minimax/MiniMax-M3",
+          model: "alran/Alran-M3",
           effort,
           tools: ["Read"],
           disallowedTools: ["Write"],
@@ -2763,7 +2763,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
         agentSystemPrompt: systemPrompt,
       });
       expect(live.configSelection).toEqual({
-        model: "minimax/MiniMax-M3",
+        model: "alran/Alran-M3",
         effort,
         contextWindow: 32768,
         maxOutputTokens: 4096,

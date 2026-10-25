@@ -6,8 +6,8 @@ const API_KEY = 'test-key';
 const MESSAGES_API = 'anthropic-messages';
 const MESSAGES_PATH = MESSAGES_API.split('-')[0];
 const MESSAGES_VERSION_HEADER = MESSAGES_API.replace('-messages', '-version');
-const GLOBAL_MINIMAX_MESSAGES_URL = `https://api.minimax.io/${MESSAGES_PATH}`;
-const CN_MINIMAX_MESSAGES_URL = `https://api.minimaxi.com/${MESSAGES_PATH}`;
+const GLOBAL_ALRAN_MESSAGES_URL = `https://api.ottili.one/${MESSAGES_PATH}`;
+const CN_ALRAN_MESSAGES_URL = `https://api.ottili.one/${MESSAGES_PATH}`;
 
 function messagesOkResponse(): Response {
   return new Response(
@@ -58,22 +58,22 @@ describe('ModelConnectionTester requests', () => {
 
     const result = await tester.test('p1', {
       api: 'anthropic-messages',
-      baseUrl: `${GLOBAL_MINIMAX_MESSAGES_URL}/`,
+      baseUrl: `${GLOBAL_ALRAN_MESSAGES_URL}/`,
       apiKey: API_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
 
     expect(result.ok).toBe(true);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe(`${GLOBAL_MINIMAX_MESSAGES_URL}/v1/messages`);
+    expect(url).toBe(`${GLOBAL_ALRAN_MESSAGES_URL}/v1/messages`);
     expect(init.method).toBe('POST');
     const headers = new Headers(init.headers);
     expect(headers.get('x-api-key')).toBe(API_KEY);
     expect(headers.get(MESSAGES_VERSION_HEADER)).toBe('2023-06-01');
     const body = JSON.parse(String(init.body)) as Record<string, unknown>;
     expect(body.max_tokens).toBe(16_384);
-    expect(body.model).toBe('MiniMax-M3');
+    expect(body.model).toBe('Alran-M3');
     expect(body.stream).toBe(false);
     expect(body).not.toHaveProperty('thinking');
     expect(body).not.toHaveProperty('reasoning_effort');
@@ -116,7 +116,7 @@ describe('ModelConnectionTester requests', () => {
     expect(body).not.toHaveProperty('reasoning');
   });
 
-  it('attributes OpenRouter completion tests to MiniMax Code', async () => {
+  it('attributes OpenRouter completion tests to Alran Code', async () => {
     const fetchImpl = vi.fn(async () => openAiOkResponse());
     const tester = new ModelConnectionTester({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
@@ -133,8 +133,8 @@ describe('ModelConnectionTester requests', () => {
 
     const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     const headers = new Headers(init.headers);
-    expect(headers.get('http-referer')).toBe('https://agent.minimax.io/');
-    expect(headers.get('x-openrouter-title')).toBe('MiniMax Code');
+    expect(headers.get('http-referer')).toBe('https://api.ottili.one/');
+    expect(headers.get('x-openrouter-title')).toBe('Alran Code');
     expect(headers.get('x-openrouter-categories')).toBe('cli-agent');
   });
 
@@ -222,17 +222,17 @@ describe('ModelConnectionTester requests', () => {
     ['openai-responses', 'on', openAiResponsesOkResponse, { reasoning: { effort: 'minimal' } }],
     ['openai-responses', 'off', openAiResponsesOkResponse, { reasoning: { effort: 'none' } }],
   ] as const)(
-    'sends MiniMax M3 %s Think Effort %s with the protocol-specific field',
+    'sends Alran M3 %s Think Effort %s with the protocol-specific field',
     async (api, effort, response, expectedPatch) => {
       const fetchImpl = vi.fn(async () => response());
       const tester = new ModelConnectionTester({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
       await expect(
-        tester.test(`minimax-m3-${api}-${effort}`, {
+        tester.test(`alran-m3-${api}-${effort}`, {
           api,
           baseUrl: 'https://api.example.com/v1',
           apiKey: API_KEY,
-          modelId: 'MiniMax-M3',
+          modelId: 'Alran-M3',
           effort,
         }),
       ).resolves.toEqual({ ok: true });
@@ -271,19 +271,19 @@ describe('ModelConnectionTester output budget', () => {
     ['on', { thinking: { type: 'adaptive' } }],
     ['off', { thinking: { type: 'disabled' } }],
   ] as const)(
-    'sends the configured output limit for the MiniMax M3 provider-level Thinking %s probe',
+    'sends the configured output limit for the Alran M3 provider-level Thinking %s probe',
     async (mode, expectedPatch) => {
       const fetchImpl = vi.fn(async () => messagesOkResponse());
       const tester = new ModelConnectionTester({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
       await expect(
-        tester.test(`minimax-m3-provider-${mode}`, {
+        tester.test(`alran-m3-provider-${mode}`, {
           api: 'anthropic-messages',
-          baseUrl: CN_MINIMAX_MESSAGES_URL,
+          baseUrl: CN_ALRAN_MESSAGES_URL,
           apiKey: API_KEY,
-          modelId: 'MiniMax-M3',
+          modelId: 'Alran-M3',
           outputLimit: 1_024,
-          minimaxM3ThinkingMode: mode,
+          alranM3ThinkingMode: mode,
         }),
       ).resolves.toEqual({ ok: true });
 
@@ -296,7 +296,7 @@ describe('ModelConnectionTester output budget', () => {
     },
   );
 
-  it('clears the MiniMax M3 thinking output floor from the configured output limit', async () => {
+  it('clears the Alran M3 thinking output floor from the configured output limit', async () => {
     const fetchImpl = vi.fn(async (_url: unknown, init?: RequestInit) => {
       const body = JSON.parse(String(init?.body)) as { max_tokens?: number };
       if ((body.max_tokens ?? 0) < 1_024) {
@@ -310,13 +310,13 @@ describe('ModelConnectionTester output budget', () => {
     const tester = new ModelConnectionTester({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
     await expect(
-      tester.test('minimax-m3-provider-thinking-on-output-floor', {
+      tester.test('alran-m3-provider-thinking-on-output-floor', {
         api: 'anthropic-messages',
-        baseUrl: GLOBAL_MINIMAX_MESSAGES_URL,
+        baseUrl: GLOBAL_ALRAN_MESSAGES_URL,
         apiKey: API_KEY,
-        modelId: 'MiniMax-M3',
+        modelId: 'Alran-M3',
         outputLimit: 1_024,
-        minimaxM3ThinkingMode: 'on',
+        alranM3ThinkingMode: 'on',
       }),
     ).resolves.toEqual({ ok: true });
 
@@ -485,7 +485,7 @@ describe('ModelConnectionTester provider error envelopes', () => {
       api: 'anthropic-messages',
       baseUrl: 'https://api.example.com',
       apiKey: API_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
 
     expect(result).toEqual({
@@ -496,7 +496,7 @@ describe('ModelConnectionTester provider error envelopes', () => {
     expect(JSON.stringify(result)).not.toContain(API_KEY);
   });
 
-  it('shows a non-zero MiniMax base_resp reason returned inside a 2xx response', async () => {
+  it('shows a non-zero Alran base_resp reason returned inside a 2xx response', async () => {
     const fetchImpl = vi.fn(
       async () =>
         new Response(
@@ -516,7 +516,7 @@ describe('ModelConnectionTester provider error envelopes', () => {
       api: 'anthropic-messages',
       baseUrl: 'https://api.example.com',
       apiKey: API_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
 
     expect(result).toEqual({
@@ -593,7 +593,7 @@ describe('ModelConnectionTester invalid responses and concurrency', () => {
       api: 'anthropic-messages',
       baseUrl: 'https://api.example.com',
       apiKey: API_KEY,
-      modelId: 'MiniMax-M3',
+      modelId: 'Alran-M3',
     });
 
     expect(result).toEqual({
@@ -610,7 +610,7 @@ describe('ModelConnectionTester invalid responses and concurrency', () => {
       api: 'openai-completions',
       baseUrl: 'https://openrouter.ai',
       apiKey: API_KEY,
-      modelId: 'minimax/minimax-m3',
+      modelId: 'alran/alran-m3',
     });
 
     expect(result).toEqual({
@@ -780,7 +780,7 @@ describe('OpenCode Go connection identity', () => {
     const headers = fetchImpl.mock.calls.map((call) => new Headers(call[1]?.headers));
     for (const header of headers) {
       expect(header.get('x-opencode-session')).toMatch(/^[0-9a-f-]{36}$/u);
-      expect(header.get('user-agent')).toBe('MiniMaxCode');
+      expect(header.get('user-agent')).toBe('AlranCode');
     }
     expect(headers[0]?.get('x-opencode-session')).not.toBe(headers[1]?.get('x-opencode-session'));
   });
@@ -823,7 +823,7 @@ describe('Google connection tests through Pi', () => {
       );
       expect(request?.headers.get('x-goog-api-key')).toBe(API_KEY);
       expect(request?.headers.get('x-opencode-session')).toMatch(/^[0-9a-f-]{36}$/u);
-      expect(request?.headers.get('user-agent')).toContain('MiniMaxCode');
+      expect(request?.headers.get('user-agent')).toContain('AlranCode');
       const body = await request?.json();
       expect(body).toMatchObject({
         contents: [{ role: 'user', parts: [{ text: 'ping' }] }],

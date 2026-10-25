@@ -34,8 +34,8 @@ export function createLocalModelResolver(input: {
   return new LocalModelResolver({
     providerConfigGetter: () => input.configGetter().provider,
     byokConfigGetter: () => {
-      const { minimax_api, custom_provider, minimaxModelSource } = input.configGetter();
-      return { minimax_api, custom_provider, minimaxModelSource };
+      const { alran_api, custom_provider, alranModelSource } = input.configGetter();
+      return { alran_api, custom_provider, alranModelSource };
     },
     authContextGetter: input.authContextGetter,
     routingContextGetter: input.routingContextGetter,

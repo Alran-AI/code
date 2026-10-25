@@ -1,36 +1,36 @@
 import { createPublicKey, verify } from 'node:crypto';
 
-export type McodeUpdateChannel = 'stable' | 'preview';
-export type McodeReleaseTarget =
+export type AlranUpdateChannel = 'stable' | 'preview';
+export type AlranReleaseTarget =
   | 'darwin-arm64'
   | 'darwin-x64'
   | 'linux-x64'
   | 'windows-x64'
   | 'windows-arm64';
 
-export interface McodeReleaseArtifact {
+export interface AlranReleaseArtifact {
   url: string;
   sha256: string;
   size: number;
 }
 
-type McodeReleaseTargetArtifact = Omit<McodeReleaseArtifact, 'url'>;
-type McodeReleaseManifestV1Targets = Record<
-  Exclude<McodeReleaseTarget, 'windows-arm64'>,
-  McodeReleaseTargetArtifact
+type AlranReleaseTargetArtifact = Omit<AlranReleaseArtifact, 'url'>;
+type AlranReleaseManifestV1Targets = Record<
+  Exclude<AlranReleaseTarget, 'windows-arm64'>,
+  AlranReleaseTargetArtifact
 > &
-  Partial<Record<'windows-arm64', McodeReleaseTargetArtifact>>;
+  Partial<Record<'windows-arm64', AlranReleaseTargetArtifact>>;
 
-export interface McodeReleaseManifestV1 {
+export interface AlranReleaseManifestV1 {
   schemaVersion: 1;
-  product: 'minimax-code';
-  channel: McodeUpdateChannel | string;
+  product: 'alran-code';
+  channel: AlranUpdateChannel | string;
   version: string;
   publishedAt: string;
   minNodeVersion: string;
   registry: string;
-  installArtifact: McodeReleaseArtifact;
-  targets: McodeReleaseManifestV1Targets;
+  installArtifact: AlranReleaseArtifact;
+  targets: AlranReleaseManifestV1Targets;
 }
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?$/u;
@@ -41,71 +41,71 @@ const REQUIRED_V1_TARGETS = [
   'darwin-x64',
   'linux-x64',
   'windows-x64',
-] as const satisfies readonly McodeReleaseTarget[];
+] as const satisfies readonly AlranReleaseTarget[];
 const TARGETS = [...REQUIRED_V1_TARGETS, 'windows-arm64'] as const;
 
-export function parseMcodeUpdateChannel(value: string): McodeUpdateChannel {
+export function parseAlranUpdateChannel(value: string): AlranUpdateChannel {
   if (!CHANNEL_PATTERN.test(value)) {
-    throw new Error(`Unsupported MCode update channel: ${JSON.stringify(value)}`);
+    throw new Error(`Unsupported Alran update channel: ${JSON.stringify(value)}`);
   }
-  return value as McodeUpdateChannel;
+  return value as AlranUpdateChannel;
 }
 
-export function parseMcodeVersion(value: string): string {
+export function parseAlranVersion(value: string): string {
   if (!VERSION_PATTERN.test(value)) {
-    throw new Error(`Invalid MCode version: ${JSON.stringify(value)}`);
+    throw new Error(`Invalid Alran version: ${JSON.stringify(value)}`);
   }
   return value;
 }
 
-export function parseAndVerifyMcodeReleaseManifest(
+export function parseAndVerifyAlranReleaseManifest(
   manifestBytes: Uint8Array,
   signatureText: string,
   publicKeyPem: string,
-): McodeReleaseManifestV1 {
+): AlranReleaseManifestV1 {
   const signature = readBase64Signature(signatureText);
   let authentic = false;
   try {
     authentic = verify(null, manifestBytes, createPublicKey(publicKeyPem), signature);
   } catch (error) {
-    throw new Error(`MCode release signature could not be verified: ${errorMessage(error)}`);
+    throw new Error(`Alran release signature could not be verified: ${errorMessage(error)}`);
   }
-  if (!authentic) throw new Error('MCode release signature verification failed.');
+  if (!authentic) throw new Error('Alran release signature verification failed.');
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(Buffer.from(manifestBytes).toString('utf8'));
   } catch (error) {
-    throw new Error(`MCode release manifest is not valid JSON: ${errorMessage(error)}`);
+    throw new Error(`Alran release manifest is not valid JSON: ${errorMessage(error)}`);
   }
   return validateManifest(parsed);
 }
 
-function validateManifest(value: unknown): McodeReleaseManifestV1 {
-  if (!isRecord(value)) throw new Error('MCode release manifest must be an object.');
+function validateManifest(value: unknown): AlranReleaseManifestV1 {
+  if (!isRecord(value)) throw new Error('Alran release manifest must be an object.');
   if (value.schemaVersion !== 1) {
-    throw new Error(`Unsupported MCode release schema: ${String(value.schemaVersion)}`);
+    throw new Error(`Unsupported Alran release schema: ${String(value.schemaVersion)}`);
   }
-  if (value.product !== 'minimax-code') {
+  if (value.product !== 'alran-code') {
     throw new Error(`Unexpected release product: ${String(value.product)}`);
   }
   const channel =
     typeof value.channel === 'string' && /^[0-9A-Za-z][0-9A-Za-z._-]*$/u.test(value.channel)
       ? value.channel
       : undefined;
-  if (!channel) throw new Error('MCode release channel is invalid.');
-  const version = typeof value.version === 'string' ? parseMcodeVersion(value.version) : undefined;
-  if (!version) throw new Error('MCode release version is missing.');
+  if (!channel) throw new Error('Alran release channel is invalid.');
+  const version = typeof value.version === 'string' ? parseAlranVersion(value.version) : undefined;
+  if (!version) throw new Error('Alran release version is missing.');
   if (typeof value.publishedAt !== 'string' || !Number.isFinite(Date.parse(value.publishedAt))) {
-    throw new Error('MCode release publishedAt is invalid.');
+    throw new Error('Alran release publishedAt is invalid.');
   }
   if (typeof value.minNodeVersion !== 'string' || !/^\d+\.\d+\.\d+$/u.test(value.minNodeVersion)) {
-    throw new Error('MCode release minNodeVersion is invalid.');
+    throw new Error('Alran release minNodeVersion is invalid.');
   }
   const registry = readHttpsUrl(value.registry, 'registry');
   const installArtifact = readArtifact(value.installArtifact, true, 'installArtifact');
-  if (!isRecord(value.targets)) throw new Error('MCode release targets are missing.');
-  const targets: McodeReleaseManifestV1Targets = {
+  if (!isRecord(value.targets)) throw new Error('Alran release targets are missing.');
+  const targets: AlranReleaseManifestV1Targets = {
     'darwin-arm64': readArtifact(value.targets['darwin-arm64'], false, 'targets.darwin-arm64'),
     'darwin-x64': readArtifact(value.targets['darwin-x64'], false, 'targets.darwin-x64'),
     'linux-x64': readArtifact(value.targets['linux-x64'], false, 'targets.linux-x64'),
@@ -120,7 +120,7 @@ function validateManifest(value: unknown): McodeReleaseManifestV1 {
   }
   return {
     schemaVersion: 1,
-    product: 'minimax-code',
+    product: 'alran-code',
     channel,
     version,
     publishedAt: value.publishedAt,
@@ -131,17 +131,17 @@ function validateManifest(value: unknown): McodeReleaseManifestV1 {
   };
 }
 
-function readArtifact(value: unknown, includeUrl: true, name: string): McodeReleaseArtifact;
+function readArtifact(value: unknown, includeUrl: true, name: string): AlranReleaseArtifact;
 function readArtifact(
   value: unknown,
   includeUrl: false,
   name: string,
-): Omit<McodeReleaseArtifact, 'url'>;
+): Omit<AlranReleaseArtifact, 'url'>;
 function readArtifact(
   value: unknown,
   includeUrl: boolean,
   name: string,
-): McodeReleaseArtifact | Omit<McodeReleaseArtifact, 'url'> {
+): AlranReleaseArtifact | Omit<AlranReleaseArtifact, 'url'> {
   if (!isRecord(value)) throw new Error(`${name} is missing.`);
   if (typeof value.sha256 !== 'string' || !SHA256_PATTERN.test(value.sha256)) {
     throw new Error(`${name}.sha256 is invalid.`);
@@ -170,30 +170,30 @@ function readHttpsUrl(value: unknown, name: string): string {
 function readBase64Signature(value: string): Buffer {
   const normalized = value.trim();
   if (!/^[A-Za-z0-9+/]+={0,2}$/u.test(normalized)) {
-    throw new Error('MCode release signature is not valid base64.');
+    throw new Error('Alran release signature is not valid base64.');
   }
   const signature = Buffer.from(normalized, 'base64');
-  if (signature.length !== 64) throw new Error('MCode release signature has an invalid length.');
+  if (signature.length !== 64) throw new Error('Alran release signature has an invalid length.');
   return signature;
 }
 
-export function resolveMcodeReleaseTarget(
+export function resolveAlranReleaseTarget(
   platform = process.platform,
   arch = process.arch,
-): McodeReleaseTarget {
+): AlranReleaseTarget {
   const candidate = `${platform === 'win32' ? 'windows' : platform}-${arch}`;
   if ((TARGETS as readonly string[]).includes(candidate)) {
-    return candidate as McodeReleaseTarget;
+    return candidate as AlranReleaseTarget;
   }
-  throw new Error(`Unsupported MCode update host: ${platform}-${arch}`);
+  throw new Error(`Unsupported Alran update host: ${platform}-${arch}`);
 }
 
-export function assertMcodeReleaseTargetAvailable(
-  manifest: McodeReleaseManifestV1,
-  target: McodeReleaseTarget,
+export function assertAlranReleaseTargetAvailable(
+  manifest: AlranReleaseManifestV1,
+  target: AlranReleaseTarget,
 ): void {
   if (manifest.targets[target]) return;
-  throw new Error(`MCode ${manifest.version} does not provide a release for ${target}.`);
+  throw new Error(`Alran ${manifest.version} does not provide a release for ${target}.`);
 }
 
 interface ParsedVersion {
@@ -202,7 +202,7 @@ interface ParsedVersion {
 }
 
 function parsedVersion(value: string): ParsedVersion {
-  parseMcodeVersion(value);
+  parseAlranVersion(value);
   const [coreText = '', prereleaseText] = value.split('-', 2);
   return {
     core: coreText.split('.').map((part) => Number.parseInt(part, 10)),
@@ -212,7 +212,7 @@ function parsedVersion(value: string): ParsedVersion {
   };
 }
 
-export function compareMcodeVersions(left: string, right: string): number {
+export function compareAlranVersions(left: string, right: string): number {
   const leftVersion = parsedVersion(left);
   const rightVersion = parsedVersion(right);
   for (let index = 0; index < 3; index += 1) {

@@ -240,13 +240,13 @@ describe('SOCKS5 proxy dispatch', () => {
 
   it('authenticates with credentials from the proxy URL', async () => {
     const socks = await startSocksServer({
-      username: 'mcode user',
+      username: 'alran user',
       password: 'p@ss:word',
     });
     const dispatcher = track(
       createTuiNetworkDispatcher({
-        HTTPS_PROXY: `socks5://mcode%20user:p%40ss%3Aword@127.0.0.1:${socks.port}`,
-        HTTP_PROXY: `socks5://mcode%20user:p%40ss%3Aword@127.0.0.1:${socks.port}`,
+        HTTPS_PROXY: `socks5://alran%20user:p%40ss%3Aword@127.0.0.1:${socks.port}`,
+        HTTP_PROXY: `socks5://alran%20user:p%40ss%3Aword@127.0.0.1:${socks.port}`,
       }),
     );
 
@@ -260,19 +260,19 @@ describe('SOCKS5 proxy dispatch', () => {
         addressType: ATYP_DOMAIN_NAME,
         host: 'auth.socks.invalid',
         port: 80,
-        username: 'mcode user',
+        username: 'alran user',
       },
     ]);
   });
 
   it('fails the request when SOCKS5 authentication is rejected', async () => {
     const socks = await startSocksServer({
-      username: 'mcode',
+      username: 'alran',
       password: 'expected',
     });
     const dispatcher = track(
       createTuiNetworkDispatcher({
-        ALL_PROXY: `socks5://mcode:wrong@127.0.0.1:${socks.port}`,
+        ALL_PROXY: `socks5://alran:wrong@127.0.0.1:${socks.port}`,
       }),
     );
 
@@ -328,14 +328,14 @@ describe('SOCKS5 proxy dispatch', () => {
   it.each(['ALL_PROXY', 'HTTPS_PROXY'])(
     'accepts %s=socks5h:// and lets the proxy resolve host names',
     async (name) => {
-      const socks = await startSocksServer({ username: 'mcode', password: 's3cr3t' });
+      const socks = await startSocksServer({ username: 'alran', password: 's3cr3t' });
       const warnings: string[] = [];
       let installed: Dispatcher | undefined;
 
       const configuration = configureTuiNetworkProxy({
         environment: {
-          [name]: ` socks5h://mcode:s3cr3t@127.0.0.1:${socks.port} `,
-          HTTP_PROXY: `socks5h://mcode:s3cr3t@127.0.0.1:${socks.port}`,
+          [name]: ` socks5h://alran:s3cr3t@127.0.0.1:${socks.port} `,
+          HTTP_PROXY: `socks5h://alran:s3cr3t@127.0.0.1:${socks.port}`,
         },
         setGlobalDispatcher: (dispatcher) => {
           installed = track(dispatcher);
@@ -354,7 +354,7 @@ describe('SOCKS5 proxy dispatch', () => {
           addressType: ATYP_DOMAIN_NAME,
           host: 'remote-dns.socks.invalid',
           port: 80,
-          username: 'mcode',
+          username: 'alran',
         },
       ]);
     },
@@ -363,9 +363,9 @@ describe('SOCKS5 proxy dispatch', () => {
   it.skipIf(!HAS_IPV6_LOOPBACK)(
     'connects to a SOCKS5 proxy at an IPv6 literal address',
     async () => {
-      const socks = await startSocksServer({ username: 'mcode', password: 'p@ss' }, '::1');
+      const socks = await startSocksServer({ username: 'alran', password: 'p@ss' }, '::1');
       const dispatcher = track(
-        createTuiNetworkDispatcher({ ALL_PROXY: `socks5://mcode:p%40ss@[::1]:${socks.port}` }),
+        createTuiNetworkDispatcher({ ALL_PROXY: `socks5://alran:p%40ss@[::1]:${socks.port}` }),
       );
 
       const response = await fetch('http://ipv6-proxy.socks.invalid/', { dispatcher });
@@ -376,7 +376,7 @@ describe('SOCKS5 proxy dispatch', () => {
           addressType: ATYP_DOMAIN_NAME,
           host: 'ipv6-proxy.socks.invalid',
           port: 80,
-          username: 'mcode',
+          username: 'alran',
         },
       ]);
     },
@@ -385,7 +385,7 @@ describe('SOCKS5 proxy dispatch', () => {
   it('treats an empty password as no SOCKS5 credentials', async () => {
     const socks = await startSocksServer();
     const dispatcher = track(
-      createTuiNetworkDispatcher({ ALL_PROXY: `socks5://mcode:@127.0.0.1:${socks.port}` }),
+      createTuiNetworkDispatcher({ ALL_PROXY: `socks5://alran:@127.0.0.1:${socks.port}` }),
     );
 
     const response = await fetch('http://empty-password.socks.invalid/', { dispatcher });

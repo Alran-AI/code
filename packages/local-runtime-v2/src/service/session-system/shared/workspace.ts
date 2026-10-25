@@ -128,7 +128,7 @@ function parseAgentWorkspacePath(
     return undefined;
   }
   const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(minimax|mavis)(?:-(.+))?$/i);
+  const match = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
   if (!match?.[1]) return undefined;
   return {
     windows,

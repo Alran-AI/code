@@ -26,17 +26,17 @@ describe('terminal title ownership', () => {
       workspace: '/workspace',
       status: 'perm' as const,
     };
-    expect(formatTuiTerminalTitle(input)).toBe('Needs approval | 修复 登录 | MCode');
+    expect(formatTuiTerminalTitle(input)).toBe('Needs approval | 修复 登录 | Alran');
     expect(
       formatTuiTerminalTitle(input, ['session-name', 'status', 'status', 'unknown', 'toString']),
     ).toBe('修复 登录 | Needs approval');
     expect(formatTuiTerminalTitle(input, null)).toBeUndefined();
     expect(formatTuiTerminalTitle(input, [])).toBeUndefined();
     expect(formatTuiTerminalTitle({ ...input, title: 'New session' })).toBe(
-      'Needs approval | workspace (session-) | MCode',
+      'Needs approval | workspace (session-) | Alran',
     );
     expect(formatTuiTerminalTitle({ ...input, status: 'auth' })).toBe(
-      'Needs login | 修复 登录 | MCode',
+      'Needs login | 修复 登录 | Alran',
     );
     const long = formatTuiTerminalTitle({ ...input, title: '😀'.repeat(300) })!;
     expect(Array.from(long)).toHaveLength(240);
@@ -114,7 +114,7 @@ describe('OSC 7501 program status', () => {
     status.setActive(true);
     status.update(state);
     status.update(state);
-    expect(terminal.write.mock.calls).toEqual([[`\u001b]7501;${body}:app=mcode\u001b\\`]]);
+    expect(terminal.write.mock.calls).toEqual([[`\u001b]7501;${body}:app=alran\u001b\\`]]);
     // Only fixed metadata leaves the TUI: no id, msg, title or progress pairs.
     const sequence = terminal.write.mock.calls[0]![0] as string;
     const keys = sequence
@@ -140,10 +140,10 @@ describe('OSC 7501 program status', () => {
     status.setActive(true);
     status.update('run');
     expect(terminal.write.mock.calls.flat()).toEqual([
-      '\u001b]7501;state=blocked:kind=permission:app=mcode\u001b\\',
-      '\u001b]7501;state=idle:app=mcode\u001b\\',
-      '\u001b]7501;state=blocked:kind=question:app=mcode\u001b\\',
-      '\u001b]7501;state=idle:app=mcode\u001b\\',
+      '\u001b]7501;state=blocked:kind=permission:app=alran\u001b\\',
+      '\u001b]7501;state=idle:app=alran\u001b\\',
+      '\u001b]7501;state=blocked:kind=question:app=alran\u001b\\',
+      '\u001b]7501;state=idle:app=alran\u001b\\',
     ]);
   });
 
@@ -239,7 +239,7 @@ describe('terminal notification policy and transport', () => {
     [{ TMUX: 'synthetic', TERM_PROGRAM: 'iTerm.app' }, '\u001bPtmux;'],
   ])('uses the shared terminal detection for %j', (env, prefix) => {
     const sequences = buildTuiTerminalNotificationSequences(
-      { title: 'MCode', body: 'Complete' },
+      { title: 'Alran', body: 'Complete' },
       env,
     );
     expect(sequences[0]?.startsWith(prefix)).toBe(true);
@@ -248,7 +248,7 @@ describe('terminal notification policy and transport', () => {
   it('assigns distinct kitty IDs and sanitizes title/body before framing', () => {
     const env = { TERM: 'xterm-kitty' };
     const message = {
-      title: 'MCode\u001b]0;injected\u0007',
+      title: 'Alran\u001b]0;injected\u0007',
       body: '修复\n登录\u0007',
     };
     const first = buildTuiTerminalNotificationSequences(message, env);

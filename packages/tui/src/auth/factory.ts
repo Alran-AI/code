@@ -1,30 +1,30 @@
 import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
 import {
-  resolveMCodeOAuthEndpointConfig,
-  type MCodeOAuthEndpointEnvironment,
+  resolveAlranOAuthEndpointConfig,
+  type AlranOAuthEndpointEnvironment,
 } from '@mavis/oauth-core';
 
-import { createMcodeSharedAuthSession } from '../runtime/auth-session.js';
-import { McodeAuthApplication, type McodeAuthApplicationOptions } from './application.js';
-import { resolveMcodeAuthEnvironment } from './environment.js';
+import { createAlranSharedAuthSession } from '../runtime/auth-session.js';
+import { AlranAuthApplication, type AlranAuthApplicationOptions } from './application.js';
+import { resolveAlranAuthEnvironment } from './environment.js';
 import { writeTuiRegionPreference } from './region-preference.js';
 
-export interface CreateDefaultMcodeAuthApplicationOptions {
+export interface CreateDefaultAlranAuthApplicationOptions {
   dataDir: string;
   region?: MavisRegion;
   buildEnv?: MavisBuildEnv;
-  oauthEndpointEnvironment?: MCodeOAuthEndpointEnvironment;
-  createSharedSession?: typeof createMcodeSharedAuthSession;
-  telemetry?: McodeAuthApplicationOptions['telemetry'];
-  telemetrySource?: McodeAuthApplicationOptions['telemetrySource'];
-  writeRegionPreference?: McodeAuthApplicationOptions['writeRegionPreference'];
-  sharedAuthCore?: McodeAuthApplicationOptions['sharedAuthCore'];
+  oauthEndpointEnvironment?: AlranOAuthEndpointEnvironment;
+  createSharedSession?: typeof createAlranSharedAuthSession;
+  telemetry?: AlranAuthApplicationOptions['telemetry'];
+  telemetrySource?: AlranAuthApplicationOptions['telemetrySource'];
+  writeRegionPreference?: AlranAuthApplicationOptions['writeRegionPreference'];
+  sharedAuthCore?: AlranAuthApplicationOptions['sharedAuthCore'];
 }
 
-export function createDefaultMcodeAuthApplication(
-  options: CreateDefaultMcodeAuthApplicationOptions,
-): McodeAuthApplication {
-  const environment = resolveMcodeAuthEnvironment({
+export function createDefaultAlranAuthApplication(
+  options: CreateDefaultAlranAuthApplicationOptions,
+): AlranAuthApplication {
+  const environment = resolveAlranAuthEnvironment({
     runtimeRegion: options.region,
     runtimeBuildEnv: options.buildEnv,
   });
@@ -37,19 +37,19 @@ export function createDefaultMcodeAuthApplication(
     ...(options.telemetry ? { telemetry: options.telemetry } : {}),
     ...(options.telemetrySource ? { telemetrySource: options.telemetrySource } : {}),
     writeRegionPreference: options.writeRegionPreference ?? writeTuiRegionPreference,
-  } satisfies Omit<McodeAuthApplicationOptions, 'sharedAuthCore'>;
+  } satisfies Omit<AlranAuthApplicationOptions, 'sharedAuthCore'>;
   const createSharedAuthCore = (requestedRegion: MavisRegion) =>
-    (options.createSharedSession ?? createMcodeSharedAuthSession)({
+    (options.createSharedSession ?? createAlranSharedAuthSession)({
       dataDir: options.dataDir,
       region: requestedRegion,
       buildEnv,
-      oauthEndpoints: resolveMCodeOAuthEndpointConfig(
+      oauthEndpoints: resolveAlranOAuthEndpointConfig(
         options.oauthEndpointEnvironment ?? process.env,
         { buildEnv, region: requestedRegion },
       ),
     });
   const sharedAuthCore = options.sharedAuthCore ?? createSharedAuthCore(region);
-  return new McodeAuthApplication({
+  return new AlranAuthApplication({
     ...applicationOptions,
     sharedAuthCore,
     resolveSharedAuthCore: createSharedAuthCore,

@@ -136,7 +136,7 @@ export async function callSafetyApi(input: {
     response = await input.fetchImpl(url, {
       method: "POST",
       headers: {
-        "User-Agent": "MiniMaxAgent",
+        "User-Agent": "AlranAgent",
         "Content-Type": "application/json",
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...managedBackendRoutingHeaders(

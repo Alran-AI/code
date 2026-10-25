@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { McodeProviderModel, McodeProviderView } from '../../src/provider/contract.js';
-import { McodeProviderApplication } from '../../src/provider/application.js';
+import type { AlranProviderModel, AlranProviderView } from '../../src/provider/contract.js';
+import { AlranProviderApplication } from '../../src/provider/application.js';
 
 function createPort() {
   return {
-    discoverUserModelsCandidate: vi.fn(async (): Promise<readonly McodeProviderModel[]> => []),
+    discoverUserModelsCandidate: vi.fn(async (): Promise<readonly AlranProviderModel[]> => []),
     listProviderPresets: vi.fn(async () => []),
     getCodexOAuthStatus: vi.fn(async () => ({
       state: 'disconnected' as const,
@@ -31,14 +31,14 @@ function createPort() {
         models: [{ modelId: 'gpt-4.1', displayName: 'GPT-4.1', contextLimit: 32768, maxOutputTokens: 4096 }],
       },
     ]),
-    getMiniMaxApiKeyStatus: vi.fn(async () => ({
+    getAlranApiKeyStatus: vi.fn(async () => ({
       hasApiKey: true,
       maskedApiKey: 'sk-****5678',
       rawApiKey: 'must-never-cross-the-cli-boundary',
     })),
-    getMiniMaxModelSource: vi.fn(async () => 'minimax_api_key' as const),
-    setMiniMaxModelSource: vi.fn(async (source: 'token_plan' | 'minimax_api_key') => source),
-    upsertMiniMaxApiKey: vi.fn(async () => undefined),
+    getAlranModelSource: vi.fn(async () => 'alran_api_key' as const),
+    setAlranModelSource: vi.fn(async (source: 'token_plan' | 'alran_api_key') => source),
+    upsertAlranApiKey: vi.fn(async () => undefined),
     createUserModelProvider: vi.fn(async () => undefined),
     saveUserModelProviderCandidate: vi.fn(async () => ({
       success: true,
@@ -57,9 +57,9 @@ function createPort() {
   };
 }
 
-describe('McodeProviderApplication', () => {
+describe('AlranProviderApplication', () => {
   it('exposes a disconnected Codex OAuth row when Runtime makes it visible', async () => {
-    const application = new McodeProviderApplication(createPort());
+    const application = new AlranProviderApplication(createPort());
 
     const snapshot = await application.snapshot({ includeCodexOAuth: true });
 
@@ -81,7 +81,7 @@ describe('McodeProviderApplication', () => {
       state: 'hidden',
       providerId: 'openai-codex',
     });
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot({ includeCodexOAuth: true });
 
@@ -92,30 +92,30 @@ describe('McodeProviderApplication', () => {
 
   it('builds a CLI-owned snapshot without exposing raw API keys', async () => {
     const port = createPort();
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot();
 
     expect(snapshot.providers.map((provider) => provider.providerId)).toEqual([
-      'minimax_oauth',
-      'minimax_api',
+      'alran_oauth',
+      'alran_api',
       'custom_provider:openai',
     ]);
     expect(snapshot.providers[0]).toMatchObject({
-      providerId: 'minimax_oauth',
-      name: 'MiniMax OAuth',
-      kind: 'minimax-oauth',
+      providerId: 'alran_oauth',
+      name: 'Alran OAuth',
+      kind: 'alran-oauth',
       active: false,
       enabled: true,
       readOnly: true,
       hasApiKey: false,
     });
     expect(snapshot.providers[1]).toMatchObject({
-      kind: 'minimax-api-key',
+      kind: 'alran-api-key',
       active: true,
       hasApiKey: true,
     });
-    expect(JSON.stringify(snapshot)).toContain('MiniMax OAuth');
+    expect(JSON.stringify(snapshot)).toContain('Alran OAuth');
     expect(JSON.stringify(snapshot)).not.toContain('must-never-cross-the-cli-boundary');
     expect(snapshot.providers[2]).not.toHaveProperty('rawApiKey');
     expect(snapshot.providers[2]?.models[0]).toMatchObject({
@@ -125,30 +125,30 @@ describe('McodeProviderApplication', () => {
     expect(port.getCodexOAuthStatus).not.toHaveBeenCalled();
   });
 
-  it('marks OAuth active when the MiniMax source is Token Plan', async () => {
+  it('marks OAuth active when the Alran source is Token Plan', async () => {
     const port = createPort();
-    port.getMiniMaxModelSource.mockResolvedValueOnce('token_plan');
-    const application = new McodeProviderApplication(port);
+    port.getAlranModelSource.mockResolvedValueOnce('token_plan');
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot();
 
-    expect(snapshot.minimaxModelSource).toBe('token_plan');
-    expect(snapshot.providers[0]).toMatchObject({ kind: 'minimax-oauth', active: true });
-    expect(snapshot.providers[1]).toMatchObject({ kind: 'minimax-api-key', active: false });
+    expect(snapshot.alranModelSource).toBe('token_plan');
+    expect(snapshot.providers[0]).toMatchObject({ kind: 'alran-oauth', active: true });
+    expect(snapshot.providers[1]).toMatchObject({ kind: 'alran-api-key', active: false });
   });
 
-  it('forwards MiniMax source changes through the CLI port', async () => {
+  it('forwards Alran source changes through the CLI port', async () => {
     const port = createPort();
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
-    await expect(application.setMiniMaxSource('token_plan')).resolves.toBe('token_plan');
+    await expect(application.setAlranSource('token_plan')).resolves.toBe('token_plan');
 
-    expect(port.setMiniMaxModelSource).toHaveBeenCalledWith('token_plan');
+    expect(port.setAlranModelSource).toHaveBeenCalledWith('token_plan');
   });
 
   it('forwards custom provider creation through the CLI port', async () => {
     const port = createPort();
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     await application.create({
       name: 'OpenAI',
@@ -171,7 +171,7 @@ describe('McodeProviderApplication', () => {
 
   it('saves a tested provider candidate and selects its chosen model atomically', async () => {
     const port = createPort();
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const result = await application.saveCandidate({
       name: 'OpenAI',
@@ -209,7 +209,7 @@ describe('McodeProviderApplication', () => {
         models: [{ modelId: 'gpt-5.6' }],
       },
     ]);
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot();
 
@@ -220,7 +220,7 @@ describe('McodeProviderApplication', () => {
 
   it('uses provider and model-specific connectivity tests', async () => {
     const port = createPort();
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     await application.test('custom_provider:openai');
     await application.test('custom_provider:openai', 'gpt-4.1');
@@ -245,7 +245,7 @@ describe('McodeProviderApplication', () => {
         models: [{ modelId: 'byok-large-5', selected: true }],
       },
     ]);
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot();
 
@@ -272,7 +272,7 @@ describe('McodeProviderApplication', () => {
         models: [{ modelId: 'byok-large-5', selected: true }],
       },
     ]);
-    const application = new McodeProviderApplication(port);
+    const application = new AlranProviderApplication(port);
 
     const snapshot = await application.snapshot();
 
@@ -282,7 +282,7 @@ describe('McodeProviderApplication', () => {
 
 
 describe('saved provider model refresh', () => {
-  const provider: McodeProviderView = {
+  const provider: AlranProviderView = {
     providerId: 'custom_provider:work', name: 'Work', kind: 'custom',
     enabled: true, readOnly: false, active: true, hasApiKey: true,
     configRevision: 'rev-1', baseUrl: 'https://models.example/v1',
@@ -295,7 +295,7 @@ describe('saved provider model refresh', () => {
       { modelId: 'old-model', displayName: 'Do not overwrite saved settings' },
       { modelId: 'new-model', displayName: 'New model' }, { modelId: ' new-model ' }, { modelId: ' old-model ' },
     ]);
-    await expect(new McodeProviderApplication(port).refreshModels(provider)).resolves.toBe(1);
+    await expect(new AlranProviderApplication(port).refreshModels(provider)).resolves.toBe(1);
     const identity = { providerId: provider.providerId, expectedRevision: 'rev-1', baseUrl: provider.baseUrl };
     expect(port.discoverUserModelsCandidate).toHaveBeenCalledWith(identity);
     expect(port.saveUserModelProviderCandidate).toHaveBeenCalledWith({
@@ -303,21 +303,21 @@ describe('saved provider model refresh', () => {
       modelId: 'new-model', skipConnectionTest: true, saveAndUse: false,
     });
     expect(port.createUserModelProvider).not.toHaveBeenCalled();
-    expect(port.setMiniMaxModelSource).not.toHaveBeenCalled();
+    expect(port.setAlranModelSource).not.toHaveBeenCalled();
     expect(provider.models).toEqual([{ modelId: 'old-model', selected: true }]);
   });
 
   it.each([{ models: [] }, { models: [{ modelId: 'old-model' }] }])('does not save an empty or unchanged discovery result', async ({ models }) => {
     const port = createPort();
     port.discoverUserModelsCandidate.mockResolvedValue(models);
-    await expect(new McodeProviderApplication(port).refreshModels(provider)).resolves.toBe(0);
+    await expect(new AlranProviderApplication(port).refreshModels(provider)).resolves.toBe(0);
     expect(port.saveUserModelProviderCandidate).not.toHaveBeenCalled();
   });
 
   it('keeps the saved configuration when discovery fails', async () => {
     const port = createPort();
     port.discoverUserModelsCandidate.mockRejectedValue(new Error('Authentication failed'));
-    await expect(new McodeProviderApplication(port).refreshModels(provider)).rejects.toThrow('Authentication failed');
+    await expect(new AlranProviderApplication(port).refreshModels(provider)).rejects.toThrow('Authentication failed');
     expect(port.saveUserModelProviderCandidate).not.toHaveBeenCalled();
   });
 
@@ -325,14 +325,14 @@ describe('saved provider model refresh', () => {
     const port = createPort();
     port.discoverUserModelsCandidate.mockResolvedValue([{ modelId: 'new-model' }]);
     port.saveUserModelProviderCandidate.mockRejectedValue(new Error('Configuration changed'));
-    await expect(new McodeProviderApplication(port).refreshModels(provider)).rejects.toThrow('Configuration changed');
+    await expect(new AlranProviderApplication(port).refreshModels(provider)).rejects.toThrow('Configuration changed');
     expect(port.saveUserModelProviderCandidate).toHaveBeenCalledOnce();
     expect(port.createUserModelProvider).not.toHaveBeenCalled();
   });
 
   it('rejects a missing revision before making any request', async () => {
     const port = createPort();
-    await expect(new McodeProviderApplication(port).refreshModels({ ...provider, configRevision: undefined })).rejects.toThrow('Reopen /provider');
+    await expect(new AlranProviderApplication(port).refreshModels({ ...provider, configRevision: undefined })).rejects.toThrow('Reopen /provider');
     expect(port.discoverUserModelsCandidate).not.toHaveBeenCalled();
   });
 });
@@ -346,7 +346,7 @@ it('forwards unsaved discovery credentials without saving the candidate', async 
     apiFormat: 'openai-completions' as const,
   };
   port.discoverUserModelsCandidate.mockResolvedValue([{ modelId: 'new-model' }]);
-  await expect(new McodeProviderApplication(port).discoverModels(candidate)).resolves.toEqual([
+  await expect(new AlranProviderApplication(port).discoverModels(candidate)).resolves.toEqual([
     { modelId: 'new-model' },
   ]);
   expect(port.discoverUserModelsCandidate).toHaveBeenCalledWith(candidate);

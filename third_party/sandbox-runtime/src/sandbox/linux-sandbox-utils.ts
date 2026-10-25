@@ -1,4 +1,4 @@
-// Modified by MiniMax for MCode Sandbox Runtime.
+// Modified by Alran for Alran Sandbox Runtime.
 
 import { quote } from "../utils/shell-quote.js";
 import { logForDebugging } from "../utils/debug.js";
@@ -615,12 +615,12 @@ export async function initializeLinuxNetworkBridge(
 ): Promise<LinuxNetworkBridgeContext> {
   const socat = socatPath ?? "socat";
   const socketId = randomBytes(8).toString("hex");
-  const httpSocketPath = join(tmpdir(), `mcode-sandbox-http-${socketId}.sock`);
+  const httpSocketPath = join(tmpdir(), `alran-sandbox-http-${socketId}.sock`);
   // Only allocated when ports differ; in the mux case the SOCKS side
   // reuses httpSocketPath.
   const socksSocketPath = join(
     tmpdir(),
-    `mcode-sandbox-socks-${socketId}.sock`,
+    `alran-sandbox-socks-${socketId}.sock`,
   );
 
   // Start HTTP bridge
@@ -1783,7 +1783,7 @@ export async function wrapCommandWithSandboxLinux(
       if (!applySeccompPrefix) {
         logForDebugging(
           "[Sandbox Linux] apply-seccomp binary not available - unix socket blocking disabled. " +
-            "Install @minimax/mcode-sandbox-runtime globally for full protection.",
+            "Install @ottili/alran-sandbox-runtime globally for full protection.",
           { level: "warn" },
         );
       } else {
@@ -1925,14 +1925,14 @@ export async function wrapCommandWithSandboxLinux(
         if (httpProxyPort !== undefined) {
           bwrapArgs.push(
             "--setenv",
-            "MCODE_SANDBOX_HOST_HTTP_PROXY_PORT",
+            "ALRAN_SANDBOX_HOST_HTTP_PROXY_PORT",
             String(httpProxyPort),
           );
         }
         if (socksProxyPort !== undefined) {
           bwrapArgs.push(
             "--setenv",
-            "MCODE_SANDBOX_HOST_SOCKS_PROXY_PORT",
+            "ALRAN_SANDBOX_HOST_SOCKS_PROXY_PORT",
             String(socksProxyPort),
           );
         }

@@ -1,6 +1,6 @@
 import {
   CUSTOM_PROVIDER_ID_PREFIX,
-  MINIMAX_API_PROVIDER_ID,
+  ALRAN_API_PROVIDER_ID,
   formatModelKey,
   parseProviderId,
 } from '../resolution/model-key.js';
@@ -16,7 +16,7 @@ import {
 } from '../contracts.js';
 import type { ModelDiscoveryTarget } from '../connectivity/discover-models.js';
 import { modelConnectionTestFingerprint } from '../catalog/config-fingerprint.js';
-import { minimaxApiBaseUrl, minimaxApiModels } from '../catalog/list-models.js';
+import { alranApiBaseUrl, alranApiModels } from '../catalog/list-models.js';
 import { modelConfigFingerprint, type ModelCacheStatusEntry } from '../catalog/model-cache.js';
 import { generateProviderKey } from './provider-key.js';
 import { buildCustomProviderView, type ModelProviderView } from '../catalog/provider-views.js';
@@ -34,9 +34,9 @@ import {
 } from './service-input.js';
 import { customProviderKeyFromId, removeLegacyCustomProviderNpm } from './service-helpers.js';
 import {
-  isMiniMaxM3ModelId,
+  isAlranM3ModelId,
   normalizeModelThinkingEffortOptions,
-  type MiniMaxM3ThinkingMode,
+  type AlranM3ThinkingMode,
 } from '../resolution/model-ref.js';
 import { byokEffectiveOutputLimit } from '../resolution/model-resolver-byok.js';
 
@@ -52,16 +52,16 @@ export interface ResolvedConnectionTestTarget {
   fingerprint: string;
   target: ModelConnectionTestTarget;
   effortOptions?: string[];
-  minimaxM3ThinkingModes?: MiniMaxM3ThinkingMode[];
+  alranM3ThinkingModes?: AlranM3ThinkingMode[];
 }
 
 interface ResolveTestTargetOptions {
   apiKeyOverride?: string;
   customProviderOverride?: LocalCustomProviderConfig;
-  minimaxModelOverride?: LocalModelConfig;
+  alranModelOverride?: LocalModelConfig;
 }
 
-interface ResolveMinimaxTestTargetOptions {
+interface ResolveAlranTestTargetOptions {
   apiKeyOverride?: string;
   modelOverride?: LocalModelConfig;
 }
@@ -140,14 +140,14 @@ interface ConnectionTestCase {
   target: ModelConnectionTestTarget;
 }
 
-function minimaxThinkingTestCases(
+function alranThinkingTestCases(
   resolved: ResolvedConnectionTestTarget,
   dedupKey: string,
 ): ConnectionTestCase[] {
-  return (resolved.minimaxM3ThinkingModes ?? []).map((mode) => ({
-    dedupKey: `${dedupKey}@minimax-m3-thinking=${mode}`,
-    label: `MiniMax M3 Thinking ${JSON.stringify(mode)}`,
-    target: { ...resolved.target, minimaxM3ThinkingMode: mode },
+  return (resolved.alranM3ThinkingModes ?? []).map((mode) => ({
+    dedupKey: `${dedupKey}@alran-m3-thinking=${mode}`,
+    label: `Alran M3 Thinking ${JSON.stringify(mode)}`,
+    target: { ...resolved.target, alranM3ThinkingMode: mode },
   }));
 }
 
@@ -215,7 +215,7 @@ function requireCustomProviderModelId(
   throw new LocalModelProviderError(400, 'Provider has no configured models', 'NO_MODELS');
 }
 
-function requireMinimaxModelId(
+function requireAlranModelId(
   models: Record<string, LocalModelConfig>,
   requestedModelId: string | undefined,
 ): string {
@@ -224,8 +224,8 @@ function requireMinimaxModelId(
   throw new LocalModelProviderError(404, 'Model not found', 'MODEL_NOT_FOUND');
 }
 
-function minimaxThinkingModes(modelId: string): MiniMaxM3ThinkingMode[] | undefined {
-  return isMiniMaxM3ModelId(modelId) ? ['on', 'off'] : undefined;
+function alranThinkingModes(modelId: string): AlranM3ThinkingMode[] | undefined {
+  return isAlranM3ModelId(modelId) ? ['on', 'off'] : undefined;
 }
 
 function providerTestCacheKey(providerId: string, modelId: string | undefined): string {
@@ -235,8 +235,8 @@ function providerTestCacheKey(providerId: string, modelId: string | undefined): 
 export class ModelProviderServiceContext {
   constructor(readonly deps: LocalModelProviderServiceDeps) {}
 
-  minimaxMutationKey(): string {
-    return `${this.deps.configGetter().dataDir}\u0000${MINIMAX_API_PROVIDER_ID}`;
+  alranMutationKey(): string {
+    return `${this.deps.configGetter().dataDir}\u0000${ALRAN_API_PROVIDER_ID}`;
   }
 
   resolveUserProviderCandidate(
@@ -341,8 +341,8 @@ export class ModelProviderServiceContext {
     resolved: ResolvedConnectionTestTarget,
   ): Promise<ModelConnectionTestResult> {
     const dedupKey = `${resolved.cacheKey}@${resolved.fingerprint}`;
-    if (resolved.minimaxM3ThinkingModes?.length) {
-      return runConnectionTestCases(this.deps.tester, minimaxThinkingTestCases(resolved, dedupKey));
+    if (resolved.alranM3ThinkingModes?.length) {
+      return runConnectionTestCases(this.deps.tester, alranThinkingTestCases(resolved, dedupKey));
     }
     if (resolved.effortOptions?.length) {
       return runConnectionTestCases(this.deps.tester, effortTestCases(resolved, dedupKey));
@@ -356,10 +356,10 @@ export class ModelProviderServiceContext {
     options: ResolveTestTargetOptions = {},
   ): ResolvedConnectionTestTarget {
     const config = this.deps.configGetter();
-    if (parseProviderId(providerId)?.source === 'minimax_api') {
-      return this.resolveMinimaxTestTarget(config, modelId, {
+    if (parseProviderId(providerId)?.source === 'alran_api') {
+      return this.resolveAlranTestTarget(config, modelId, {
         ...(options.apiKeyOverride ? { apiKeyOverride: options.apiKeyOverride } : {}),
-        ...(options.minimaxModelOverride ? { modelOverride: options.minimaxModelOverride } : {}),
+        ...(options.alranModelOverride ? { modelOverride: options.alranModelOverride } : {}),
       });
     }
     return this.resolveCustomTestTarget(config, providerId, modelId, options);
@@ -399,33 +399,33 @@ export class ModelProviderServiceContext {
     };
   }
 
-  resolveMinimaxTestTarget(
+  resolveAlranTestTarget(
     config: LocalRuntimeConfig,
     modelId: string | undefined,
-    options: ResolveMinimaxTestTargetOptions = {},
+    options: ResolveAlranTestTargetOptions = {},
   ): ResolvedConnectionTestTarget {
-    const apiKey = options.apiKeyOverride?.trim() || config.minimax_api?.apiKey?.trim();
+    const apiKey = options.apiKeyOverride?.trim() || config.alran_api?.apiKey?.trim();
     if (!apiKey) {
-      throw new LocalModelProviderError(400, 'MiniMax API key is not configured', 'NO_API_KEY');
+      throw new LocalModelProviderError(400, 'Alran API key is not configured', 'NO_API_KEY');
     }
-    const models = minimaxApiModels(config);
-    const chosenModelId = requireMinimaxModelId(models, modelId);
+    const models = alranApiModels(config);
+    const chosenModelId = requireAlranModelId(models, modelId);
     const model = options.modelOverride ?? models[chosenModelId];
     const effortOptions = normalizeModelThinkingEffortOptions(model?.thinking?.effortOptions);
-    const minimaxM3ThinkingModes = minimaxThinkingModes(chosenModelId);
+    const alranM3ThinkingModes = alranThinkingModes(chosenModelId);
     const outputLimit = byokEffectiveOutputLimit(model);
     const target: ModelConnectionTestTarget = {
       api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', minimaxApiBaseUrl(config)),
+      baseUrl: normalizeProviderBaseUrl('anthropic-messages', alranApiBaseUrl(config)),
       apiKey,
       modelId: chosenModelId,
       outputLimit,
     };
     return {
-      cacheKey: providerTestCacheKey(MINIMAX_API_PROVIDER_ID, modelId),
+      cacheKey: providerTestCacheKey(ALRAN_API_PROVIDER_ID, modelId),
       fingerprint: modelConnectionTestFingerprint(target, model),
       target,
-      ...(minimaxM3ThinkingModes ? { minimaxM3ThinkingModes } : {}),
+      ...(alranM3ThinkingModes ? { alranM3ThinkingModes } : {}),
       ...(effortOptions ? { effortOptions } : {}),
     };
   }

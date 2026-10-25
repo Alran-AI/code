@@ -651,8 +651,8 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
       agent: { agentName: "mavis", resourceAgentName: "main" },
       agentConfig: {
         model: {
-          provider: "minimax",
-          model_id: "MiniMax-M2.7-highspeed",
+          provider: "alran",
+          model_id: "Alran-M2.7-highspeed",
           variant: "thinking",
         },
       },
@@ -667,8 +667,8 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
       turnId: "turn-1",
       deferTelemetry: true,
       model: {
-        providerID: "minimax",
-        modelID: "MiniMax-M2.7-highspeed",
+        providerID: "alran",
+        modelID: "Alran-M2.7-highspeed",
         variant: "thinking",
       },
     });
@@ -681,7 +681,7 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
     await product.inputPreparation.reminders.buildSystem({
       session: { sessionId: "session-1" },
       agent: { agentName: "mavis", resourceAgentName: "main" },
-      agentConfig: { model: { provider: "minimax", id: "MiniMax-M2.7" } },
+      agentConfig: { model: { provider: "alran", id: "Alran-M2.7" } },
       promptText: "hello",
       turnId: "turn-1",
     } as never);
@@ -692,7 +692,7 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
       promptText: "hello",
       turnId: "turn-1",
       deferTelemetry: true,
-      model: { providerID: "minimax", modelID: "MiniMax-M2.7" },
+      model: { providerID: "alran", modelID: "Alran-M2.7" },
     });
   });
 });

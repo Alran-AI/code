@@ -10,13 +10,13 @@ import {
   type RawTuiInteractiveOptions,
   type TuiInteractiveLaunchRequest,
 } from './contract.js';
-import type { McodeProviderCliRequest } from './provider-command.js';
+import type { AlranProviderCliRequest } from './provider-command.js';
 import {
   isModelProviderApiFormat,
-  MCODE_PROVIDER_API_FORMATS,
-  type McodeProviderApiFormat,
+  ALRAN_PROVIDER_API_FORMATS,
+  type AlranProviderApiFormat,
 } from '../provider/contract.js';
-import type { McodePluginCliRequest, McodePluginMarketplace } from '../plugin/contract.js';
+import type { AlranPluginCliRequest, AlranPluginMarketplace } from '../plugin/contract.js';
 import { resolveTuiManagedBackendLane } from './environment.js';
 import {
   applySystemPromptCliOptions,
@@ -27,7 +27,7 @@ import {
   type RawSystemPromptOptions,
   type SystemPromptOverrides,
 } from './system-prompt-options.js';
-import type { McodeTelemetryCliAction } from './telemetry-command.js';
+import type { AlranTelemetryCliAction } from './telemetry-command.js';
 
 export type { TuiInteractiveLaunchRequest } from './contract.js';
 
@@ -50,9 +50,9 @@ export interface CreateTuiProgramOptions {
   runLogin: (region?: MavisRegion, openBrowser?: boolean, lane?: string) => Promise<void>;
   runLogout: (region?: MavisRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
-  runProvider?: (request: McodeProviderCliRequest, lane?: string) => Promise<void>;
-  runPlugin?: (request: McodePluginCliRequest, lane?: string) => Promise<void>;
-  runTelemetry?: (action: McodeTelemetryCliAction) => Promise<void>;
+  runProvider?: (request: AlranProviderCliRequest, lane?: string) => Promise<void>;
+  runPlugin?: (request: AlranPluginCliRequest, lane?: string) => Promise<void>;
+  runTelemetry?: (action: AlranTelemetryCliAction) => Promise<void>;
   resolveLane?: typeof resolveTuiManagedBackendLane;
   allowStartupEnvironmentSelection?: boolean;
   commandContributions?: readonly TuiCliCommandContribution[];
@@ -64,18 +64,18 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     ...request,
     ...(activeLane ? { lane: activeLane } : {}),
   });
-  const runProvider = (request: McodeProviderCliRequest) =>
+  const runProvider = (request: AlranProviderCliRequest) =>
     activeLane
       ? requireProviderRunner(options)(request, activeLane)
       : requireProviderRunner(options)(request);
-  const runPlugin = (request: McodePluginCliRequest) =>
+  const runPlugin = (request: AlranPluginCliRequest) =>
     activeLane
       ? requirePluginRunner(options)(request, activeLane)
       : requirePluginRunner(options)(request);
   const program = applyInteractiveCliContract(
     new Command()
-      .name('mcode')
-      .description('Minimax Code — terminal coding agent')
+      .name('alran')
+      .description('Alran Code — terminal coding agent')
       .version(options.version)
       .enablePositionalOptions(),
     { allowStartupEnvironmentSelection: options.allowStartupEnvironmentSelection },
@@ -122,7 +122,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   const acp = applySystemPromptCliOptions(
     program
       .command('acp')
-      .description('Run MiniMax Code as an Agent Client Protocol server over stdio'),
+      .description('Run Alran Code as an Agent Client Protocol server over stdio'),
   )
     .allowExcessArguments(false)
     .action((commandOptions: RawSystemPromptOptions, command: Command) => {
@@ -136,38 +136,35 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   acp
     .command('login')
-    .description('Sign in to use MiniMax Code Agent features')
-    .option('--region <region>', 'account region: cn or global', parseLoginRegion)
-    .option('--no-browser', 'print the authorization URL without opening a browser')
+    .description('Connect to the Ottili AI Platform with an Ottili API key')
+    .option('--no-browser', 'print the Ottili API key page URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: MavisRegion; browser?: boolean }) =>
+    .action((commandOptions: { browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(undefined, commandOptions.browser !== false, activeLane)
+        : options.runLogin(undefined, commandOptions.browser !== false),
     );
 
   program
     .command('login')
-    .description('Sign in to use MiniMax Code Agent features')
-    .option('--region <region>', 'account region: cn or global', parseLoginRegion)
-    .option('--no-browser', 'print the authorization URL without opening a browser')
+    .description('Connect Alran Code to the Ottili AI Platform with an Ottili API key')
+    .option('--no-browser', 'print the Ottili API key page URL without opening a browser')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: MavisRegion; browser?: boolean }) =>
+    .action((commandOptions: { browser?: boolean }) =>
       activeLane
-        ? options.runLogin(commandOptions.region, commandOptions.browser !== false, activeLane)
-        : options.runLogin(commandOptions.region, commandOptions.browser !== false),
+        ? options.runLogin(undefined, commandOptions.browser !== false, activeLane)
+        : options.runLogin(undefined, commandOptions.browser !== false),
     );
 
   program
     .command('logout')
-    .description('Sign out of the MiniMax account used by this CLI')
-    .option('--region <region>', 'account region: cn or global', parseLoginRegion)
+    .description('Remove the stored Ottili API key')
     .allowExcessArguments(false)
-    .action((commandOptions: { region?: MavisRegion }) => options.runLogout(commandOptions.region));
+    .action(() => options.runLogout());
 
   program
     .command('update')
-    .description('Check for and install a Minimax Code update')
+    .description('Check for and install a Alran Code update')
     .allowExcessArguments(false)
     .action(options.runUpdate);
 
@@ -208,7 +205,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .requiredOption('--base-url <url>', 'provider API base URL')
     .option(
       '--api-format <format>',
-      MCODE_PROVIDER_API_FORMATS.join(', '),
+      ALRAN_PROVIDER_API_FORMATS.join(', '),
       parseApiFormat,
       'anthropic-messages',
     )
@@ -222,7 +219,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
       (commandOptions: {
         name: string;
         baseUrl: string;
-        apiFormat: McodeProviderApiFormat;
+        apiFormat: AlranProviderApiFormat;
         model: string[];
         contextLimit?: number;
         outputLimit?: number;
@@ -278,24 +275,24 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   provider
     .command('use')
-    .description('Choose the MiniMax credential source')
+    .description('Choose the Alran credential source')
     .argument('<source>', 'token-plan or api-key', parseProviderSource)
-    .action((source: 'token_plan' | 'minimax_api_key') => runProvider({ action: 'use', source }));
+    .action((source: 'token_plan' | 'alran_api_key') => runProvider({ action: 'use', source }));
 
   provider
-    .command('set-minimax-key')
-    .description('Save and use a MiniMax API key')
+    .command('set-alran-key')
+    .description('Save and use a Alran API key')
     .option('--api-key-env <name>', 'environment variable containing the API key')
     .action((commandOptions: { apiKeyEnv?: string }) =>
       runProvider({
-        action: 'set-minimax-key',
+        action: 'set-alran-key',
         apiKeyEnv: commandOptions.apiKeyEnv,
       }),
     );
 
   const plugin = program
     .command('plugin')
-    .description('Manage MiniMax Code Plugins')
+    .description('Manage Alran Code Plugins')
     .allowExcessArguments(false)
     .action(() => options.launchTui(withLane({ initialPrompt: '/plugins' })));
 
@@ -307,7 +304,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .option('--json', 'print a JSON document')
     .action(
       (commandOptions: {
-        marketplace?: McodePluginMarketplace;
+        marketplace?: AlranPluginMarketplace;
         available?: boolean;
         json?: boolean;
       }) =>
@@ -329,7 +326,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
       .action(
         (
           selector: string,
-          commandOptions: { marketplace?: McodePluginMarketplace; json?: boolean },
+          commandOptions: { marketplace?: AlranPluginMarketplace; json?: boolean },
         ) =>
           runPlugin({
             action,
@@ -342,7 +339,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   const marketplace = plugin
     .command('marketplace')
-    .description('List or refresh MiniMax Code Plugin sources');
+    .description('List or refresh Alran Code Plugin sources');
 
   marketplace
     .command('list')
@@ -406,18 +403,18 @@ function parseLoginRegion(value: string): MavisRegion {
   throw new InvalidArgumentError('expected "cn" or "global"');
 }
 
-function parseApiFormat(value: string): McodeProviderApiFormat {
+function parseApiFormat(value: string): AlranProviderApiFormat {
   if (isModelProviderApiFormat(value)) return value;
-  throw new InvalidArgumentError(`expected one of: ${MCODE_PROVIDER_API_FORMATS.join(', ')}`);
+  throw new InvalidArgumentError(`expected one of: ${ALRAN_PROVIDER_API_FORMATS.join(', ')}`);
 }
 
-function parseProviderSource(value: string): 'token_plan' | 'minimax_api_key' {
+function parseProviderSource(value: string): 'token_plan' | 'alran_api_key' {
   if (value === 'token-plan') return 'token_plan';
-  if (value === 'api-key') return 'minimax_api_key';
+  if (value === 'api-key') return 'alran_api_key';
   throw new InvalidArgumentError('expected "token-plan" or "api-key"');
 }
 
-function parsePluginMarketplace(value: string): McodePluginMarketplace {
+function parsePluginMarketplace(value: string): AlranPluginMarketplace {
   const normalized = value.trim().toLocaleLowerCase();
   if (normalized === 'official' || normalized === 'local') return normalized;
   throw new InvalidArgumentError('expected "official" or "local"');

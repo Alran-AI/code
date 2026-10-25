@@ -51,7 +51,7 @@ async function testTokensOnAbort<TApi extends Api>(llm: Model<TApi>, options: St
 
 	// OpenAI providers, OpenAI Codex, zai, and Amazon Bedrock only send usage in the final chunk,
 	// so when aborted they have no token stats. Anthropic and Google send usage information early in the stream.
-	// MiniMax and Kimi report input tokens but not output tokens differently on aborted requests.
+	// Alran and Kimi report input tokens but not output tokens differently on aborted requests.
 	if (
 		llm.api === "openai-completions" ||
 		llm.api === "mistral-conversations" ||
@@ -64,8 +64,8 @@ async function testTokensOnAbort<TApi extends Api>(llm: Model<TApi>, options: St
 	) {
 		expect(msg.usage.input).toBe(0);
 		expect(msg.usage.output).toBe(0);
-	} else if (llm.provider === "minimax") {
-		// MiniMax M2.7 does not report token usage for aborted requests.
+	} else if (llm.provider === "alran") {
+		// Alran M2.7 does not report token usage for aborted requests.
 		expect(msg.usage.input).toBe(0);
 		expect(msg.usage.output).toBe(0);
 	} else if (llm.provider === "kimi-coding") {
@@ -210,8 +210,8 @@ describe("Token Statistics on Abort", () => {
 		});
 	});
 
-	describe.skipIf(!process.env.MINIMAX_API_KEY)("MiniMax Provider", () => {
-		const llm = getModel("minimax", "MiniMax-M2.7");
+	describe.skipIf(!process.env.ALRAN_API_KEY)("Alran Provider", () => {
+		const llm = getModel("alran", "Alran-M2.7");
 
 		it("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
 			await testTokensOnAbort(llm);

@@ -8,7 +8,7 @@ beforeEach(() => {
   vi.stubEnv('__MAVIS_RUNTIME_MANAGED', '1');
   vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
   vi.stubEnv('MAVIS_REGION', 'en');
-  vi.stubEnv('MCODE_DISABLE_TELEMETRY', '');
+  vi.stubEnv('ALRAN_DISABLE_TELEMETRY', '');
   vi.stubEnv('DO_NOT_TRACK', '');
   fetchRequest.mockReset().mockResolvedValue(new Response('{}', { status: 200 }));
   vi.stubGlobal('fetch', fetchRequest);
@@ -42,10 +42,10 @@ describe('automatic runtime metrics consent', () => {
     client.counter('started_total', 1);
     await client.flush();
     expect(fetchRequest).toHaveBeenCalledOnce();
-    expect(String(fetchRequest.mock.calls[0]![0])).toBe('https://agent.minimax.io/matrix/api/v1/metrics/batch');
+    expect(String(fetchRequest.mock.calls[0]![0])).toBe('https://api.ottili.one/matrix/api/v1/metrics/batch');
   });
 
-  it.each(['MCODE_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the metrics opt-in', async (key) => {
+  it.each(['ALRAN_DISABLE_TELEMETRY', 'DO_NOT_TRACK'])('%s overrides the metrics opt-in', async (key) => {
     vi.stubEnv(key, '1');
     const client = fixture(true);
     client.counter('started_total', 1);

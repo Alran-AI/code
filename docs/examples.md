@@ -3,14 +3,14 @@
 Try the [Pocket Pet walkthrough](../examples/pocket-pet) for a visual example with two real requests: add a focus timer, then change pause to a long press. It includes a starter, finished implementation, and tests. No hardware is required.
 
 
-Build the project using the [installation guide](installation.md). Run the `pnpm mcode` commands below from the source root. For interactive tasks, open the target project directory and launch the built CLI by absolute path.
+Build the project using the [installation guide](installation.md). Run the `pnpm alran` commands below from the source root. For interactive tasks, open the target project directory and launch the built CLI by absolute path.
 
 ## 1. Edit code and run tests
 
 `examples/clamp` is an intentionally broken exercise with one function and three Node.js tests. It needs no additional dependencies. Copy the directory to a temporary location, open that copy, and start:
 
 ```bash
-node /absolute/path/to/minimax-code/dist/cli.js
+node /absolute/path/to/alran-code/dist/cli.js
 ```
 
 Enter:
@@ -22,7 +22,7 @@ In the [real demo](demo.md), two tests initially failed. After correcting the bo
 Resume the most recent session in the current directory:
 
 ```bash
-node /absolute/path/to/minimax-code/dist/cli.js --continue
+node /absolute/path/to/alran-code/dist/cli.js --continue
 ```
 
 ## 2. Choose your own model
@@ -37,26 +37,26 @@ Before adding a custom provider, set a key in your current shell rather than put
 
 ```bash
 # POSIX shell: read the key interactively without echoing it.
-read -s MCODE_PROVIDER_API_KEY
-export MCODE_PROVIDER_API_KEY
+read -s ALRAN_PROVIDER_API_KEY
+export ALRAN_PROVIDER_API_KEY
 ```
 
 In PowerShell, use a process environment variable and treat the input as sensitive:
 
 ```powershell
 $secureKey = Read-Host 'API Key' -AsSecureString
-$env:MCODE_PROVIDER_API_KEY = [System.Net.NetworkCredential]::new('', $secureKey).Password
+$env:ALRAN_PROVIDER_API_KEY = [System.Net.NetworkCredential]::new('', $secureKey).Password
 ```
 
 Add, inspect, and test the provider:
 
 ```bash
-pnpm mcode provider add --name my-provider --base-url https://example.com/v1 \
+pnpm alran provider add --name my-provider --base-url https://example.com/v1 \
   --api-format openai-completions --model my-model \
-  --api-key-env MCODE_PROVIDER_API_KEY --use
-pnpm mcode provider list
-pnpm mcode provider test <provider-id> --model <model-id>
-pnpm mcode exec "Explain this project's test entry points" --model <provider-id>/<model-id>
+  --api-key-env ALRAN_PROVIDER_API_KEY --use
+pnpm alran provider list
+pnpm alran provider test <provider-id> --model <model-id>
+pnpm alran exec "Explain this project's test entry points" --model <provider-id>/<model-id>
 ```
 
 Replace the example URL, model name, and IDs with your configuration and the IDs returned by the list command. `--use` tests the first listed model, then saves the provider and selects that model as the default. A failed connection test exits nonzero without saving or changing the default; correct the URL, key, or first model ID and retry. Omit `--use` to save without a connection test or default-model change. `exec --model` overrides only the current run. Backslash line continuations are for POSIX shells; use a single line in PowerShell.
@@ -64,25 +64,25 @@ Replace the example URL, model name, and IDs with your configuration and the IDs
 For a local server, configure its actual token limits explicitly:
 
 ```bash
-pnpm mcode provider add --name local-models --base-url http://localhost:8080/v1 \
+pnpm alran provider add --name local-models --base-url http://localhost:8080/v1 \
   --api-format openai-completions --model local-model --model another-model \
-  --api-key-env MCODE_PROVIDER_API_KEY \
+  --api-key-env ALRAN_PROVIDER_API_KEY \
   --context-limit 32768 --output-limit 4096 --use
-pnpm mcode provider list --json
+pnpm alran provider list --json
 ```
 
 `--context-limit` and `--output-limit` each accept a positive safe integer (at most `9007199254740991`). Either flag can be used independently. The same limits apply to every repeated `--model`; only the first model is tested and selected by `--use`. The JSON list shows the configured values as `contextLimit` and `maxOutputTokens`. Without these flags, the existing defaults remain unchanged (unknown custom models currently fall back to 200,000 context tokens and 16,384 output tokens). Model discovery does not infer your local server's context size.
 
-`--api-key-env` reads the current environment variable value and stores that value in the active profile's `config.yaml`; it does not save an environment-variable reference. The file still contains plaintext credentials. On POSIX systems, config writes and temporary copies use `0600`. When loading existing files, MCode removes group/other access while preserving the owner's permissions; already-private files such as `0400` or `0600` do not require a permission change. Loading fails if an unsafe main config cannot be restricted. Older migration backups are also checked, but inspection or repair failures produce a warning identifying the directory or backup that needs manual attention rather than preventing the main config from loading. Windows file modes do not provide equivalent ACL protection; restrict access to the profile directory using Windows permissions.
+`--api-key-env` reads the current environment variable value and stores that value in the active profile's `config.yaml`; it does not save an environment-variable reference. The file still contains plaintext credentials. On POSIX systems, config writes and temporary copies use `0600`. When loading existing files, Alran removes group/other access while preserving the owner's permissions; already-private files such as `0400` or `0600` do not require a permission change. Loading fails if an unsafe main config cannot be restricted. Older migration backups are also checked, but inspection or repair failures produce a warning identifying the directory or backup that needs manual attention rather than preventing the main config from loading. Windows file modes do not provide equivalent ACL protection; restrict access to the profile directory using Windows permissions.
 
 ### Third-party relays and custom auth headers
 
-Providers created by `mcode provider add` are stored under `custom_provider` in the active profile's `config.yaml`. That tree is the supported home for any endpoint other than the official MiniMax API; `minimax_api` is reserved for the official endpoint and keeps its fixed authentication scheme.
+Providers created by `alran provider add` are stored under `custom_provider` in the active profile's `config.yaml`. That tree is the supported home for any endpoint other than the official Alran API; `alran_api` is reserved for the official endpoint and keeps its fixed authentication scheme.
 
 Google-compatible endpoints use Pi's native Google adapter. Add the model manually with a base URL ending at the API version (not `/models`):
 
 ```bash
-mcode provider add --name "OpenCode Go Gemini" \
+alran provider add --name "OpenCode Go Gemini" \
   --base-url https://opencode.ai/inference/go/v1 \
   --api-format google-generative-ai --model gemini-4-argon-contributor \
   --api-key-env OPENCODE_API_KEY --use
@@ -101,16 +101,16 @@ custom_provider:
       headers:
         Authorization: Bearer sk-relay-key
     models:
-      MiniMax-M2: {}
+      Alran-M2: {}
 ```
 
-`api` can be omitted and defaults to `anthropic-messages`. Configured headers are sent on both connection tests and conversation requests, and they are part of the connection-test fingerprint, so editing them retires a cached test verdict. The default `x-api-key` header is still sent alongside; the relay must tolerate rather than reject it. Header values are stored in plaintext like `apiKey` and are reported by name only in provider views. After editing the file, verify with `mcode provider list` and `mcode provider test <provider-id>`.
+`api` can be omitted and defaults to `anthropic-messages`. Configured headers are sent on both connection tests and conversation requests, and they are part of the connection-test fingerprint, so editing them retires a cached test verdict. The default `x-api-key` header is still sent alongside; the relay must tolerate rather than reject it. Header values are stored in plaintext like `apiKey` and are reported by name only in provider views. After editing the file, verify with `alran provider list` and `alran provider test <provider-id>`.
 
-[Live acceptance](verification.md) separately verified MiniMax Token Plan and one configured BYOK provider. This is not a guarantee for every compatible service.
+[Live acceptance](verification.md) separately verified Alran Token Plan and one configured BYOK provider. This is not a guarantee for every compatible service.
 
 ### Prompt-cache session affinity
 
-A relay that routes prompt-cache hits per session needs to recognize which session a request belongs to. MCode never derives that from the Anthropic `metadata.user_id` field: `metadata` is forwarded only when a caller sets it explicitly, because it is an abuse-detection and attribution field rather than a cache key. The supported mechanism is the `sendSessionAffinityHeaders` compatibility override, declared per model under `compat`:
+A relay that routes prompt-cache hits per session needs to recognize which session a request belongs to. Alran never derives that from the Anthropic `metadata.user_id` field: `metadata` is forwarded only when a caller sets it explicitly, because it is an abuse-detection and attribution field rather than a cache key. The supported mechanism is the `sendSessionAffinityHeaders` compatibility override, declared per model under `compat`:
 
 ```yaml
 custom_provider:
@@ -119,14 +119,14 @@ custom_provider:
       apiKey: sk-relay-key
       baseURL: https://relay.example.com
     models:
-      MiniMax-M2:
+      Alran-M2:
         compat:
           sendSessionAffinityHeaders: true
 ```
 
 With the override enabled, every request carries the current session id as `x-session-affinity`. An `openai-completions` provider additionally sends the same value as `session_id` and `x-client-request-id`. Key the relay's cache routing on those headers. Requests made with cache retention disabled send no session headers at all; leave the routing fallback in place rather than treating a missing header as a new session.
 
-The override defaults to `false`, so a provider that ignores these headers is unaffected; it is enabled automatically only for endpoints known to require it, such as Fireworks and the Anthropic route of Cloudflare AI Gateway. `compat` accepts further per-model capability overrides, and each value is applied only when it has the declared type, so a quoted `"false"` is discarded rather than read as true. Restart MCode after editing configuration.
+The override defaults to `false`, so a provider that ignores these headers is unaffected; it is enabled automatically only for endpoints known to require it, such as Fireworks and the Anthropic route of Cloudflare AI Gateway. `compat` accepts further per-model capability overrides, and each value is applied only when it has the declared type, so a quoted `"false"` is discarded rather than read as true. Restart Alran after editing configuration.
 
 ## 3. Search and image input
 
@@ -134,9 +134,9 @@ For a custom BYOK model, declare image input support explicitly when adding the
 provider. Use this only if the selected provider endpoint and model accept images:
 
 ```bash
-pnpm mcode provider add --name my-vision-provider --base-url https://example.com/v1 \
+pnpm alran provider add --name my-vision-provider --base-url https://example.com/v1 \
   --api-format openai-completions --model my-vision-model \
-  --api-key-env MCODE_PROVIDER_API_KEY --support-image --use
+  --api-key-env ALRAN_PROVIDER_API_KEY --support-image --use
 ```
 
 `--support-image` applies to every repeated `--model` and saves
@@ -144,8 +144,8 @@ pnpm mcode provider add --name my-vision-provider --base-url https://example.com
 does not infer image support from its name. `--use` and `provider test` check
 connectivity with a text request; they do not verify vision support.
 
-For an existing provider, close MCode and add the capability to the matching model
-in the active profile's `config.yaml` (normally `~/.minimax/config.yaml`; see
+For an existing provider, close Alran and add the capability to the matching model
+in the active profile's `config.yaml` (normally `~/.alran/config.yaml`; see
 [Accounts and data](installation.md#accounts-and-data) for profiles and overrides).
 Merge this fragment into the existing provider and keep its other settings:
 
@@ -162,11 +162,11 @@ The existing `modalities: { input: [text, image], output: [text] }` model settin
 also enables image input. Either declaration is sufficient. To make a model
 text-only again, remove `image` from `modalities.input` and remove or set
 `capabilities.support_image` to `false`. Generic `attachment: true` alone does not
-declare image input support. Restart MCode after editing configuration and select
+declare image input support. Restart Alran after editing configuration and select
 the configured model with `/provider`, or use `exec --model` for a single run.
 
 Images stay in the conversation history, so a long session can carry more images
-than a provider accepts in one request. MCode sends only the 20 most recent images
+than a provider accepts in one request. Alran sends only the 20 most recent images
 per request and replaces older ones with a short text note naming the original
 file; the stored history keeps every image. If your provider allows fewer images
 per request, set the limit on the model (Mistral's API is limited to 8
@@ -182,7 +182,7 @@ custom_provider:
           max_images_per_request: 8
 ```
 
-After signing in to MiniMax, try a task that explicitly requires search:
+After signing in to Alran, try a task that explicitly requires search:
 
 > Use web_search to find the official Node.js test runner documentation. Summarize how to run tests and include the source URL. If the tool is unavailable, say so.
 
@@ -191,11 +191,11 @@ Acceptance observed an actual `web_search` call and returned results; see the [v
 Paste your own image into the TUI, or attach a file explicitly:
 
 ```bash
-pnpm mcode exec "Describe this UI screenshot's layout and suggest three improvements" \
+pnpm alran exec "Describe this UI screenshot's layout and suggest three improvements" \
   --file /absolute/path/to/your-screenshot.png
 ```
 
-The image is sent as input to the selected model service. Use content suitable for sending and a model that supports images. This is an executable usage example, not a live-service acceptance result from this review. Search, image understanding, and media generation are separate capabilities; mcode-tools generation also requires the relevant account permissions and credits.
+The image is sent as input to the selected model service. Use content suitable for sending and a model that supports images. This is an executable usage example, not a live-service acceptance result from this review. Search, image understanding, and media generation are separate capabilities; alran-tools generation also requires the relevant account permissions and credits.
 
 See [capability coverage](tui-capabilities.md) for custom MCP, managed connectors, and media tools, and the [authenticated project MCP walkthrough](#5-connect-an-authenticated-project-mcp-server) below for your own remote server.
 
@@ -203,13 +203,13 @@ See [capability coverage](tui-capabilities.md) for custom MCP, managed connector
 
 Synchronous Hooks can show [TUI-only messages](hooks.md) with `systemMessage`, including notices after a normal Stop.
 
-Open `/plugins` inside the TUI, or run `mcode plugin` from a shell to open that panel. For a source build, use `pnpm mcode plugin` from the source root instead; the commands below use the installed `mcode` executable.
+Open `/plugins` inside the TUI, or run `alran plugin` from a shell to open that panel. For a source build, use `pnpm alran plugin` from the source root instead; the commands below use the installed `alran` executable.
 
 The panel combines the **official** catalog and **local** plugin directories. Use `Tab` / `Shift+Tab` to switch between All Plugins, Installed, Official, and Local; type to search and use the arrow keys to select a row.
 
 | Action | Key | Scope |
 | --- | --- | --- |
-| Install an available plugin | `Enter` | Official catalog; requires MiniMax login |
+| Install an available plugin | `Enter` | Official catalog; requires Alran login |
 | Enable or disable an installed plugin | `Space` | Official and local |
 | Remove an installed plugin | `Delete` or `Ctrl+D` | Official and local; clear the search first with `Esc`, then reselect the plugin |
 | Refresh the catalogs | `Ctrl+R` | Official and local |
@@ -219,28 +219,28 @@ With a nonempty search, `Delete` / `Ctrl+D` edit the search instead of removing 
 The same operations are available from the shell:
 
 ```bash
-mcode plugin --help
-mcode plugin marketplace list
-mcode plugin list --available --marketplace official
-mcode plugin add <name>@official
-mcode plugin disable <name>@official
-mcode plugin enable <name>@official
-mcode plugin remove <name>@official
-mcode plugin marketplace upgrade
+alran plugin --help
+alran plugin marketplace list
+alran plugin list --available --marketplace official
+alran plugin add <name>@official
+alran plugin disable <name>@official
+alran plugin enable <name>@official
+alran plugin remove <name>@official
+alran plugin marketplace upgrade
 ```
 
 Replace `<name>` with a plugin name returned by `list`. Use `@official` or `@local` to disambiguate names shared by both sources; `--marketplace official` / `--marketplace local` are equivalent source selectors. The list and mutation commands support `--json`. `marketplace upgrade` refreshes source snapshots; it does not register a new marketplace.
 
-For a local plugin, run `mcode plugin marketplace list` to find the active profile's local directory. Place a supported plugin package in a direct child directory there, with its manifest at the package's expected location, then refresh `/plugins`. Copy the individual plugin package, not an entire marketplace repository. Discovered local packages already count as installed:
+For a local plugin, run `alran plugin marketplace list` to find the active profile's local directory. Place a supported plugin package in a direct child directory there, with its manifest at the package's expected location, then refresh `/plugins`. Copy the individual plugin package, not an entire marketplace repository. Discovered local packages already count as installed:
 
 ```bash
-mcode plugin list --available --marketplace local
-mcode plugin disable <name>@local
-mcode plugin enable <name>@local
-mcode plugin remove <name>@local
+alran plugin list --available --marketplace local
+alran plugin disable <name>@local
+alran plugin enable <name>@local
+alran plugin remove <name>@local
 ```
 
-`mcode plugin add <name>@local` is not a local import command and is unsupported. Neither `plugin add` nor `/plugins` currently accepts a GitHub URL, local path, or arbitrary third-party marketplace registration. Compatible package readers and a GitHub importer exist in the runtime, but the CLI/TUI do not expose that importer. Managing arbitrary marketplaces from the panel remains a separate feature request; the current source selectors are only `official` and `local`.
+`alran plugin add <name>@local` is not a local import command and is unsupported. Neither `plugin add` nor `/plugins` currently accepts a GitHub URL, local path, or arbitrary third-party marketplace registration. Compatible package readers and a GitHub importer exist in the runtime, but the CLI/TUI do not expose that importer. Managing arbitrary marketplaces from the panel remains a separate feature request; the current source selectors are only `official` and `local`.
 
 ## 5. Connect an authenticated project MCP server
 
@@ -251,7 +251,7 @@ to a remote server. Tool calls send their arguments to that service. A tool
 permission prompt happens after connection and does not prevent this initial
 contact. This optional configuration leaves built-in search unchanged.
 
-Create `.mcp.json` in the workspace root you will launch MCode from:
+Create `.mcp.json` in the workspace root you will launch Alran from:
 
 ```json
 {
@@ -270,24 +270,24 @@ Create `.mcp.json` in the workspace root you will launch MCode from:
 Replace the placeholder URL with your service's exact MCP endpoint, including
 its path. Keep the API key out of the file and URL: `${RESEARCH_MCP_API_KEY}` is
 a literal environment-variable reference, expanded by the runtime. Set the
-variable in the shell that will launch MCode, for example in Bash:
+variable in the shell that will launch Alran, for example in Bash:
 
 ```bash
 read -r -s -p 'Research MCP API key: ' RESEARCH_MCP_API_KEY
 export RESEARCH_MCP_API_KEY
 cd /absolute/path/to/your-project
-node /absolute/path/to/minimax-code/dist/cli.js
+node /absolute/path/to/alran-code/dist/cli.js
 ```
 
 For PowerShell, use `Read-Host -AsSecureString` as in the [provider example](#2-choose-your-own-model), assigning the result to `$env:RESEARCH_MCP_API_KEY`.
-Only the session's main workspace directory is checked for `.mcp.json`; MCode
+Only the session's main workspace directory is checked for `.mcp.json`; Alran
 does not search parent directories or `/add-dir` locations. No plugin import or
 MCP-specific approval command is needed.
 
 Inside the TUI, enter `/mcp` (or `/mcp research` to filter). The **Project ·
 .mcp.json** section lists the server as `configured` before connection. Listing
 configuration does not contact the server or prove authentication. Close the
-panel with `Esc`, then ask MCode to use a tool offered by your selected service
+panel with `Esc`, then ask Alran to use a tool offered by your selected service
 with a small, non-sensitive input. Inspect the actual tool call and result with
 `Ctrl+O`; a prose answer alone does not prove a tool ran. After successful
 discovery or a call, `/mcp` shows `available`, which still does not establish that
@@ -296,7 +296,7 @@ a research task succeeded.
 To troubleshoot or change the configuration:
 
 - A missing `RESEARCH_MCP_API_KEY` produces `error`, names the missing variable,
-  and prevents that server from connecting. Export it and restart MCode from
+  and prevents that server from connecting. Export it and restart Alran from
   that shell; `/mcp reload` cannot import environment changes from another shell.
 - Set `"enabled": false` inside the `research` entry to stop using it. A valid
   disabled entry shows `disabled`; invalid fields or missing variables still
@@ -305,7 +305,7 @@ To troubleshoot or change the configuration:
   and display the configuration. It is not a connection or authentication test.
   Discovery and calls also reread the file automatically; a changed configuration
   retires the old connection and is used on the next discovery or call.
-- For a server that has already connected, exit MCode before editing and restart
+- For a server that has already connected, exit Alran before editing and restart
   afterward. Local CLI validation found that reloading a changed HTTP entry after
   a successful call can stop the TUI with `This operation was aborted.`
 - If connection fails, check the endpoint, key and service availability. An

@@ -15,7 +15,7 @@ export const PLUGIN_HOOK_EVENTS = [
 
 export type PluginHookEventName = (typeof PLUGIN_HOOK_EVENTS)[number];
 
-export type PluginHookSourceFormat = 'MINIMAX' | 'CLAUDE' | 'CODEX';
+export type PluginHookSourceFormat = 'ALRAN' | 'CLAUDE' | 'CODEX';
 
 export interface PluginHookEffort {
   readonly level: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
@@ -187,7 +187,7 @@ export interface PluginHookDecision {
   /** Replacement for the model-visible tool result; audit/persistence keeps the original result. */
   readonly updatedResult?: unknown;
   /** Vendor contract that owns `updatedResult`; hosts use its native serializer. */
-  readonly updatedResultFormat?: 'CLAUDE' | 'MINIMAX';
+  readonly updatedResultFormat?: 'CLAUDE' | 'ALRAN';
 }
 
 export interface PluginHookRunDiagnostic extends PluginHookDiagnostic {

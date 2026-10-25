@@ -10,12 +10,12 @@ import {
 } from "../src/config.js";
 import { resolveModelAvailability } from "../src/model-availability.js";
 
-const modelId = "MiniMax-M3.1-Flash";
+const modelId = "Alran-M3.1-Flash";
 let dataDir: string;
 
 beforeEach(() => {
-  dataDir = fs.mkdtempSync(join(os.tmpdir(), "mcode-model-fallback-"));
-  vi.stubEnv("MINIMAX_DATA_DIR", dataDir);
+  dataDir = fs.mkdtempSync(join(os.tmpdir(), "alran-model-fallback-"));
+  vi.stubEnv("ALRAN_DATA_DIR", dataDir);
   vi.stubEnv("__MAVIS_RUNTIME_DATA_DIR", dataDir);
   vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "1");
   vi.stubEnv("__MAVIS_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
@@ -33,7 +33,7 @@ afterEach(() => {
 describe("built-in model fallback", () => {
   it("seeds M3.1 Flash before a remote snapshot exists and preserves it on reload", () => {
     const config = getConfig();
-    const model = config.provider.minimax?.models?.[modelId];
+    const model = config.provider.alran?.models?.[modelId];
     expect(model).toMatchObject({
       name: "M3.1-Flash",
       attachment: true,
@@ -58,9 +58,9 @@ describe("built-in model fallback", () => {
         max_attachments_count: 4,
       },
     });
-    expect(config.defaultModel).toBe("minimax/MiniMax-M3.1-Flash");
+    expect(config.defaultModel).toBe("alran/Alran-M3.1-Flash");
     resetConfig();
-    expect(getConfig().provider.minimax?.models?.[modelId]).toEqual(model);
+    expect(getConfig().provider.alran?.models?.[modelId]).toEqual(model);
   });
 
   it("makes the fallback model available in every managed preset", () => {
@@ -70,7 +70,7 @@ describe("built-in model fallback", () => {
       expect(
         resolveModelAvailability({
           config: DEFAULT_MODEL_PRESETS[preset],
-          providerId: "minimax",
+          providerId: "alran",
           modelId,
           preset,
           source: "explicit_request",
@@ -80,21 +80,21 @@ describe("built-in model fallback", () => {
   });
 
   it("keeps an existing managed snapshot authoritative instead of adding fallback models", () => {
-    const models = { "MiniMax-M3": { name: "MiniMax-M3" } };
+    const models = { "Alran-M3": { name: "Alran-M3" } };
     fs.writeFileSync(
       join(dataDir, "config.yaml"),
       yaml.dump({
         provider: {
-          minimax: {
+          alran: {
             options: {
               authMode: "managed-login",
-              baseURL: "https://agent.minimax.io/mavis/api/v1/llm/v1",
+              baseURL: "https://api.ottili.one/mavis/api/v1/llm/v1",
             },
             models,
           },
         },
       }),
     );
-    expect(getConfig().provider.minimax?.models).toEqual(models);
+    expect(getConfig().provider.alran?.models).toEqual(models);
   });
 });

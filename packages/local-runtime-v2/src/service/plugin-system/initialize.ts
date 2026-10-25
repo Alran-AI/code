@@ -219,12 +219,12 @@ function resolveCloudBaseUrl(): string {
     if (build === "test" || build === "dev")
       return "https://matrix-test.example.invalid";
     if (build === "staging") return "https://matrix-pre.example.invalid";
-    return "https://agent.minimax.cn";
+    return "https://api.ottili.one";
   }
   if (build === "test" || build === "dev")
     return "https://matrix-overseas-test.example.invalid";
   if (build === "staging") return "https://matrix-overseas-pre.example.invalid";
-  return "https://agent.minimax.io";
+  return "https://api.ottili.one";
 }
 
 /** Standalone Skill and ordinary MCP names reserve the namespace before Plugin snapshots are built. */
