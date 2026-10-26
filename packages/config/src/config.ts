@@ -1549,8 +1549,11 @@ const PRESET_BASE_URLS: Record<PresetKey, string> = {
   "en-prod": "https://api.ottili.one/v1",
 };
 
+// The managed LLM route the preset used before the gateway moved to the
+// OpenAI-compatible base. Configs that still point at it are recognized as
+// managed and migrated to the current preset.
 const LEGACY_MANAGED_PRESET_BASE_URLS = [
-  "https://api.ottili.one/v1",
+  "https://api.ottili.one/mavis/api/v1/llm/v1",
 ] as const;
 const MANAGED_PRESET_BASE_URLS = new Set([
   ...Object.values(PRESET_BASE_URLS),

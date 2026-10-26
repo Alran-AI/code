@@ -267,7 +267,7 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'modul
     const npm = path.join(root, 'npm');
     writeFileSync(npm, '#!/bin/sh\nexit 42\n', { mode: 0o755 });
     const prefix = path.join(root, 'install');
-    const legacyEntry = path.join(prefix, 'lib', 'node_modules', '@alran-ai', 'code', 'cli.js');
+    const legacyEntry = path.join(prefix, 'lib', 'node_modules', '@ottili', 'alran-code', 'cli.js');
     const versionedEntry = path.join(
       prefix,
       'releases',

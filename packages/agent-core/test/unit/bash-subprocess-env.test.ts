@@ -27,7 +27,7 @@ describe('bash subprocess default provider credentials', () => {
       const { env, removed } = sanitizeBashSubprocessEnv(original, policy);
       const { ALRAN_PROVIDER_API_KEY, INPUT_ALRAN_PROVIDER_API_KEY, ...preserved } = original;
       expect(env).toEqual(preserved);
-      expect(removed).toEqual(['INPUT_ALRAN_PROVIDER_API_KEY', 'ALRAN_PROVIDER_API_KEY']);
+      expect(removed).toEqual(['ALRAN_PROVIDER_API_KEY', 'INPUT_ALRAN_PROVIDER_API_KEY']);
       expect(original.ALRAN_PROVIDER_API_KEY).toBe(ALRAN_PROVIDER_API_KEY);
       expect(original.INPUT_ALRAN_PROVIDER_API_KEY).toBe(INPUT_ALRAN_PROVIDER_API_KEY);
     },

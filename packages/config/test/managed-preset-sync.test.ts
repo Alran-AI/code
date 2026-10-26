@@ -13,8 +13,7 @@ import { loadConfigFromFile } from "../src/file-loader.js";
 
 const secret = "synthetic-preset-sync-secret";
 const oldBaseURL = "https://api.ottili.one/mavis/api/v1/llm/v1";
-const presetBaseURL =
-  "https://matrix-overseas-pre.example.invalid/mavis/api/v1/llm/v1";
+const presetBaseURL = "https://ottili-overseas-pre.example.invalid/v1";
 const original = yaml.dump({
   logLevel: "debug",
   provider: { alran: { options: { baseURL: oldBaseURL, apiKey: secret } } },

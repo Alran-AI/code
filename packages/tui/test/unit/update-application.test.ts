@@ -477,8 +477,8 @@ describe('AlranUpdateApplication', () => {
       temporaryRoot,
       'lib',
       'node_modules',
-      '@alran-ai',
-      'code',
+      '@ottili',
+      'alran-code',
     );
     try {
       mkdirSync(packageRoot, { recursive: true });
@@ -497,7 +497,7 @@ describe('AlranUpdateApplication', () => {
   });
 
   it('recognizes only the internal package identity as environment-selectable', () => {
-    expect(isInternalAlranPackageName('@ottili/alran-code')).toBe(true);
+    expect(isInternalAlranPackageName('@alran/alran-code')).toBe(true);
     expect(isInternalAlranPackageName('@ottili/alran-code')).toBe(false);
     expect(isInternalAlranPackageName(undefined)).toBe(false);
   });
@@ -521,7 +521,7 @@ describe('AlranUpdateApplication', () => {
 describe('Alran update install-source commands', () => {
   it.each([
     ['/opt/homebrew/lib/node_modules/@ottili/alran-code', 'npm-global'],
-    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\code', 'npm-global'],
+    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\alran-code', 'npm-global'],
     ['/usr/local/lib/node_modules/@ottili/alran-code', 'npm-global'],
     ['/Users/demo/.local/share/pnpm/global/5/node_modules/@ottili/alran-code', 'pnpm-global'],
     [
@@ -529,21 +529,21 @@ describe('Alran update install-source commands', () => {
       'pnpm-global',
     ],
     [
-      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\5\\node_modules\\@alran\\code',
+      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\5\\node_modules\\@alran\\alran-code',
       'pnpm-global',
     ],
     [
-      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\v11\\10c0afe5\\node_modules\\@alran-ai\\code',
+      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\v11\\10c0afe5\\node_modules\\@ottili\\alran-code',
       'pnpm-global',
     ],
     ['/Users/demo/.config/yarn/global/node_modules/@ottili/alran-code', 'yarn-global'],
     [
-      'C:\\Users\\demo\\.config\\yarn\\global\\node_modules\\@alran\\code',
+      'C:\\Users\\demo\\.config\\yarn\\global\\node_modules\\@alran\\alran-code',
       'yarn-global',
     ],
     ['/Users/demo/.bun/install/global/node_modules/@ottili/alran-code', 'bun-global'],
     [
-      'C:\\Users\\demo\\.bun\\install\\global\\node_modules\\@alran\\code',
+      'C:\\Users\\demo\\.bun\\install\\global\\node_modules\\@alran\\alran-code',
       'bun-global',
     ],
   ] as const)('classifies %s as %s', (packageRoot, expected) => {
@@ -1031,8 +1031,8 @@ describe('Alran update install-source commands', () => {
       temporaryRoot,
       ...(process.platform === 'win32' ? [] : ['lib']),
       'node_modules',
-      '@alran-ai',
-      'code',
+      '@ottili',
+      'alran-code',
     );
     const npmExecutable = path.join(temporaryRoot, 'runtime', 'node', ...(process.platform === 'win32' ? ['npm.cmd'] : ['bin', 'npm']));
     const entryFile = path.join(packageRoot, 'cli.js');
@@ -1134,7 +1134,7 @@ describe('Alran update install-source commands', () => {
   it('recovers a legacy installer prefix only from its package root and adjacent npm', () => {
     const temporaryParent = mkdtempSync(path.join(os.tmpdir(), 'alran-update-legacy-'));
     const prefix = path.join(temporaryParent, '.alran-code');
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@alran-ai', 'code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili', 'alran-code');
     const nodeExecutable = path.join(prefix, 'runtime', 'node', ...(process.platform === 'win32' ? ['node.exe'] : ['bin', 'node']));
     const npmExecutable = path.join(prefix, 'runtime', 'node', ...(process.platform === 'win32' ? ['npm.cmd'] : ['bin', 'npm']));
     const entryFile = path.join(packageRoot, 'cli.js');
@@ -1323,7 +1323,7 @@ describe('Alran update install-source commands', () => {
   it.each([
     ['/usr/local/lib/node_modules/@ottili/alran-code', '/usr/local', 'linux'],
     [
-      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\code',
+      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\alran-code',
       'C:\\Users\\demo\\AppData\\Roaming\\npm',
       'win32',
     ],

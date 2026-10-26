@@ -1,6 +1,6 @@
 import type { LocalModelConfig, LocalRuntimeConfig } from '../contracts.js';
 import { ALRAN_API_PROVIDER_ID, parseProviderId } from '../resolution/model-key.js';
-import { alranApiBaseUrl, alranApiModels } from './alran-api.js';
+import { ALRAN_API_FORMAT, alranApiBaseUrl, alranApiModels } from './alran-api.js';
 import {
   modelCacheStatusFor,
   modelConfigFingerprint,
@@ -43,8 +43,8 @@ function alranModelTestStatus(
   if (!apiKey || !model) return undefined;
   const fingerprint = modelConnectionTestFingerprint(
     {
-      api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', alranApiBaseUrl(config)),
+      api: ALRAN_API_FORMAT,
+      baseUrl: normalizeProviderBaseUrl(ALRAN_API_FORMAT, alranApiBaseUrl(config)),
       apiKey,
       modelId,
     },

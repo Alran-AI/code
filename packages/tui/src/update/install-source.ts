@@ -8,14 +8,14 @@ export const ALRAN_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
 export const ALRAN_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
 export const ALRAN_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
-const ALRAN_PACKAGE_BASENAME = 'code';
+const ALRAN_PACKAGE_BASENAME = 'alran-code';
 const ALRAN_INTERNAL_SCOPE = '@alran';
-const ALRAN_PUBLIC_SCOPE = '@alran-ai';
+const ALRAN_PUBLIC_SCOPE = '@ottili';
 // Public packaging rewrites this marker together with the bundled package identity.
 const ALRAN_EMBEDDED_PACKAGE_NAME = '@ottili/alran-code' as AlranNpmPackageName;
 
 export type AlranNpmDistTag = 'latest' | 'test' | 'preview';
-export type AlranNpmPackageName = '@ottili/alran-code' | '@ottili/alran-code';
+export type AlranNpmPackageName = '@ottili/alran-code' | '@alran/alran-code';
 type TuiBuildEnvironment = 'test' | 'staging' | 'prod';
 
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
@@ -115,26 +115,44 @@ export function classifyAlranInstallPath(
   packageRoot: string,
 ): AlranPackageManagerInstallSource | undefined {
   const normalized = packageRoot.replaceAll('\\', '/').toLocaleLowerCase();
+  const scope = alranPackageScopePattern();
   if (
-    /\/pnpm\/global\/(?:v11\/[^/]+|[^/]+)\/node_modules\/@alran(?:-ai)?\/code$/u.test(normalized)
+    new RegExp(`\\/pnpm\\/global\\/(?:v11\\/[^/]+|[^/]+)\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+      normalized,
+    )
   ) {
     return 'pnpm-global';
   }
   if (
-    /\/(?:\.config\/yarn|\.yarn)\/global\/node_modules\/@alran(?:-ai)?\/code$/u.test(normalized)
+    new RegExp(`\\/(?:\\.config\\/yarn|\\.yarn)\\/global\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+      normalized,
+    )
   ) {
     return 'yarn-global';
   }
-  if (/\/\.bun\/install\/global\/node_modules\/@alran(?:-ai)?\/code$/u.test(normalized)) {
+  if (
+    new RegExp(`\\/\\.bun\\/install\\/global\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+      normalized,
+    )
+  ) {
     return 'bun-global';
   }
   if (
-    /\/lib\/node_modules\/@alran(?:-ai)?\/code$/u.test(normalized) ||
-    /\/npm\/node_modules\/@alran(?:-ai)?\/code$/u.test(normalized)
+    new RegExp(`\\/(?:lib|npm)\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+      normalized,
+    )
   ) {
     return 'npm-global';
   }
   return undefined;
+}
+
+/** The install-directory scopes the CLI recognizes, kept next to their constants. */
+function alranPackageScopePattern(): string {
+  const scopes = [ALRAN_INTERNAL_SCOPE, ALRAN_PUBLIC_SCOPE].map((scope) =>
+    scope.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'),
+  );
+  return `(?:${scopes.join('|')})`;
 }
 
 export function resolveAlranNpmDistribution(

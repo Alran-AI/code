@@ -31,11 +31,12 @@ afterEach(() => {
 });
 
 describe("built-in model fallback", () => {
-  it("seeds M3.1 Flash before a remote snapshot exists and preserves it on reload", () => {
+  it("seeds the coding model before a remote snapshot exists and preserves it on reload", () => {
     const config = getConfig();
     const model = config.provider.alran?.models?.[modelId];
     expect(model).toMatchObject({
-      name: "M3.1-Flash",
+      name: "Ottili Werk 1.1",
+      family: "coding",
       attachment: true,
       reasoning: true,
       tool_call: true,
@@ -50,8 +51,6 @@ describe("built-in model fallback", () => {
       thinking_config: { mode: "forced_on" },
       variants: { thinking: { thinking: { type: "adaptive" } } },
       capabilities: {
-        support_files_api: true,
-        files_api_upload_endpoint: "/v1/files/upload",
         max_image_bytes_inline: 10_485_760,
         max_video_bytes_inline: 52_428_800,
         max_request_body_bytes: 67_108_864,
@@ -75,20 +74,20 @@ describe("built-in model fallback", () => {
           preset,
           source: "explicit_request",
         }),
-      ).toEqual({ available: true, route: "managed_token_plan" });
+      ).toEqual({ available: true, route: "alran_api_key" });
     }
   });
 
   it("keeps an existing managed snapshot authoritative instead of adding fallback models", () => {
-    const models = { "Alran-M3": { name: "Alran-M3" } };
+    const models = { "Alran-M3": { name: "Ottili Werk 1.1 Pro" } };
     fs.writeFileSync(
       join(dataDir, "config.yaml"),
       yaml.dump({
         provider: {
           alran: {
             options: {
-              authMode: "managed-login",
-              baseURL: "https://api.ottili.one/mavis/api/v1/llm/v1",
+              authMode: "api-key",
+              baseURL: "https://api.ottili.one/v1",
             },
             models,
           },
