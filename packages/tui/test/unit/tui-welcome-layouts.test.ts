@@ -1,0 +1,63 @@
+import { describe, expect, it } from "vitest";
+import { TuiWelcome } from "../../src/tui/shell/welcome/component.js";
+import { renderTuiWelcomeHero } from "../../src/tui/shell/welcome/hero.js";
+import { ALRAN_CODE_WELCOME_TAGLINE } from "../../src/tui/shell/welcome/design.js";
+import { stripAnsi } from "../../src/tui/rendering/text.js";
+
+const shell: { version: string; workspace: string; runtimeStatus: "ready" } = {
+  version: "0.1.0",
+  workspace: "/workspace",
+  runtimeStatus: "ready",
+};
+
+function renderWelcome(width: number): string {
+  return stripAnsi(new TuiWelcome(shell).render(width).join("\n"));
+}
+
+describe("TuiWelcome layouts", () => {
+  it("renders the wide layout without /checkin and with the consistent follow-up", () => {
+    const rendered = renderWelcome(100);
+    expect(rendered.toLowerCase()).not.toContain("checkin");
+    expect(rendered).toContain(
+      "Send follow-ups while Alran works — they queue until the turn ends.",
+    );
+    expect(rendered).toContain("Every change shows a diff — verify it before it applies.");
+    expect(rendered).toContain("Run /init to teach Alran this repo.");
+  });
+
+  it("renders the stacked layout without /checkin", () => {
+    const rendered = renderWelcome(60);
+    expect(rendered.toLowerCase()).not.toContain("checkin");
+    expect(rendered).toContain("Every change shows a diff — verify it before it applies.");
+    expect(rendered).toContain("/init guidance");
+  });
+
+  it("renders the compact layout without /checkin", () => {
+    const rendered = renderWelcome(40);
+    expect(rendered.toLowerCase()).not.toContain("checkin");
+    expect(rendered).toContain("/init repo guidance");
+  });
+
+  it("produces stable snapshots for the three layouts", () => {
+    expect(renderWelcome(100)).toMatchSnapshot();
+    expect(renderWelcome(60)).toMatchSnapshot();
+    expect(renderWelcome(40)).toMatchSnapshot();
+  });
+
+  it("renders the tagline right-aligned under the full wordmark (wide layout only)", () => {
+    const hero = renderTuiWelcomeHero(100);
+    const taglineLine = stripAnsi(hero[hero.length - 1]);
+    expect(taglineLine).toContain(ALRAN_CODE_WELCOME_TAGLINE);
+    // Right-aligned: the tagline ends at the right edge and the line fills the
+    // full width (padded on the left only).
+    expect(taglineLine.length).toBe(100);
+    expect(taglineLine.endsWith(ALRAN_CODE_WELCOME_TAGLINE)).toBe(true);
+  });
+
+  it("does not render the tagline in narrow layouts", () => {
+    const stacked = stripAnsi(new TuiWelcome(shell).render(60).join("\n"));
+    const compact = stripAnsi(new TuiWelcome(shell).render(40).join("\n"));
+    expect(stacked).not.toContain(ALRAN_CODE_WELCOME_TAGLINE);
+    expect(compact).not.toContain(ALRAN_CODE_WELCOME_TAGLINE);
+  });
+});

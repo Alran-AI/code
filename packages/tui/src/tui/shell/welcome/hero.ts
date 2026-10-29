@@ -33,14 +33,13 @@ export function renderTuiWelcomeHero(width: number): string[] {
 }
 
 /**
- * The tagline is muted instead of gradient filled and is centered inside the
- * wordmark block, so it stays aligned with the art above it.
+ * The tagline is muted instead of gradient filled and is rendered right-aligned
+ * underneath the full wordmark.
  */
 function renderWordmarkTagline(artWidth: number, width: number): string {
   const taglineWidth = visibleWidth(ALRAN_CODE_WELCOME_TAGLINE);
-  const left = Math.floor(Math.max(0, artWidth - taglineWidth) / 2);
-  const tagline = `${' '.repeat(left)}${chalk.hex(colors.muted)(ALRAN_CODE_WELCOME_TAGLINE)}`;
-  return centerToWidth(tagline, width);
+  const left = Math.max(0, width - taglineWidth);
+  return `${' '.repeat(left)}${chalk.hex(colors.muted)(ALRAN_CODE_WELCOME_TAGLINE)}`;
 }
 
 /**

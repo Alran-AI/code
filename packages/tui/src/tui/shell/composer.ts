@@ -13,7 +13,7 @@ import {
 import { TUI_TIPS, selectTuiTipAt, type TuiTip } from './tips.js';
 
 /** Visible prompt prefix rendered in front of the composer input. */
-const COMPOSER_PROMPT_PREFIX = 'alran > ';
+const COMPOSER_PROMPT_PREFIX = '> ';
 /**
  * Columns the prompt prefix needs before the editor can still show a text
  * cursor. A narrower terminal renders the editor alone, because the prefix

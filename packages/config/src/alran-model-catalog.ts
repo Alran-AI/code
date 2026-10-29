@@ -16,7 +16,7 @@ const ALRAN_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
 
 export const ALRAN_MODELS: Record<string, ModelConfig> = {
   // Premium tier -> ottili/werk-1.1-pro
-  "Alran-M3": {
+  "Alran-Werk-Pro": {
     name: "Ottili Werk 1.1 Pro",
     family: "premium",
     attachment: true,
@@ -24,10 +24,13 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: true,
     modalities: { input: ["text", "image", "video"], output: ["text"] },
-    limit: { context: 512000, output: 128000 },
-    contextWindowOptions: [512000, 1000000],
-    contextWindowOptionHints: { "1000000": "higher_usage" },
+    limit: { context: 1000000, output: 128000 },
+    contextWindowOptions: [1000000],
     options: { reasoningSummary: "auto" },
+    thinking: {
+      effortOptions: ["low", "high", "max"],
+      defaultEffort: "high",
+    },
     thinking_config: { mode: "switchable", default_value: "true" },
     variants: {
       "none-thinking": { thinking: { type: "disabled" } },
@@ -35,8 +38,9 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     },
     capabilities: ALRAN_ATTACHMENT_CAPABILITIES,
   },
+
   // Smart / Coding tier -> ottili/werk-1.1
-  "Alran-M3.1-Flash": {
+  "Alran-Werk": {
     name: "Ottili Werk 1.1",
     family: "coding",
     attachment: true,
@@ -49,29 +53,19 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     contextWindowOptionHints: { "1000000": "higher_usage" },
     options: { reasoningSummary: "auto" },
     thinking: {
-      effortOptions: ["default", "low", "medium", "high", "xhigh", "max"],
-      defaultEffort: "default",
+      effortOptions: ["minimal", "low", "medium", "high", "xhigh", "max"],
+      defaultEffort: "medium",
     },
-    thinking_config: { mode: "forced_on" },
+    thinking_config: { mode: "switchable", default_value: "true" },
     variants: {
       "none-thinking": { thinking: { type: "disabled" } },
       thinking: { thinking: { type: "adaptive" } },
     },
     capabilities: ALRAN_ATTACHMENT_CAPABILITIES,
   },
-  // Fast / Router tier -> ottili/kern-1.1
-  "Alran-M2.7-highspeed": {
-    name: "Ottili Kern 1.1",
-    family: "fast",
-    attachment: false,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 200000, output: 128000 },
-  },
+
   // Standard tier -> ottili/fels-1.1
-  "Alran-M2.7": {
+  "Alran-Fels": {
     name: "Ottili Fels 1.1",
     family: "standard",
     attachment: false,
@@ -80,5 +74,35 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     temperature: true,
     modalities: { input: ["text"], output: ["text"] },
     limit: { context: 200000, output: 128000 },
+    thinking: {
+      effortOptions: ["low", "medium", "xhigh"],
+      defaultEffort: "medium",
+    },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      "none-thinking": { thinking: { type: "disabled" } },
+      thinking: { thinking: { type: "adaptive" } },
+    },
+  },
+
+  // Router tier -> ottili/kern-1.1
+  "Alran-Kern": {
+    name: "Ottili Kern 1.1",
+    family: "standard",
+    attachment: false,
+    reasoning: true,
+    tool_call: true,
+    temperature: true,
+    modalities: { input: ["text"], output: ["text"] },
+    limit: { context: 200000, output: 128000 },
+    thinking: {
+      effortOptions: ["low", "medium", "high"],
+      defaultEffort: "medium",
+    },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      "none-thinking": { thinking: { type: "disabled" } },
+      thinking: { thinking: { type: "adaptive" } },
+    },
   },
 };

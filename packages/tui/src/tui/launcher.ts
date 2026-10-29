@@ -73,7 +73,7 @@ import { ALRAN_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
 import { startTuiStartupStatus, type TuiStartupStatus } from './startup-status.js';
 import type { AlranContextMode } from '@mavis/protocol/local';
 
-const ALRAN_CODE_EXIT_SLOGAN = 'Intelligence with everyone, bye~';
+const ALRAN_CODE_EXIT_SLOGAN = 'Your git diff is my farewell letter.';
 export interface LaunchTuiOptions {
   version: string;
   initialPrompt?: string;
