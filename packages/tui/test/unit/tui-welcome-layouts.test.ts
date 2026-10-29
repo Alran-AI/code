@@ -59,4 +59,14 @@ describe("TuiWelcome layouts", () => {
     expect(stacked).not.toContain(ALRAN_CODE_WELCOME_TAGLINE);
     expect(compact).not.toContain(ALRAN_CODE_WELCOME_TAGLINE);
   });
+
+  it("renders no border box characters in any layout", () => {
+    const boxChars = ["╭", "│", "├", "╰"];
+    for (const width of [40, 60, 100]) {
+      const rendered = renderWelcome(width);
+      for (const char of boxChars) {
+        expect(rendered).not.toContain(char);
+      }
+    }
+  });
 });

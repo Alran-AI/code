@@ -32,42 +32,6 @@ export function renderSplitFrameBottom(width: number, leftWidth: number): string
   )}${border('╯')}`;
 }
 
-export function renderFrameHeader(left: string, right: string, width: number): string {
-  const border = (value: string) => chalk.hex(colors.line)(value);
-  const start = `${border('╭─')} ${left} `;
-  const end = right ? ` ${right} ${border('─╮')}` : border('─╮');
-  if (visibleWidth(start) + visibleWidth(end) <= width) {
-    return `${start}${border(
-      '─'.repeat(Math.max(0, width - visibleWidth(start) - visibleWidth(end))),
-    )}${end}`;
-  }
-  const available = Math.max(1, width - 5);
-  const compactLeft = truncateToWidth(left, available, chalk.hex(colors.muted)('…'));
-  const compactStart = `${border('╭─')} ${compactLeft} `;
-  return `${compactStart}${border(
-    '─'.repeat(Math.max(0, width - visibleWidth(compactStart) - 1)),
-  )}${border('╮')}`;
-}
-
-export function renderFrameRow(content: string, width: number): string {
-  const border = chalk.hex(colors.line);
-  const innerWidth = Math.max(0, width - 4);
-  const fitted = truncateToWidth(content, innerWidth, chalk.hex(colors.muted)('…'));
-  return `${border('│')} ${fitted}${' '.repeat(
-    Math.max(0, innerWidth - visibleWidth(fitted)),
-  )} ${border('│')}`;
-}
-
-export function renderFrameDivider(width: number): string {
-  const border = chalk.hex(colors.line);
-  return `${border('├')}${border('─'.repeat(Math.max(0, width - 2)))}${border('┤')}`;
-}
-
-export function renderFrameBottom(width: number): string {
-  const border = chalk.hex(colors.line);
-  return `${border('╰')}${border('─'.repeat(Math.max(0, width - 2)))}${border('╯')}`;
-}
-
 export function fitLine(line: string, width: number): string {
   return truncateToWidth(line, width, chalk.hex(colors.muted)('…'));
 }

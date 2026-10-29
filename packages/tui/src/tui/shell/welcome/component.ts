@@ -4,10 +4,6 @@ import type { TuiShellState } from '../contracts.js';
 import {
   fitLine,
   normalizeWidth,
-  renderFrameBottom,
-  renderFrameDivider,
-  renderFrameHeader,
-  renderFrameRow,
 } from '../frame.js';
 import { resolveTuiLayoutPolicy } from '../layout-policy.js';
 import { formatTuiKeybinding, type TuiKeybindingRegistry } from '../keybindings.js';
@@ -115,17 +111,12 @@ function renderWideWelcome(
     ...renderTuiWelcomeHero(width),
     '',
     renderWelcomeHeader(state, width, staticBanner),
-    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state, width)),
-    renderFrameRow(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
-    ...tips.map((text) =>
-      renderFrameRow(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width),
-    ),
-    renderFrameDivider(width),
-    renderFrameRow(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) =>
-      renderFrameRow(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width),
-    ),
-    renderFrameBottom(width),
+    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
+    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
+    ...tips.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
+    '',
+    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
+    ...news.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
   ];
 }
 
@@ -144,19 +135,13 @@ function renderStackedWelcome(
     ...renderTuiWelcomeHero(width),
     '',
     renderWelcomeHeader(state, width, staticBanner),
-    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state, width)),
-    renderFrameDivider(width),
-    renderFrameRow(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
-    ...tips.map((text) =>
-      renderFrameRow(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width),
-    ),
-    renderFrameRow('', width),
-    renderFrameRow(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) =>
-      renderFrameRow(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width),
-    ),
-    renderFrameRow('', width),
-    renderFrameBottom(width),
+    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
+    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
+    ...tips.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
+    '',
+    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
+    ...news.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
+    '',
   ];
 }
 
@@ -174,28 +159,24 @@ function renderCompactWelcome(
   return [
     ...renderTuiWelcomeHero(width),
     '',
-    renderFrameHeader(
-      `${chalk.bold.hex(colors.brand)('Alran')} ${chalk.hex(colors.muted)(`v${state.version}`)}`,
-      staticBanner ? '' : renderActivity(state),
+    fitLine(
+      `${chalk.bold.hex(colors.brand)('Alran')} ${chalk.hex(colors.muted)(
+        `v${state.version}`,
+      )}${staticBanner ? '' : `  ${renderActivity(state)}`}`,
       width,
     ),
-    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state, width)),
-    renderFrameRow(renderSectionTitle('Tips'), width),
-    ...tips.map((text) =>
-      renderFrameRow(chalk.hex(colors.muted)(resolveWelcomeCopy(text, keybindings)), width),
-    ),
-    renderFrameRow(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) => renderFrameRow(chalk.hex(colors.muted)(text), width)),
-    renderFrameBottom(width),
+    ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
+    fitLine(renderSectionTitle('Tips'), width),
+    ...tips.map((text) => fitLine(chalk.hex(colors.muted)(resolveWelcomeCopy(text, keybindings)), width)),
+    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
+    ...news.map((text) => fitLine(chalk.hex(colors.muted)(text), width)),
   ];
 }
 
 function renderWelcomeHeader(state: TuiShellState, width: number, staticBanner: boolean): string {
-  return renderFrameHeader(
-    chalk.hex(colors.muted)(`v${state.version}`),
-    staticBanner ? '' : renderActivity(state),
-    width,
-  );
+  const left = chalk.hex(colors.muted)(`v${state.version}`);
+  const right = staticBanner ? '' : renderActivity(state);
+  return right ? `${left}  ${right}` : left;
 }
 
 function resolveWelcomeItems(
@@ -235,10 +216,10 @@ function renderWelcomeAccountNotice(message: string): string {
   return `${chalk.bold.hex(colors.warning)('○')} ${chalk.bold.hex(colors.warning)(message)}`;
 }
 
-function renderWelcomeAccountNoticeRows(state: TuiShellState, width: number): string[] {
+function renderWelcomeAccountNoticeRows(state: TuiShellState): string[] {
   const message = resolveWelcomeAccountNotice(state);
   if (!message) return [];
-  return [renderFrameRow(renderWelcomeAccountNotice(message), width)];
+  return [renderWelcomeAccountNotice(message)];
 }
 
 function renderActivity(state: TuiShellState): string {
