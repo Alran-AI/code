@@ -362,13 +362,6 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     discoverability: 'search-only',
   },
   {
-    name: 'checkin',
-    description: 'Claim the daily Alran account reward',
-    category: 'Application',
-    readiness: 'controller',
-    preparingHint: 'Checking daily reward…',
-  },
-  {
     name: 'settings',
     description: 'Configure the Alran terminal interface',
     category: 'Application',
