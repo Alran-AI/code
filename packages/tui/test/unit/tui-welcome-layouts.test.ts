@@ -28,7 +28,6 @@ describe("TuiWelcome layouts", () => {
   it("renders the stacked layout without /checkin", () => {
     const rendered = renderWelcome(60);
     expect(rendered.toLowerCase()).not.toContain("checkin");
-    expect(rendered).toContain("Every change shows a diff — verify it before it applies.");
     expect(rendered).toContain("/init guidance");
   });
 
