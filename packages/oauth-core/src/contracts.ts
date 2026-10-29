@@ -22,11 +22,23 @@ export const ALRAN_PLATFORM_BASE_URLS: PlatformBaseUrls = {
   prod: 'https://api.alran.ai',
 } as const;
 
-/** Resolve the Platform base URL from env or a fixed environment. */
+/** Resolve the Platform base URL from env or a fixed environment.
+ *
+ * `dev` stays on localhost (`http://127.0.0.1:18150`) unless
+ * `ALRAN_PLATFORM_BASE_URL_DEV` is set explicitly. `prod` defaults to
+ * `https://api.alran.ai` and can be overridden with
+ * `ALRAN_PLATFORM_BASE_URL_PROD` or `ALRAN_PLATFORM_BASE_URL`.
+ */
 export function resolvePlatformBaseUrl(environment: 'dev' | 'prod'): string {
-  const envValue = process.env.ALRAN_PLATFORM_BASE_URL;
-  if (envValue?.trim()) return envValue.trim();
-  return ALRAN_PLATFORM_BASE_URLS[environment];
+  if (environment === 'dev') {
+    const devValue = process.env.ALRAN_PLATFORM_BASE_URL_DEV;
+    if (devValue?.trim()) return devValue.trim();
+    return ALRAN_PLATFORM_BASE_URLS.dev;
+  }
+  const prodValue =
+    process.env.ALRAN_PLATFORM_BASE_URL_PROD ?? process.env.ALRAN_PLATFORM_BASE_URL;
+  if (prodValue?.trim()) return prodValue.trim();
+  return ALRAN_PLATFORM_BASE_URLS.prod;
 }
 
 /** The OIDC login path on the Platform. */
