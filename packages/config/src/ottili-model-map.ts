@@ -38,13 +38,15 @@ export const ALRAN_MODEL_TO_GATEWAY_ID: Readonly<Record<string, string>> = {
   'Alran-Werk': 'ottili/werk-1.1',
   'Alran-Fels': 'ottili/fels-1.1',
   'Alran-Kern': 'ottili/kern-1.1',
-  // External models routed through the Ottili AI Gateway -> OpenRouter
-  'Alran-Sonnet-5.5': 'ottili/anthropic/sonnet-5.5',
-  'Alran-Opus-5.5': 'ottili/anthropic/opus-5.5',
-  'Alran-Fable-5.1': 'ottili/anthropic/fable-5.1',
-  'Alran-GPT-6-Astra': 'ottili/openai/gpt-6-astra',
-  'Alran-GPT-6.1-Sol': 'ottili/openai/gpt-6.1-sol',
-  'Alran-GPT-6.1-Terra': 'ottili/openai/gpt-6.1-terra',
+  // External models routed through the Ottili AI Gateway -> OpenRouter.
+  // Keys are the gateway family/id (e.g. `anthropic/sonnet-5.5`); values are
+  // the full wire id (e.g. `ottili/anthropic/sonnet-5.5`).
+  'anthropic/sonnet-5.5': 'ottili/anthropic/sonnet-5.5',
+  'anthropic/opus-5.5': 'ottili/anthropic/opus-5.5',
+  'anthropic/fable-5.1': 'ottili/anthropic/fable-5.1',
+  'openai/gpt-6-astra': 'ottili/openai/gpt-6-astra',
+  'openai/gpt-6.1-sol': 'ottili/openai/gpt-6.1-sol',
+  'openai/gpt-6.1-terra': 'ottili/openai/gpt-6.1-terra',
 } as const;
 
 /** Tier used when an internal model has no explicit mapping. */

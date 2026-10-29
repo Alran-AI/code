@@ -115,9 +115,13 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   // External models, all routed through the Ottili AI Gateway (ottili-gateway)
   // which forwards to OpenRouter. No direct Anthropic or OpenAI key is used.
   // All six are public-only (max_data_class: 'public').
+  //
+  // Model ids are the gateway family/id (e.g. `anthropic/sonnet-5.5`); the
+  // wire id resolved by resolveOttiliModelId prefixes them with `ottili/`
+  // (e.g. `ottili/anthropic/sonnet-5.5`).
 
   // Claude Sonnet 5.5 -> ottili/anthropic/sonnet-5.5
-  "Alran-Sonnet-5.5": {
+  "anthropic/sonnet-5.5": {
     name: "Claude Sonnet 5.5",
     family: "anthropic",
     attachment: true,
@@ -135,7 +139,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   },
 
   // Claude Opus 5.5 -> ottili/anthropic/opus-5.5
-  "Alran-Opus-5.5": {
+  "anthropic/opus-5.5": {
     name: "Claude Opus 5.5",
     family: "anthropic",
     attachment: true,
@@ -153,7 +157,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   },
 
   // Claude Fable 5.1 -> ottili/anthropic/fable-5.1
-  "Alran-Fable-5.1": {
+  "anthropic/fable-5.1": {
     name: "Claude Fable 5.1",
     family: "anthropic",
     attachment: true,
@@ -172,7 +176,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   },
 
   // GPT-6 Astra -> ottili/openai/gpt-6-astra (no none-thinking variant)
-  "Alran-GPT-6-Astra": {
+  "openai/gpt-6-astra": {
     name: "GPT-6 Astra",
     family: "openai",
     attachment: true,
@@ -190,7 +194,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   },
 
   // GPT-6.1 Sol -> ottili/openai/gpt-6.1-sol
-  "Alran-GPT-6.1-Sol": {
+  "openai/gpt-6.1-sol": {
     name: "GPT-6.1 Sol",
     family: "openai",
     attachment: true,
@@ -209,7 +213,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
   },
 
   // GPT-6.1 Terra -> ottili/openai/gpt-6.1-terra
-  "Alran-GPT-6.1-Terra": {
+  "openai/gpt-6.1-terra": {
     name: "GPT-6.1 Terra",
     family: "openai",
     attachment: true,

@@ -5,20 +5,20 @@ import {
   resolveOttiliModelId,
 } from "../src/ottili-model-map.js";
 
-const EXTERNAL_MODELS = [
-  "Alran-Sonnet-5.5",
-  "Alran-Opus-5.5",
-  "Alran-Fable-5.1",
-  "Alran-GPT-6-Astra",
-  "Alran-GPT-6.1-Sol",
-  "Alran-GPT-6.1-Terra",
-] as const;
-
 const INTERNAL_MODELS = [
   "Alran-Werk-Pro",
   "Alran-Werk",
   "Alran-Fels",
   "Alran-Kern",
+] as const;
+
+const EXTERNAL_MODELS = [
+  "anthropic/sonnet-5.5",
+  "anthropic/opus-5.5",
+  "anthropic/fable-5.1",
+  "openai/gpt-6-astra",
+  "openai/gpt-6.1-sol",
+  "openai/gpt-6.1-terra",
 ] as const;
 
 describe("ALRAN_MODELS catalog", () => {
@@ -64,12 +64,12 @@ describe("resolveOttiliModelId", () => {
     "Alran-Werk": "ottili/werk-1.1",
     "Alran-Fels": "ottili/fels-1.1",
     "Alran-Kern": "ottili/kern-1.1",
-    "Alran-Sonnet-5.5": "ottili/anthropic/sonnet-5.5",
-    "Alran-Opus-5.5": "ottili/anthropic/opus-5.5",
-    "Alran-Fable-5.1": "ottili/anthropic/fable-5.1",
-    "Alran-GPT-6-Astra": "ottili/openai/gpt-6-astra",
-    "Alran-GPT-6.1-Sol": "ottili/openai/gpt-6.1-sol",
-    "Alran-GPT-6.1-Terra": "ottili/openai/gpt-6.1-terra",
+    "anthropic/sonnet-5.5": "ottili/anthropic/sonnet-5.5",
+    "anthropic/opus-5.5": "ottili/anthropic/opus-5.5",
+    "anthropic/fable-5.1": "ottili/anthropic/fable-5.1",
+    "openai/gpt-6-astra": "ottili/openai/gpt-6-astra",
+    "openai/gpt-6.1-sol": "ottili/openai/gpt-6.1-sol",
+    "openai/gpt-6.1-terra": "ottili/openai/gpt-6.1-terra",
   };
 
   it("resolves all ten internal names to their gateway ids", () => {

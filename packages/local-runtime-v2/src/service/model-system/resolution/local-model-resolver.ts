@@ -39,6 +39,7 @@ import {
   isModelProviderApi,
   MANAGED_ALRAN_PROVIDER_ID,
   ALRAN_API_PROVIDER_ID,
+  EXTERNAL_ALRAN_PROVIDER_ID,
   OPENAI_CODEX_PROVIDER_ID,
 } from '../identity.js';
 import { parseProviderId } from './model-key.js';
@@ -672,7 +673,11 @@ function resolvedThinkingLevelMap(thinking: ResolvedThinking): ThinkingLevelMap 
  * configured: their ids belong to their own gateway.
  */
 function resolveRequestModelId(provider: string, modelId: string): string {
-  if (provider === MANAGED_ALRAN_PROVIDER_ID || provider === ALRAN_API_PROVIDER_ID) {
+  if (
+    provider === MANAGED_ALRAN_PROVIDER_ID ||
+    provider === ALRAN_API_PROVIDER_ID ||
+    provider === EXTERNAL_ALRAN_PROVIDER_ID
+  ) {
     return resolveOttiliModelId(modelId);
   }
   return modelId;

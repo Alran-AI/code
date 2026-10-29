@@ -18,6 +18,7 @@ import { resolveProviderAuthMode } from './provider-auth-mode.js';
 /** Reserved provider ids, mirrored by the local-runtime model-key parsers. */
 export const MANAGED_ALRAN_PROVIDER_ID = 'alran';
 export const ALRAN_API_PROVIDER_ID = 'alran_api';
+export const EXTERNAL_ALRAN_PROVIDER_ID = 'external';
 export const CUSTOM_PROVIDER_ID_PREFIX = 'custom_provider:';
 
 /** Which upstream a selected model would actually be called through. */

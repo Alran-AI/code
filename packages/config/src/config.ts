@@ -1649,23 +1649,52 @@ function syncManagedPresetBaseUrl(configPath: string): void {
 }
 
 function buildPresetEntry(key: PresetKey) {
-  const provider: ProviderConfig = {
+  const baseOptions = {
+    authMode: "api-key" as const,
+    baseURL: PRESET_BASE_URLS[key],
+  };
+
+  // Internal Ottili models stay under the flagship "Ottili AI Platform" provider.
+  const internalProvider: ProviderConfig = {
     name: "Ottili AI Platform",
     npm: "@ai-sdk/openai-compatible",
-    options: {
-      authMode: "api-key",
-      baseURL: PRESET_BASE_URLS[key],
-    },
-    models: ALRAN_MODELS,
+    options: baseOptions,
+    models: Object.fromEntries(
+      Object.entries(ALRAN_MODELS).filter(
+        ([id]) => !id.includes("/"),
+      ),
+    ),
+    model_order: ["Alran-Werk-Pro", "Alran-Werk", "Alran-Fels", "Alran-Kern"],
+  };
+
+  // External models (Claude 5.5 / GPT-6 family) are grouped under a separate
+  // "Ottili AI Platform external" provider. Their ids are the gateway family/id
+  // (e.g. `anthropic/sonnet-5.5`); the wire id is resolved via
+  // resolveOttiliModelId to `ottili/anthropic/sonnet-5.5`. All traffic goes
+  // through the Ottili AI Gateway -> OpenRouter — no direct Anthropic or
+  // OpenAI key is used.
+  const externalProvider: ProviderConfig = {
+    name: "Ottili AI Platform external",
+    npm: "@ai-sdk/openai-compatible",
+    options: baseOptions,
+    models: Object.fromEntries(
+      Object.entries(ALRAN_MODELS).filter(([id]) => id.includes("/")),
+    ),
     model_order: [
-      "Alran-Werk-Pro",
-      "Alran-Werk",
-      "Alran-Fels",
-      "Alran-Kern",
+      "anthropic/sonnet-5.5",
+      "anthropic/opus-5.5",
+      "anthropic/fable-5.1",
+      "openai/gpt-6-astra",
+      "openai/gpt-6.1-sol",
+      "openai/gpt-6.1-terra",
     ],
   };
+
   return {
-    provider: { alran: provider } as ModelsConfig,
+    provider: {
+      alran: internalProvider,
+      external: externalProvider,
+    } as ModelsConfig,
     defaultModel: "alran/Alran-Werk",
   };
 }

@@ -79,6 +79,7 @@ export {
   CUSTOM_PROVIDER_ID_PREFIX,
   MANAGED_ALRAN_PROVIDER_ID,
   ALRAN_API_PROVIDER_ID,
+  EXTERNAL_ALRAN_PROVIDER_ID,
   isFirstPartyAlranRoute,
   listRouteModelIds,
   resolveModelAvailability,
