@@ -1659,25 +1659,30 @@ export class TuiCommandFlow {
     try {
       const result =
         operation === 'login'
-          ? await this.options.auth.login((progress) => {
-              const authorizationUrl = markTuiAuthorizationUrl(
-                progress.verificationUriComplete ?? progress.verificationUri,
-              );
-              this.options.append(
-                `Complete Alran login in your browser:\n` +
-                  `${authorizationUrl}\n` +
-                  `Code: ${progress.userCode}`,
-              );
-              this.options.setHint('Waiting for authorization…');
-              this.options.onChanged();
-              void this.openExternalTarget(authorizationUrl).catch(() => {
-                this.options.append(
-                  "Couldn't open the default browser. Open the authorization URL above manually.",
-                  'warning',
+          ? await this.options.auth.login(
+              (progress) => {
+                const authorizationUrl = markTuiAuthorizationUrl(
+                  progress.verificationUriComplete ?? progress.verificationUri,
                 );
+                this.options.append(
+                  `Complete Alran login in your browser:\n` +
+                    `${authorizationUrl}\n` +
+                    `Code: ${progress.userCode}`,
+                );
+                this.options.setHint('Waiting for authorization…');
                 this.options.onChanged();
-              });
-            }, region)
+                void this.openExternalTarget(authorizationUrl).catch(() => {
+                  this.options.append(
+                    "Couldn't open the default browser. Open the authorization URL above manually.",
+                    'warning',
+                  );
+                  this.options.onChanged();
+                });
+              },
+              region,
+              'platform',
+              'prod',
+            )
           : await this.options.auth.logout();
       this.options.append(result.message);
       if (operation === 'login') {

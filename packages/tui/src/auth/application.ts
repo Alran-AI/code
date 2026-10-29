@@ -6,6 +6,7 @@ import type {
   LoginResult,
   LogoutResult,
 } from '@mavis/oauth-core';
+import { runTuiLogin } from '../cli/auth-command.js';
 
 import type {
   AlranBusinessEventMap,
@@ -31,6 +32,8 @@ export interface AlranAuthPort {
   login(
     onProgress?: (progress: AlranAuthProgress) => void,
     region?: MavisRegion,
+    provider?: 'api-key' | 'keycloak' | 'platform',
+    platformEnv?: 'dev' | 'prod',
   ): Promise<AlranAuthResult>;
   logout(): Promise<AlranAuthResult>;
 }
@@ -71,7 +74,12 @@ export class AlranAuthApplication implements AlranAuthPort {
   async login(
     onProgress?: (progress: AlranAuthProgress) => void,
     region: MavisRegion = this.scope.region,
+    provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
+    platformEnv: 'dev' | 'prod' = 'prod',
   ): Promise<AlranAuthResult> {
+    if (provider === 'platform') {
+      return this.loginPlatform(platformEnv);
+    }
     this.track('login_click', {});
     try {
       const requestedScope = { ...this.scope, region };
@@ -108,6 +116,25 @@ export class AlranAuthApplication implements AlranAuthPort {
       };
       this.trackLoginResult('1', '');
       return result;
+    } catch (error) {
+      this.trackLoginResult('2', classifyLoginFailure(error));
+      throw error;
+    }
+  }
+
+  /** Sign in through the Ottili Platform (Keycloak OIDC). */
+  async loginPlatform(
+    platformEnv: 'dev' | 'prod' = 'prod',
+  ): Promise<AlranAuthResult> {
+    this.track('login_click', {});
+    try {
+      const message = await runTuiLogin({
+        provider: 'platform',
+        platformEnv,
+        openBrowser: true,
+        writeError: (value: string) => process.stderr.write(value),
+      });
+      return { state: 'authenticated', message };
     } catch (error) {
       this.trackLoginResult('2', classifyLoginFailure(error));
       throw error;

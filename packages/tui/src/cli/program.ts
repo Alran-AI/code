@@ -162,7 +162,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
         if (value === 'api-key' || value === 'keycloak' || value === 'platform') return value;
         throw new InvalidArgumentError('expected "api-key", "keycloak" or "platform"');
       },
-      'api-key',
+      'platform',
     )
     .option(
       '--platform-env <env>',
@@ -171,12 +171,19 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
         if (value === 'dev' || value === 'prod') return value;
         throw new InvalidArgumentError('expected "dev" or "prod"');
       },
-      'dev',
+      'prod',
     )
+    .argument('[provider]', 'login provider: api-key, keycloak or platform')
+    .argument('[platform-env]', 'Platform environment: dev (loopback) or prod (api.alran.ai)')
     .allowExcessArguments(false)
-    .action((commandOptions: { browser?: boolean; provider?: string; platformEnv?: string }) => {
-      const provider = commandOptions.provider === 'keycloak' ? 'keycloak' : commandOptions.provider === 'platform' ? 'platform' : 'api-key';
-      const platformEnv = commandOptions.platformEnv === 'prod' ? 'prod' : 'dev';
+    .action((commandOptions: { browser?: boolean; provider?: string; platformEnv?: string }, positionalProvider?: string, positionalPlatformEnv?: string) => {
+      const provider =
+        (positionalProvider ?? commandOptions.provider ?? 'platform') as
+          | 'api-key'
+          | 'keycloak'
+          | 'platform';
+      const platformEnv =
+        (positionalPlatformEnv ?? commandOptions.platformEnv ?? 'prod') as 'dev' | 'prod';
       return activeLane
         ? options.runLogin(
             undefined,

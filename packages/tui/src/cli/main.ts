@@ -299,8 +299,8 @@ async function defaultRunLogin(
   region?: MavisRegion,
   openBrowser = true,
   lane?: string,
-  provider: 'api-key' | 'keycloak' | 'platform' = 'api-key',
-  platformEnv: 'dev' | 'prod' = 'dev',
+  provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
+  platformEnv: 'dev' | 'prod' = 'prod',
 ): Promise<string> {
   const { runTuiLogin } = await import('./auth-command.js');
   return runTuiLogin({ region, openBrowser, lane, provider, platformEnv });
