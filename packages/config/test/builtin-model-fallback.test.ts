@@ -10,7 +10,7 @@ import {
 } from "../src/config.js";
 import { resolveModelAvailability } from "../src/model-availability.js";
 
-const modelId = "Alran-M3.1-Flash";
+const modelId = "Alran-Werk";
 let dataDir: string;
 
 beforeEach(() => {
@@ -41,14 +41,12 @@ describe("built-in model fallback", () => {
       reasoning: true,
       tool_call: true,
       modalities: { input: ["text", "image", "video"], output: ["text"] },
-      limit: { context: 512000, output: 128000 },
-      contextWindowOptions: [512000, 1000000],
-      contextWindowOptionHints: { "1000000": "higher_usage" },
+      limit: { context: 1000000, output: 256000 },
       thinking: {
-        effortOptions: ["default", "low", "medium", "high", "xhigh", "max"],
-        defaultEffort: "default",
+        effortOptions: ["minimal", "low", "medium", "high", "xhigh", "max"],
+        defaultEffort: "medium",
       },
-      thinking_config: { mode: "forced_on" },
+      thinking_config: { mode: "switchable", default_value: "true" },
       variants: { thinking: { thinking: { type: "adaptive" } } },
       capabilities: {
         max_image_bytes_inline: 10_485_760,
@@ -57,7 +55,7 @@ describe("built-in model fallback", () => {
         max_attachments_count: 4,
       },
     });
-    expect(config.defaultModel).toBe("alran/Alran-M3.1-Flash");
+    expect(config.defaultModel).toBe("alran/Alran-Werk");
     resetConfig();
     expect(getConfig().provider.alran?.models?.[modelId]).toEqual(model);
   });

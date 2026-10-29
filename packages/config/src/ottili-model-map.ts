@@ -22,47 +22,54 @@ export const OTTILI_MODEL_IDS = {
 } as const satisfies Record<OttiliModelTier, string>;
 
 /**
- * Internal CLI model id -> platform tier.
+ * Internal CLI model id -> Ottili AI Platform gateway model id.
  *
- * The order is the ascending capability ladder of the local catalog: the
- * high-speed text model is the cheapest tier, the flagship reasoning model is
- * the premium tier.
+ * Every internal model in `ALRAN_MODELS` must have an entry here. All traffic
+ * (internal and external) goes through the Ottili AI Gateway
+ * (`ottili-gateway`), which forwards to OpenRouter — there is no direct
+ * Anthropic or OpenAI key.
+ *
+ * A missing route is a configuration error: the resolver throws and never
+ * silently falls back to Alran-Werk.
  */
-export const ALRAN_MODEL_TIER_BY_MODEL_ID: Readonly<Record<string, OttiliModelTier>> = {
-  'Alran-M2.7-highspeed': 'fast',
-  'Alran-M2.7': 'standard',
-  'Alran-M3.1-Flash': 'coding',
-  'Alran-M3': 'premium',
-};
+export const ALRAN_MODEL_TO_GATEWAY_ID: Readonly<Record<string, string>> = {
+  // Internal Ottili models
+  'Alran-Werk-Pro': 'ottili/werk-1.1-pro',
+  'Alran-Werk': 'ottili/werk-1.1',
+  'Alran-Fels': 'ottili/fels-1.1',
+  'Alran-Kern': 'ottili/kern-1.1',
+  // External models routed through the Ottili AI Gateway -> OpenRouter
+  'Alran-Sonnet-5.5': 'ottili/anthropic/sonnet-5.5',
+  'Alran-Opus-5.5': 'ottili/anthropic/opus-5.5',
+  'Alran-Fable-5.1': 'ottili/anthropic/fable-5.1',
+  'Alran-GPT-6-Astra': 'ottili/openai/gpt-6-astra',
+  'Alran-GPT-6.1-Sol': 'ottili/openai/gpt-6.1-sol',
+  'Alran-GPT-6.1-Terra': 'ottili/openai/gpt-6.1-terra',
+} as const;
 
 /** Tier used when an internal model has no explicit mapping. */
 export const DEFAULT_OTTILI_MODEL_TIER: OttiliModelTier = 'coding';
 
 /** True when the value already is an Ottili platform model id. */
 export function isOttiliModelId(value: unknown): boolean {
-  return typeof value === 'string' && /^ottili\/[a-z0-9][a-z0-9._-]*$/iu.test(value.trim());
-}
-
-/** The platform tier an internal model id maps to. */
-export function resolveOttiliModelTier(modelId: string | undefined): OttiliModelTier {
-  const normalized = modelId?.trim();
-  if (!normalized) return DEFAULT_OTTILI_MODEL_TIER;
-  const tier = ALRAN_MODEL_TIER_BY_MODEL_ID[normalized];
-  if (tier) return tier;
-  // Tolerate a provider-qualified internal id such as `alran/Alran-M3`.
-  const bare = normalized.includes('/') ? normalized.slice(normalized.lastIndexOf('/') + 1) : normalized;
-  return ALRAN_MODEL_TIER_BY_MODEL_ID[bare] ?? DEFAULT_OTTILI_MODEL_TIER;
+  return typeof value === 'string' && /^ottili\/[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*$/iu.test(value.trim());
 }
 
 /**
  * The Ottili AI Platform model id for an internal model id.
  *
  * Ids that already point at the platform are returned unchanged, so a user who
- * configured `ottili/werk-1.1` directly keeps working.
+ * configured `ottili/werk-1.1` directly keeps working. Internal model ids are
+ * translated to their gateway route via `ALRAN_MODEL_TO_GATEWAY_ID`. Any
+ * internal model without a route throws rather than falling back to a default.
  */
 export function resolveOttiliModelId(modelId: string | undefined): string {
   const normalized = modelId?.trim();
   if (!normalized) return OTTILI_MODEL_IDS[DEFAULT_OTTILI_MODEL_TIER];
   if (isOttiliModelId(normalized)) return normalized;
-  return OTTILI_MODEL_IDS[resolveOttiliModelTier(normalized)];
+  const gatewayId = ALRAN_MODEL_TO_GATEWAY_ID[normalized];
+  if (gatewayId) return gatewayId;
+  throw new Error(
+    `No Ottili AI Platform gateway route for model "${modelId}". Add it to ALRAN_MODEL_TO_GATEWAY_ID; external models must not silently fall back to Alran-Werk.`,
+  );
 }

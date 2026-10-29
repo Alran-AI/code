@@ -220,6 +220,7 @@ export type ModelThinkingMode =
   | "switchable"
   | "forced_on"
   | "forced_off"
+  | "always_on"
   | "hidden";
 
 export interface ModelThinkingConfig {
@@ -1124,6 +1125,8 @@ export interface ModelConfig {
   headers?: Record<string, string>;
   capabilities?: ModelCapabilitiesConfig;
   provider?: { npm?: string; api?: string };
+  /** Highest data class this model may receive in a session. External (gateway-routed) models are public-only. */
+  max_data_class?: "public" | "internal" | "personal";
   variants?: Record<string, { disabled?: boolean; [key: string]: unknown }>;
   defaultVariant?: string;
 }
@@ -1655,15 +1658,15 @@ function buildPresetEntry(key: PresetKey) {
     },
     models: ALRAN_MODELS,
     model_order: [
-      "Alran-M3.1-Flash",
-      "Alran-M3",
-      "Alran-M2.7",
-      "Alran-M2.7-highspeed",
+      "Alran-Werk-Pro",
+      "Alran-Werk",
+      "Alran-Fels",
+      "Alran-Kern",
     ],
   };
   return {
     provider: { alran: provider } as ModelsConfig,
-    defaultModel: "alran/Alran-M3.1-Flash",
+    defaultModel: "alran/Alran-Werk",
   };
 }
 

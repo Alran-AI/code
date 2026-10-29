@@ -51,12 +51,11 @@ export {
 } from './ottili.js';
 export type { OttiliEnvironment } from './ottili.js';
 export {
-  ALRAN_MODEL_TIER_BY_MODEL_ID,
+  ALRAN_MODEL_TO_GATEWAY_ID,
   DEFAULT_OTTILI_MODEL_TIER,
   OTTILI_MODEL_IDS,
   isOttiliModelId,
   resolveOttiliModelId,
-  resolveOttiliModelTier,
 } from './ottili-model-map.js';
 export type { OttiliModelTier } from './ottili-model-map.js';
 export {

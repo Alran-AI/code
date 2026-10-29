@@ -14,6 +14,14 @@ const ALRAN_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
   max_attachments_count: 4,
 };
 
+/** Capabilities shared by the six external (gateway-routed) models. */
+const ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
+  max_image_bytes_inline: 10_485_760,
+  max_video_bytes_inline: 52_428_800,
+  max_request_body_bytes: 67_108_864,
+  max_attachments_count: 4,
+};
+
 export const ALRAN_MODELS: Record<string, ModelConfig> = {
   // Premium tier -> ottili/werk-1.1-pro
   "Alran-Werk-Pro": {
@@ -24,7 +32,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: true,
     modalities: { input: ["text", "image", "video"], output: ["text"] },
-    limit: { context: 1000000, output: 128000 },
+    limit: { context: 1000000, output: 512000 },
     contextWindowOptions: [1000000],
     options: { reasoningSummary: "auto" },
     thinking: {
@@ -48,9 +56,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: true,
     modalities: { input: ["text", "image", "video"], output: ["text"] },
-    limit: { context: 512000, output: 128000 },
-    contextWindowOptions: [512000, 1000000],
-    contextWindowOptionHints: { "1000000": "higher_usage" },
+    limit: { context: 1000000, output: 256000 },
     options: { reasoningSummary: "auto" },
     thinking: {
       effortOptions: ["minimal", "low", "medium", "high", "xhigh", "max"],
@@ -73,7 +79,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: true,
     modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 200000, output: 128000 },
+    limit: { context: 256000, output: 32000 },
     thinking: {
       effortOptions: ["low", "medium", "xhigh"],
       defaultEffort: "medium",
@@ -94,7 +100,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: true,
     modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 200000, output: 128000 },
+    limit: { context: 256000, output: 64000 },
     thinking: {
       effortOptions: ["low", "medium", "high"],
       defaultEffort: "medium",
@@ -104,5 +110,120 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
       "none-thinking": { thinking: { type: "disabled" } },
       thinking: { thinking: { type: "adaptive" } },
     },
+  },
+
+  // External models, all routed through the Ottili AI Gateway (ottili-gateway)
+  // which forwards to OpenRouter. No direct Anthropic or OpenAI key is used.
+  // All six are public-only (max_data_class: 'public').
+
+  // Claude Sonnet 5.5 -> ottili/anthropic/sonnet-5.5
+  "Alran-Sonnet-5.5": {
+    name: "Claude Sonnet 5.5",
+    family: "anthropic",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: false,
+    modalities: { input: ["text", "image"], output: ["text"] },
+    limit: { context: 200000, output: 8192 },
+    thinking_config: { mode: "always_on" },
+    variants: {
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
+  },
+
+  // Claude Opus 5.5 -> ottili/anthropic/opus-5.5
+  "Alran-Opus-5.5": {
+    name: "Claude Opus 5.5",
+    family: "anthropic",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: false,
+    modalities: { input: ["text", "image"], output: ["text"] },
+    limit: { context: 200000, output: 8192 },
+    thinking_config: { mode: "always_on" },
+    variants: {
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
+  },
+
+  // Claude Fable 5.1 -> ottili/anthropic/fable-5.1
+  "Alran-Fable-5.1": {
+    name: "Claude Fable 5.1",
+    family: "anthropic",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: false,
+    modalities: { input: ["text", "image"], output: ["text"] },
+    limit: { context: 200000, output: 4096 },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      "none-thinking": { thinking: { type: "disabled" } },
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
+  },
+
+  // GPT-6 Astra -> ottili/openai/gpt-6-astra (no none-thinking variant)
+  "Alran-GPT-6-Astra": {
+    name: "GPT-6 Astra",
+    family: "openai",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: true,
+    modalities: { input: ["text", "image"], output: ["text"] },
+    limit: { context: 200000, output: 8192 },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
+  },
+
+  // GPT-6.1 Sol -> ottili/openai/gpt-6.1-sol
+  "Alran-GPT-6.1-Sol": {
+    name: "GPT-6.1 Sol",
+    family: "openai",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: true,
+    modalities: { input: ["text"], output: ["text"] },
+    limit: { context: 200000, output: 4096 },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      "none-thinking": { thinking: { type: "disabled" } },
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
+  },
+
+  // GPT-6.1 Terra -> ottili/openai/gpt-6.1-terra
+  "Alran-GPT-6.1-Terra": {
+    name: "GPT-6.1 Terra",
+    family: "openai",
+    attachment: true,
+    reasoning: true,
+    tool_call: true,
+    temperature: true,
+    modalities: { input: ["text"], output: ["text"] },
+    limit: { context: 200000, output: 4096 },
+    thinking_config: { mode: "switchable", default_value: "true" },
+    variants: {
+      "none-thinking": { thinking: { type: "disabled" } },
+      thinking: { thinking: { type: "adaptive" } },
+    },
+    max_data_class: "public",
+    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
   },
 };
