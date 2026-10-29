@@ -15,26 +15,23 @@ function renderWelcome(width: number): string {
 }
 
 describe("TuiWelcome layouts", () => {
-  it("renders the wide layout without /checkin and with the consistent follow-up", () => {
-    const rendered = renderWelcome(100);
-    expect(rendered.toLowerCase()).not.toContain("checkin");
-    expect(rendered).toContain(
-      "Send follow-ups while Alran works — they queue until the turn ends.",
-    );
-    expect(rendered).toContain("Every change shows a diff — verify it before it applies.");
-    expect(rendered).toContain("Run /init to teach Alran this repo.");
+  it("renders no /checkin in any layout", () => {
+    for (const width of [40, 60, 100]) {
+      expect(renderWelcome(width).toLowerCase()).not.toContain("checkin");
+    }
   });
 
-  it("renders the stacked layout without /checkin", () => {
-    const rendered = renderWelcome(60);
-    expect(rendered.toLowerCase()).not.toContain("checkin");
-    expect(rendered).toContain("/init guidance");
-  });
-
-  it("renders the compact layout without /checkin", () => {
-    const rendered = renderWelcome(40);
-    expect(rendered.toLowerCase()).not.toContain("checkin");
-    expect(rendered).toContain("/init repo guidance");
+  it("renders no tips or news in any layout", () => {
+    for (const width of [40, 60, 100]) {
+      const rendered = renderWelcome(width);
+      expect(rendered).not.toContain("Tips");
+      expect(rendered).not.toContain("What's new");
+      expect(rendered).not.toContain("diff");
+      expect(rendered).not.toContain("follow-up");
+      expect(rendered).not.toContain("/init");
+      expect(rendered).not.toContain("/context");
+      expect(rendered).not.toContain("/feedback");
+    }
   });
 
   it("produces stable snapshots for the three layouts", () => {

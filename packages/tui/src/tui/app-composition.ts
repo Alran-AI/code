@@ -47,11 +47,7 @@ import {
   type TuiWorkspaceRoots,
 } from './features/composer/workspace-roots.js';
 import { TuiGoalBanner } from './features/goal/banner.js';
-import {
-  extractTuiVersionChangelogEntries,
-  readPackagedTuiChangelog,
-  selectRandomTuiItems,
-} from './features/changelog/content.js';
+import { readPackagedTuiChangelog } from './features/changelog/content.js';
 import { detectProcessTerminalCapabilities } from './platform/terminal-capabilities.js';
 import { createTuiTextClipboardWriter } from './platform/terminal-clipboard.js';
 import { TuiTerminalNotifications } from './platform/terminal-notifications.js';
@@ -336,25 +332,12 @@ export function createTuiApplicationWidgets(options: {
   readonly requestRender: () => void;
 }) {
   const changelog = readPackagedTuiChangelog();
-  const welcome = new TuiWelcome(
-    {
-      version: options.app.version,
-      workspace: options.app.workspaceDir,
-      homeDir: options.app.homeDir,
-      runtimeStatus: 'starting',
-    },
-    options.app.keybindings,
-    {
-      ...(changelog
-        ? {
-            changelogEntries: selectRandomTuiItems(
-              extractTuiVersionChangelogEntries(changelog, options.app.version),
-              3,
-            ),
-          }
-        : {}),
-    },
-  );
+  const welcome = new TuiWelcome({
+    version: options.app.version,
+    workspace: options.app.workspaceDir,
+    homeDir: options.app.homeDir,
+    runtimeStatus: 'starting',
+  });
   const updateNotice = new TuiUpdateNotice();
   const status = createTuiWorkspaceStatusLine(options.app, options.requestRender);
   const activity = new TuiActivityLine(

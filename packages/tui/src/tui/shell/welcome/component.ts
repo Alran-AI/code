@@ -6,24 +6,11 @@ import {
   normalizeWidth,
 } from '../frame.js';
 import { resolveTuiLayoutPolicy } from '../layout-policy.js';
-import { formatTuiKeybinding, type TuiKeybindingRegistry } from '../keybindings.js';
-import {
-  ALRAN_CODE_WELCOME_DESIGN,
-  ALRAN_CODE_WELCOME_PASTE_IMAGE_SHORTCUT,
-} from './design.js';
+import { ALRAN_CODE_WELCOME_DESIGN } from './design.js';
 import { renderTuiWelcomeHero } from './hero.js';
 
-export interface TuiWelcomeContent {
-  readonly tips?: readonly string[];
-  readonly changelogEntries?: readonly string[];
-}
-
 export class TuiWelcome implements Component {
-  constructor(
-    private state: TuiShellState,
-    private readonly keybindings?: TuiKeybindingRegistry,
-    private readonly content: TuiWelcomeContent = {},
-  ) {}
+  constructor(private state: TuiShellState) {}
 
   setState(state: TuiShellState): void {
     this.state = state;
@@ -64,7 +51,7 @@ export class TuiWelcome implements Component {
     }
 
     const policy = resolveTuiLayoutPolicy(safeWidth);
-    const options = { keybindings: this.keybindings, content: this.content, staticBanner };
+    const options = { staticBanner };
     let frame =
       policy.welcome === 'compact'
         ? renderCompactWelcome(this.state, safeWidth, options)
@@ -79,8 +66,6 @@ export class TuiWelcome implements Component {
 }
 
 interface WelcomeRenderOptions {
-  readonly keybindings: TuiKeybindingRegistry | undefined;
-  readonly content?: TuiWelcomeContent;
   readonly staticBanner: boolean;
 }
 
@@ -99,63 +84,34 @@ function fitWelcomeHeight(lines: string[], height: number): string[] {
 function renderWideWelcome(
   state: TuiShellState,
   width: number,
-  { keybindings, content, staticBanner }: WelcomeRenderOptions,
+  { staticBanner }: WelcomeRenderOptions,
 ): string[] {
-  const tips = resolveWelcomeItems(content?.tips, ALRAN_CODE_WELCOME_DESIGN.wide.tips, 3);
-  const news = resolveWelcomeItems(
-    content?.changelogEntries,
-    ALRAN_CODE_WELCOME_DESIGN.wide.news,
-    3,
-  );
   return [
     ...renderTuiWelcomeHero(width),
     '',
     renderWelcomeHeader(state, width, staticBanner),
     ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
-    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
-    ...tips.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
-    '',
-    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
   ];
 }
 
 function renderStackedWelcome(
   state: TuiShellState,
   width: number,
-  { keybindings, content, staticBanner }: WelcomeRenderOptions,
+  { staticBanner }: WelcomeRenderOptions,
 ): string[] {
-  const tips = resolveWelcomeItems(content?.tips, ALRAN_CODE_WELCOME_DESIGN.stacked.tips, 2);
-  const news = resolveWelcomeItems(
-    content?.changelogEntries,
-    ALRAN_CODE_WELCOME_DESIGN.stacked.news,
-    3,
-  );
   return [
     ...renderTuiWelcomeHero(width),
     '',
     renderWelcomeHeader(state, width, staticBanner),
     ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
-    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.tips), width),
-    ...tips.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
-    '',
-    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) => fitLine(renderWelcomeBullet(resolveWelcomeCopy(text, keybindings)), width)),
-    '',
   ];
 }
 
 function renderCompactWelcome(
   state: TuiShellState,
   width: number,
-  { keybindings, content, staticBanner }: WelcomeRenderOptions,
+  { staticBanner }: WelcomeRenderOptions,
 ): string[] {
-  const tips = resolveWelcomeItems(content?.tips, ALRAN_CODE_WELCOME_DESIGN.compact.tips, 2);
-  const news = resolveWelcomeItems(
-    content?.changelogEntries,
-    ALRAN_CODE_WELCOME_DESIGN.compact.news,
-    3,
-  );
   return [
     ...renderTuiWelcomeHero(width),
     '',
@@ -166,10 +122,6 @@ function renderCompactWelcome(
       width,
     ),
     ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
-    fitLine(renderSectionTitle('Tips'), width),
-    ...tips.map((text) => fitLine(chalk.hex(colors.muted)(resolveWelcomeCopy(text, keybindings)), width)),
-    fitLine(renderSectionTitle(ALRAN_CODE_WELCOME_DESIGN.sectionTitles.news), width),
-    ...news.map((text) => fitLine(chalk.hex(colors.muted)(text), width)),
   ];
 }
 
@@ -177,29 +129,6 @@ function renderWelcomeHeader(state: TuiShellState, width: number, staticBanner: 
   const left = chalk.hex(colors.muted)(`v${state.version}`);
   const right = staticBanner ? '' : renderActivity(state);
   return right ? `${left}  ${right}` : left;
-}
-
-function resolveWelcomeItems(
-  selected: readonly string[] | undefined,
-  fallback: readonly string[],
-  count: number,
-): readonly string[] {
-  return selected?.length ? selected.slice(0, count) : fallback;
-}
-
-function renderSectionTitle(title: string): string {
-  return chalk.bold.hex(colors.brand)(title);
-}
-
-function renderWelcomeBullet(text: string): string {
-  return `${chalk.bold.hex(colors.orbit)('›')} ${chalk.hex(colors.text)(text)}`;
-}
-
-function resolveWelcomeCopy(value: string, keybindings: TuiKeybindingRegistry | undefined): string {
-  return value.replaceAll(
-    ALRAN_CODE_WELCOME_PASTE_IMAGE_SHORTCUT,
-    formatTuiKeybinding('composer.paste-image', keybindings),
-  );
 }
 
 function resolveWelcomeAccountNotice(state: TuiShellState): string | undefined {

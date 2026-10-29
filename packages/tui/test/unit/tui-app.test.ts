@@ -2530,7 +2530,6 @@ describe("createTuiApp", () => {
 
     expect(app.getSurface()).toBe("conversation");
     const conversation = app.tui.render(80).join("\n");
-    expect(conversation).toContain("Tips for getting started");
     expect(conversation).toContain("Say hello");
     expect(conversation).toContain("Hello from the Agent");
     expect(terminal.started).toBe(true);
@@ -5563,7 +5562,7 @@ describe("createTuiApp", () => {
 
     expect(terminal.started).toBe(true);
     expect(firstFrameCommitted).toBe(true);
-    expect(terminal.writes.join("")).toContain("Tips for getting started");
+    expect(terminal.writes.join("")).toContain("v0.1.0");
     await app.stop();
   });
 
@@ -14789,9 +14788,7 @@ describe("createTuiApp", () => {
 
       expect(restored.editor.getText()).toBe("");
       expect(restored.getSurface()).toBe("welcome");
-      expect(restored.tui.render(80).join("\n")).toContain(
-        "Tips for getting started",
-      );
+      expect(restored.tui.render(80).join("\n")).toContain("v0.1.0");
       await restored.stop();
     } finally {
       await rm(dataDir, { recursive: true, force: true });
@@ -15022,12 +15019,9 @@ describe.each([
       const history = terminal.getScrollBuffer().join("\n");
       if (mode === "regular" && count > 0) {
         expect(history).not.toContain("OLD TRANSCRIPT");
-        expect(history.match(/Tips for getting started/gu)).toHaveLength(1);
-        const banner = history.indexOf("Tips for getting started");
         for (let i = 0; i < count; i++) {
           const line = `› Restored message ${i}`;
           expect(terminal.getScrollBuffer().filter((row) => row.trim() === line), line).toHaveLength(1);
-          expect(history.indexOf(line)).toBeGreaterThan(banner);
         }
         expect(app!.controller.snapshot().session?.sessionId).toBe("existing");
       } else if (mode === "regular") {
