@@ -47,7 +47,12 @@ export interface CreateTuiProgramOptions {
     lane?: string,
   ) => Promise<void>;
   runAcp?: (lane?: string, systemPromptOverrides?: SystemPromptOverrides) => Promise<void>;
-  runLogin: (region?: MavisRegion, openBrowser?: boolean, lane?: string) => Promise<void>;
+  runLogin: (
+    region?: MavisRegion,
+    openBrowser?: boolean,
+    lane?: string,
+    provider?: 'api-key' | 'keycloak',
+  ) => Promise<void>;
   runLogout: (region?: MavisRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
   runProvider?: (request: AlranProviderCliRequest, lane?: string) => Promise<void>;
@@ -147,14 +152,24 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   program
     .command('login')
-    .description('Connect Alran Code to the Ottili AI Platform with an Ottili API key')
-    .option('--no-browser', 'print the Ottili API key page URL without opening a browser')
+    .description('Connect Alran Code to the Ottili AI Platform')
+    .option('--no-browser', 'print the sign-in page URL without opening a browser')
+    .option(
+      '--provider <provider>',
+      'login provider: api-key or keycloak',
+      (value: string) => {
+        if (value === 'api-key' || value === 'keycloak') return value;
+        throw new InvalidArgumentError('expected "api-key" or "keycloak"');
+      },
+      'api-key',
+    )
     .allowExcessArguments(false)
-    .action((commandOptions: { browser?: boolean }) =>
-      activeLane
-        ? options.runLogin(undefined, commandOptions.browser !== false, activeLane)
-        : options.runLogin(undefined, commandOptions.browser !== false),
-    );
+    .action((commandOptions: { browser?: boolean; provider?: string }) => {
+      const provider = commandOptions.provider === 'keycloak' ? 'keycloak' : 'api-key';
+      return activeLane
+        ? options.runLogin(undefined, commandOptions.browser !== false, activeLane, provider)
+        : options.runLogin(undefined, commandOptions.browser !== false, undefined, provider);
+    });
 
   program
     .command('logout')
