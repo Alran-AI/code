@@ -2,15 +2,19 @@ import { createServer, type Server as HttpServer } from 'node:http';
 
 import { AuthorizationCodeClient, type AuthorizationCodeStartResult } from './authorization-code-client.js';
 import { OAuthProtocolError } from './oauth-client.js';
+import { platformOidcLoginUrl, platformOidcRedeem, type PlatformSession } from './platform-oauth.js';
 
 /** Result of a completed login via the callback server. */
 export interface CallbackLoginResult {
-  readonly accessToken: string;
-  readonly refreshToken: string;
-  readonly expiresInSec: number;
-  readonly scopes: string[];
+  /** OAuth 2.0 token grant (when not using Platform OIDC). */
+  readonly accessToken?: string;
+  readonly refreshToken?: string;
+  readonly expiresInSec?: number;
+  readonly scopes?: string[];
   readonly subject?: string;
   readonly accountId?: string;
+  /** Platform session (when using Platform OIDC). */
+  readonly platformSession?: PlatformSession;
 }
 
 /** Options for the callback server. */
@@ -23,8 +27,15 @@ export interface CallbackServerOptions {
   readonly baseUrl: string;
   /** Authorization code client (optional; can be set later with setClient). */
   readonly client?: AuthorizationCodeClient;
-  /** Expected state value for CSRF protection. */
-  readonly expectedState: string;
+  /** Expected state value for CSRF protection (OAuth 2.0 flow only). */
+  readonly expectedState?: string;
+  /** Platform OIDC options: when set, the /login page redirects to the
+   *  Platform's `/v2/auth/oidc/login` (Keycloak), and the /callback redeems
+   *  the one-time handoff code via the Platform's `/__dev/oidc/redeem`. */
+  readonly platformOidc?: {
+    /** The Platform base URL this process reaches (e.g. http://127.0.0.1:18150). */
+    readonly platformBaseUrl: string;
+  };
   /** Called when a login completes successfully. */
   readonly onLogin?: (result: CallbackLoginResult) => void | Promise<void>;
   /** Called when a login fails. */
@@ -34,27 +45,86 @@ export interface CallbackServerOptions {
 /** HTML shown on the login page while waiting for the browser redirect. */
 function loginPage(authorizeUrl: string): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sign in to Alran Code</title>
+<title>Anmelden – Alran Code</title>
+<link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
-  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 40px; max-width: 400px; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-  h1 { font-size: 20px; margin: 0 0 16px; }
-  p { font-size: 14px; color: #4b5563; margin: 0 0 24px; line-height: 1.5; }
-  .btn { display: inline-block; background: #111827; color: #ffffff; text-decoration: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; }
-  .btn:hover { background: #374151; }
-  .hint { font-size: 12px; color: #6b7280; margin-top: 24px; }
+  :root {
+    --ottili-auth-max-width: 380px;
+    --ottili-auth-card-radius: var(--ottili-radius-md, 12px);
+  }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    background: var(--ottili-color-surface-canvas, #f4f5f7);
+    color: var(--ottili-color-text-primary, #16181d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .ottili-auth-shell {
+    width: min(var(--ottili-auth-max-width), calc(100vw - 32px));
+  }
+  .ottili-auth-shell__sign-in {
+    background: var(--ottili-color-surface-raised, #ffffff);
+    border: 1px solid var(--ottili-color-border-default, #d9dce3);
+    border-radius: var(--ottili-auth-card-radius);
+    padding: var(--ottili-space-page, 32px);
+    box-shadow: var(--ottili-elevation-raised, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+  }
+  .ottili-auth-heading {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    font-size: var(--ottili-type-h2-size, 22px);
+    line-height: var(--ottili-type-h2-line, 1.3);
+    margin: 0 0 8px;
+    color: var(--ottili-color-text-primary, #16181d);
+  }
+  .ottili-auth-shell__sign-in p {
+    margin: 0 0 24px;
+    color: var(--ottili-color-text-secondary, #4a5060);
+    line-height: var(--ottili-type-body-line, 1.5);
+  }
+  .ottili-auth-button {
+    width: 100%;
+    display: block;
+    text-align: center;
+    padding: 10px 14px;
+    border-radius: var(--ottili-radius-sm, 8px);
+    background: var(--ottili-color-text-primary, #0a7d3b);
+    color: var(--ottili-color-text-inverse, #ffffff);
+    border: none;
+    font-family: inherit;
+    font-size: var(--ottili-type-body-size, 14px);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .ottili-auth-button:hover {
+    opacity: 0.9;
+  }
+  .ottili-auth-button:focus-visible {
+    outline: 2px solid var(--ottili-color-focus-ring, #0a7d3b);
+    outline-offset: 2px;
+  }
+  .hint {
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--ottili-color-text-secondary, #6b7180);
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Sign in to Alran Code</h1>
-  <p>You will be redirected to the Ottili Platform to complete sign in.</p>
-  <a class="btn" href="${escapeHtml(authorizeUrl)}">Continue to sign in</a>
-  <p class="hint">If you are not redirected automatically, click the button above.</p>
+<div class="ottili-auth-shell" data-ottili-state="signed_out">
+  <div class="ottili-auth-shell__sign-in">
+    <h2 class="ottili-auth-heading">Anmelden</h2>
+    <p>Du wirst zur Ottili Platform weitergeleitet, um die Anmeldung abzuschließen.</p>
+    <a class="ottili-auth-button" href="${escapeHtml(authorizeUrl)}">Weiter zur Anmeldung</a>
+    <p class="hint">Wenn du nicht automatisch weitergeleitet wirst, klicke auf den Button oben.</p>
+  </div>
 </div>
 <script>
   (function() {
@@ -69,22 +139,58 @@ function loginPage(authorizeUrl: string): string {
 /** HTML shown after a successful login. */
 function successPage(): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Signed in</title>
+<title>Angemeldet – Alran Code</title>
+<link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
-  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 40px; max-width: 400px; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-  h1 { font-size: 20px; margin: 0 0 16px; color: #15803d; }
-  p { font-size: 14px; color: #4b5563; margin: 0; }
+  :root {
+    --ottili-auth-max-width: 380px;
+    --ottili-auth-card-radius: var(--ottili-radius-md, 12px);
+  }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    background: var(--ottili-color-surface-canvas, #f4f5f7);
+    color: var(--ottili-color-text-primary, #16181d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .ottili-auth-shell {
+    width: min(var(--ottili-auth-max-width), calc(100vw - 32px));
+  }
+  .ottili-auth-shell__sign-in {
+    background: var(--ottili-color-surface-raised, #ffffff);
+    border: 1px solid var(--ottili-color-border-default, #d9dce3);
+    border-radius: var(--ottili-auth-card-radius);
+    padding: var(--ottili-space-page, 32px);
+    box-shadow: var(--ottili-elevation-raised, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+    text-align: center;
+  }
+  .ottili-auth-heading {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    font-size: var(--ottili-type-h2-size, 22px);
+    line-height: var(--ottili-type-h2-line, 1.3);
+    margin: 0 0 16px;
+    color: var(--ottili-color-text-primary, #16181d);
+  }
+  .ottili-auth-shell__sign-in p {
+    margin: 0;
+    color: var(--ottili-color-text-secondary, #4a5060);
+    line-height: var(--ottili-type-body-line, 1.5);
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Signed in successfully</h1>
-  <p>You can close this window and return to Alran Code.</p>
+<div class="ottili-auth-shell" data-ottili-state="active">
+  <div class="ottili-auth-shell__sign-in">
+    <h2 class="ottili-auth-heading" style="color: var(--ottili-color-text-primary, #15803d);">Erfolgreich angemeldet</h2>
+    <p>Du kannst dieses Fenster schließen und zu Alran Code zurückkehren.</p>
+  </div>
 </div>
 <script>
   window.close?.();
@@ -96,22 +202,58 @@ function successPage(): string {
 /** HTML shown after a failed login. */
 function errorPage(message: string): string {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sign in failed</title>
+<title>Anmeldung fehlgeschlagen – Alran Code</title>
+<link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: #1f2937; }
-  .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 40px; max-width: 400px; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-  h1 { font-size: 20px; margin: 0 0 16px; color: #b91c1c; }
-  p { font-size: 14px; color: #4b5563; margin: 0; white-space: pre-wrap; }
+  :root {
+    --ottili-auth-max-width: 380px;
+    --ottili-auth-card-radius: var(--ottili-radius-md, 12px);
+  }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    background: var(--ottili-color-surface-canvas, #f4f5f7);
+    color: var(--ottili-color-text-primary, #16181d);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .ottili-auth-shell {
+    width: min(var(--ottili-auth-max-width), calc(100vw - 32px));
+  }
+  .ottili-auth-shell__sign-in {
+    background: var(--ottili-color-surface-raised, #ffffff);
+    border: 1px solid var(--ottili-color-border-danger, #f3b8b2);
+    border-radius: var(--ottili-auth-card-radius);
+    padding: var(--ottili-space-page, 32px);
+    box-shadow: var(--ottili-elevation-raised, 0 4px 6px -1px rgb(0 0 0 / 0.1));
+  }
+  .ottili-auth-heading {
+    font-family: var(--ottili-font-sans, system-ui, -apple-system, sans-serif);
+    font-size: var(--ottili-type-h2-size, 22px);
+    line-height: var(--ottili-type-h2-line, 1.3);
+    margin: 0 0 16px;
+    color: var(--ottili-color-text-danger, #8a1c12);
+  }
+  .ottili-auth-shell__sign-in p {
+    margin: 0;
+    color: var(--ottili-color-text-secondary, #4a5060);
+    line-height: var(--ottili-type-body-line, 1.5);
+    white-space: pre-wrap;
+  }
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Sign in failed</h1>
-  <p>${escapeHtml(message)}</p>
+<div class="ottili-auth-shell" data-ottili-state="signed_out">
+  <div class="ottili-auth-shell__sign-in">
+    <h2 class="ottili-auth-heading">Anmeldung fehlgeschlagen</h2>
+    <p>${escapeHtml(message)}</p>
+  </div>
 </div>
 </body>
 </html>`;
@@ -127,12 +269,18 @@ function escapeHtml(value: string): string {
 }
 
 /**
- * A local HTTP server that hosts the OAuth 2.0 authorization code callback.
+ * A local HTTP server that hosts the OAuth 2.0 / Platform OIDC callback.
  *
  * Routes:
- *   GET /login      - starts the authorization code flow, redirects to keycloak
- *   GET /callback   - keycloak redirects here with `?code=` and `?state=`
+ *   GET /login      - starts the sign-in flow, presents a page that redirects
+ *                     to Keycloak (OAuth 2.0) or the Platform's OIDC endpoint
+ *   GET /callback   - Keycloak/Platform redirects here with `?code=` (and
+ *                     `?state=` for OAuth 2.0)
  *   GET /           - simple status page
+ *
+ * When `platformOidc` is configured, the callback is a Platform OIDC handoff:
+ * the one-time code is redeemed via the Platform's `/__dev/oidc/redeem` for a
+ * Platform session (session_id, company_id, base_url).
  */
 export class CallbackServer {
   private server: HttpServer | null = null;
@@ -140,7 +288,8 @@ export class CallbackServer {
   private readonly host: string;
   private readonly baseUrl: string;
   private client: AuthorizationCodeClient | null = null;
-  private readonly expectedState: string;
+  private readonly expectedState?: string;
+  private readonly platformOidc?: CallbackServerOptions['platformOidc'];
   private readonly onLogin?: CallbackServerOptions['onLogin'];
   private readonly onError?: CallbackServerOptions['onError'];
   private startResult: AuthorizationCodeStartResult | null = null;
@@ -152,6 +301,7 @@ export class CallbackServer {
     this.host = options.host ?? '127.0.0.1';
     this.baseUrl = options.baseUrl;
     this.expectedState = options.expectedState;
+    this.platformOidc = options.platformOidc;
     this.onLogin = options.onLogin;
     this.onError = options.onError;
     if (options.client) this.setClient(options.client);
@@ -193,6 +343,17 @@ export class CallbackServer {
     return this.startResult.authorizeUrl;
   }
 
+  /** Build the Platform OIDC authorize URL for the /login page. */
+  platformOidcAuthorizeUrl(): string {
+    if (!this.platformOidc) throw new Error('Platform OIDC is not configured.');
+    const port = this.listenedPort ?? 0;
+    const callback = `http://${this.host}:${port}/callback`;
+    return platformOidcLoginUrl({
+      platformOrigin: this.platformOidc.platformBaseUrl,
+      callback,
+    });
+  }
+
   /** Wait for the callback to complete and return the login result. */
   waitForLogin(): Promise<CallbackLoginResult> {
     return new Promise((resolve, reject) => {
@@ -221,11 +382,17 @@ export class CallbackServer {
 
     try {
       if (path === '/login') {
-        if (!this.startResult) {
-          await this.beginLogin();
+        let authorizeUrl: string;
+        if (this.platformOidc) {
+          authorizeUrl = this.platformOidcAuthorizeUrl();
+        } else {
+          if (!this.startResult) {
+            await this.beginLogin();
+          }
+          authorizeUrl = this.startResult!.authorizeUrl;
         }
         res.statusCode = 200;
-        res.end(loginPage(this.startResult!.authorizeUrl));
+        res.end(loginPage(authorizeUrl));
         return;
       }
 
@@ -269,7 +436,7 @@ export class CallbackServer {
     if (error) {
       const message = errorDescription ?? error;
       res.statusCode = 400;
-      res.end(errorPage(`Keycloak returned an error: ${escapeHtml(message)}`));
+      res.end(errorPage(`The auth server returned an error: ${escapeHtml(message)}`));
       const err = new OAuthProtocolError(error, message);
       void this.onError?.(err);
       if (this.rejectLogin) {
@@ -280,10 +447,10 @@ export class CallbackServer {
       return;
     }
 
-    if (!code || !state) {
+    if (!code) {
       res.statusCode = 400;
-      res.end(errorPage('Missing authorization code or state parameter.'));
-      const err = new Error('Missing authorization code or state parameter.');
+      res.end(errorPage('Missing authorization code or handoff code.'));
+      const err = new Error('Missing authorization code or handoff code.');
       void this.onError?.(err);
       if (this.rejectLogin) {
         this.rejectLogin(err);
@@ -293,34 +460,51 @@ export class CallbackServer {
       return;
     }
 
-    if (state !== this.expectedState) {
-      res.statusCode = 400;
-      res.end(errorPage('State mismatch — possible CSRF attack.'));
-      const err = new OAuthProtocolError('state_mismatch');
-      void this.onError?.(err);
-      if (this.rejectLogin) {
-        this.rejectLogin(err);
-        this.rejectLogin = null;
-        this.resolveLogin = null;
+    // OAuth 2.0 flow: validate state for CSRF protection.
+    if (!this.platformOidc) {
+      if (!state || state !== this.expectedState) {
+        res.statusCode = 400;
+        res.end(errorPage('State mismatch — possible CSRF attack.'));
+        const err = new OAuthProtocolError('state_mismatch');
+        void this.onError?.(err);
+        if (this.rejectLogin) {
+          this.rejectLogin(err);
+          this.rejectLogin = null;
+          this.resolveLogin = null;
+        }
+        return;
       }
-      return;
     }
 
     let result: CallbackLoginResult;
     try {
-      const grant = await this.client!.exchangeCodeForToken(code, this.startResult?.codeVerifier ?? '', this.expectedState, state);
-      result = {
-        accessToken: grant.accessToken,
-        refreshToken: grant.refreshToken,
-        expiresInSec: grant.expiresInSec,
-        scopes: grant.scopes,
-        ...(grant.subject ? { subject: grant.subject } : {}),
-        ...(grant.accountId ? { accountId: grant.accountId } : {}),
-      };
+      if (this.platformOidc) {
+        // Platform OIDC: redeem the one-time handoff code for a Platform session.
+        const session = await platformOidcRedeem(
+          { platformBaseUrl: this.platformOidc.platformBaseUrl, code },
+        );
+        result = { platformSession: session };
+      } else {
+        // OAuth 2.0 authorization code: exchange code for tokens.
+        const grant = await this.client!.exchangeCodeForToken(
+          code,
+          this.startResult?.codeVerifier ?? '',
+          this.expectedState ?? '',
+          state ?? '',
+        );
+        result = {
+          accessToken: grant.accessToken,
+          refreshToken: grant.refreshToken,
+          expiresInSec: grant.expiresInSec,
+          scopes: grant.scopes,
+          ...(grant.subject ? { subject: grant.subject } : {}),
+          ...(grant.accountId ? { accountId: grant.accountId } : {}),
+        };
+      }
     } catch (error) {
       const err = error as Error;
       res.statusCode = 500;
-      res.end(errorPage(`Failed to exchange code for tokens: ${escapeHtml(err.message)}`));
+      res.end(errorPage(`Failed to complete sign in: ${escapeHtml(err.message)}`));
       void this.onError?.(err);
       if (this.rejectLogin) {
         this.rejectLogin(err);

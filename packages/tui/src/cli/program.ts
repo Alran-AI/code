@@ -51,7 +51,8 @@ export interface CreateTuiProgramOptions {
     region?: MavisRegion,
     openBrowser?: boolean,
     lane?: string,
-    provider?: 'api-key' | 'keycloak',
+    provider?: 'api-key' | 'keycloak' | 'platform',
+    platformEnv?: 'dev' | 'prod',
   ) => Promise<void>;
   runLogout: (region?: MavisRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
@@ -156,19 +157,41 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .option('--no-browser', 'print the sign-in page URL without opening a browser')
     .option(
       '--provider <provider>',
-      'login provider: api-key or keycloak',
+      'login provider: api-key, keycloak or platform',
       (value: string) => {
-        if (value === 'api-key' || value === 'keycloak') return value;
-        throw new InvalidArgumentError('expected "api-key" or "keycloak"');
+        if (value === 'api-key' || value === 'keycloak' || value === 'platform') return value;
+        throw new InvalidArgumentError('expected "api-key", "keycloak" or "platform"');
       },
       'api-key',
     )
+    .option(
+      '--platform-env <env>',
+      'Platform environment: dev (loopback) or prod (api.alran.ai)',
+      (value: string) => {
+        if (value === 'dev' || value === 'prod') return value;
+        throw new InvalidArgumentError('expected "dev" or "prod"');
+      },
+      'dev',
+    )
     .allowExcessArguments(false)
-    .action((commandOptions: { browser?: boolean; provider?: string }) => {
-      const provider = commandOptions.provider === 'keycloak' ? 'keycloak' : 'api-key';
+    .action((commandOptions: { browser?: boolean; provider?: string; platformEnv?: string }) => {
+      const provider = commandOptions.provider === 'keycloak' ? 'keycloak' : commandOptions.provider === 'platform' ? 'platform' : 'api-key';
+      const platformEnv = commandOptions.platformEnv === 'prod' ? 'prod' : 'dev';
       return activeLane
-        ? options.runLogin(undefined, commandOptions.browser !== false, activeLane, provider)
-        : options.runLogin(undefined, commandOptions.browser !== false, undefined, provider);
+        ? options.runLogin(
+            undefined,
+            commandOptions.browser !== false,
+            activeLane,
+            provider,
+            platformEnv,
+          )
+        : options.runLogin(
+            undefined,
+            commandOptions.browser !== false,
+            undefined,
+            provider,
+            platformEnv,
+          );
     });
 
   program

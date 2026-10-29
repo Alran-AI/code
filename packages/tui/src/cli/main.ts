@@ -60,7 +60,8 @@ export interface RunTuiCliDependencies {
     region?: MavisRegion,
     openBrowser?: boolean,
     lane?: string,
-    provider?: 'api-key' | 'keycloak',
+    provider?: 'api-key' | 'keycloak' | 'platform',
+    platformEnv?: 'dev' | 'prod',
   ) => Promise<string>;
   readonly runLogout?: (region?: MavisRegion) => Promise<string>;
   readonly runUpdate?: (version: string) => Promise<void>;
@@ -153,9 +154,9 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
           : runAcp(ALRAN_CODE_VERSION, lane));
         completedCommandExitMode = 'natural';
       },
-      runLogin: async (region, openBrowser, lane, provider) => {
+      runLogin: async (region, openBrowser, lane, provider, platformEnv) => {
         const runLogin = dependencies.runLogin ?? defaultRunLogin;
-        processRef.stdout.write(`${await runLogin(region, openBrowser, lane, provider)}\n`);
+        processRef.stdout.write(`${await runLogin(region, openBrowser, lane, provider, platformEnv)}\n`);
         completedCommandExitMode = 'natural';
       },
       runLogout: async (region) => {
@@ -298,10 +299,11 @@ async function defaultRunLogin(
   region?: MavisRegion,
   openBrowser = true,
   lane?: string,
-  provider: 'api-key' | 'keycloak' = 'api-key',
+  provider: 'api-key' | 'keycloak' | 'platform' = 'api-key',
+  platformEnv: 'dev' | 'prod' = 'dev',
 ): Promise<string> {
   const { runTuiLogin } = await import('./auth-command.js');
-  return runTuiLogin({ region, openBrowser, lane, provider });
+  return runTuiLogin({ region, openBrowser, lane, provider, platformEnv });
 }
 
 async function defaultRunLogout(region?: MavisRegion): Promise<string> {
