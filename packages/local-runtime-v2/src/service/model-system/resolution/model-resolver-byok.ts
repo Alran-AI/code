@@ -1,10 +1,11 @@
 import type { Api } from '@earendil-works/pi-ai';
 import {
   alranApiModels,
-  resolveOttiliApiBaseUrl,
   resolveOttiliApiKey,
+  resolveOttiliGatewayBaseUrl,
 } from '@mavis/config';
 
+import { resolveAlranApiDefaultBaseUrl } from '../catalog/alran-api.js';
 import type {
   LocalByokProviderConfig,
   LocalCustomProviderConfig,
@@ -63,7 +64,51 @@ export function planAlranApiResolution(input: {
     provider: ALRAN_API_PROVIDER_ID,
     api: 'openai-completions',
     apiKey,
-    baseUrl: config?.baseURL?.trim() || defaultAlranApiBaseUrl(),
+    baseUrl: config?.baseURL?.trim() || resolveAlranApiDefaultBaseUrl(),
+    contextWindow:
+      catalogModel?.limit?.context ??
+      (input.catalog.fromCatalog
+        ? input.catalog.contextWindow
+        : BYOK_FALLBACK_MODEL_LIMITS.contextWindow),
+    maxTokens:
+      catalogModel?.limit?.output ??
+      (input.catalog.fromCatalog ? input.catalog.maxTokens : BYOK_FALLBACK_MODEL_LIMITS.maxTokens),
+  };
+}
+
+/**
+ * Resolve the first-party provider through the stored Ottili Platform session.
+ *
+ * Signing in with `alran login` issues a Platform session; the Platform gateway
+ * accepts that session id as a bearer credential, so the model call needs no
+ * minted API key. The gateway base URL follows the environment the session was
+ * created in, so a development sign-in never talks to production.
+ */
+export function planPlatformSessionResolution(input: {
+  readonly session: {
+    readonly sessionId: string;
+    readonly platformEnv: 'dev' | 'prod';
+  };
+  readonly providerConfig: LocalModelsConfig | undefined;
+  readonly byok: LocalByokProviderConfig | undefined;
+  readonly modelId: string;
+  readonly catalog: {
+    readonly contextWindow: number;
+    readonly maxTokens: number;
+    readonly fromCatalog: boolean;
+  };
+}): ByokResolutionPlan {
+  const catalogModel = alranApiModels({
+    provider: input.providerConfig,
+    alran_api: input.byok?.alran_api,
+  })[input.modelId];
+  return {
+    provider: ALRAN_API_PROVIDER_ID,
+    api: 'openai-completions',
+    apiKey: input.session.sessionId,
+    baseUrl:
+      input.byok?.alran_api?.baseURL?.trim() ||
+      resolveOttiliGatewayBaseUrl(input.session.platformEnv),
     contextWindow:
       catalogModel?.limit?.context ??
       (input.catalog.fromCatalog
@@ -251,6 +296,3 @@ function readModelCompat(value: unknown): LocalModelCompatOverrides | undefined 
   return Object.keys(compat).length > 0 ? compat : undefined;
 }
 
-function defaultAlranApiBaseUrl(): string {
-  return resolveOttiliApiBaseUrl();
-}

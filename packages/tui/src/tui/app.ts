@@ -53,6 +53,7 @@ import { createTuiSessionLifecycleBridge } from './controller/session-lifecycle-
 import { parseTuiStatusLineItems as parseStatusItems } from './shell/status-line-items.js';
 import { showTuiStatusLineSetup } from './controller/product/status-line-setup.js';
 import { showTuiThemeSetup } from './controller/product/theme-setup.js';
+import { showTuiMascot } from './controller/product/mascot-setup.js';
 import { TuiCodexHandoffFlow } from './controller/product/codex-handoff-flow.js';
 import { tuiTerminalSessionLabel } from './platform/terminal-title.js';
 
@@ -657,6 +658,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
         surface: interactionSurface,
         persist: options.persistTheme,
       }),
+    showMascot: () => showTuiMascot({ surface: interactionSurface }),
     keybindings: options.keybindings,
     getTuiKeybindingOverrides: options.getTuiKeybindingOverrides,
     saveTuiKeybindingOverrides: options.saveTuiKeybindingOverrides,

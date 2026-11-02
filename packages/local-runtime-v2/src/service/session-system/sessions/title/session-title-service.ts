@@ -4,8 +4,8 @@ import {
   SESSION_TITLE_MAX_UNICODE_LENGTH,
 } from '@mavis/conversation-contract';
 import { parseAgentReferences } from '@mavis/shared/agent-mention';
-
-import { readPromptWithBuiltinFallback } from '../../../agent/index.js';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import type { SessionRecord, SessionRepository } from '../repo/contract.js';
 import { SessionTitleConflictError } from '../repo/contract.js';
 import { SessionServiceError } from '../errors.js';
@@ -64,6 +64,23 @@ const TITLE_ATTEMPTS = 2;
 const TITLE_PROVIDER_RETRY_DELAYS_MS: readonly number[] = [500, 2_000];
 const INJECTED_TAG_RE =
   /<(agent-message|agent-context|system-reminder|peer-memory-path|engine-message|inbound-context|html-selection-context)\b[^>]*>[\s\S]*?<\/\1>/g;
+
+const TITLE_PROMPT_PATH = resolve(
+  import.meta.url,
+  '../../../../assets/agents/_default/prompt-title.md'
+);
+
+let titlePromptCache: string | undefined;
+
+export async function loadTitlePrompt(): Promise<string> {
+  if (titlePromptCache) return titlePromptCache;
+  try {
+    titlePromptCache = await readFile(TITLE_PROMPT_PATH, 'utf8');
+    return titlePromptCache;
+  } catch {
+    return TITLE_SYSTEM_PROMPT;
+  }
+}
 
 export interface SessionTitleModelInput {
   readonly session: SessionRecord;
@@ -215,11 +232,7 @@ export class SessionTitleService {
     session: SessionRecord,
     userMessage: string,
   ): Promise<{ readonly title: string | null; readonly outcome: SessionTitleOutcome }> {
-    const systemPrompt = await readPromptWithBuiltinFallback({
-      source: this.options.promptSnapshots,
-      key: SESSION_TITLE_SYSTEM_PROMPT_KEY,
-      builtin: TITLE_SYSTEM_PROMPT,
-    });
+    const systemPrompt = await loadTitlePrompt();
     const retryDelays = this.options.providerRetryDelaysMs ?? TITLE_PROVIDER_RETRY_DELAYS_MS;
     let invalidAttempts = 0;
     let providerRetries = 0;

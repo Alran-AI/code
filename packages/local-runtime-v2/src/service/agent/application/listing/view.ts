@@ -44,6 +44,7 @@ export function toBuiltinRenderInput(
   resolveLocale: () => string,
 ): BuiltinRenderInput {
   const { input } = context;
+  const now = new Date();
   return {
     agentName: context.canonicalViewName,
     surface: context.surface,
@@ -57,6 +58,10 @@ export function toBuiltinRenderInput(
     memoryEnabled: input.memoryEnabled,
     cronEnabled: input.cronEnabled,
     ...(input.dataDirToken === undefined ? {} : { dataDirToken: input.dataDirToken }),
+    cwd: process.cwd(),
+    today: now.toISOString().split('T')[0],
+    utcTime: now.toISOString(),
+    serverTime: now.toLocaleString(undefined, { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
   };
 }
 

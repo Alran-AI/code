@@ -142,8 +142,8 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   acp
     .command('login')
-    .description('Connect to the Ottili AI Platform with an Ottili API key')
-    .option('--no-browser', 'print the Ottili API key page URL without opening a browser')
+    .description('Connect to the Ottili AI Platform')
+    .option('--no-browser', 'print the sign-in page URL without opening a browser')
     .allowExcessArguments(false)
     .action((commandOptions: { browser?: boolean }) =>
       activeLane
@@ -166,24 +166,32 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     )
     .option(
       '--platform-env <env>',
-      'Platform environment: dev (loopback) or prod (api.alran.ai)',
+      'Platform environment: dev (local Platform) or prod (ottili.one); defaults to the build environment',
       (value: string) => {
         if (value === 'dev' || value === 'prod') return value;
         throw new InvalidArgumentError('expected "dev" or "prod"');
       },
-      'prod',
     )
     .argument('[provider]', 'login provider: api-key, keycloak or platform')
-    .argument('[platform-env]', 'Platform environment: dev (loopback) or prod (api.alran.ai)')
+    .argument(
+      '[platform-env]',
+      'Platform environment: dev (local Platform) or prod (ottili.one); defaults to the build environment',
+    )
     .allowExcessArguments(false)
-    .action((commandOptions: { browser?: boolean; provider?: string; platformEnv?: string }, positionalProvider?: string, positionalPlatformEnv?: string) => {
+    // Commander passes declared positional arguments first, then the options
+    // object. Reading them in the other order silently selects the API-key path.
+    .action((positionalProvider: string | undefined, positionalPlatformEnv: string | undefined, commandOptions: { browser?: boolean; provider?: string; platformEnv?: string }) => {
       const provider =
         (positionalProvider ?? commandOptions.provider ?? 'platform') as
           | 'api-key'
           | 'keycloak'
           | 'platform';
-      const platformEnv =
-        (positionalPlatformEnv ?? commandOptions.platformEnv ?? 'prod') as 'dev' | 'prod';
+      // Left undefined when not given: the login command then signs in to the
+      // Platform its build targets (local dev, real ottili.one in prod).
+      const platformEnv = (positionalPlatformEnv ?? commandOptions.platformEnv) as
+        | 'dev'
+        | 'prod'
+        | undefined;
       return activeLane
         ? options.runLogin(
             undefined,

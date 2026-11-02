@@ -63,7 +63,7 @@ export function configureTuiRuntimeEnvironment(
       inheritedRegion ??
       preferredRegion ??
       sharedAuthScope?.region ??
-      'cn',
+      'en',
   });
   if (dataDir) {
     target.ALRAN_DATA_DIR = dataDir;

@@ -29,6 +29,16 @@ export interface BuiltinRenderInput {
   readonly memoryEnabled?: boolean;
   readonly cronEnabled?: boolean;
   readonly dataDirToken?: string;
+  /** Current working directory of the agent process. */
+  readonly cwd?: string;
+  /** Model ID powering this agent turn, if known. */
+  readonly modelId?: string;
+  /** Today's date in YYYY-MM-DD format. */
+  readonly today?: string;
+  /** Current UTC time in ISO 8601 format. */
+  readonly utcTime?: string;
+  /** Server-local time string. */
+  readonly serverTime?: string;
   /** One immutable Prompt directory selected before the enclosing model call starts. */
   readonly promptReadContext?: BuiltinPromptReadScope;
 }

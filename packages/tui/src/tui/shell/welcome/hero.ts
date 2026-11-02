@@ -29,17 +29,15 @@ export function renderTuiWelcomeHero(width: number): string[] {
     return centerToWidth(chalk.bold.hex(color)(canvasLine), width);
   });
   if (!showsFullWordmark) return lines;
-  return [...lines, renderWordmarkTagline(sourceWidth, width)];
+  return [...lines, renderWordmarkTagline(width)];
 }
 
 /**
- * The tagline is muted instead of gradient filled and is rendered right-aligned
- * underneath the full wordmark.
+ * The tagline is muted instead of gradient filled and is centered under the
+ * full wordmark on the same axis as the art.
  */
-function renderWordmarkTagline(artWidth: number, width: number): string {
-  const taglineWidth = visibleWidth(ALRAN_CODE_WELCOME_TAGLINE);
-  const left = Math.max(0, width - taglineWidth);
-  return `${' '.repeat(left)}${chalk.hex(colors.muted)(ALRAN_CODE_WELCOME_TAGLINE)}`;
+function renderWordmarkTagline(width: number): string {
+  return centerToWidth(chalk.hex(colors.muted)(ALRAN_CODE_WELCOME_TAGLINE), width);
 }
 
 /**

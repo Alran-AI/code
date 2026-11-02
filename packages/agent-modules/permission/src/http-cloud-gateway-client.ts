@@ -71,6 +71,7 @@ export class HttpCloudGatewayClient implements CloudGatewayClient {
       ...(req.agentId ? { agent_id: req.agentId } : {}),
       ...(req.sessionId ? { session_id: req.sessionId } : {}),
       ...(req.daemonPromptVersion ? { daemon_prompt_version: req.daemonPromptVersion } : {}),
+      ...(req.systemPrompt ? { system_prompt: req.systemPrompt } : {}),
     };
 
     try {

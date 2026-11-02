@@ -72,6 +72,14 @@ export interface CloudClassifyRequest {
    * Cloud may log this but does not consume it today. Always send.
    */
   daemonPromptVersion?: string;
+
+  /**
+   * Local Alran Code Auto-Classifier system prompt, loaded from
+   * packages/local-runtime-v2/assets/agents/_default/prompt-auto_classifier.md
+   * (plus extras). Sent to the cloud gateway so the server-side classifier
+   * uses the same rules as the local prompt.
+   */
+  systemPrompt?: string;
 }
 
 /**

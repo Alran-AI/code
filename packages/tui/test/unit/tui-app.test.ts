@@ -2412,7 +2412,7 @@ describe("createTuiApp", () => {
     await app.stop();
   });
 
-  it("restarts after cross-region login while keeping the blocked submission", async () => {
+  it("restarts after a Platform login that requires it while keeping the blocked submission", async () => {
     const terminal = new FakeTerminal();
     const runtime = createRuntime();
     const requestRestart = vi.fn();
@@ -2454,14 +2454,13 @@ describe("createTuiApp", () => {
     );
 
     await app.submit("/login");
-    app.interaction.current()?.handleInput("\u001b[B");
     app.interaction.current()?.handleInput("\r");
 
     await vi.waitFor(() => expect(auth.login).toHaveBeenCalledOnce());
-    expect(auth.login).toHaveBeenCalledWith(expect.any(Function), "en");
+    expect(auth.login).toHaveBeenCalledWith(expect.any(Function), undefined, "platform");
     expect(runtime.sendMessage).not.toHaveBeenCalled();
     await vi.waitFor(() => expect(requestRestart).toHaveBeenCalledOnce());
-    expect(requestRestart).toHaveBeenCalledWith("en");
+    expect(requestRestart).toHaveBeenCalledWith();
     expect(notifyAuthContextChanged).not.toHaveBeenCalled();
     await app.stopped;
     expect(app.editor.getText()).toBe("Keep this through restart");
@@ -5566,7 +5565,7 @@ describe("createTuiApp", () => {
     await app.stop();
   });
 
-  it("chooses the account region before routing login through the auth application", async () => {
+  it("offers an Ottili account or API key before routing login through the auth application", async () => {
     const runtime = createRuntime();
     const openedTargets: string[] = [];
     const logoutUrl =
@@ -5592,10 +5591,7 @@ describe("createTuiApp", () => {
     );
     const auth = {
       login: vi.fn(
-        async (
-          onProgress?: (progress: AlranAuthProgress) => void,
-          _region?: "cn" | "en",
-        ) => {
+        async (onProgress?: (progress: AlranAuthProgress) => void) => {
           authenticated = true;
           onProgress?.({
             state: "device-authorization",
@@ -5605,10 +5601,7 @@ describe("createTuiApp", () => {
           });
           return {
             state: "authenticated" as const,
-            message:
-              _region === "en"
-                ? "Signed in with Alran Global. Restart Alran to use this account region."
-                : "Signed in with Alran.",
+            message: "Signed in to the Ottili AI Platform.",
           };
         },
       ),
@@ -5643,9 +5636,8 @@ describe("createTuiApp", () => {
     await app.submit("/login");
 
     expect(auth.login).not.toHaveBeenCalled();
-    expect(app.interaction.render(80).join("\n")).toContain("China (CN)");
-    expect(app.interaction.render(80).join("\n")).toContain("Global");
-    app.interaction.current()?.handleInput("\u001b[B");
+    expect(app.interaction.render(80).join("\n")).toContain("Ottili account (OAuth)");
+    expect(app.interaction.render(80).join("\n")).toContain("API key");
     app.interaction.current()?.handleInput("\r");
     await vi.waitFor(() => expect(auth.login).toHaveBeenCalledOnce());
     await vi.waitFor(() =>
@@ -5663,7 +5655,7 @@ describe("createTuiApp", () => {
     );
     expect(app.tui.render(80).join("\n")).toContain("Sign in with /login");
 
-    expect(auth.login).toHaveBeenCalledWith(expect.any(Function), "en");
+    expect(auth.login).toHaveBeenCalledWith(expect.any(Function), undefined, "platform");
     expect(openedTargets).toEqual([
       "https://account.example.test/device?client_surface=tui&download_source=alran-internal",
       logoutUrl,
@@ -5698,8 +5690,7 @@ describe("createTuiApp", () => {
       },
       {
         kind: "final-summary",
-        content:
-          "Signed in with Alran Global. Restart Alran to use this account region.",
+        content: "Signed in to the Ottili AI Platform.",
       },
       {
         kind: "final-summary",
@@ -5734,6 +5725,81 @@ describe("createTuiApp", () => {
         .join("\n"),
     ).not.toContain("Couldn't sign out");
     expect(runtime.sendMessage).not.toHaveBeenCalled();
+
+    await app.stop();
+  });
+
+  it("collects an Ottili API key in the TUI without a browser round trip", async () => {
+    const runtime = createRuntime();
+    let authenticated = false;
+    const loginWithApiKey = vi.fn(async (apiKey: string) => {
+      expect(apiKey).toBe("sk-ottili-test-key");
+      authenticated = true;
+      return {
+        state: "authenticated" as const,
+        message: "Signed in to the Ottili AI Platform with your Ottili API key.",
+      };
+    });
+    const auth = {
+      login: vi.fn(),
+      loginWithApiKey,
+      logout: vi.fn(),
+    };
+    vi.mocked(runtime.getAccountStatus).mockImplementation(async () =>
+      authenticated
+        ? {
+            status: "ready",
+            defaultModel: "alran/Alran-M2.7",
+            providerId: "alran",
+            modelId: "Alran-M2.7",
+            authMode: "api-key",
+            managedTokenPresent: true,
+            warnings: [],
+          }
+        : {
+            status: "needs-login",
+            authMode: "api-key",
+            managedTokenPresent: false,
+            warnings: [],
+          },
+    );
+    const app = createTuiApp({
+      runtime,
+      auth,
+      terminal: new FakeTerminal(),
+      version: "0.1.0",
+      workspaceDir: "/workspace",
+    });
+
+    app.start();
+    await app.ready;
+    await app.submit("/login");
+    app.interaction.current()?.handleInput("\u001b[B");
+    app.interaction.current()?.handleInput("\r");
+
+    expect(app.interaction.render(80).join("\n")).toContain(
+      "Create a key in the Ottili console",
+    );
+    expect(auth.login).not.toHaveBeenCalled();
+    for (const character of "sk-ottili-test-key") {
+      app.interaction.current()?.handleInput(character);
+    }
+    app.interaction.current()?.handleInput("\r");
+
+    await vi.waitFor(() =>
+      expect(loginWithApiKey).toHaveBeenCalledWith("sk-ottili-test-key"),
+    );
+    await vi.waitFor(() =>
+      expect(app.transcript.snapshot()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            content:
+              "Signed in to the Ottili AI Platform with your Ottili API key.",
+          }),
+        ]),
+      ),
+    );
+    expect(app.getSurface()).toBe("conversation");
 
     await app.stop();
   });
@@ -5825,7 +5891,6 @@ describe("createTuiApp", () => {
     await app.ready;
     expect(app.tui.render(80).join("\n")).toContain("Sign in with /login");
     await app.submit("/login");
-    app.interaction.current()?.handleInput("\u001b[B");
     app.interaction.current()?.handleInput("\r");
 
     await vi.waitFor(() => expect(auth.login).toHaveBeenCalledOnce());

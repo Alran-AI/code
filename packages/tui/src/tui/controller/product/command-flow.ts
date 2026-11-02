@@ -9,7 +9,11 @@ import {
 } from '../../commands/catalog.js';
 import type { TuiComposerDraft } from '../../features/composer/draft.js';
 import type { TuiWorkspaceRoots } from '../../features/composer/workspace-roots.js';
-import { TuiLoginRegionPicker } from '../../features/auth/login-region-picker.js';
+import { TuiApiKeyInput } from '../../features/auth/api-key-input.js';
+import {
+  TuiLoginMethodPicker,
+  type TuiLoginMethod,
+} from '../../features/auth/login-method-picker.js';
 import { TuiPermissionModePicker } from '../../features/interaction/permission-mode-picker.js';
 import { TuiSettingsPicker } from '../../features/settings/picker.js';
 import { TuiHotkeysPicker } from '../../features/settings/hotkeys-picker.js';
@@ -31,7 +35,7 @@ import type { TuiGoalFlow } from './goal-flow.js';
 import type { TuiPlanModeFlow } from '../interaction/plan-mode-flow.js';
 import type { TuiPermissionModeFlow } from '../interaction/permission-mode-flow.js';
 import type { MavisRegion } from '@mavis/config';
-import type { AlranAuthPort } from '../../../auth/application.js';
+import type { AlranAuthPort, AlranAuthResult } from '../../../auth/application.js';
 import { markTuiAuthorizationUrl } from '../../../auth/authorization-url.js';
 import type { TuiMode } from '../../engine/public.js';
 import type { TuiKeybindingOverride, TuiKeybindingRegistry } from '../../shell/keybindings.js';
@@ -92,6 +96,7 @@ export interface TuiCommandFlowOptions {
   readonly showTasks?: () => void | Promise<void>;
   readonly showStatusLine?: () => void;
   readonly showTheme?: () => void;
+  readonly showMascot?: () => void;
   readonly persistTuiMode?: (mode: TuiMode) => void;
   readonly queueEnabled: boolean;
   readonly liveRunId: () => string | undefined;
@@ -162,7 +167,8 @@ type SubmissionReadinessContext = {
 export class TuiCommandFlow {
   readonly catalog: TuiCommandCatalog;
   private preparationTail: Promise<void> = Promise.resolve();
-  private loginRegionPicker: TuiLoginRegionPicker | undefined;
+  private loginMethodPicker: TuiLoginMethodPicker | undefined;
+  private apiKeyInput: TuiApiKeyInput | undefined;
   private permissionModePicker: TuiPermissionModePicker | undefined;
   private settingsPicker: TuiSettingsPicker | undefined;
   private hotkeysPicker: TuiHotkeysPicker | undefined;
@@ -1267,7 +1273,7 @@ export class TuiCommandFlow {
         await this.options.permissionModeFlow.set(mode);
       },
       login: () => {
-        this.showLoginRegionPicker();
+        this.showLoginMethodPicker();
       },
       logout: () => this.runAuthCommand('logout'),
       doctor: async () => this.options.featureFlow.showConfigurationInspection(false),
@@ -1290,6 +1296,7 @@ export class TuiCommandFlow {
       settings: () => this.showSettingsPicker(),
       statusline: () => this.options.showStatusLine?.(),
       theme: () => this.options.showTheme?.(),
+      mascot: () => this.options.showMascot?.(),
       hotkeys: () => this.showHotkeysPicker(),
       reload: async () => {
         if (!this.options.reloadTui) {
@@ -1512,33 +1519,84 @@ export class TuiCommandFlow {
 
   /**
    * Entry point for surfaces outside the command catalog — currently the
-   * `/provider` OAuth row — so sign-in always runs the same region picker and
+   * `/provider` OAuth row — so sign-in always runs the same method picker and
    * auth command as `/login`.
    */
   startAlranLogin(): void {
-    this.showLoginRegionPicker();
+    this.showLoginMethodPicker();
   }
 
-  private showLoginRegionPicker(): void {
+  /**
+   * Sign-in always targets the Ottili AI Platform. There is no account-region
+   * choice any more: the build decides whether that Platform is the local
+   * development instance or the real `ottili.one` one.
+   */
+  private showLoginMethodPicker(): void {
     if (!this.options.auth) {
       this.options.append('Alran authentication is unavailable in this host.', 'warning');
       return;
     }
-    if (this.loginRegionPicker) this.options.surface.close(this.loginRegionPicker);
-    const picker = new TuiLoginRegionPicker(
-      (region) => {
-        if (this.loginRegionPicker !== picker) return;
+    if (this.loginMethodPicker) this.options.surface.close(this.loginMethodPicker);
+    const picker = new TuiLoginMethodPicker(
+      (method) => {
+        if (this.loginMethodPicker !== picker) return;
         this.options.surface.close(picker);
-        this.loginRegionPicker = undefined;
-        void this.runAuthCommand('login', region);
+        this.loginMethodPicker = undefined;
+        if (method === 'api-key') {
+          this.showApiKeyInput();
+          return;
+        }
+        void this.runAuthCommand('login', method);
       },
       () => {
         this.options.surface.close(picker);
-        if (this.loginRegionPicker === picker) this.loginRegionPicker = undefined;
+        if (this.loginMethodPicker === picker) this.loginMethodPicker = undefined;
       },
     );
-    this.loginRegionPicker = picker;
+    this.loginMethodPicker = picker;
     this.options.surface.show(picker);
+  }
+
+  /** The API-key path needs no browser round trip, so the key is typed in the TUI. */
+  private showApiKeyInput(): void {
+    if (this.apiKeyInput) this.options.surface.close(this.apiKeyInput);
+    const input = new TuiApiKeyInput(
+      (apiKey) => {
+        if (this.apiKeyInput !== input) return;
+        this.options.surface.close(input);
+        this.apiKeyInput = undefined;
+        void this.runApiKeyLogin(apiKey);
+      },
+      () => {
+        this.options.surface.close(input);
+        if (this.apiKeyInput === input) this.apiKeyInput = undefined;
+      },
+    );
+    this.apiKeyInput = input;
+    this.options.surface.show(input);
+  }
+
+  private async runApiKeyLogin(apiKey: string): Promise<void> {
+    if (!this.options.auth) {
+      this.options.append('Alran authentication is unavailable in this host.', 'warning');
+      return;
+    }
+    this.options.setHint('Signing in with your API key…');
+    this.options.onChanged();
+    try {
+      await this.applyLoginResult(await this.options.auth.loginWithApiKey(apiKey));
+    } catch (error) {
+      this.options.append(
+        formatTuiActionFailure(error, {
+          summary: "Sign-in wasn't completed.",
+          nextStep: 'Check the key and try again, or sign in with your Ottili account.',
+        }),
+        'error',
+      );
+    } finally {
+      this.options.setHint(undefined);
+      this.options.onChanged();
+    }
   }
 
   private showPermissionModePicker(): void {
@@ -1649,7 +1707,10 @@ export class TuiCommandFlow {
     this.options.surface.show(picker);
   }
 
-  private async runAuthCommand(operation: 'login' | 'logout', region?: MavisRegion): Promise<void> {
+  private async runAuthCommand(
+    operation: 'login' | 'logout',
+    method: TuiLoginMethod = 'platform',
+  ): Promise<void> {
     if (!this.options.auth) {
       this.options.append('Alran authentication is unavailable in this host.', 'warning');
       return;
@@ -1679,28 +1740,14 @@ export class TuiCommandFlow {
                   this.options.onChanged();
                 });
               },
-              region,
-              'platform',
-              'prod',
+              undefined,
+              method,
             )
           : await this.options.auth.logout();
-      this.options.append(result.message);
       if (operation === 'login') {
-        if (result.restartRequired) {
-          this.options.requestRestart?.(region);
-          await this.options.leaveUi();
-          return;
-        }
-        if (result.state === 'authenticated' || result.state === 'already-authenticated') {
-          await this.notifyAuthContextChanged('authenticated');
-        }
-        try {
-          await this.options.controller.requireLoginForAgentAction();
-        } catch (error) {
-          if (!(error instanceof TuiLoginRequiredError)) throw error;
-          this.options.controller.refreshAccountStatusNow();
-        }
+        await this.applyLoginResult(result);
       } else {
+        this.options.append(result.message);
         if (result.logoutUrl) void this.openLogoutPage(result.logoutUrl);
         if (result.state === 'signed-out' || result.state === 'already-signed-out') {
           await this.notifyAuthContextChanged('logged_out');
@@ -1721,6 +1768,25 @@ export class TuiCommandFlow {
     } finally {
       this.options.setHint(undefined);
       this.options.onChanged();
+    }
+  }
+
+  /** Report a completed sign-in and refresh the surfaces that depend on it. */
+  private async applyLoginResult(result: AlranAuthResult): Promise<void> {
+    this.options.append(result.message);
+    if (result.restartRequired) {
+      this.options.requestRestart?.();
+      await this.options.leaveUi();
+      return;
+    }
+    if (result.state === 'authenticated' || result.state === 'already-authenticated') {
+      await this.notifyAuthContextChanged('authenticated');
+    }
+    try {
+      await this.options.controller.requireLoginForAgentAction();
+    } catch (error) {
+      if (!(error instanceof TuiLoginRequiredError)) throw error;
+      this.options.controller.refreshAccountStatusNow();
     }
   }
 

@@ -11,6 +11,7 @@ export type {
   LocalModelResolverLike,
   LocalModelResolverLogger,
   LocalModelResolverOptions,
+  LocalPlatformSessionCredential,
   LocalResolvedModelConfig,
   LocalModelsConfig,
   LocalProviderConfig,

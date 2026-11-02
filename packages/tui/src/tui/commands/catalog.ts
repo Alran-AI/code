@@ -384,6 +384,15 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     readiness: 'immediate',
   },
   {
+    name: 'mascot',
+    description: 'Visit the little man who lives in the TUI',
+    category: 'Application',
+    // A toy, not a primary verb: reachable by typing, kept out of the default
+    // slash list so it never competes with session and runtime commands.
+    discoverability: 'search-only',
+    readiness: 'immediate',
+  },
+  {
     name: 'hotkeys',
     description: 'View and customize TUI keyboard shortcuts',
     category: 'Application',

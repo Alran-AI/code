@@ -64,7 +64,8 @@ export async function commit(
       const add = await git(['add', '--all'], workspace);
       if (add.code !== 0) return toMutationResult(add);
     }
-    return toMutationResult(await git(['commit', '-m', message], workspace));
+    const attribution = '\n\nCo-Authored-By: Alran Code <noreply@ottili.one>';
+    return toMutationResult(await git(['commit', '-m', message + attribution], workspace));
   });
 }
 
@@ -86,7 +87,8 @@ export async function commitAndPush(
         return { success: false, commit: commitResult };
       }
     }
-    const commitResult = toMutationResult(await git(['commit', '-m', message], workspace));
+    const attribution = '\n\nCo-Authored-By: Alran Code <noreply@ottili.one>';
+    const commitResult = toMutationResult(await git(['commit', '-m', message + attribution], workspace));
     if (!commitResult.success) return { success: false, commit: commitResult };
     const pushResult = toMutationResult(await pushWorkspace(workspace));
     return { success: pushResult.success, commit: commitResult, push: pushResult };

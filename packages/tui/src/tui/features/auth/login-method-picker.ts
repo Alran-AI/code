@@ -1,5 +1,4 @@
 import { panelLayout } from '../../widgets/panel-frame.js';
-import type { MavisRegion } from '@mavis/config';
 import type { Component } from '../../rendering/component.js';
 import {
   tuiChalk as chalk,
@@ -8,26 +7,37 @@ import {
 } from '../../theme/runtime.js';
 import { SelectList } from '../../widgets/select-list.js';
 
-const LOGIN_REGIONS: readonly {
-  value: MavisRegion;
+/** How `alran login` obtains credentials for the Ottili AI Platform. */
+export type TuiLoginMethod = 'platform' | 'api-key';
+
+const LOGIN_METHODS: readonly {
+  value: TuiLoginMethod;
   label: string;
   description: string;
 }[] = [
-  { value: 'cn', label: 'China (CN)', description: 'Alran China account' },
-  { value: 'en', label: 'Global', description: 'Alran international account' },
+  {
+    value: 'platform',
+    label: 'Ottili account (OAuth)',
+    description: 'Sign in with your Ottili account in the browser',
+  },
+  {
+    value: 'api-key',
+    label: 'API key',
+    description: 'Paste an Ottili API key (sk-ottili-…)',
+  },
 ];
 
-export class TuiLoginRegionPicker implements Component {
+export class TuiLoginMethodPicker implements Component {
   readonly fullscreenViewport = true;
   readonly handlesViewportKeys = true;
   private readonly list: SelectList;
 
-  constructor(onSelect: (region: MavisRegion) => void, onCancel: () => void) {
-    this.list = new SelectList([...LOGIN_REGIONS], LOGIN_REGIONS.length, theme, {
-      minPrimaryColumnWidth: 16,
-      maxPrimaryColumnWidth: 24,
+  constructor(onSelect: (method: TuiLoginMethod) => void, onCancel: () => void) {
+    this.list = new SelectList([...LOGIN_METHODS], LOGIN_METHODS.length, theme, {
+      minPrimaryColumnWidth: 22,
+      maxPrimaryColumnWidth: 30,
     });
-    this.list.onSelect = (item) => onSelect(item.value as MavisRegion);
+    this.list.onSelect = (item) => onSelect(item.value as TuiLoginMethod);
     this.list.onCancel = onCancel;
   }
 
@@ -47,10 +57,10 @@ export class TuiLoginRegionPicker implements Component {
     const layout = panelLayout(width, height, '↑↓ select · Enter continue · Esc cancel');
     const helper =
       layout.bodyHeight >= 4
-        ? [chalk.hex(colors.muted)('Only one Alran account region can be signed in at a time.')]
+        ? [chalk.hex(colors.muted)('Both methods unlock the same Ottili AI models.')]
         : [];
     return layout.render({
-      title: 'Choose account region',
+      title: 'Sign in to Ottili',
       body: [
         ...helper,
         ...this.list.renderViewport(layout.contentWidth, layout.bodyHeight - helper.length),

@@ -250,11 +250,19 @@ function renderCapabilityTemplate(
   template: string,
   capabilities: ResolvedAgentCapabilities,
 ): string {
-  return template.replaceAll(
+  let result = template.replaceAll(
     /\{\{#if features\.([A-Za-z][A-Za-z0-9]*)\}\}([\s\S]*?)\{\{\/if\}\}/gu,
     (_match, feature: string, content: string) =>
       Reflect.get(capabilities.features, feature) === true ? content : '',
   );
+  const now = new Date();
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return result
+    .replaceAll('{{TODAY}}', now.toISOString().split('T')[0])
+    .replaceAll('{{UTC_TIME}}', now.toISOString())
+    .replaceAll('{{SERVER_TIME}}', now.toLocaleString(undefined, { timeZone: tz }))
+    .replaceAll('{{CWD}}', process.cwd())
+    .replaceAll('{{MODEL_ID}}', '');
 }
 
 async function readRequiredText(filePath: string, message: string): Promise<string> {

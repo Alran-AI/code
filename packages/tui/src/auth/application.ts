@@ -1,3 +1,8 @@
+import {
+  getRuntimeRegion,
+  resolveOttiliApiKeyConsoleUrlFor,
+  resolvePlatformEnvironmentForBuild,
+} from '@mavis/config';
 import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
 import type {
   AuthStatusSnapshot,
@@ -6,6 +11,7 @@ import type {
   LoginResult,
   LogoutResult,
 } from '@mavis/oauth-core';
+import { resolvePlatformBaseUrl } from '@mavis/oauth-core';
 import { runTuiLogin } from '../cli/auth-command.js';
 
 import type {
@@ -15,6 +21,7 @@ import type {
   AlranLoginSource,
 } from '../analytics/business-telemetry.js';
 import { resolveAlranAuthEnvironment } from './environment.js';
+import { loginWithOttiliApiKey } from './ottili-api-key.js';
 import { buildAlranLogoutUrl } from './logout-url.js';
 
 export type AlranAuthProgress = {
@@ -29,12 +36,21 @@ export interface AlranAuthResult {
 }
 
 export interface AlranAuthPort {
+  /**
+   * Sign in to the Ottili AI Platform.
+   *
+   * `platformEnv` defaults to the environment this build targets: `dev` (a
+   * local Platform and gateway) everywhere except a production build, which
+   * signs in against the real `ottili.one` endpoints.
+   */
   login(
     onProgress?: (progress: AlranAuthProgress) => void,
     region?: MavisRegion,
     provider?: 'api-key' | 'keycloak' | 'platform',
     platformEnv?: 'dev' | 'prod',
   ): Promise<AlranAuthResult>;
+  /** Sign in by storing an Ottili API key minted in the Platform console. */
+  loginWithApiKey(apiKey: string): Promise<AlranAuthResult>;
   logout(): Promise<AlranAuthResult>;
 }
 
@@ -62,9 +78,7 @@ export class AlranAuthApplication implements AlranAuthPort {
   private readonly scope: { region: MavisRegion; buildEnv: MavisBuildEnv };
 
   constructor(private readonly options: AlranAuthApplicationOptions) {
-    const environment = resolveAlranAuthEnvironment({
-      runtimeRegion: process.env.MAVIS_REGION === 'en' ? 'en' : 'cn',
-    });
+    const environment = resolveAlranAuthEnvironment({ runtimeRegion: getRuntimeRegion() });
     this.scope = {
       region: options.region ?? environment.region,
       buildEnv: options.buildEnv ?? environment.buildEnv,
@@ -75,10 +89,10 @@ export class AlranAuthApplication implements AlranAuthPort {
     onProgress?: (progress: AlranAuthProgress) => void,
     region: MavisRegion = this.scope.region,
     provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
-    platformEnv: 'dev' | 'prod' = 'prod',
+    platformEnv?: 'dev' | 'prod',
   ): Promise<AlranAuthResult> {
     if (provider === 'platform') {
-      return this.loginPlatform(platformEnv);
+      return this.loginPlatform(platformEnv ?? resolvePlatformEnvForBuild(this.scope.buildEnv));
     }
     this.track('login_click', {});
     try {
@@ -124,7 +138,7 @@ export class AlranAuthApplication implements AlranAuthPort {
 
   /** Sign in through the Ottili Platform (Keycloak OIDC). */
   async loginPlatform(
-    platformEnv: 'dev' | 'prod' = 'prod',
+    platformEnv: 'dev' | 'prod' = resolvePlatformEnvForBuild(this.scope.buildEnv),
   ): Promise<AlranAuthResult> {
     this.track('login_click', {});
     try {
@@ -135,6 +149,31 @@ export class AlranAuthApplication implements AlranAuthPort {
         writeError: (value: string) => process.stderr.write(value),
       });
       return { state: 'authenticated', message };
+    } catch (error) {
+      this.trackLoginResult('2', classifyLoginFailure(error));
+      throw error;
+    }
+  }
+
+  /**
+   * Sign in with an Ottili API key minted in the Platform console.
+   *
+   * Unlike the Platform OIDC flow this needs no network: the key is validated
+   * locally and stored, and the model calls authenticate with it.
+   */
+  async loginWithApiKey(apiKey: string): Promise<AlranAuthResult> {
+    this.track('login_click', {});
+    try {
+      const result = await loginWithOttiliApiKey({
+        readApiKey: async () => apiKey,
+        openBrowser: false,
+        consoleUrl: resolveOttiliApiKeyConsoleUrlFor(
+          resolvePlatformBaseUrl(resolvePlatformEnvForBuild(this.scope.buildEnv)),
+        ),
+        writeError: () => undefined,
+      });
+      this.trackLoginResult('1', '');
+      return { state: 'authenticated', message: result.message };
     } catch (error) {
       this.trackLoginResult('2', classifyLoginFailure(error));
       throw error;
@@ -219,4 +258,13 @@ function formatEnvironmentConflict(
 
 function formatRegion(region: MavisRegion): string {
   return region === 'cn' ? 'Alran China' : 'Alran Global';
+}
+
+/**
+ * Which Platform the sign-in talks to. Only a production build signs in
+ * against the real `ottili.one` endpoints; every development, test, and
+ * staging build stays on the local Platform.
+ */
+export function resolvePlatformEnvForBuild(buildEnv: MavisBuildEnv): 'dev' | 'prod' {
+  return resolvePlatformEnvironmentForBuild(buildEnv);
 }

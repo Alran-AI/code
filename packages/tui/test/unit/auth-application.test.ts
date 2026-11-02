@@ -30,7 +30,7 @@ function sharedCore(status: 'anonymous' | 'authenticated' | 'logout_pending' = '
 }
 
 describe('AlranAuthApplication', () => {
-  it('uses Shared OAuth Device Flow as its only login path', async () => {
+  it('uses the shared OAuth Device Flow when a shared OAuth provider is requested', async () => {
     const core = sharedCore();
     const onProgress = vi.fn();
     const application = new AlranAuthApplication({
@@ -40,7 +40,7 @@ describe('AlranAuthApplication', () => {
       sharedAuthCore: core,
     });
 
-    await expect(application.login(onProgress)).resolves.toEqual({
+    await expect(application.login(onProgress, undefined, 'keycloak')).resolves.toEqual({
       state: 'authenticated',
       message: 'Signed in with Alran.',
     });
@@ -57,7 +57,7 @@ describe('AlranAuthApplication', () => {
     const core = sharedCore('authenticated');
     const application = new AlranAuthApplication({ dataDir: '/data', sharedAuthCore: core });
 
-    await expect(application.login()).resolves.toEqual({
+    await expect(application.login(undefined, undefined, 'keycloak')).resolves.toEqual({
       state: 'already-authenticated',
       message: 'Already signed in with Alran.',
     });
@@ -74,11 +74,11 @@ describe('AlranAuthApplication', () => {
         const application = new AlranAuthApplication({
           dataDir: fixture.dataDir, sharedAuthCore: core, region: 'cn', buildEnv: 'test',
         });
-        await application.login();
+        await application.login(undefined, undefined, 'keycloak');
         const lease = await core.getAccessToken({ minValidityMs: 30_000 });
         fixture.setRefreshFailure(failure);
 
-        await expect(application.login()).resolves.toMatchObject({ state: 'already-authenticated' });
+        await expect(application.login(undefined, undefined, 'keycloak')).resolves.toMatchObject({ state: 'already-authenticated' });
         await expect(core.getAccessToken({ minValidityMs: 30_000 })).resolves.toEqual(lease);
         expect(fixture.calls).toEqual({ device: 1, refresh: 0 });
       } finally {
@@ -99,7 +99,7 @@ describe('AlranAuthApplication', () => {
       resolveSharedAuthCore,
     });
 
-    await expect(application.login(undefined, 'en')).resolves.toEqual({
+    await expect(application.login(undefined, 'en', 'keycloak')).resolves.toEqual({
       state: 'authenticated',
       message: 'Signed in with Alran Global.',
       restartRequired: true,
@@ -120,7 +120,7 @@ describe('AlranAuthApplication', () => {
       writeRegionPreference,
     });
 
-    await application.login(undefined, 'cn');
+    await application.login(undefined, 'cn', 'keycloak');
 
     expect(writeRegionPreference).toHaveBeenCalledWith('/data', {
       region: 'cn',
@@ -140,7 +140,7 @@ describe('AlranAuthApplication', () => {
       resolveSharedAuthCore,
     });
 
-    await expect(application.login(undefined, 'en')).resolves.toEqual({
+    await expect(application.login(undefined, 'en', 'keycloak')).resolves.toEqual({
       state: 'already-authenticated',
       message: 'Already signed in with Alran Global.',
       restartRequired: true,
@@ -230,7 +230,7 @@ describe('AlranAuthApplication', () => {
       telemetrySource: 'alran_tui',
     });
 
-    await expect(application.login()).rejects.toThrow('OAuth authorization failed.');
+    await expect(application.login(undefined, undefined, 'keycloak')).rejects.toThrow('OAuth authorization failed.');
     expect(events.at(-1)).toEqual({
       event: 'login_result',
       properties: {

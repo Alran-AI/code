@@ -1,7 +1,9 @@
 import {
   compareAndSetLocalModelContext,
   getConfig,
+  getRuntimeBuildEnv,
   removeLocalProviderConfig,
+  resolveStoredPlatformSession,
   updateLocalByokConfig,
   updateLocalModelSelection,
 } from '@mavis/config';
@@ -63,6 +65,15 @@ export function initializeModelSystem(options: InitializeModelSystemOptions): Mo
     lane: process.env.MAVIS_PLUGIN_CLOUD_LANE,
   });
   const resolver = new LocalModelResolver({
+    // `alran login` stores a Platform session; the Platform gateway accepts it
+    // as a bearer credential, so it is the credential model calls use.
+    platformSessionGetter: () => {
+      const session = resolveStoredPlatformSession(
+        options.config.read().dataDir,
+        getRuntimeBuildEnv() === 'prod' ? 'prod' : 'dev',
+      );
+      return session ? { sessionId: session.sessionId, platformEnv: session.platformEnv } : undefined;
+    },
     ...options.resolverOptions,
     providerConfigGetter: () => options.config.read().provider,
     byokConfigGetter: () => {

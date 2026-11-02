@@ -1950,6 +1950,51 @@ export function getConfig(): Config {
   return _cached;
 }
 
+/**
+ * Check a persisted first-party `defaultModel` against the official catalog.
+ *
+ * The catalog is renamed over time (for example the earlier
+ * `alran/Alran-M3.1-Flash` entry), while `config.yaml` keeps the last selection.
+ * A dangling selection would make every Turn fail with
+ * `MODEL_NOT_AVAILABLE_FOR_ROUTE`, so fall back to the preset default whenever
+ * that default is part of the same catalog. Custom providers are untouched:
+ * their model tables are user-owned and cannot be judged here.
+ */
+function resolveAvailableDefaultModel(
+  provider: ModelsConfig,
+  defaultModel: string | undefined,
+): { defaultModel: string | undefined; replaced: boolean } {
+  if (!defaultModel) return { defaultModel, replaced: false };
+  const separator = defaultModel.indexOf("/");
+  if (separator <= 0 || separator === defaultModel.length - 1) {
+    return { defaultModel, replaced: false };
+  }
+  const providerId = defaultModel.slice(0, separator);
+  const modelId = defaultModel.slice(separator + 1);
+  if (providerId !== "alran" && providerId !== "alran_api") {
+    return { defaultModel, replaced: false };
+  }
+  const configuredModels = provider.alran?.models;
+  const catalog =
+    configuredModels && Object.keys(configuredModels).length > 0
+      ? configuredModels
+      : ALRAN_MODELS;
+  const configured = catalog[modelId];
+  if (configured && configured.enabled !== false) {
+    return { defaultModel, replaced: false };
+  }
+  const fallback = DEFAULT_MODEL_PRESETS[getRuntimePresetKey()].defaultModel;
+  const fallbackModelId = fallback.slice(fallback.indexOf("/") + 1);
+  const fallbackEntry = catalog[fallbackModelId];
+  if (!fallbackEntry || fallbackEntry.enabled === false) {
+    return { defaultModel, replaced: false };
+  }
+  console.warn(
+    `[config] default model "${defaultModel}" is not in the official catalog; using "${fallback}"`,
+  );
+  return { defaultModel: fallback, replaced: true };
+}
+
 export function resolveConfigFromRaw(
   raw: Record<string, unknown>,
   dataDir: string,
@@ -1985,6 +2030,10 @@ export function resolveConfigFromRaw(
     },
     REQUIRED_PROVIDER_OVERRIDE_DEPS,
   );
+  const availableDefault = resolveAvailableDefaultModel(
+    managedProvider.provider,
+    managedProvider.defaultModel,
+  );
   const alranModelContextLimits = parseModelContextLimits(
     raw.alranModelContextLimits,
   );
@@ -1995,15 +2044,19 @@ export function resolveConfigFromRaw(
       typeof raw.logLevel === "string" ? raw.logLevel : DEFAULTS.logLevel,
     devPort,
     ...managedProvider,
+    defaultModel: availableDefault.defaultModel,
     provider: applyManagedAlranContextLimits(
       managedProvider.provider,
       alranModelContextLimits,
     ),
+    // Variant, thinking and context window belong to the replaced model; they
+    // must not carry over to the fallback the user never chose for them.
     defaultModelVariant:
-      typeof raw.defaultModelVariant === "string"
+      !availableDefault.replaced && typeof raw.defaultModelVariant === "string"
         ? raw.defaultModelVariant
         : undefined,
     defaultModelThinking:
+      !availableDefault.replaced &&
       raw.defaultModelThinking &&
       typeof raw.defaultModelThinking === "object" &&
       typeof (raw.defaultModelThinking as Record<string, unknown>).effort ===
@@ -2011,6 +2064,7 @@ export function resolveConfigFromRaw(
         ? { effort: (raw.defaultModelThinking as { effort: string }).effort }
         : undefined,
     defaultModelContextWindow:
+      !availableDefault.replaced &&
       Number.isSafeInteger(raw.defaultModelContextWindow) &&
       Number(raw.defaultModelContextWindow) > 0 &&
       Number(raw.defaultModelContextWindow) <= 2_147_483_647

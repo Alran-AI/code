@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   firstBuiltinModel,
   planCustomProviderResolution,
   planAlranApiResolution,
+  planPlatformSessionResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 
@@ -12,18 +13,6 @@ const FALLBACK_CATALOG = {
   maxTokens: 2,
   fromCatalog: false,
 } as const;
-const MESSAGES_API_COMPAT_PATH = String.fromCodePoint(
-  0x61,
-  0x6e,
-  0x74,
-  0x68,
-  0x72,
-  0x6f,
-  0x70,
-  0x69,
-  0x63,
-);
-
 describe('Alran API BYOK planning', () => {
   it('returns absent when the source is not configured and fails closed without a key', () => {
     expect(
@@ -41,7 +30,7 @@ describe('Alran API BYOK planning', () => {
         modelId: 'model',
         catalog: FALLBACK_CATALOG,
       }),
-    ).toThrow('apiKey is not configured');
+    ).toThrow('no Ottili API key configured');
   });
 
   it('uses configured catalog limits and valid user-owned context overrides', () => {
@@ -56,10 +45,9 @@ describe('Alran API BYOK planning', () => {
       contextWindow: 200_000,
       maxTokens: 16_384,
     });
-    expect([
-      `https://api.ottili.one/${MESSAGES_API_COMPAT_PATH}`,
-      `https://api.ottili.one/${MESSAGES_API_COMPAT_PATH}`,
-    ]).toContain(fallback?.baseUrl);
+    // The test build is a development build: model calls stay on the local
+    // gateway, the same endpoint the sign-in flow uses.
+    expect(fallback?.baseUrl).toBe('http://127.0.0.1:18406/v1');
 
     expect(
       planAlranApiResolution({
@@ -96,6 +84,63 @@ describe('Alran API BYOK planning', () => {
         catalog: { contextWindow: 10, maxTokens: 20, fromCatalog: true },
       }),
     ).toMatchObject({ contextWindow: 1_000_000, maxTokens: 40 });
+  });
+});
+
+describe('first-party gateway base URL', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('calls the public gateway only in a production build', () => {
+    vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
+    expect(
+      planAlranApiResolution({
+        byok: { alran_api: { apiKey: 'key' } },
+        providerConfig: undefined,
+        modelId: 'model',
+        catalog: FALLBACK_CATALOG,
+      })?.baseUrl,
+    ).toBe('https://api.ottili.one/v1');
+  });
+});
+
+describe('Platform session planning', () => {
+  it('sends the Platform session id as the bearer credential', () => {
+    const plan = planPlatformSessionResolution({
+      session: { sessionId: 'session-123', platformEnv: 'dev' },
+      providerConfig: undefined,
+      byok: undefined,
+      modelId: 'model',
+      catalog: FALLBACK_CATALOG,
+    });
+    expect(plan).toMatchObject({
+      provider: 'alran_api',
+      api: 'openai-completions',
+      apiKey: 'session-123',
+    });
+  });
+
+  it('follows the session environment and lets a configured base URL win', () => {
+    const base = {
+      providerConfig: undefined,
+      byok: undefined,
+      modelId: 'model',
+      catalog: FALLBACK_CATALOG,
+    } as const;
+    expect(
+      planPlatformSessionResolution({ ...base, session: { sessionId: 's', platformEnv: 'dev' } })
+        .baseUrl,
+    ).toBe('http://127.0.0.1:18406/v1');
+    expect(
+      planPlatformSessionResolution({ ...base, session: { sessionId: 's', platformEnv: 'prod' } })
+        .baseUrl,
+    ).toBe('https://api.ottili.one/v1');
+    expect(
+      planPlatformSessionResolution({
+        ...base,
+        session: { sessionId: 's', platformEnv: 'dev' },
+        byok: { alran_api: { baseURL: ' https://gateway.example ' } },
+      }).baseUrl,
+    ).toBe('https://gateway.example');
   });
 });
 

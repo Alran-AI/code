@@ -31,6 +31,15 @@ const packages = new Map(
   }),
 );
 const location = createTuiBundleModuleLocationConfig();
+// The environment the bundle is built for. Local builds talk to the local
+// Platform and gateway; the release workflow sets MAVIS_BUILD_ENV=prod so a
+// published CLI signs in to the real ottili.one services.
+const EMBEDDED_BUILD_ENV =
+  process.env.MAVIS_BUILD_ENV === "prod"
+    ? "prod"
+    : process.env.MAVIS_BUILD_ENV === "staging"
+      ? "staging"
+      : "test";
 const outdir = path.join(root, "dist");
 rmSync(outdir, { recursive: true, force: true });
 mkdirSync(outdir, { recursive: true });
@@ -102,7 +111,7 @@ const result = await build({
     __CLI_CHANNEL__: '"source"',
     __IS_NPM_BUILD__: "true",
     __BUILD_PROFILE__: '"tui"',
-    __TUI_BUILD_ENV__: '"prod"',
+    __TUI_BUILD_ENV__: JSON.stringify(EMBEDDED_BUILD_ENV),
     __TUI_BUILD_VARIANT__: '"standard"',
     __TUI_NPM_DIST_TAG__: '"latest"',
   },

@@ -34,6 +34,7 @@ export {
 export { alranApiModels } from './byok-config.js';
 export {
   OTTILI_API_BASE_ENV,
+  OTTILI_AI_GATEWAY_DEV_ENV,
   OTTILI_API_KEY_CONSOLE_ENV,
   OTTILI_API_KEY_ENV,
   OTTILI_API_KEY_PREFIX,
@@ -47,9 +48,21 @@ export {
   resolveOttiliApiKey,
   resolveOttiliApiKeyConsoleUrl,
   resolveOttiliEnvironment,
+  resolveOttiliGatewayBaseUrl,
+  resolveOttiliApiKeyConsoleUrlFor,
   resolveOttiliPlatformUrl,
 } from './ottili.js';
 export type { OttiliEnvironment } from './ottili.js';
+export {
+  clearStoredPlatformSession,
+  platformEnvironmentOrder,
+  platformSessionDir,
+  platformSessionPath,
+  readStoredPlatformSession,
+  resolvePlatformEnvironmentForBuild,
+  resolveStoredPlatformSession,
+} from './platform-session.js';
+export type { PlatformEnvironment, StoredPlatformSession } from './platform-session.js';
 export {
   ALRAN_MODEL_TO_GATEWAY_ID,
   DEFAULT_OTTILI_MODEL_TIER,

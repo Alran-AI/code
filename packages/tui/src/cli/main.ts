@@ -300,7 +300,7 @@ async function defaultRunLogin(
   openBrowser = true,
   lane?: string,
   provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
-  platformEnv: 'dev' | 'prod' = 'prod',
+  platformEnv?: 'dev' | 'prod',
 ): Promise<string> {
   const { runTuiLogin } = await import('./auth-command.js');
   return runTuiLogin({ region, openBrowser, lane, provider, platformEnv });

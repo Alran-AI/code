@@ -115,12 +115,7 @@ function renderCompactWelcome(
   return [
     ...renderTuiWelcomeHero(width),
     '',
-    fitLine(
-      `${chalk.bold.hex(colors.brand)('Alran')} ${chalk.hex(colors.muted)(
-        `v${state.version}`,
-      )}${staticBanner ? '' : `  ${renderActivity(state)}`}`,
-      width,
-    ),
+    fitLine(renderWelcomeHeader(state, width, staticBanner), width),
     ...(staticBanner ? [] : renderWelcomeAccountNoticeRows(state)),
   ];
 }

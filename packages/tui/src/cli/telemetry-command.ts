@@ -74,6 +74,6 @@ export function runAlranTelemetryCommand(
 
 function defaultResolveEnvironment(environment: NodeJS.ProcessEnv): AlranAuthEnvironment {
   return resolveAlranAuthEnvironment({
-    runtimeRegion: environment.MAVIS_REGION === 'en' ? 'en' : 'cn',
+    runtimeRegion: environment.MAVIS_REGION === 'cn' ? 'cn' : 'en',
   });
 }

@@ -1,4 +1,6 @@
 import { Type, type Static } from '@sinclair/typebox';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import type { ToolDefinition } from '@mavis/agent-core/tools';
 
@@ -14,6 +16,23 @@ import {
 } from './subagent-roles.js';
 
 export * from './builtin-browser-defs.js';
+
+const TOOL_AGENT_PROMPT_PATH = resolve(
+  import.meta.url,
+  '../../../local-runtime-v2/assets/agents/_default/prompt-tool_agent.md'
+);
+
+let toolAgentPromptCache: string | undefined;
+
+function loadToolAgentPrompt(): string {
+  if (toolAgentPromptCache) return toolAgentPromptCache;
+  try {
+    toolAgentPromptCache = readFileSync(TOOL_AGENT_PROMPT_PATH, 'utf8');
+  } catch {
+    toolAgentPromptCache = '';
+  }
+  return toolAgentPromptCache;
+}
 
 export const LocalReadToolDef = {
   name: 'read',
@@ -535,7 +554,9 @@ for the parent to persist.
 - Continue the child asynchronously with task_append using task_id; read
   task_output with the returned task_id. If the native mavis tool is available,
   "session send" with session_id waits synchronously for a reply. Start a new
-  task for independent work needing fresh context.`;
+  task for independent work needing fresh context.`.concat(
+    '\n\n---\n\n' + loadToolAgentPrompt()
+  );
 
 const LocalTaskSchema = Type.Object(
   {

@@ -27,6 +27,7 @@
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { statSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 
 import {
   PermissionEngine,
@@ -402,6 +403,35 @@ export interface LocalPermissionFacadeDeps {
   shellFamily?: 'cmd' | 'powershell';
   /** Test-only trash health probe override; production invokes mavis-trash.cmd. */
   trashRuntimeProbe?: (scriptPath: string, launcherPath: string) => boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Auto-Classifier prompt binding
+// ---------------------------------------------------------------------------
+
+const AUTO_CLASSIFIER_PROMPT_PATH = path.resolve(
+  import.meta.url,
+  '../../../local-runtime-v2/assets/agents/_default/prompt-auto_classifier.md'
+);
+const AUTO_CLASSIFIER_EXTRAS_PATH = path.resolve(
+  import.meta.url,
+  '../../../local-runtime-v2/assets/agents/_default/prompt-auto_classifier_extras.md'
+);
+
+let autoClassifierPromptCache: string | undefined;
+
+async function loadAutoClassifierPrompt(): Promise<string | undefined> {
+  if (autoClassifierPromptCache) return autoClassifierPromptCache;
+  try {
+    const [main, extras] = await Promise.all([
+      readFile(AUTO_CLASSIFIER_PROMPT_PATH, 'utf8'),
+      readFile(AUTO_CLASSIFIER_EXTRAS_PATH, 'utf8'),
+    ]);
+    autoClassifierPromptCache = `${main}\n\n---\n\n${extras}`;
+    return autoClassifierPromptCache;
+  } catch {
+    return undefined;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -1021,6 +1051,7 @@ export class LocalPermissionFacade {
     sessionId?: string;
     agentName?: string;
   }): Promise<CloudClassifyVerdict> {
+    const systemPrompt = await loadAutoClassifierPrompt();
     return this.cloudGateway.classify({
       toolName: input.toolName,
       input: input.command,
@@ -1031,6 +1062,7 @@ export class LocalPermissionFacade {
       conversationContext: input.conversationContext,
       agentId: input.agentName,
       sessionId: input.sessionId,
+      ...(systemPrompt ? { systemPrompt } : {}),
     });
   }
 

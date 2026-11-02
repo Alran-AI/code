@@ -3,7 +3,7 @@ export const ALRAN_CODE_WELCOME_PASTE_IMAGE_SHORTCUT = '{paste-image-shortcut}';
 export const ALRAN_CODE_WELCOME_DESIGN = {
   hero: {
     fullMinWidth: 79,
-    mediumMinWidth: 44,
+    mediumMinWidth: 41,
     microMinWidth: 11,
     fallbackTitle: 'ALRAN',
   },
@@ -23,14 +23,19 @@ export const ALRAN_CODE_WORDMARK_GRADIENT = {
 export const ALRAN_CODE_WELCOME_TAGLINE = 'Powered by Ottili AI Platform';
 
 export const ALRAN_CODE_TERMINAL_WORDMARK = [
-  ' █████╗ ██╗     ██████╗  █████╗ ███╗   ██╗     ██████╗ ██████╗ ██████╗ ███████╗',
-  '██╔══██╗██║     ██╔══██╗██╔══██╗████╗  ██║    ██╔════╝██╔═══██╗██╔══██╗██╔════╝',
-  '███████║██║     ██████╔╝███████║██╔██╗ ██║    ██║     ██║   ██║██║  ██║█████╗',
-  '██╔══██║██║     ██╔══██╗██╔══██║██║╚██╗██║    ██║     ██║   ██║██║  ██║██╔══╝',
-  '██║  ██║███████╗██║  ██║██║  ██║██║ ╚████║    ╚██████╗╚██████╔╝██████╔╝███████╗',
-  '╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝',
+  ' █████  ██      ██████   █████  ███    ██      ██████  ██████  ██████  ███████',
+  '██   ██ ██      ██   ██ ██   ██ ████   ██     ██      ██    ██ ██   ██ ██',
+  '███████ ██      ██████  ███████ ██ ██  ██     ██      ██    ██ ██   ██ █████  ',
+  '██   ██ ██      ██   ██ ██   ██ ██  ██ ██     ██      ██    ██ ██   ██ ██  ',
+  '██   ██ ███████ ██   ██ ██   ██ ██   ████      ██████  ██████  ██████  ███████',
 ] as const;
 
-export const ALRAN_CODE_TERMINAL_MEDIUM_WORDMARK = ['ALRAN'] as const;
+export const ALRAN_CODE_TERMINAL_MEDIUM_WORDMARK = [
+  ' █████  ██      ██████   █████  ███    ██',
+  '██   ██ ██      ██   ██ ██   ██ ████   ██',
+  '███████ ██      ██████  ███████ ██ ██  ██',
+  '██   ██ ██      ██   ██ ██   ██ ██  ██ ██',
+  '██   ██ ███████ ██   ██ ██   ██ ██   ████',
+] as const;
 
 export const ALRAN_CODE_TERMINAL_MICRO_WORDMARK = ['ALRAN'] as const;

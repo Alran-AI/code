@@ -197,6 +197,12 @@ export interface LocalRuntimeAuthContext {
   readonly authState?: 'pending' | 'authenticated' | 'logged_out';
 }
 
+/** Stored Platform sign-in that doubles as the gateway credential. */
+export interface LocalPlatformSessionCredential {
+  readonly sessionId: string;
+  readonly platformEnv: 'dev' | 'prod';
+}
+
 export interface LocalByokProviderConfig {
   readonly alran_api?: LocalAlranApiConfig;
   readonly custom_provider?: LocalCustomProvidersConfig;
@@ -213,6 +219,12 @@ export interface LocalModelResolverOptions {
   readonly providerConfigGetter?: () => LocalModelsConfig;
   readonly byokConfigGetter?: () => LocalByokProviderConfig | undefined;
   readonly authContextGetter?: () => LocalRuntimeAuthContext | undefined;
+  /**
+   * The Ottili Platform session from `alran login`. The Platform gateway
+   * accepts that session id as a bearer credential, so this is what gives a
+   * signed-in user access to the Ottili models.
+   */
+  readonly platformSessionGetter?: () => LocalPlatformSessionCredential | undefined;
   /** Owner-side generation-aware recovery for a rejected managed OAuth request. */
   readonly authContextInvalidator?: (
     rejectedAccessToken?: string,

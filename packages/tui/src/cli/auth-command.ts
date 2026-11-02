@@ -1,5 +1,11 @@
 import type { MavisRegion } from '@mavis/config';
-import { resolveDataDir } from '@mavis/config';
+import {
+  clearStoredPlatformSession,
+  platformEnvironmentOrder,
+  resolveDataDir,
+  resolveOttiliApiKeyConsoleUrlFor,
+  resolvePlatformEnvironmentForBuild,
+} from '@mavis/config';
 
 import { randomBytes } from 'node:crypto';
 
@@ -8,6 +14,7 @@ import {
   logoutOfOttiliApiKey,
   type OttiliApiKeyLoginOptions,
 } from '../auth/ottili-api-key.js';
+import { resolveAlranAuthEnvironment } from '../auth/environment.js';
 import { createTuiExternalTargetOpener, type TuiExternalTargetOpener } from '../host/open-external.js';
 
 import {
@@ -42,14 +49,25 @@ export interface RunTuiAuthCommandOptions
   readonly writeError?: (value: string) => void;
   /** Login provider: `api-key` (default), `keycloak` or `platform`. */
   readonly provider?: 'api-key' | 'keycloak' | 'platform';
-  /** Platform environment: `dev` (loopback) or `prod` (api.alran.ai). */
+  /**
+   * Platform environment: `dev` (local Platform) or `prod` (ottili.one).
+   * Defaults to the environment this build targets.
+   */
   readonly platformEnv?: 'dev' | 'prod';
+}
+
+/**
+ * The Platform the running build signs in to: the embedded build identity when
+ * one is present, otherwise the runtime build environment.
+ */
+function defaultPlatformEnvironment(): 'dev' | 'prod' {
+  return resolvePlatformEnvironmentForBuild(resolveAlranAuthEnvironment().buildEnv);
 }
 
 /**
  * Sign in to the Ottili AI Platform.
  *
- * With the default `api-key` provider, Alran Code has no account of its own:
+ * With the `api-key` provider, Alran Code has no account of its own:
  * the Ottili platform mints API keys, so the browser opens on the key page and
  * the pasted `sk-ottili-...` key is stored in the local config.
  *
@@ -76,7 +94,7 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
   }
   if (options.provider === 'platform') {
     return loginWithPlatformOidc({
-      platformEnv: options.platformEnv ?? 'dev',
+      platformEnv: options.platformEnv ?? defaultPlatformEnvironment(),
       openBrowser: options.openBrowser !== false,
       openExternalTarget: options.openExternalTarget,
       writeError,
@@ -85,7 +103,9 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
   const result = await loginWithOttiliApiKey({
     ...(options.readApiKey ? { readApiKey: options.readApiKey } : {}),
     ...(options.storeKey ? { storeKey: options.storeKey } : {}),
-    ...(options.consoleUrl ? { consoleUrl: options.consoleUrl } : {}),
+    consoleUrl:
+      options.consoleUrl ??
+      resolveOttiliApiKeyConsoleUrlFor(resolvePlatformBaseUrl(defaultPlatformEnvironment())),
     ...(options.openExternalTarget ? { openExternalTarget: options.openExternalTarget } : {}),
     openBrowser: options.openBrowser !== false,
     writeError,
@@ -93,8 +113,20 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
   return result.message;
 }
 
-/** Sign out by removing the stored Ottili API key. */
+/**
+ * Sign out by removing the stored credentials.
+ *
+ * Both credential kinds are cleared: the Ottili API key and any stored Platform
+ * session. Clearing both environments is deliberate — a sign-out must not leave
+ * a session behind that the model calls would keep using.
+ */
 export async function runTuiLogout(options: RunTuiAuthCommandOptions = {}): Promise<string> {
+  const dataDir = resolveDataDir();
+  for (const platformEnv of platformEnvironmentOrder(
+    resolvePlatformEnvironmentForBuild(),
+  )) {
+    clearStoredPlatformSession(dataDir, platformEnv);
+  }
   return logoutOfOttiliApiKey({
     ...(options.clearKey ? { clearKey: options.clearKey } : {}),
   });
@@ -382,7 +414,7 @@ function formatRegion(region: MavisRegion): string {
  * Returns null when no session is stored.
  */
 export async function platformSessionClient(
-  platformEnv: 'dev' | 'prod' = 'dev',
+  platformEnv: 'dev' | 'prod' = resolvePlatformEnvironmentForBuild(),
 ): Promise<PlatformApiClient | null> {
   const dataDir = resolveDataDir();
   const authDir = `${dataDir}/auth/platform/${platformEnv}`;

@@ -56,7 +56,13 @@ import {
 import { resolveAlranStartupUpdateNotice } from '../update/startup-notice.js';
 import type { AlranUpdateApplication } from '../update/application.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
-import { getConfig, resetConfig, writeTuiStatusLineSetting, type MavisRegion } from '@mavis/config';
+import {
+  getConfig,
+  getRuntimeRegion,
+  resetConfig,
+  writeTuiStatusLineSetting,
+  type MavisRegion,
+} from '@mavis/config';
 import { markLoginRestartHandoff } from './login-restart-handoff.js';
 import {
   readTuiModeSetting,
@@ -187,9 +193,7 @@ export async function launchTui(
   const tuiMode = options.tuiMode ?? (dependencies.readTuiMode ?? readTuiModeSetting)(dataDir);
   const theme = options.theme ?? (dependencies.readTuiTheme ?? readTuiThemeSetting)(dataDir);
   const terminalCapabilities = detectProcessTerminalCapabilities();
-  const authEnvironment = resolveAlranAuthEnvironment({
-    runtimeRegion: process.env.MAVIS_REGION === 'en' ? 'en' : 'cn',
-  });
+  const authEnvironment = resolveAlranAuthEnvironment({ runtimeRegion: getRuntimeRegion() });
   const bedrockLane = resolveTuiManagedBackendLane(options.lane, authEnvironment.buildEnv);
   const routingContext = bedrockLane ? { bedrockLane } : undefined;
   const sharedAuthCore: AlranOAuthCore = (

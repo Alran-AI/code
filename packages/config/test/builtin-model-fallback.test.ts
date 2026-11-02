@@ -76,6 +76,48 @@ describe("built-in model fallback", () => {
     }
   });
 
+  it("replaces a default model the official catalog no longer contains", () => {
+    fs.writeFileSync(
+      join(dataDir, "config.yaml"),
+      yaml.dump({
+        defaultModel: "alran/Alran-M3.1-Flash",
+        defaultModelVariant: "thinking",
+        defaultModelContextWindow: 1_000_000,
+        alranModelSource: "alran_api_key",
+      }),
+    );
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const config = getConfig();
+    expect(config.defaultModel).toBe("alran/Alran-Werk");
+    expect(config.defaultModelVariant).toBeUndefined();
+    expect(config.defaultModelContextWindow).toBeUndefined();
+    expect(
+      resolveModelAvailability({
+        config,
+        providerId: "alran",
+        modelId: "Alran-Werk",
+        preset: "en-prod",
+        source: "config_default",
+      }),
+    ).toEqual({ available: true, route: "alran_api_key" });
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("alran/Alran-M3.1-Flash"),
+    );
+  });
+
+  it("keeps a default model that the official catalog still offers", () => {
+    fs.writeFileSync(
+      join(dataDir, "config.yaml"),
+      yaml.dump({
+        defaultModel: "alran/Alran-Werk",
+        defaultModelVariant: "thinking",
+      }),
+    );
+    const config = getConfig();
+    expect(config.defaultModel).toBe("alran/Alran-Werk");
+    expect(config.defaultModelVariant).toBe("thinking");
+  });
+
   it("keeps an existing managed snapshot authoritative instead of adding fallback models", () => {
     const models = { "Alran-M3": { name: "Ottili Werk 1.1 Pro" } };
     fs.writeFileSync(

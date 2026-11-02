@@ -61,6 +61,7 @@ jobs:
         run: gitleaks git --redact --config .gitleaks.toml --log-opts=--all
       - run: pnpm verify
         env:
+          MAVIS_BUILD_ENV: prod
           ALRAN_VERIFY_REPORT_DIR: ${{ runner.temp }}/build-report
       - name: Scan distribution
         run: gitleaks dir dist --redact --config .gitleaks.toml

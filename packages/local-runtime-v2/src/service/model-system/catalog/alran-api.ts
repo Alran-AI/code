@@ -1,4 +1,7 @@
-import { resolveOttiliApiBaseUrl } from '@mavis/config';
+import {
+  resolveOttiliGatewayBaseUrl,
+  resolvePlatformEnvironmentForBuild,
+} from '@mavis/config';
 
 import type { LocalRuntimeConfig } from '../contracts.js';
 
@@ -10,9 +13,13 @@ export { alranApiModels } from '@mavis/config';
  */
 export const ALRAN_API_FORMAT = 'openai-completions';
 
-/** Default gateway base URL: `ALRAN_API_BASE`, then the dev gateway, then the public one. */
+/**
+ * Default gateway base URL for this build: the local gateway in development,
+ * the public `ottili.one` gateway in production. A signed-in local build has no
+ * route to the public host, so it must not fall back to it.
+ */
 export function resolveAlranApiDefaultBaseUrl(): string {
-  return resolveOttiliApiBaseUrl();
+  return resolveOttiliGatewayBaseUrl(resolvePlatformEnvironmentForBuild());
 }
 
 export const ALRAN_API_DEFAULT_BASE_URL = resolveAlranApiDefaultBaseUrl();

@@ -43,6 +43,11 @@ export function createBuiltinPromptContext(
     featurePrompts,
     DATA_DIR: input.dataDirToken ?? '{{DATA_DIR}}',
     ROLE_DIRECTORY: roleDirectoryText(),
+    CWD: input.cwd ?? process.cwd(),
+    MODEL_ID: input.modelId ?? '',
+    TODAY: input.today ?? new Date().toISOString().split('T')[0],
+    UTC_TIME: input.utcTime ?? new Date().toISOString(),
+    SERVER_TIME: input.serverTime ?? new Date().toLocaleString(undefined, { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
   };
 }
 

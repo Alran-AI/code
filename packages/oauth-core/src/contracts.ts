@@ -18,15 +18,15 @@ export interface PlatformBaseUrls {
 
 /** The Platform instance Alran Code signs in to. */
 export const ALRAN_PLATFORM_BASE_URLS: PlatformBaseUrls = {
-  dev: 'http://127.0.0.1:18150',
-  prod: 'https://api.alran.ai',
+  dev: 'http://127.0.0.1:18360',
+  prod: 'https://api.ottili.one',
 } as const;
 
 /** Resolve the Platform base URL from env or a fixed environment.
  *
- * `dev` stays on localhost (`http://127.0.0.1:18150`) unless
+ * `dev` stays on localhost (`http://127.0.0.1:18360`) unless
  * `ALRAN_PLATFORM_BASE_URL_DEV` is set explicitly. `prod` defaults to
- * `https://api.alran.ai` and can be overridden with
+ * `https://api.ottili.one` and can be overridden with
  * `ALRAN_PLATFORM_BASE_URL_PROD` or `ALRAN_PLATFORM_BASE_URL`.
  */
 export function resolvePlatformBaseUrl(environment: 'dev' | 'prod'): string {

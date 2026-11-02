@@ -24,6 +24,7 @@ import {
   buildCheckpointControl,
   CHECKPOINT_SYSTEM_PROMPT,
   CHECKPOINT_SYSTEM_PROMPT_KEY,
+  resolveCompactPrompt,
 } from './checkpoint-prompt.js';
 
 const EXPLICIT_INPUT_TOO_LARGE_CODES = new Set([
@@ -264,6 +265,8 @@ function validatePositiveSafeInteger(value: number, field: string): void {
 }
 
 async function readCheckpointSystemPrompt(source?: PromptSnapshotSource): Promise<string> {
+  const compactPrompt = await resolveCompactPrompt();
+  if (compactPrompt) return compactPrompt;
   if (!source) return CHECKPOINT_SYSTEM_PROMPT;
   const snapshot = await source.capture();
   const current = await source.read(snapshot, CHECKPOINT_SYSTEM_PROMPT_KEY);

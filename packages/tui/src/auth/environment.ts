@@ -38,9 +38,15 @@ export function resolveAlranBuildIdentity(
     options.embeddedBuildEnvironment ?? readEmbeddedBuildEnvironment();
   const embeddedBuildVariant = options.embeddedBuildVariant ?? readEmbeddedBuildVariant();
   const runtimeBuildEnv = options.runtimeBuildEnv ?? getRuntimeBuildEnv();
+  // An explicitly configured runtime environment wins over the environment the
+  // bundle was built for. A locally built CLI embeds `test`, but a developer who
+  // runs it with `MAVIS_BUILD_ENV=prod` must talk to the production services.
+  const explicitBuildEnv = options.runtimeBuildEnv ?? readExplicitRuntimeBuildEnv();
 
   return resolveProductBuildIdentity({
-    buildEnv: embeddedBuildEnvironment ?? normalizeRuntimeBuildEnvironment(runtimeBuildEnv),
+    buildEnv: explicitBuildEnv
+      ? normalizeRuntimeBuildEnvironment(explicitBuildEnv)
+      : (embeddedBuildEnvironment ?? normalizeRuntimeBuildEnvironment(runtimeBuildEnv)),
     internalBuild: embeddedBuildVariant === 'internal',
   });
 }
@@ -51,7 +57,7 @@ export function resolveAlranAuthEnvironment(
   const buildIdentity = resolveAlranBuildIdentity(options);
 
   return {
-    region: options.runtimeRegion ?? 'cn',
+    region: options.runtimeRegion ?? 'en',
     buildEnv: startupBuildEnvironment ?? buildIdentity.buildEnv ?? 'test',
   };
 }
@@ -74,4 +80,12 @@ function readEmbeddedBuildVariant(): TuiBuildVariant | undefined {
 
 function normalizeRuntimeBuildEnvironment(environment: MavisBuildEnv): MavisBuildEnv {
   return environment === 'dev' ? 'test' : environment;
+}
+
+/** `MAVIS_BUILD_ENV` when it names a known environment; `undefined` otherwise. */
+function readExplicitRuntimeBuildEnv(): MavisBuildEnv | undefined {
+  const value = process.env.MAVIS_BUILD_ENV;
+  return value === 'test' || value === 'prod' || value === 'dev' || value === 'staging'
+    ? value
+    : undefined;
 }

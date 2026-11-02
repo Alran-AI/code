@@ -1,3 +1,6 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
 import {
   createEvaluatorVerifierAdapter,
   EvaluatorModelCallError,
@@ -30,6 +33,23 @@ import {
   type ProductionAgentPreparation,
   type ProductionAgentProductCapabilities,
 } from '../../service/turn-system/index.js';
+
+const GOAL_PROMPT_PATH = resolve(
+  import.meta.url,
+  '../../../assets/agents/_default/prompt-goal.md'
+);
+
+let goalPromptCache: string | undefined;
+
+export async function loadGoalPrompt(): Promise<string> {
+  if (goalPromptCache) return goalPromptCache;
+  try {
+    goalPromptCache = await readFile(GOAL_PROMPT_PATH, 'utf8');
+  } catch {
+    goalPromptCache = '';
+  }
+  return goalPromptCache;
+}
 
 export interface GoalEvaluatorVerifierOptions {
   readonly sessions: {
@@ -168,10 +188,11 @@ async function requestEvaluatorModel(
   input: Parameters<typeof callEvaluatorModel>[0],
   requestPayloadTransform: ReturnType<typeof buildLocalTurnPayloadTransform>,
 ): Promise<AssistantMessage> {
+  const systemPrompt = input.input.systemPrompt || (await loadGoalPrompt());
   const response = await (input.llm.streamFn ?? streamSimple)(
     input.llm.model,
     {
-      systemPrompt: input.input.systemPrompt,
+      systemPrompt,
       messages: [
         {
           role: 'user',

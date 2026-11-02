@@ -57,6 +57,7 @@ import {
   firstBuiltinModel,
   planCustomProviderResolution,
   planAlranApiResolution,
+  planPlatformSessionResolution,
   readStringRecord,
 } from './model-resolver-byok.js';
 import {
@@ -132,7 +133,7 @@ export class LocalModelResolver implements LocalModelResolverLike {
     const providerConfig = this.options.providerConfigGetter?.() ?? this.options.providerConfig;
     const selected = selectModel(input.agentConfig, providerConfig, this.options);
     if (selected.byokPlan) return this.finishByok(input, selected);
-    const switched = selectAlranByok(selected.identity, providerConfig, this.options);
+    const switched = selectAlranRoute(selected.identity, providerConfig, this.options);
     if (switched.byokPlan) return this.finishByok(input, switched);
     return this.resolveManagedModel(input, switched.identity, providerConfig);
   }
@@ -351,28 +352,50 @@ function fallbackBuiltinIdentity(
   };
 }
 
-function selectAlranByok(
+/**
+ * Pick the credential the first-party provider is called with.
+ *
+ * Precedence:
+ *   1. `alranModelSource: 'token_plan'` pins the managed route.
+ *   2. An Ottili API key — stored in `alran_api.apiKey` or set as
+ *      `ALRAN_API_KEY` — calls the gateway with that key.
+ *   3. Otherwise the Ottili Platform session from `alran login` is used as the
+ *      bearer credential. That is the normal case after signing in, and it is
+ *      what gives a signed-in user access to the Ottili models.
+ */
+function selectAlranRoute(
   identity: ModelIdentity,
   providerConfig: LocalModelsConfig | undefined,
   options: LocalModelResolverOptions,
 ): SelectedModel {
   const byok = options.byokConfigGetter?.();
   if (identity.provider !== MANAGED_ALRAN_PROVIDER_ID) return { identity };
-  // The first-party provider authenticates with an Ottili API key: a key stored
-  // in the local config, or `ALRAN_API_KEY` in the environment. A deployment that
-  // still runs the managed route keeps it by pinning `alranModelSource`.
+  const source = byok?.alranModelSource;
+  if (source === 'token_plan') return { identity };
+  const catalog = lookupLocalModelLimits(MANAGED_ALRAN_PROVIDER_ID, identity.modelId);
   const hasOttiliKey = Boolean(byok?.alran_api?.apiKey?.trim()) || Boolean(resolveOttiliApiKey());
-  const wantsApiKey =
-    byok?.alranModelSource === 'alran_api_key' ||
-    (byok?.alranModelSource !== 'token_plan' && hasOttiliKey);
-  if (!wantsApiKey) return { identity };
-  const byokPlan = planAlranApiResolution({
-    byok,
-    providerConfig,
-    modelId: identity.modelId,
-    catalog: lookupLocalModelLimits(MANAGED_ALRAN_PROVIDER_ID, identity.modelId),
-  });
-  return byokPlan ? { identity, byokPlan, route: 'alran_api_key' } : { identity };
+  if (source === 'alran_api_key' || hasOttiliKey) {
+    const byokPlan = planAlranApiResolution({
+      byok,
+      providerConfig,
+      modelId: identity.modelId,
+      catalog,
+    });
+    return byokPlan ? { identity, byokPlan, route: 'alran_api_key' } : { identity };
+  }
+  const session = options.platformSessionGetter?.();
+  if (!session?.sessionId?.trim()) return { identity };
+  return {
+    identity,
+    route: 'platform_session',
+    byokPlan: planPlatformSessionResolution({
+      session,
+      providerConfig,
+      byok,
+      modelId: identity.modelId,
+      catalog,
+    }),
+  };
 }
 
 async function resolveProviderApiKey(
