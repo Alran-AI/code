@@ -332,7 +332,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@vitest/coverage-v8": "^2",
+    "@vitest/coverage-v8": "^5",
     "typescript": "^5",
     "vitest": "^2"
   },
