@@ -999,8 +999,8 @@ importers:
         specifier: 13.0.6
         version: 13.0.6
       highlight.js:
-        specifier: 10.7.3
-        version: 10.7.3
+        specifier: 11.12.0
+        version: 11.12.0
       hosted-git-info:
         specifier: 9.0.3
         version: 9.0.3
@@ -3246,6 +3246,10 @@ packages:
 
   highlight.js@10.7.3:
     resolution: {integrity: sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==}
+
+  highlight.js@11.12.0:
+    resolution: {integrity: sha512-nbfWpyRMcMrPMmDwJB+dhX/eiaPKtc2RB+0QZskqJ3WjRA/FDS0e9hZrx8EC/lbEv8gXy98FcDbNa/dspAaJMg==}
+    engines: {node: '>=12.0.0'}
 
   hono@4.13.5:
     resolution: {integrity: sha512-O6+/eCYRkzzzy0rPWwKLiGBR1nFuUPZynnwjxN1MBA62NNqbT0wQEzQyK2gSO5yDIDB336sXQleAhOHrzlYyKw==}
@@ -6940,6 +6944,8 @@ snapshots:
   help-me@5.0.0: {}
 
   highlight.js@10.7.3: {}
+
+  highlight.js@11.12.0: {}
 
   hono@4.13.5: {}
 
