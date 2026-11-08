@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { formatTuiExecResultFailure } from '../../src/headless/error-presentation.js';
 import { runTuiExec } from '../../src/headless/runner.js';
 import type { TuiMessage, TuiStreamEvent } from '../../src/runtime/stream-events.js';
 
@@ -1082,6 +1083,122 @@ describe('runTuiExec', () => {
     );
   });
 
+  describe('when the stdout reader stops reading', () => {
+    function streamingUntilAbort() {
+      const runtime = runtimeWith();
+      runtime.sendMessage.mockImplementation(async function* (_req, signal?: AbortSignal) {
+        yield { type: 'delta', role: 'assistant', content: 'partial answer' };
+        if (!signal?.aborted) {
+          await new Promise<void>((resolve) =>
+            signal?.addEventListener('abort', () => resolve(), { once: true }),
+          );
+        }
+      });
+      return runtime;
+    }
+
+    // Every write stays pending, like a pipe whose reader never reads again.
+    const blockedStdout = () => vi.fn(() => new Promise<void>(() => undefined));
+
+    it('still returns after SIGTERM instead of waiting for the reader', async () => {
+      const processRef = new EventEmitter();
+      const runtime = streamingUntilAbort();
+      const stdout = blockedStdout();
+
+      const executing = runTuiExec(
+        { prompt: 'Fix it', workspaceDir: '/tmp/workspace', version: '0.1.0', format: 'stream-json' },
+        {
+          runtime,
+          stdout,
+          stderr: vi.fn(),
+          shutdown: async () => undefined,
+          processRef: processRef as unknown as Pick<NodeJS.Process, 'once' | 'off'>,
+          createTurnId: () => 'turn-1',
+          stopOutputGraceMs: 10,
+        },
+      );
+      await vi.waitFor(() => expect(stdout).toHaveBeenCalled());
+      processRef.emit('SIGTERM');
+
+      await expect(executing).resolves.toBe(130);
+      expect(runtime.abortSession).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'session-1', turnId: 'turn-1', reason: 'user_stop' }),
+      );
+      expect(processRef.listenerCount('SIGTERM')).toBe(0);
+    });
+
+    it('still honors --timeout and returns the timeout code', async () => {
+      const runtime = streamingUntilAbort();
+
+      await expect(
+        runTuiExec(
+          {
+            prompt: 'Fix it',
+            workspaceDir: '/tmp/workspace',
+            version: '0.1.0',
+            format: 'stream-json',
+            timeoutMs: 30,
+          },
+          {
+            runtime,
+            stdout: blockedStdout(),
+            stderr: vi.fn(),
+            shutdown: async () => undefined,
+            createTurnId: () => 'turn-1',
+            stopOutputGraceMs: 10,
+          },
+        ),
+      ).resolves.toBe(6);
+      expect(runtime.abortSession).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: 'timeout' }),
+      );
+    });
+  });
+
+  it('keeps the terminal result last when a cancelled run can still drain slow output', async () => {
+    const processRef = new EventEmitter();
+    const started = vi.fn();
+    const runtime = runtimeWith();
+    runtime.sendMessage.mockImplementation(async function* (_req, signal?: AbortSignal) {
+      yield { type: 'delta', role: 'assistant', content: 'partial answer' };
+      started();
+      if (!signal?.aborted) {
+        await new Promise<void>((resolve) =>
+          signal?.addEventListener('abort', () => resolve(), { once: true }),
+        );
+      }
+    });
+    const lines: string[] = [];
+    // A slow but live reader: each line drains a little later.
+    const stdout = vi.fn(
+      (line: string) =>
+        new Promise<void>((resolve) =>
+          setTimeout(() => {
+            lines.push(line);
+            resolve();
+          }, 5),
+        ),
+    );
+    const executing = runTuiExec(
+      { prompt: 'Fix it', workspaceDir: '/tmp/workspace', version: '0.1.0', format: 'stream-json' },
+      {
+        runtime,
+        stdout,
+        stderr: vi.fn(),
+        shutdown: async () => undefined,
+        processRef: processRef as unknown as Pick<NodeJS.Process, 'once' | 'off'>,
+        createTurnId: () => 'turn-1',
+      },
+    );
+    await vi.waitFor(() => expect(started).toHaveBeenCalledOnce());
+    processRef.emit('SIGINT');
+
+    await expect(executing).resolves.toBe(130);
+    const records = lines.map((line) => JSON.parse(line));
+    expect(records.at(-1)).toMatchObject({ type: 'exec.completed', result: { status: 'cancelled' } });
+    expect(records.filter((record) => record.type === 'exec.completed')).toHaveLength(1);
+  });
+
   it('reuses a valid Session and continues the latest workspace Session', async () => {
     const direct = runtimeWith();
     await runTuiExec(
@@ -1198,5 +1315,57 @@ describe('runTuiExec', () => {
     expect(runtime.createSession).not.toHaveBeenCalled();
     expect(runtime.listSessionPage).not.toHaveBeenCalled();
     expect(runtime.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe('runTuiExec Session guidance', () => {
+  async function run(input: { sessionId?: string; continueSession?: boolean }, runtime: ReturnType<typeof runtimeWith>) {
+    const stderr = vi.fn();
+    const code = await runTuiExec(
+      { prompt: 'Fix it', workspaceDir: '/tmp/workspace', version: '0.1.0', ...input },
+      { runtime, stdout: vi.fn(), stderr, shutdown: async () => undefined },
+    );
+    return { code, stderr: stderr.mock.calls.map(([line]) => line).join('') };
+  }
+
+  it('names the Session workspace on a --cwd mismatch instead of suggesting a retry', async () => {
+    const runtime = runtimeWith();
+    runtime.getSession.mockResolvedValue({ sessionId: 'session-1', workspaceDir: '/tmp/other', archived: false } as never);
+
+    const { code, stderr } = await run({ sessionId: 'session-1' }, runtime);
+
+    expect(code).toBe(4);
+    expect(stderr).toBe(
+      'alran exec failed: The run failed: Session session-1 belongs to workspace /tmp/other, not --cwd /tmp/workspace; rerun with --cwd /tmp/other.\n',
+    );
+    expect(runtime.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not suggest a retry for archived Sessions or a missing --continue target', async () => {
+    const archived = runtimeWith();
+    archived.getSession.mockResolvedValue({ sessionId: 'session-1', workspaceDir: '/tmp/workspace', archived: true } as never);
+    const missing = runtimeWith();
+
+    const results = [await run({ sessionId: 'session-1' }, archived), await run({ continueSession: true }, missing)];
+
+    expect(results.map((result) => result.code)).toEqual([4, 4]);
+    expect(results[0]?.stderr).toBe(
+      'alran exec failed: The run failed: Session session-1 is archived; unarchive it in Alran or start a new Session.\n',
+    );
+    expect(results[1]?.stderr).toBe(
+      'alran exec failed: The run failed: No active Session exists for workspace /tmp/workspace; omit --continue to start a new Session.\n',
+    );
+    for (const result of results) expect(result.stderr).not.toContain('Retry');
+  });
+
+  it('keeps the retry hint only for retryable failed results', () => {
+    const failed = (retryable: boolean | undefined) => formatTuiExecResultFailure({
+      status: 'failed',
+      error: { category: 'runtime', message: 'Upstream disconnected', ...(retryable === undefined ? {} : { retryable }) },
+    } as never);
+
+    expect(failed(true)).toBe('The run failed: Upstream disconnected. Retry after the connection recovers.');
+    expect(failed(undefined)).toBe('The run failed: Upstream disconnected. Retry after the connection recovers.');
+    expect(failed(false)).toBe('The run failed: Upstream disconnected.');
   });
 });

@@ -57,7 +57,6 @@ function buildResponsesCounterRequest(
     url: buildResponsesInputTokensUrl(baseUrl, {
       stripMessagesCompatibilityPrefix: isAlranApi,
     }),
-    unsupportedCacheKey: `responses:${baseUrl}`,
     body,
     headers: {
       authorization: `Bearer ${apiKey}`,

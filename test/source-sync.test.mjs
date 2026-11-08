@@ -9,6 +9,7 @@ import { extractionPath, inventoryPath } from '../scripts/lib/release-metadata.m
 import { extractSourceArchive } from '../scripts/lib/source-archive.mjs';
 import { classifyChanges } from '../scripts/ci-changes.mjs';
 import { suiteInventoryViolations } from '../scripts/lib/vitest-suites.mjs';
+import { embeddedCredential, internalSourceReference } from '../scripts/lib/public-text-policy.mjs';
 import { Header } from 'tar';
 import { gzipSync } from 'node:zlib';
 import { createHash } from 'node:crypto';
@@ -505,6 +506,44 @@ test('CLI release publishes only tag pushes after full verification and archive 
     }
   }
 });
+
+test('Python SDK release publishes only tag pushes through Trusted Publishing after checks', () => {
+  const workflow = parseYaml(readFileSync(new URL('../.github/workflows/python-sdk-release.yml', import.meta.url), 'utf8'));
+  assert.deepEqual(workflow.on.push, { tags: ['code-sdk-python-v*'] });
+  assert.ok(!Object.hasOwn(workflow.on, 'pull_request_target'));
+  assert.deepEqual(workflow.on.workflow_dispatch.inputs.repository.options, ['none', 'testpypi']);
+  assert.equal(workflow.on.workflow_dispatch.inputs.repository.default, 'none');
+  assert.deepEqual(workflow.permissions, { contents: 'read' });
+  assert.equal(workflow.concurrency['cancel-in-progress'], false);
+  const build = workflow.jobs.build;
+  assert.equal(build.permissions, undefined);
+  const metadata = build.steps.find(step => step.id === 'metadata');
+  assert.match(metadata.run, /git merge-base --is-ancestor HEAD origin\/main/);
+  assert.match(metadata.run, /--tag "\$TAG" --index pypi/);
+  for (const command of ['uv sync --locked', 'uv run mypy', 'uv run pytest -W error'])
+    assert.ok(build.steps.some(step => step.run === command), command);
+  assert.ok(build.steps.some(step => step.run?.includes('release_check.py dist')));
+  assert.ok(build.steps.some(step => step.run?.includes('public-text-policy.mjs')));
+  assert.ok(build.steps.some(step => step.run?.includes('gitleaks dir')));
+  const publishers = { 'publish-pypi': ["github.event_name == 'push'", 'pypi'], 'publish-testpypi': ["github.event_name == 'workflow_dispatch' && inputs.repository == 'testpypi'", 'testpypi'] };
+  assert.deepEqual(Object.keys(workflow.jobs).sort(), ['build', ...Object.keys(publishers)].sort());
+  for (const [name, [condition, environment]] of Object.entries(publishers)) {
+    const job = workflow.jobs[name];
+    assert.equal(job.needs, 'build');
+    assert.equal(job.if, condition);
+    assert.equal(job.environment.name, environment);
+    assert.deepEqual(job.permissions, { 'id-token': 'write' });
+    assert.ok(job.steps.every(step => !step.run), 'publish jobs run no repository code');
+    assert.ok(job.steps.some(step => step.uses?.startsWith('pypa/gh-action-pypi-publish@')));
+  }
+  for (const job of Object.values(workflow.jobs)) {
+    for (const step of job.steps) {
+      if (step.uses && !step.uses.startsWith('./')) assert.match(step.uses, /@[a-f0-9]{40}$/);
+      if (step.uses?.startsWith('actions/checkout@')) assert.equal(step.with['persist-credentials'], false);
+      if (step.run) assert.doesNotMatch(step.run, /\$\{\{/);
+    }
+  }
+});
 import { runInNewContext } from 'node:vm';
 
 function fixture(t) {
@@ -920,6 +959,15 @@ test('Windows contract profile selects focused gates', () => {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('the public text policy is scanned by check:source like every other file', () => {
+  const read = file => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
+  // The patterns never match their own definitions, so no file needs an exemption.
+  assert.equal(internalSourceReference.test(read('scripts/lib/public-text-policy.mjs')), false);
+  assert.equal(embeddedCredential.test(read('scripts/lib/public-text-policy.mjs')), false);
+  assert.doesNotMatch(read('scripts/source-inventory.mjs'), /public-text-policy\.mjs["'`]\)?\s*continue/u);
+  assert.doesNotMatch(read('scripts/source-inventory.mjs'), /if \(file === ["'`][^"'`]+["'`]\) continue/u);
 });
 
 test('source inventory rejects unregistered, missing and duplicate first-party test gates', () => {

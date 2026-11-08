@@ -10,6 +10,7 @@ export * from './platform-oauth.js';
 export * from './platform-client.js';
 export * from './endpoint-config.js';
 export * from './auth-core.js';
+export * from './diagnostics.js';
 export * from './token-provider.js';
 export * from './factory.js';
 export * from './credential-store/types.js';

@@ -1,8 +1,15 @@
 export { isTelemetryChannelEnabled, type TelemetryChannel } from './telemetry-policy.js';
 export { isLocalSourceProvenanceEnabled } from './source-provenance.js';
+export { isPtcTurnEnabled, type PtcTurnFacts } from './ptc-turn.js';
 export { writeTuiStatusLineSetting } from './tui-status-line-write.js';
 export { parseRunawayGuardOverride, resolveRunawayGuardConfig } from './runaway-guard-config.js';
 export type { RunawayGuardSettings, RunawayGuardOverride } from './runaway-guard-config.js';
+export {
+  parsePromptSuggestionRemotePolicy,
+  resolvePromptSuggestionEnabled,
+  withEffectivePromptSuggestion,
+} from './prompt-suggestion-config.js';
+export type { PromptSuggestionRemotePolicy } from './prompt-suggestion-config.js';
 export {
   BRAND,
   DEFAULT_PORT,
@@ -25,6 +32,7 @@ export {
   allowsManagedAlranProviderOverride,
   isBetaFeatureProdReady,
   resolveBetaFeature,
+  currentBetaResolutionContext,
   isInternalBuild,
   isManagedRuntime,
   getRuntimePresetKey,
@@ -32,6 +40,17 @@ export {
   isProposalEligibleAgent,
 } from './config.js';
 export { alranApiModels } from './byok-config.js';
+export {
+  CONVERSATION_STOP_CONFIG_DEFAULTS,
+  parseConversationStopConfig,
+  readConversationStopConfig,
+} from './conversation-config.js';
+export type {
+  ConversationStopConfig,
+  ConversationStopConfigRead,
+  ConversationStopReadFailure,
+  ConversationStopValueSource,
+} from './conversation-config.js';
 export {
   OTTILI_API_BASE_ENV,
   OTTILI_AI_GATEWAY_DEV_ENV,
@@ -193,6 +212,8 @@ export {
   parseToolResultCompactionConfig,
 } from './tool-result-compaction-config.js';
 export type { ToolResultCompactionSettings } from './tool-result-compaction-config.js';
+export { REQUEST_MEDIA_DEFAULTS, parseRequestMediaConfig } from './request-media-config.js';
+export type { RequestImageSettings, RequestMediaSettings } from './request-media-config.js';
 export {
   parseSandboxConfig,
   getSandboxConfigDefaults,

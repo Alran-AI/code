@@ -4,6 +4,8 @@ export interface AlranPluginCapabilities {
   readonly appCount: number;
   readonly mcpServerCount: number;
   readonly skillCount: number;
+  /** Plugin subagents (official or local); absent when the Runtime reports none. */
+  readonly agentCount?: number;
 }
 
 export interface AlranPluginView {

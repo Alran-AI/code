@@ -5,9 +5,11 @@ import type {
 } from '@mavis/local-runtime-v2/process-local';
 import { getDefaultLocalRuntimeConfig } from '@mavis/local-runtime-v2';
 import {
+  currentBetaResolutionContext,
   getRuntimeBuildEnv,
   getRuntimeRegion,
   readExplicitBetaFeatureFromFile,
+  resolveBetaFeature,
 } from '@mavis/config';
 import {
   AuthSessionChangedError,
@@ -38,6 +40,7 @@ import {
   TuiAuthenticationError,
   TuiMatrixAccountClient,
 } from '../account/matrix-account-client.js';
+import { projectAccountDisplayIdentity } from '../account/display-identity.js';
 import {
   invalidateCliAuthContext,
   importSharedCliAuthContext,
@@ -79,6 +82,11 @@ export interface CreateTuiRuntimeOptions {
   promptMode?: CreateLocalRuntimeHostOptions['promptMode'];
   systemPromptOverrides?: CreateLocalRuntimeHostOptions['systemPromptOverrides'];
   surface?: TuiObservabilitySurface;
+  /**
+   * `--ptc`: new Sessions in this process use PTC regardless of `beta.ptc`.
+   * Held in memory only; config.yaml is never rewritten by the flag.
+   */
+  ptcLaunchOverride?: boolean;
   observability?: TuiObservability;
   permissionMode?: NonNullable<LocalRuntimeConfig['permissionMode']>;
   contextMode?: AlranContextMode;
@@ -391,6 +399,7 @@ export async function createTuiRuntime(
         beta: {
           ...config.beta,
           alranTools: effectiveAlranTools,
+          ...(options.ptcLaunchOverride ? { ptc: true } : {}),
         },
       };
     },
@@ -462,6 +471,12 @@ export async function createTuiRuntime(
     (dependencies.getDataEnvironment ?? resolveAlranDataEnvironment)() === 'test'
       ? { startupExecutionPolicy: 'quarantined' }
       : {}),
+    // Only the interactive composer can show a next-message suggestion; headless
+    // exec, ACP and inspection runs would pay for an unseen request.
+    promptSuggestionSurface: options.surface === 'tui',
+    // The TUI offers suggestions on every model, BYOK and OAuth included; the
+    // user turns the feature off globally with `promptSuggestion.enabled: false`.
+    promptSuggestionUngated: options.surface === 'tui',
   };
   const startupStartedAt = performance.now();
   if (ownsObservability) {
@@ -499,6 +514,18 @@ export async function createTuiRuntime(
       adapter: new TuiRuntimeAdapter(host.cliService, {
         workspaceDir: options.workspaceDir,
         observability,
+        ...(options.ptcLaunchOverride
+          ? {
+              ptcLaunchOverride: true,
+              // The source config, re-read after each write, never carries the override.
+              readSavedPtc: () =>
+                resolveBetaFeature(
+                  'ptc',
+                  getSourceConfig().beta?.ptc,
+                  currentBetaResolutionContext(),
+                ),
+            }
+          : {}),
         ...(options.contextMode ? { contextMode: options.contextMode } : {}),
         onSessionDeleted: browserProvider?.disposeSession
           ? browserProvider.disposeSession.bind(browserProvider)
@@ -510,9 +537,13 @@ export async function createTuiRuntime(
           accountClient.getTokenPlanAccountStatus(undefined, accountOptions),
         accountIdentityGetter: () => {
           const identity = authContextGetter();
-          return identity?.accessToken
-            ? { email: identity.userEmail, name: identity.userName ?? identity.subUserName }
-            : undefined;
+          return identity?.accessToken ? projectAccountDisplayIdentity(identity) : undefined;
+        },
+        accountIdentityRefresher: async () => {
+          const auth = authContextGetter();
+          if (!auth?.accessToken) return undefined;
+          const identity = await accountClient.getAuthContextForAuth(auth);
+          return identity ? projectAccountDisplayIdentity(identity) : undefined;
         },
         feedback: new TuiFeedbackService({
           appVersion: options.version,

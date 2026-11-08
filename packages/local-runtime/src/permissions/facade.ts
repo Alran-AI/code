@@ -49,6 +49,7 @@ import {
   type DecisionReason,
   type PermissionDecision,
   type ExecutionPlan,
+  type ShellFamily,
   type WindowsNativeDeleteCommand,
   type PermissionMode,
   type PermissionBehavior,
@@ -80,6 +81,7 @@ import {
   evaluateLocalPermissionCheck,
   evaluateWindowsPathSafetyCheck,
   expandWindowsCommandSurfaces,
+  parseWindowsShellFamily,
   splitWindowsCommandSegments,
 } from './checkers.js';
 import { inspectTrashRuntime } from '../infra/ensure-trash-script.js';
@@ -104,6 +106,7 @@ function permissionReasonLogFields(
     safetyCheck: 'safety_check',
     workingDirectory: 'working_directory_boundary',
     internalWhitelist: 'internal_whitelist',
+    sessionOwnedReadablePath: 'session_owned_readable_path',
     trustedExactWrite: 'trusted_exact_write',
     tempDirectory: 'temp_directory',
     sandbox: 'sandbox',
@@ -163,23 +166,17 @@ function readLeadingExecutable(command: string): string | undefined {
   return program?.[1] ?? program?.[2] ?? program?.[3];
 }
 
-function parseWindowsShellFamily(command: string): 'cmd' | 'powershell' | undefined {
-  const executable = readLeadingExecutable(command)?.toLowerCase();
-  if (!executable) return undefined;
-  const base = path.win32.basename(executable).replace(/\.(?:exe|cmd|bat)$/i, '');
-  if (base === 'cmd') return 'cmd';
-  if (base === 'powershell' || base === 'pwsh') return 'powershell';
-  return undefined;
-}
-
 function resolveWindowsShellFamily(
   command: string,
-  hostShellFamily: 'cmd' | 'powershell' | undefined,
+  hostShellFamily: ShellFamily | undefined,
 ): 'cmd' | 'powershell' | undefined {
   // A wrapper carries explicit provenance for its payload. Bare commands must
   // use the host-provided executor shell; never infer CMD/PowerShell from
   // `del`, `rd`, `Remove-Item`, or any other command name.
-  return parseWindowsShellFamily(command) ?? hostShellFamily;
+  return (
+    parseWindowsShellFamily(command) ??
+    (hostShellFamily === 'cmd' || hostShellFamily === 'powershell' ? hostShellFamily : undefined)
+  );
 }
 
 function isMavisTrashExecutable(command: string): boolean {
@@ -313,10 +310,13 @@ function needsWindowsPathSafetyCheck(
   toolName: string,
   input: Record<string, unknown>,
   command?: string,
+  shellFamily?: ShellFamily,
 ): boolean {
   if (['read', 'glob', 'grep', 'list'].includes(toolName)) return false;
   if (command) {
-    return hasWindowsWriteRedirection(command) || hasWindowsWriteOrDeleteCommand(command);
+    return (
+      hasWindowsWriteRedirection(command) || hasWindowsWriteOrDeleteCommand(command, shellFamily)
+    );
   }
   return [input.path, input.filePath, input.file_path].some((value) => typeof value === 'string');
 }
@@ -364,6 +364,14 @@ export interface LocalPermissionCheckParams {
   recentMessages?: AgentMessageProtocol[];
   /** Trusted owner-only capability; never populated from public HTTP input. */
   trustedExactWritePaths?: readonly string[];
+  /**
+   * Host-issued directories the active Session owns and may READ, e.g. its own
+   * recoverable tool-output artifacts. Trusted owner-only capability; never
+   * populated from public HTTP input.
+   */
+  sessionOwnedReadablePaths?: readonly string[];
+  /** Validated same-call plan snapshot for Hook rechecks; never public tool/HTTP input. */
+  nativeDeleteSnapshot?: boolean;
 }
 
 interface WindowsHardSafetyResult {
@@ -377,6 +385,8 @@ interface WindowsHardSafetyResult {
 // ---------------------------------------------------------------------------
 
 export interface LocalPermissionFacadeDeps {
+  /** TUI host's explicit startup opt-out; false unless the user enabled it. */
+  skipWindowsHardSafetyChecks?: boolean;
   ruleStore: LocalPermissionRuleStore;
   pluginHookPermissionStore?: LocalPluginHookPermissionStore;
   configGetter: () => LocalRuntimeConfig;
@@ -400,7 +410,7 @@ export interface LocalPermissionFacadeDeps {
   /** Test/runtime override; production uses the actual host platform. */
   platform?: NodeJS.Platform;
   /** Actual shell family used by the host executor; unknown keeps native delete fail-closed. */
-  shellFamily?: 'cmd' | 'powershell';
+  shellFamily?: ShellFamily;
   /** Test-only trash health probe override; production invokes mavis-trash.cmd. */
   trashRuntimeProbe?: (scriptPath: string, launcherPath: string) => boolean;
 }
@@ -478,6 +488,7 @@ export class LocalPermissionFacade {
    */
   async checkPermission(params: LocalPermissionCheckParams): Promise<LocalPermissionCheckResult> {
     const config = this.deps.configGetter();
+    const nativeDelete = params.nativeDeleteSnapshot ?? config.permission?.nativeDelete === true;
     const pluginContext = await this.resolvePluginHookPermissionContext(params);
     const rawMode =
       pluginContext.mode ??
@@ -485,7 +496,13 @@ export class LocalPermissionFacade {
       readLocalPermissionMode(config.permissionMode);
     const policyOwner = readPermissionPolicyOwner(config.permission?.policyOwner);
 
-    const verdict = await this.checkPermissionRaw(params, rawMode, policyOwner, pluginContext);
+    const verdict = await this.checkPermissionRaw(
+      params,
+      rawMode,
+      policyOwner,
+      pluginContext,
+      nativeDelete,
+    );
     // acceptEdits is normalized to default inside the raw pipeline, but
     // the gate cares only about bypassPermissions; passing the raw mode
     // through unchanged is correct.
@@ -493,7 +510,7 @@ export class LocalPermissionFacade {
     let finalVerdict: LocalPermissionCheckResult = gatedVerdict;
     if (
       gatedVerdict.behavior !== 'deny' &&
-      (rawMode !== 'off' || gatedVerdict.rewrittenInput !== undefined)
+      (params.toolName === 'bash' || rawMode !== 'off' || gatedVerdict.rewrittenInput !== undefined)
     ) {
       finalVerdict = {
         ...gatedVerdict,
@@ -509,6 +526,7 @@ export class LocalPermissionFacade {
             ),
             homeDir: homedir(),
           },
+          nativeDelete,
         }),
       };
     }
@@ -553,6 +571,7 @@ export class LocalPermissionFacade {
     effectiveMode?: PermissionMode,
     effectivePolicyOwner?: 'engine' | 'core',
     resolvedPluginContext?: LocalPluginHookEffectivePermissions,
+    effectiveNativeDelete?: boolean,
   ): Promise<LocalPermissionCheckResult> {
     const config = this.deps.configGetter();
     const pluginContext =
@@ -567,19 +586,60 @@ export class LocalPermissionFacade {
     const platform = this.deps.platform ?? process.platform;
     let workingDirectory: string | undefined;
 
+    const nativeDelete =
+      effectiveNativeDelete ??
+      params.nativeDeleteSnapshot ??
+      config.permission?.nativeDelete === true;
     const command = readCommand(params.input);
-    const windowsHardSafety = await this.evaluateWindowsHardSafety(params, platform, command);
+    const skipWindowsHardSafetyChecks =
+      platform === 'win32' && this.deps.skipWindowsHardSafetyChecks === true;
+    const windowsHardSafety = await this.evaluateWindowsHardSafety(
+      params,
+      platform,
+      command,
+      nativeDelete,
+      skipWindowsHardSafetyChecks,
+    );
     if (windowsHardSafety.denial) return windowsHardSafety.denial;
     const { recoverableNativeDelete } = windowsHardSafety;
     workingDirectory = windowsHardSafety.workingDirectory;
 
-    const posixTrashSafety = this.evaluatePosixTrashSafety(platform, command);
+    const posixTrashSafety = nativeDelete
+      ? undefined
+      : this.evaluatePosixTrashSafety(platform, command);
     if (posixTrashSafety) return posixTrashSafety;
 
-    // Off mode skips the whole pipeline (cloud autonomy).
+    // Native deletion skips only the recoverable-trash rewrite. Keep shared
+    // UNC/root/home safety ahead of the off-mode short-circuit on every host.
+    if (nativeDelete) {
+      if (platform !== 'win32' && workingDirectory === undefined) {
+        workingDirectory = await this.resolveWorkingDirectory(params.sessionId, params.agentName);
+      }
+      const nativeHardCheck = evaluateLocalPermissionCheck({
+        toolName: params.toolName,
+        input: params.input,
+        workspaceDir: workingDirectory,
+        platform,
+        skipWindowsHardSafetyChecks,
+        shellFamily: this.deps.shellFamily ?? 'unknown',
+      });
+      if (nativeHardCheck?.behavior === 'deny' && nativeHardCheck.denyKind === 'bypass-immune') {
+        return {
+          behavior: 'deny',
+          reason: nativeHardCheck.reason,
+          denySource: 'safety-immune',
+        };
+      }
+    }
+
+    // Off mode skips permission review, but recoverable deletion still needs the engine rewrite.
     const windowsDeleteNeedsRewrite =
-      platform === 'win32' && command !== undefined && isDeleteLikeCommand(command);
+      !nativeDelete &&
+      platform === 'win32' &&
+      command !== undefined &&
+      isDeleteLikeCommand(command);
     const posixDeleteNeedsRewrite =
+      !nativeDelete &&
       (platform === 'darwin' || platform === 'linux') &&
       command !== undefined &&
       commandContainsRmSegment(command);
@@ -605,6 +665,7 @@ export class LocalPermissionFacade {
 
     // Snapshot rules + build the ToolPermissionContext.
     let rules: PermissionRule[];
+    let unhealthyStoreReason: string | undefined;
     try {
       rules = [
         ...(await this.deps.ruleStore.listRules({
@@ -625,9 +686,16 @@ export class LocalPermissionFacade {
         'permission.store.unhealthy',
       );
       const reason = `Permission rule store is unhealthy (${error.reasonCode}); approval is required.`;
-      return rawMode === 'bypassPermissions'
-        ? { behavior: 'deny', reason, denySource: 'safety' }
-        : { behavior: 'ask', reason };
+      if (rawMode === 'bypassPermissions') {
+        return { behavior: 'deny', reason, denySource: 'safety' };
+      }
+      if (!windowsDeleteNeedsRewrite && !posixDeleteNeedsRewrite) {
+        return { behavior: 'ask', reason };
+      }
+      // Rule-store failure must not skip the recoverable-delete transformation.
+      // Run safety/rewrite without granting any rule, then retain the required ask.
+      rules = [];
+      unhealthyStoreReason = reason;
     }
     if (workingDirectory === undefined) {
       workingDirectory = await this.resolveWorkingDirectory(params.sessionId, params.agentName);
@@ -635,6 +703,7 @@ export class LocalPermissionFacade {
 
     const ctx = createToolPermissionContext({
       mode,
+      nativeDelete,
       rules,
       workingDirectory,
       allowedWorkingPaths: [...pluginContext.directories],
@@ -644,6 +713,7 @@ export class LocalPermissionFacade {
         params.agentName,
       ),
       trustedExactWritePaths: params.trustedExactWritePaths,
+      sessionOwnedReadablePaths: params.sessionOwnedReadablePaths,
       dataDir: this.deps.configGetter().dataDir,
       homeDir: homedir(),
       isFile: (p: string) => {
@@ -658,6 +728,7 @@ export class LocalPermissionFacade {
       platform,
       shellFamily: this.deps.shellFamily ?? 'unknown',
     });
+
 
     // Local-runtime-only safety net. Splits into two kinds so we don't
     // regress "Always allow":
@@ -680,6 +751,9 @@ export class LocalPermissionFacade {
       input: params.input,
       workspaceDir: workingDirectory,
       platform,
+      skipWindowsHardSafetyChecks,
+      shellFamily: this.deps.shellFamily ?? (nativeDelete ? 'unknown' : undefined),
+      recoverableRm: !nativeDelete && params.toolName === 'bash',
     });
     if (
       localHardCheck?.behavior === 'deny' &&
@@ -735,6 +809,14 @@ export class LocalPermissionFacade {
       },
       `permission.${policyOwner}.decision`,
     );
+
+    if (unhealthyStoreReason && decision.behavior !== 'deny') {
+      return {
+        behavior: 'ask',
+        reason: unhealthyStoreReason,
+        rewrittenInput: decision.rewrittenInput,
+      };
+    }
 
     // policy deny (sensitive credential path) under default/auto — demote
     // allow → ask so the LLM gate / user can authorize. Under
@@ -1113,13 +1195,16 @@ export class LocalPermissionFacade {
 
   /**
    * Runtime-boundary Windows safety net. It runs before permission mode handling,
-   * so `off`, bypass, persisted rules and user approval cannot authorize an
-   * unrecoverable delete or a protected-path write.
+   * so `off`, bypass, persisted rules and user approval cannot bypass it.
+   * The startup opt-out skips broad command/path checks. While native deletion
+   * is disabled, trash health/trust checks and recoverable-delete metadata remain.
    */
   private async evaluateWindowsHardSafety(
     params: LocalPermissionCheckParams,
     platform: NodeJS.Platform,
     command: string | undefined,
+    nativeDelete: boolean,
+    skipWindowsHardSafetyChecks: boolean,
   ): Promise<WindowsHardSafetyResult> {
     if (platform !== 'win32') return {};
 
@@ -1134,18 +1219,14 @@ export class LocalPermissionFacade {
     const shellFamily = command
       ? resolveWindowsShellFamily(command, this.deps.shellFamily)
       : undefined;
-    // Emergency policy rollback: setting this to `undefined` rejects the entire
-    // proven native-delete subset without removing downstream parser/transform
-    // support or its audit evidence.
-    const recoverableNativeDelete = command
-      ? parseWindowsNativeDelete(command, shellFamily)
-      : undefined;
+    // Path safety parses targets independently; only recoverable mode needs a rewrite.
+    const recoverableNativeDelete =
+      !nativeDelete && command ? parseWindowsNativeDelete(command, shellFamily) : undefined;
 
-    if (command) {
-      const permanentDeleteReason = findWindowsDeleteReason(
-        command,
-        Boolean(recoverableNativeDelete),
-      );
+    if (!nativeDelete && command) {
+      const permanentDeleteReason = skipWindowsHardSafetyChecks
+        ? undefined
+        : findWindowsDeleteReason(command, Boolean(recoverableNativeDelete));
       if (permanentDeleteReason) {
         return {
           denial: {
@@ -1190,7 +1271,10 @@ export class LocalPermissionFacade {
       }
     }
 
-    if (!needsWindowsPathSafetyCheck(params.toolName, params.input, command)) {
+    if (
+      skipWindowsHardSafetyChecks ||
+      !needsWindowsPathSafetyCheck(params.toolName, params.input, command, this.deps.shellFamily)
+    ) {
       return recoverableNativeDelete ? { recoverableNativeDelete } : {};
     }
 
@@ -1203,6 +1287,8 @@ export class LocalPermissionFacade {
       input: params.input,
       workspaceDir: workingDirectory,
       platform,
+      shellFamily: this.deps.shellFamily ?? (nativeDelete ? 'unknown' : undefined),
+      recoverableRm: !nativeDelete && params.toolName === 'bash',
     });
     const recoverableInsideWorkspace =
       recoverableNativeDelete !== undefined &&
