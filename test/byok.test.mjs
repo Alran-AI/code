@@ -499,10 +499,6 @@ test(
     assert.equal(requests.slice(beforeFirst).filter((r) => r.body.stream).length, 1,
       "Display-only Hooks must not start another model request");
     for (const marker of hookMarkers) assert.ok(!first.includes(marker));
-    await assert.rejects(run([
-      'exec', 'Managed model still requires its own login',
-      '--model', 'alran/Alran-M3', '--timeout', '20s', '--max-steps', '1',
-    ]), /Sign in to Alran/);
     const beforeResume = requests.length;
     const second = await run([
       "exec",
@@ -528,6 +524,14 @@ test(
       ),
     );
     assert.equal(requests.slice(beforeResume).filter((r) => r.body.stream).length, 1);
+    // The first-party `alran` provider authenticates with an Ottili API key, so a
+    // model on that route must fail loudly instead of silently using the BYOK
+    // provider configured for this run. Kept after the resume checks because a
+    // failed invocation still records the Session `--continue` would pick up.
+    await assert.rejects(run([
+      'exec', 'First-party model needs its own API key',
+      '--model', 'alran/Alran-Werk', '--timeout', '20s', '--max-steps', '1',
+    ]), /api_key not configured for provider "alran"/);
     for (const marker of hookMarkers) {
       assert.ok(!second.includes(marker), "Hook notices must not become the final answer");
       assert.ok(!JSON.stringify(requests.slice(beforeResume)).includes(marker),
