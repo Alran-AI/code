@@ -46,9 +46,20 @@ mkdirSync(outdir, { recursive: true });
 
 // Bundle checked-in workspace sources and resolve npm dependencies from each importer.
 // Native and optional platform integrations keep their installed module locations.
+const highlightJsEntry = createRequire(
+  path.join(root, "third_party/pi-mono/packages/coding-agent/package.json"),
+).resolve("highlight.js");
 const sourcePlugin = {
   name: "standalone-workspace-sources",
   setup(bundler) {
+    // highlight.js 11 stopped exporting `./lib/index.js` from its exports map,
+    // so the legacy specifier (still covered by a local ambient declaration and
+    // intentionally kept to avoid pulling `lib.dom` into the Node build) is
+    // mapped onto the package entry here.
+    bundler.onResolve(
+      { filter: /^highlight\.js\/lib\/index\.js$/ },
+      () => ({ path: highlightJsEntry }),
+    );
     bundler.onResolve({ filter: /^[^./]/ }, ({ path: specifier }) => {
       const parts = specifier.split("/");
       const name = specifier.startsWith("@")
