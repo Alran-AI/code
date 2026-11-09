@@ -1,8 +1,9 @@
 {
   "name": "@ottili/alran-code",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "private": true,
-  "description": "Alran Code CLI and TUI product entry.",  "type": "module",
+  "description": "Alran Code CLI and TUI product entry.",
+  "type": "module",
   "exports": {
     "./package.json": "./package.json"
   },

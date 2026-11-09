@@ -89,7 +89,7 @@ ALRAN_API_KEY=sk-ottili-... alran
 | 变量 | 作用 | 默认值 |
 | --- | --- | --- |
 | `ALRAN_API_KEY` | 随每次请求发送的 Ottili API Key。 | 无（必需） |
-| `ALRAN_API_BASE` | Ottili AI Platform 网关地址。网关兼容 OpenAI 协议，请求发往 `<base>/chat/completions`。 | `https://api.ottili.one/v1`（`NODE_ENV=development` 时为 `http://127.0.0.1:3000/v1`） |
+| `ALRAN_API_BASE` | Ottili AI Platform 网关地址。网关兼容 OpenAI 协议，请求发往 `<base>/chat/completions`。 | `https://ai.ottili.one/v1` |
 | `OTTILI_PLATFORM_URL` | Ottili 平台源地址，用于鉴权与身份校验，也是 `alran login` 打开的 API Key 页面地址。 | `https://api.ottili.one` |
 | `ALRAN_DATA_DIR` | 存放配置、会话和日志的目录。 | `~/.alran` |
 

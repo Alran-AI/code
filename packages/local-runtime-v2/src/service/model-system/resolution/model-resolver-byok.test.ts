@@ -45,9 +45,9 @@ describe('Alran API BYOK planning', () => {
       contextWindow: 200_000,
       maxTokens: 16_384,
     });
-    // The test build is a development build: model calls stay on the local
-    // gateway, the same endpoint the sign-in flow uses.
-    expect(fallback?.baseUrl).toBe('http://127.0.0.1:18406/v1');
+    // Local development gateway routing is removed; model calls use the public
+    // gateway unless ALRAN_API_BASE is explicitly configured.
+    expect(fallback?.baseUrl).toBe('https://ai.ottili.one/v1');
 
     expect(
       planAlranApiResolution({
@@ -90,8 +90,7 @@ describe('Alran API BYOK planning', () => {
 describe('first-party gateway base URL', () => {
   afterEach(() => vi.unstubAllEnvs());
 
-  it('calls the public gateway only in a production build', () => {
-    vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
+  it('uses the public gateway by default and respects ALRAN_API_BASE', () => {
     expect(
       planAlranApiResolution({
         byok: { alran_api: { apiKey: 'key' } },
@@ -99,7 +98,17 @@ describe('first-party gateway base URL', () => {
         modelId: 'model',
         catalog: FALLBACK_CATALOG,
       })?.baseUrl,
-    ).toBe('https://api.ottili.one/v1');
+    ).toBe('https://ai.ottili.one/v1');
+
+    vi.stubEnv('ALRAN_API_BASE', 'https://gateway.example/v1');
+    expect(
+      planAlranApiResolution({
+        byok: { alran_api: { apiKey: 'key' } },
+        providerConfig: undefined,
+        modelId: 'model',
+        catalog: FALLBACK_CATALOG,
+      })?.baseUrl,
+    ).toBe('https://gateway.example/v1');
   });
 });
 
@@ -119,7 +128,7 @@ describe('Platform session planning', () => {
     });
   });
 
-  it('follows the session environment and lets a configured base URL win', () => {
+  it('uses the public gateway and lets a configured base URL win', () => {
     const base = {
       providerConfig: undefined,
       byok: undefined,
@@ -129,11 +138,11 @@ describe('Platform session planning', () => {
     expect(
       planPlatformSessionResolution({ ...base, session: { sessionId: 's', platformEnv: 'dev' } })
         .baseUrl,
-    ).toBe('http://127.0.0.1:18406/v1');
+    ).toBe('https://ai.ottili.one/v1');
     expect(
       planPlatformSessionResolution({ ...base, session: { sessionId: 's', platformEnv: 'prod' } })
         .baseUrl,
-    ).toBe('https://api.ottili.one/v1');
+    ).toBe('https://ai.ottili.one/v1');
     expect(
       planPlatformSessionResolution({
         ...base,

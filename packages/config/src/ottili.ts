@@ -20,13 +20,7 @@ export const OTTILI_PLATFORM_URL = 'https://api.ottili.one';
  * The gateway speaks the OpenAI chat-completions protocol, so the provider
  * appends `/chat/completions` to this base.
  */
-export const OTTILI_AI_PLATFORM_BASE_URL = 'https://api.ottili.one/v1';
-
-/** Local AI Platform used while the CLI runs in development mode. */
-export const OTTILI_DEV_AI_PLATFORM_BASE_URL = 'http://127.0.0.1:18406/v1';
-
-/** Overrides the local AI Platform gateway base URL of a development sign-in. */
-export const OTTILI_AI_GATEWAY_DEV_ENV = 'ALRAN_AI_GATEWAY_URL_DEV';
+export const OTTILI_AI_PLATFORM_BASE_URL = 'https://ai.ottili.one/v1';
 
 /** Every Ottili API key carries this prefix. */
 export const OTTILI_API_KEY_PREFIX = 'sk-ottili-';
@@ -76,33 +70,24 @@ export function resolveOttiliPlatformUrl(env: NodeJS.ProcessEnv = process.env): 
 /**
  * The AI Platform gateway base URL.
  *
- * Precedence: `ALRAN_API_BASE`, then the local development gateway when
- * `NODE_ENV=development`, then the public gateway.
+ * Precedence: `ALRAN_API_BASE`, then the public gateway.
  */
 export function resolveOttiliApiBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
   const configured = env[OTTILI_API_BASE_ENV]?.trim();
   if (configured) return normalizeOttiliApiBaseUrl(configured);
-  if (env.NODE_ENV === 'development') return OTTILI_DEV_AI_PLATFORM_BASE_URL;
   return OTTILI_AI_PLATFORM_BASE_URL;
 }
 
 /**
  * The AI Platform gateway base URL for a Platform sign-in environment.
  *
- * A development sign-in talks to the local gateway (`http://127.0.0.1:18406/v1`
- * unless `ALRAN_AI_GATEWAY_URL_DEV` overrides it); a production sign-in talks
- * to the public gateway. The credential in both cases is the Platform session
- * the gateway accepts as a bearer token.
+ * Uses `ALRAN_API_BASE` when explicitly configured, otherwise the public
+ * gateway. Local development gateway routing is not used.
  */
 export function resolveOttiliGatewayBaseUrl(
-  platformEnv: 'dev' | 'prod',
+  _platformEnv: 'dev' | 'prod',
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  if (platformEnv === 'dev') {
-    const devValue = env[OTTILI_AI_GATEWAY_DEV_ENV]?.trim();
-    if (devValue) return normalizeOttiliApiBaseUrl(devValue);
-    return OTTILI_DEV_AI_PLATFORM_BASE_URL;
-  }
   return resolveOttiliApiBaseUrl(env);
 }
 

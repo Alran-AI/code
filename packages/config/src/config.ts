@@ -1586,8 +1586,8 @@ const PRESET_BASE_URLS: Record<PresetKey, string> = {
   "en-test": "https://ottili-overseas-test.example.invalid/v1",
   "en-dev": "https://ottili-overseas-test.example.invalid/v1",
   "en-staging": "https://ottili-overseas-pre.example.invalid/v1",
-  "cn-prod": "https://api.ottili.one/v1",
-  "en-prod": "https://api.ottili.one/v1",
+  "cn-prod": "https://ai.ottili.one/v1",
+  "en-prod": "https://ai.ottili.one/v1",
 };
 
 // The managed LLM route the preset used before the gateway moved to the

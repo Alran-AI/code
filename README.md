@@ -89,7 +89,7 @@ Open `alran` and use `/status` to check the connection and `/provider` to choose
 | Variable | What it does | Default |
 | --- | --- | --- |
 | `ALRAN_API_KEY` | Ottili API key sent with every request. | — (required) |
-| `ALRAN_API_BASE` | Ottili AI Platform gateway base URL. The gateway is OpenAI-compatible, so a request goes to `<base>/chat/completions`. | `https://api.ottili.one/v1` (`http://127.0.0.1:3000/v1` when `NODE_ENV=development`) |
+| `ALRAN_API_BASE` | Ottili AI Platform gateway base URL. The gateway is OpenAI-compatible, so a request goes to `<base>/chat/completions`. | `https://ai.ottili.one/v1` |
 | `OTTILI_PLATFORM_URL` | Ottili platform origin used for auth and identity checks, and for the API key page that `alran login` opens. | `https://api.ottili.one` |
 | `ALRAN_DATA_DIR` | Directory holding configuration, sessions, and logs. | `~/.alran` |
 

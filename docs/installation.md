@@ -73,7 +73,7 @@ A source build talks to the Ottili AI Platform. Point it at your key before the 
 
 ```bash
 export ALRAN_API_KEY=sk-ottili-...
-export ALRAN_API_BASE=https://api.ottili.one/v1   # optional; this is the default
+export ALRAN_API_BASE=https://ai.ottili.one/v1   # optional; this is the default
 pnpm alran
 ```
 
@@ -90,7 +90,7 @@ Run `alran login` to sign in. The command opens the Ottili API key page in a bro
 | Variable | What it does | Default |
 | --- | --- | --- |
 | `ALRAN_API_KEY` | Ottili API key sent with every request. Overrides the stored key for that run. | — (required) |
-| `ALRAN_API_BASE` | Ottili AI Platform gateway base URL. The gateway is OpenAI-compatible, so a request goes to `<base>/chat/completions`. | `https://api.ottili.one/v1` (`http://127.0.0.1:3000/v1` when `NODE_ENV=development`) |
+| `ALRAN_API_BASE` | Ottili AI Platform gateway base URL. The gateway is OpenAI-compatible, so a request goes to `<base>/chat/completions`. | `https://ai.ottili.one/v1` |
 | `OTTILI_PLATFORM_URL` | Ottili platform origin used for auth and identity checks, and for the API key page that `alran login` opens. | `https://api.ottili.one` |
 | `ALRAN_DATA_DIR` | Directory holding configuration, sessions, caches, and logs. | `~/.alran` |
 
