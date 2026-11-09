@@ -19,7 +19,7 @@ export interface PlatformBaseUrls {
 /** The Platform instance Alran Code signs in to. */
 export const ALRAN_PLATFORM_BASE_URLS: PlatformBaseUrls = {
   dev: 'http://127.0.0.1:18360',
-  prod: 'https://api.ottili.one',
+  prod: 'https://ai.ottili.one',
 } as const;
 
 /** Resolve the Platform base URL from env or a fixed environment.

@@ -29,6 +29,7 @@ import {
   type SystemPromptOverrides,
 } from './system-prompt-options.js';
 import type { AlranTelemetryCliAction } from './telemetry-command.js';
+import { registerMascotCommand } from './mascot-command.js';
 
 export type { TuiInteractiveLaunchRequest } from './contract.js';
 
@@ -424,6 +425,8 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     }
     contribution.register(program, options);
   }
+
+  registerMascotCommand(program);
 
   return program;
 }
