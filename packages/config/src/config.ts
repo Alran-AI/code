@@ -153,7 +153,7 @@ export function getRuntimeBuildEnv(): MavisBuildEnv {
     if (mapped) return mapped;
   }
 
-  return "dev";
+  return "prod";
 }
 
 /**

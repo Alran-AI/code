@@ -2073,6 +2073,7 @@ describe("runtime services CLI composition", () => {
    * publishing every captured Call with a missing request payload.
    */
   it("composes without a model resolver and captures through the global transport", async () => {
+    vi.stubEnv("MAVIS_BUILD_ENV", "dev");
     const compatibility = defaultCompatibility();
     const globalFetch = vi.fn(async () => new Response("{}"));
     const originalFetch = globalThis.fetch;
@@ -2118,6 +2119,7 @@ describe("runtime services CLI composition", () => {
   });
 
   it("decorates the host transport for capture rather than replacing it", async () => {
+    vi.stubEnv("MAVIS_BUILD_ENV", "dev");
     const compatibility = defaultCompatibility();
     const hostFetch = vi.fn(async () => new Response("{}"));
     (
