@@ -54,11 +54,11 @@ export interface CallbackServerOptions {
 /** HTML shown on the login page while waiting for the browser redirect. */
 function loginPage(authorizeUrl: string): string {
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Anmelden – Alran Code</title>
+<title>Sign in – Alran Code</title>
 <link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
   :root {
@@ -129,10 +129,10 @@ function loginPage(authorizeUrl: string): string {
 <body>
 <div class="ottili-auth-shell" data-ottili-state="signed_out">
   <div class="ottili-auth-shell__sign-in">
-    <h2 class="ottili-auth-heading">Anmelden</h2>
-    <p>Du wirst zur Ottili Platform weitergeleitet, um die Anmeldung abzuschließen.</p>
-    <a class="ottili-auth-button" href="${escapeHtml(authorizeUrl)}">Weiter zur Anmeldung</a>
-    <p class="hint">Wenn du nicht automatisch weitergeleitet wirst, klicke auf den Button oben.</p>
+    <h2 class="ottili-auth-heading">Sign in</h2>
+    <p>You'll be redirected to the Ottili Platform to complete sign-in.</p>
+    <a class="ottili-auth-button" href="${escapeHtml(authorizeUrl)}">Continue to sign-in</a>
+    <p class="hint">If you're not redirected automatically, click the button above.</p>
   </div>
 </div>
 <script>
@@ -148,11 +148,11 @@ function loginPage(authorizeUrl: string): string {
 /** HTML shown after a successful login. */
 function successPage(): string {
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Angemeldet – Alran Code</title>
+<title>Signed in – Alran Code</title>
 <link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
   :root {
@@ -197,8 +197,8 @@ function successPage(): string {
 <body>
 <div class="ottili-auth-shell" data-ottili-state="active">
   <div class="ottili-auth-shell__sign-in">
-    <h2 class="ottili-auth-heading" style="color: var(--ottili-color-text-primary, #15803d);">Erfolgreich angemeldet</h2>
-    <p>Du kannst dieses Fenster schließen und zu Alran Code zurückkehren.</p>
+    <h2 class="ottili-auth-heading" style="color: var(--ottili-color-text-primary, #15803d);">Signed in</h2>
+    <p>You can close this window and return to Alran Code.</p>
   </div>
 </div>
 <script>
@@ -211,11 +211,11 @@ function successPage(): string {
 /** HTML shown after a failed login. */
 function errorPage(message: string): string {
   return `<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Anmeldung fehlgeschlagen – Alran Code</title>
+<title>Sign-in failed – Alran Code</title>
 <link rel="stylesheet" href="https://unpkg.com/@ottili/foundation-ui@2.0.0-alpha.1/dist/styles.css" />
 <style>
   :root {
@@ -260,7 +260,7 @@ function errorPage(message: string): string {
 <body>
 <div class="ottili-auth-shell" data-ottili-state="signed_out">
   <div class="ottili-auth-shell__sign-in">
-    <h2 class="ottili-auth-heading">Anmeldung fehlgeschlagen</h2>
+    <h2 class="ottili-auth-heading">Sign-in failed</h2>
     <p>${escapeHtml(message)}</p>
   </div>
 </div>
