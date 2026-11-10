@@ -1,10 +1,40 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { LogoutResult } from '@alran/oauth-core';
 
 import { createLocalAuthFixture } from '../../../oauth-core/test/helpers/local-auth.js';
 
 import type { AlranBusinessEvent } from '../../src/analytics/business-telemetry.js';
 import { AlranAuthApplication } from '../../src/auth/application.js';
+
+vi.mock('@alran/config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@alran/config')>();
+  return {
+    ...actual,
+    clearStoredPlatformSession: vi.fn(),
+    resolveStoredPlatformSession: vi.fn(() => null),
+  };
+});
+
+vi.mock('../../src/auth/ottili-api-key.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../src/auth/ottili-api-key.js')>();
+  return {
+    ...actual,
+    clearOttiliApiKey: vi.fn(async () => undefined),
+  };
+});
+
+import {
+  clearStoredPlatformSession,
+  platformEnvironmentOrder,
+  resolvePlatformEnvironmentForBuild,
+  resolveStoredPlatformSession,
+} from '@alran/config';
+import { clearOttiliApiKey } from '../../src/auth/ottili-api-key.js';
+
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(resolveStoredPlatformSession).mockReturnValue(null);
+});
 
 function sharedCore(status: 'anonymous' | 'authenticated' | 'logout_pending' = 'anonymous') {
   return {
@@ -152,17 +182,17 @@ describe('AlranAuthApplication', () => {
   });
 
   it.each([
-    ['cn', 'dev', 'https://matrix-test.example.invalid'],
-    ['cn', 'test', 'https://matrix-test.example.invalid'],
-    ['cn', 'staging', 'https://matrix-pre.example.invalid'],
-    ['cn', 'prod', 'https://api.ottili.one'],
-    ['en', 'dev', 'https://matrix-overseas-test.example.invalid'],
-    ['en', 'test', 'https://matrix-overseas-test.example.invalid'],
-    ['en', 'staging', 'https://matrix-overseas-pre.example.invalid'],
-    ['en', 'prod', 'https://api.ottili.one'],
+    ['cn', 'dev'],
+    ['cn', 'test'],
+    ['cn', 'staging'],
+    ['cn', 'prod'],
+    ['en', 'dev'],
+    ['en', 'test'],
+    ['en', 'staging'],
+    ['en', 'prod'],
   ] as const)(
-    'logs out %s/%s with the matching browser logout page',
-    async (region, buildEnv, origin) => {
+    'signs out locally for %s/%s without opening a browser logout URL',
+    async (region, buildEnv) => {
       const core = sharedCore('authenticated');
       const application = new AlranAuthApplication({
         dataDir: '/data',
@@ -173,10 +203,14 @@ describe('AlranAuthApplication', () => {
 
       await expect(application.logout()).resolves.toEqual({
         state: 'signed-out',
-        message: `Signed out of Alran ${region === 'cn' ? 'China' : 'Global'} on Desktop, CLI/TUI, and embedded alran-tools.`,
-        logoutUrl: `${origin}/auth/logout?logout_redirect_uri=${encodeURIComponent(origin)}`,
+        message: `Signed out of Alran ${region === 'cn' ? 'China' : 'Global'} on this device.`,
       });
       expect(core.logout).toHaveBeenCalledWith({ revoke: true });
+      expect(clearOttiliApiKey).toHaveBeenCalled();
+      const platformEnv = resolvePlatformEnvironmentForBuild(buildEnv);
+      for (const env of platformEnvironmentOrder(platformEnv)) {
+        expect(clearStoredPlatformSession).toHaveBeenCalledWith('/data', env);
+      }
     },
   );
 
@@ -192,13 +226,12 @@ describe('AlranAuthApplication', () => {
     await expect(application.logout()).resolves.toEqual({
       state: 'already-signed-out',
       message: 'Already signed out of Alran.',
-      logoutUrl:
-        'https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one',
     });
     expect(core.logout).toHaveBeenCalledWith({ revoke: true });
+    expect(clearOttiliApiKey).toHaveBeenCalled();
   });
 
-  it('provides browser logout while server revocation is pending', async () => {
+  it('signs out locally while server revocation is pending', async () => {
     const core = sharedCore('authenticated');
     core.logout.mockResolvedValue({ status: 'logout_pending', generation: 2 });
     const application = new AlranAuthApplication({
@@ -208,12 +241,38 @@ describe('AlranAuthApplication', () => {
       buildEnv: 'prod',
     });
 
-    await expect(application.logout()).resolves.toMatchObject({
+    await expect(application.logout()).resolves.toEqual({
       state: 'signed-out',
-      message: expect.stringContaining('Server revocation is pending'),
-      logoutUrl:
-        'https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one',
+      message: `Signed out locally from Alran Global. Server revocation is pending until the network recovers.`,
     });
+  });
+
+  it('clears a stored Platform session even when shared logout is unavailable offline', async () => {
+    vi.mocked(resolveStoredPlatformSession).mockReturnValue({
+      sessionId: 'sess_test',
+      companyId: 'co_test',
+      subjectId: 'usr_test',
+      baseUrl: 'https://platform.ottili.one',
+      via: 'oidc',
+      storedAtMs: 1,
+    } as never);
+    const core = sharedCore();
+    core.getStatus.mockRejectedValue(new Error('offline'));
+    core.logout.mockRejectedValue(new Error('offline'));
+    const application = new AlranAuthApplication({
+      dataDir: '/data',
+      sharedAuthCore: core,
+      region: 'en',
+      buildEnv: 'prod',
+    });
+
+    await expect(application.logout()).resolves.toEqual({
+      state: 'signed-out',
+      message: 'Signed out of Alran Global on this device.',
+    });
+    expect(clearOttiliApiKey).toHaveBeenCalled();
+    expect(clearStoredPlatformSession).toHaveBeenCalledWith('/data', 'prod');
+    expect(clearStoredPlatformSession).toHaveBeenCalledWith('/data', 'dev');
   });
 
   it('reports OAuth telemetry and preserves login failures', async () => {

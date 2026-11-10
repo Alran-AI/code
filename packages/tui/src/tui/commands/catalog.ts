@@ -319,6 +319,7 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     category: 'Runtime',
     discoverability: 'contextual',
     visibleWhen: (context) => !context.managedTokenPresent,
+    unavailableReason: "You're already signed in. Run /logout before signing in again.",
   },
   {
     name: 'logout',

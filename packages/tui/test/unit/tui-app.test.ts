@@ -5630,8 +5630,6 @@ describe("createTuiApp", () => {
   it("offers an Ottili account or API key before routing login through the auth application", async () => {
     const runtime = createRuntime();
     const openedTargets: string[] = [];
-    const logoutUrl =
-      "https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one";
     let authenticated = false;
     vi.mocked(runtime.getAccountStatus).mockImplementation(async () =>
       authenticated
@@ -5672,7 +5670,6 @@ describe("createTuiApp", () => {
         return {
           state: "signed-out" as const,
           message: "Signed out of Alran.",
-          logoutUrl,
         };
       }),
     };
@@ -5720,7 +5717,6 @@ describe("createTuiApp", () => {
     expect(auth.login).toHaveBeenCalledWith(expect.any(Function), undefined, "platform");
     expect(openedTargets).toEqual([
       "https://account.example.test/device?client_surface=tui&download_source=alran-internal",
-      logoutUrl,
     ]);
     await vi.waitFor(() =>
       expect(app.transcript.snapshot()).toEqual(
@@ -5730,16 +5726,11 @@ describe("createTuiApp", () => {
             content:
               "Couldn't open the default browser. Open the authorization URL above manually.",
           }),
-          expect.objectContaining({
-            kind: "warning",
-            content:
-              "Couldn't open the default browser. Open the sign-out URL above manually.",
-          }),
         ]),
       ),
     );
 
-    expect(app.transcript.snapshot().slice(-6)).toMatchObject([
+    expect(app.transcript.snapshot().slice(-4)).toMatchObject([
       {
         kind: "final-summary",
         content:
@@ -5757,15 +5748,6 @@ describe("createTuiApp", () => {
       {
         kind: "final-summary",
         content: "Signed out of Alran.",
-      },
-      {
-        kind: "final-summary",
-        content: `Finish signing out in your browser:\n${logoutUrl}`,
-      },
-      {
-        kind: "warning",
-        content:
-          "Couldn't open the default browser. Open the sign-out URL above manually.",
       },
     ]);
     expect(auth.login).toHaveBeenCalledOnce();
@@ -5868,8 +5850,6 @@ describe("createTuiApp", () => {
 
   it("clears Runtime auth context when the shared account is already signed out", async () => {
     const notifyAuthContextChanged = vi.fn(async () => undefined);
-    const logoutUrl =
-      "https://api.ottili.one/auth/logout?logout_redirect_uri=https%3A%2F%2Fapi.ottili.one";
     const openExternalTarget = vi.fn(() => new Promise<void>(() => {}));
     const app = createTuiApp({
       runtime: createRuntime(),
@@ -5878,7 +5858,6 @@ describe("createTuiApp", () => {
         logout: vi.fn(async () => ({
           state: "already-signed-out" as const,
           message: "Already signed out of Alran.",
-          logoutUrl,
         })),
       },
       terminal: new FakeTerminal(),
@@ -5894,11 +5873,11 @@ describe("createTuiApp", () => {
 
     expect(notifyAuthContextChanged).toHaveBeenCalledOnce();
     expect(notifyAuthContextChanged).toHaveBeenCalledWith("logged_out");
-    expect(openExternalTarget).toHaveBeenCalledWith(logoutUrl);
+    expect(openExternalTarget).not.toHaveBeenCalled();
     expect(app.transcript.snapshot()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          content: `Finish signing out in your browser:\n${logoutUrl}`,
+          content: "Already signed out of Alran.",
         }),
       ]),
     );

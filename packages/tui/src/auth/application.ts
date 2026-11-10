@@ -1,7 +1,10 @@
 import {
+  clearStoredPlatformSession,
   getRuntimeRegion,
+  platformEnvironmentOrder,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
+  resolveStoredPlatformSession,
 } from '@alran/config';
 import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 import type {
@@ -21,8 +24,7 @@ import type {
   AlranLoginSource,
 } from '../analytics/business-telemetry.js';
 import { resolveAlranAuthEnvironment } from './environment.js';
-import { loginWithOttiliApiKey } from './ottili-api-key.js';
-import { buildAlranLogoutUrl } from './logout-url.js';
+import { clearOttiliApiKey, loginWithOttiliApiKey } from './ottili-api-key.js';
 
 export type AlranAuthProgress = {
   readonly state: 'device-authorization';
@@ -182,22 +184,60 @@ export class AlranAuthApplication implements AlranAuthPort {
 
   async logout(): Promise<AlranAuthResult> {
     this.track('logout_click', {});
-    const status = await this.options.sharedAuthCore.getStatus();
-    // Always run the shared logout: signing out while already signed out is a
-    // safe no-op in the core, and never blocking /logout keeps a wedged local
-    // state recoverable.
-    const result = await this.options.sharedAuthCore.logout({ revoke: true });
-    const logoutUrl = buildAlranLogoutUrl(this.scope);
-    if (status.status === 'anonymous' && result.status === 'anonymous') {
-      return { state: 'already-signed-out', message: 'Already signed out of Alran.', logoutUrl };
+
+    let status: AuthStatusSnapshot | undefined;
+    try {
+      status = await this.options.sharedAuthCore.getStatus();
+    } catch {
+      // Continue with local sign-out even when the auth store is unavailable.
     }
+
+    const platformEnv = resolvePlatformEnvironmentForBuild(this.scope.buildEnv);
+    const hadPlatformSession =
+      resolveStoredPlatformSession(this.options.dataDir, platformEnv) !== null;
+
+    // Always clear local credentials so sign-out works offline and cannot leave
+    // a usable Platform session or Ottili API key behind.
+    for (const env of platformEnvironmentOrder(platformEnv)) {
+      clearStoredPlatformSession(this.options.dataDir, env);
+    }
+    try {
+      await clearOttiliApiKey();
+    } catch {
+      // Local sign-out must stay recoverable even if the config cannot be updated.
+    }
+
+    let sharedResult: LogoutResult | undefined;
+    try {
+      // Best-effort server revocation for managed OAuth credentials; local
+      // sign-out above must not depend on network access.
+      sharedResult = await this.options.sharedAuthCore.logout({ revoke: true });
+    } catch {
+      sharedResult = undefined;
+    }
+
+    const wasSignedIn =
+      hadPlatformSession ||
+      status?.status === 'authenticated' ||
+      sharedResult?.status === 'logout_pending';
+
+    if (
+      !wasSignedIn &&
+      status?.status === 'anonymous' &&
+      sharedResult?.status === 'anonymous'
+    ) {
+      return {
+        state: 'already-signed-out',
+        message: 'Already signed out of Alran.',
+      };
+    }
+
     return {
       state: 'signed-out',
-      logoutUrl,
       message:
-        result.status === 'logout_pending'
-          ? `Signed out locally from ${formatRegion(this.scope.region)} across Alran. Server revocation is pending until the network recovers.`
-          : `Signed out of ${formatRegion(this.scope.region)} on Desktop, CLI/TUI, and embedded alran-tools.`,
+        sharedResult?.status === 'logout_pending'
+          ? `Signed out locally from ${formatRegion(this.scope.region)}. Server revocation is pending until the network recovers.`
+          : `Signed out of ${formatRegion(this.scope.region)} on this device.`,
     };
   }
 
