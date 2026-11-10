@@ -541,10 +541,24 @@ export class CallbackServer {
       return;
     }
 
+    try {
+      await this.onLogin?.(result);
+    } catch (error) {
+      const err = error as Error;
+      res.statusCode = 500;
+      res.end(errorPage(`Failed to save the sign-in session: ${escapeHtml(err.message)}`));
+      void this.onError?.(err);
+      if (this.rejectLogin) {
+        this.rejectLogin(err);
+        this.rejectLogin = null;
+        this.resolveLogin = null;
+      }
+      return;
+    }
+
     res.statusCode = 200;
     res.end(successPage());
 
-    void this.onLogin?.(result);
     if (this.resolveLogin) {
       this.resolveLogin(result);
       this.resolveLogin = null;
