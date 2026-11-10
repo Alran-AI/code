@@ -12,7 +12,7 @@ import {
   type AuthLeaseRequest,
   type AuthLeaseSuccessResult,
   type NodeAuthLeaseServer,
-} from '@mavis/oauth-lease-protocol';
+} from '@alran/oauth-lease-protocol';
 
 import type {
   AlranToolsAccessTokenLease,

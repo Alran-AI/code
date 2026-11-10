@@ -1,7 +1,7 @@
 import {
   classifyLLMRequestRejectionMessage,
   LLM_ERROR_CODES,
-} from '@mavis/shared/llm-error-classifier';
+} from '@alran/shared/llm-error-classifier';
 import {
   isOutputLimitExhaustedFailure,
   OUTPUT_LIMIT_EXHAUSTED_SUMMARY,

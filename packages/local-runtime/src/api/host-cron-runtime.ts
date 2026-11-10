@@ -1,4 +1,4 @@
-import type { ChannelDeliveryPort, CronStorePort } from '@mavis/cron';
+import type { ChannelDeliveryPort, CronStorePort } from '@alran/cron';
 
 import {
   createLocalCronRuntime,

@@ -1,5 +1,5 @@
-import type { PermissionRuleMatcher } from '@mavis/permission';
-import type { GlobalEventPayloadMap } from '@mavis/shared/global-events';
+import type { PermissionRuleMatcher } from '@alran/permission';
+import type { GlobalEventPayloadMap } from '@alran/shared/global-events';
 
 // ─── Permission enums + request types ──────────────────────────────────
 export type LocalPermissionMode = 'default' | 'acceptEdits' | 'bypassPermissions' | 'auto' | 'off';

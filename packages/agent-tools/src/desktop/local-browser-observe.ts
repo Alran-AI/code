@@ -1,4 +1,4 @@
-import type { ToolResult } from '@mavis/agent-core/tools';
+import type { ToolResult } from '@alran/agent-core/tools';
 
 import type { LocalBrowserAdapter, LocalRuntimeToolContext } from './types.js';
 

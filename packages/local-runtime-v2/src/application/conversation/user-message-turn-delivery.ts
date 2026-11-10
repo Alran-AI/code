@@ -1,4 +1,4 @@
-import { parsePluginMentions } from '@mavis/shared/plugin-mention';
+import { parsePluginMentions } from '@alran/shared/plugin-mention';
 import { randomUUID } from 'node:crypto';
 
 import {

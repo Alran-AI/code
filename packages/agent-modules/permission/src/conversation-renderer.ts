@@ -1,7 +1,7 @@
 /**
  * Conversation-context renderer for the cloud gateway.
  *
- * The cloud endpoint `POST /mavis/api/v1/permission/check` expects a
+ * The cloud endpoint `POST /alran/api/v1/permission/check` expects a
  * pre-rendered text block in its `conversation_context` field; the rendering
  * algorithm must match what the server-side prompt expects byte-for-byte.
  *
@@ -25,7 +25,7 @@
  * the action block first).
  */
 
-import type { AgentMessageProtocol } from '@mavis/agent-core/protocol/agent-message';
+import type { AgentMessageProtocol } from '@alran/agent-core/protocol/agent-message';
 
 // ---------------------------------------------------------------------------
 // Constants

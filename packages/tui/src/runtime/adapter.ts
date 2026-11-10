@@ -5,7 +5,7 @@ import type {
   CliService,
   ConversationSteerInput,
   ConversationSteerResult,
-} from "@mavis/local-runtime-v2/cli-service";
+} from "@alran/local-runtime-v2/cli-service";
 import { ALRAN_CODE_DEFAULT_AGENT_NAME } from "../product-context.js";
 import { TuiEventAccess } from "./adapters/event-access.js";
 import { TuiRuntimeAccessContext } from "./adapters/access-context.js";
@@ -80,7 +80,7 @@ import type { TuiTokenPlanAccountStatus } from "../account/matrix-account-client
 import {
   LIGHTWEIGHT_SESSION_PURPOSE,
   type AlranContextMode,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 export * from "./port.js";
 

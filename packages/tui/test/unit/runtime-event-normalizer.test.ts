@@ -770,7 +770,7 @@ describe("normalizeTuiRuntimeEvent", () => {
         timestamp: 700,
         source: "runtime",
         payload: {
-          agentName: "mavis",
+          agentName: "alran",
           oldSessionId: "session-old",
           newSessionId: "session-new",
           reason: "context-limit",
@@ -780,7 +780,7 @@ describe("normalizeTuiRuntimeEvent", () => {
       type: "rotation.completed",
       timestampMs: 700,
       source: "runtime",
-      agentName: "mavis",
+      agentName: "alran",
       oldSessionId: "session-old",
       newSessionId: "session-new",
       reason: "context-limit",

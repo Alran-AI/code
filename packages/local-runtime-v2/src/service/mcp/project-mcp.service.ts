@@ -1,5 +1,5 @@
-import type { McpConnectionPool } from '@mavis/mcp/runtime/connection-pool';
-import type { McpConnectionTokenOverrides } from '@mavis/mcp/runtime/types';
+import type { McpConnectionPool } from '@alran/mcp/runtime/connection-pool';
+import type { McpConnectionTokenOverrides } from '@alran/mcp/runtime/types';
 import type {
   LocalMcpRuntimeContext,
   LocalMcpServerConfig,

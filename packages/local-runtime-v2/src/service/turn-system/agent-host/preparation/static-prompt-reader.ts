@@ -5,7 +5,7 @@ import {
   isAgentBuiltinToolEnabled,
   resolveAgentCapabilities,
   type ResolvedAgentCapabilities,
-} from '@mavis/config';
+} from '@alran/config';
 
 const LEGACY_AGENT_INSTRUCTIONS_FILE = '\x43\x4c\x41\x55\x44\x45.md';
 const PROJECT_INSTRUCTIONS_MAX_BYTES = 32 * 1024;
@@ -73,7 +73,7 @@ export function createLocalStaticPromptReader(
       const root = await requireAgentAssetsDir(options.assetsDir);
       const name =
         input.sessionType === 'root' ? 'prompt-session-root.md' : 'prompt-session-branch.md';
-      const canonicalName = input.agentName === 'main' ? 'mavis' : input.agentName;
+      const canonicalName = input.agentName === 'main' ? 'alran' : input.agentName;
       const candidates = [
         input.agentConfigDir ? join(input.agentConfigDir, name) : undefined,
         join(root, canonicalName, name),
@@ -140,7 +140,7 @@ function shouldReadWindowsBase(
 }
 
 export function resolveRuntimeLocale(): string {
-  const electron = process.env.MAVIS_ELECTRON_LOCALE?.trim();
+  const electron = process.env.ALRAN_ELECTRON_LOCALE?.trim();
   if (electron === 'en' || electron === 'zh') return electron;
   return (
     Intl.DateTimeFormat().resolvedOptions().locale ||

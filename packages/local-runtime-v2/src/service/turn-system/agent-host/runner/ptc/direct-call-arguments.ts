@@ -1,6 +1,6 @@
 import { validateToolArguments } from '@earendil-works/pi-ai';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import { readPtcMavisChildTarget } from '@mavis/agent-tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import { readPtcAlranChildTarget } from '@alran/agent-tools';
 
 /**
  * Argument repair for a run_code child the model calls directly on a PTC Turn.
@@ -56,10 +56,10 @@ export interface PreparedDirectCallArguments extends NormalizedDirectCallArgumen
  * The tool's own argument preparation, then the repair, then the schema
  * validation Pi runs next. Throws only what the tool's own preparation throws.
  *
- * A mavis_* tool is refused here even with valid arguments. It stands for a
- * mavis command, and only run_code runs it as that mavis call; run as itself,
- * the permission gate and Plugin hooks would see `mavis_<command>` instead of
- * `mavis`, and rules written for mavis would not apply. The model gets the
+ * A alran_* tool is refused here even with valid arguments. It stands for a
+ * alran command, and only run_code runs it as that alran call; run as itself,
+ * the permission gate and Plugin hooks would see `alran_<command>` instead of
+ * `alran`, and rules written for alran would not apply. The model gets the
  * run_code line, as for any call whose arguments stay invalid, and the
  * command was refused at the top level before it had a tool of its own.
  */
@@ -69,7 +69,7 @@ export function prepareDirectCallArguments(
 ): PreparedDirectCallArguments {
   const prepared = tool.def.prepareArguments ? tool.def.prepareArguments(args) : args;
   const normalized = normalizeDirectCallArguments(prepared, tool.def.schema);
-  const runCodeOnly = readPtcMavisChildTarget(tool)
+  const runCodeOnly = readPtcAlranChildTarget(tool)
     ? `${tool.def.name} runs only inside run_code in this turn.`
     : undefined;
   try {

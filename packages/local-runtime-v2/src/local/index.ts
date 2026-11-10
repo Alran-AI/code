@@ -10,11 +10,11 @@ export {
   QuestionnaireStatus,
   SessionTypeView,
   InstalledPluginSource,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 export type {
   ConversationSteerInput,
   ConversationSteerResult,
-} from "@mavis/conversation-contract";
+} from "@alran/conversation-contract";
 export type {
   AbortSessionInput as AbortSessionReq,
   AbortSessionResult as AbortSessionResp,
@@ -65,7 +65,7 @@ export type {
   UpdateQueueItemResult as UpdateQueueItemResp,
   UpdateSessionInput as UpdateSessionReq,
   UpdateSessionResult as UpdateSessionResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 export type {
   SessionLookupInput as GetSessionReq,

@@ -1,7 +1,7 @@
-import type { PiAfterToolCallHook, PiBeforeToolCallHook } from '@mavis/agent-core/pi-turn-runner';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import type { AgentExtension } from '@mavis/agent-runtime';
-import type { LocalBrowserAdapter, LocalBrowserToolExposure } from '@mavis/agent-tools/desktop';
+import type { PiAfterToolCallHook, PiBeforeToolCallHook } from '@alran/agent-core/pi-turn-runner';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import type { AgentExtension } from '@alran/agent-runtime';
+import type { LocalBrowserAdapter, LocalBrowserToolExposure } from '@alran/agent-tools/desktop';
 
 interface BrowserUseConfigSnapshot {
   readonly filePanelBrowserEnabled?: boolean;

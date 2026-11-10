@@ -6,8 +6,8 @@ import type {
   AgentHostTurnRuntimeToolBinding as DesktopTurnRuntimeToolBinding,
 } from '../../../turn-system/index.js';
 import type { AgentHostTurnHostBinding as DesktopTurnHostBinding } from '../../../turn-system/agent-host/assembly/turn-capability-lifecycle.js';
-import { McpNameRegistry, configuredMcpNameKey, pluginMcpNameKey } from '@mavis/mcp';
-import { buildPluginSkillRuntimeName } from '@mavis/shared';
+import { McpNameRegistry, configuredMcpNameKey, pluginMcpNameKey } from '@alran/mcp';
+import { buildPluginSkillRuntimeName } from '@alran/shared';
 
 import type {
   PluginAgent,
@@ -556,7 +556,7 @@ function enabledProjection(plugin: ReadPluginPackage): PluginSnapshotEnabledProj
 }
 
 function localIconUrl(iconPath: string): string {
-  return `/mavis/api/file/preview?path=${encodeURIComponent(iconPath)}`;
+  return `/alran/api/file/preview?path=${encodeURIComponent(iconPath)}`;
 }
 
 function collisionKey(value: string): string {

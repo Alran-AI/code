@@ -32,7 +32,7 @@ export function archivedRootPrefix(locale: string | undefined): string {
 }
 
 export function resolveArchiveTitleLocale(): string {
-  const electronLocale = process.env.MAVIS_ELECTRON_LOCALE?.trim();
+  const electronLocale = process.env.ALRAN_ELECTRON_LOCALE?.trim();
   if (electronLocale === 'en' || electronLocale === 'zh') return electronLocale;
   return Intl.DateTimeFormat().resolvedOptions().locale || 'en';
 }

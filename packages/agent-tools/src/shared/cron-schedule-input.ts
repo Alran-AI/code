@@ -1,12 +1,12 @@
 /** Stable validation error used when the adapter parses `after`/`at` and `every` inputs. */
-export class LocalMavisCronValidationError extends Error {
+export class LocalAlranCronValidationError extends Error {
   readonly status = 400;
   readonly statusCode = 400;
   readonly code = 'CRON_VALIDATION_ERROR';
 
   constructor(message: string) {
     super(message);
-    this.name = 'LocalMavisCronValidationError';
+    this.name = 'LocalAlranCronValidationError';
   }
 }
 
@@ -32,11 +32,11 @@ export function parseOnceRunAtMs(
   const hasAfter = typeof req.after === 'string' && req.after.trim().length > 0;
   const hasAt = req.at !== undefined && String(req.at).trim().length > 0;
   if (hasAfter === hasAt) {
-    throw new LocalMavisCronValidationError('cron once requires exactly one of `after` or `at`');
+    throw new LocalAlranCronValidationError('cron once requires exactly one of `after` or `at`');
   }
   const runAtMs = hasAfter ? now + parseDurationMs(req.after!) : parseAtMs(req.at!, req.timezone);
   if (!Number.isFinite(runAtMs) || runAtMs <= now) {
-    throw new LocalMavisCronValidationError('cron once target time must be in the future');
+    throw new LocalAlranCronValidationError('cron once target time must be in the future');
   }
   return runAtMs;
 }
@@ -58,7 +58,7 @@ function parseAtMs(input: string | number, timezone: string | undefined): number
     : raw;
   const parsed = Date.parse(normalized);
   if (Number.isNaN(parsed)) {
-    throw new LocalMavisCronValidationError(`Invalid cron once at time: ${JSON.stringify(input)}`);
+    throw new LocalAlranCronValidationError(`Invalid cron once at time: ${JSON.stringify(input)}`);
   }
   return parsed;
 }
@@ -89,7 +89,7 @@ function validateTimeZone(timezone: string): void {
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: timezone }).format(new Date(0));
   } catch {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       `Invalid cron once timezone: ${JSON.stringify(timezone)}`,
     );
   }
@@ -116,7 +116,7 @@ function zonedWallClockToEpochMs(parts: WallClockParts, timezone: string): numbe
     resolved.minute !== parts.minute ||
     resolved.second !== parts.second
   ) {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       `Invalid cron once at time for timezone ${timezone}: nonexistent wall-clock time`,
     );
   }
@@ -181,7 +181,7 @@ function parseDurationMs(input: string): number {
     rest = rest.slice(match[0].length);
   }
   if (!total || rest) {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       `Invalid cron once after duration: ${JSON.stringify(input)}`,
     );
   }
@@ -196,14 +196,14 @@ function parseDurationMs(input: string): number {
 export function everyToCronExpression(every: string): string {
   const raw = every.trim().toLowerCase();
   if (!raw) {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       'cron self `every` is empty; try "5m" or a cron expression',
     );
   }
   if (/\s/.test(raw)) {
     const parts = raw.split(/\s+/);
     if (parts.length < 5 || parts.length > 6) {
-      throw new LocalMavisCronValidationError(
+      throw new LocalAlranCronValidationError(
         `cannot parse cron self interval ${JSON.stringify(every)}: expected a duration like "5m" or a 5-field cron expression`,
       );
     }
@@ -225,7 +225,7 @@ function parseIntervalSeconds(raw: string, original: string): number {
     total += amount * (DURATION_UNIT_MS[unit]! / 1000);
   }
   if (!total || consumed !== raw) {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       `cannot parse cron self interval ${JSON.stringify(original)}: expected a duration like "5m" or a cron expression`,
     );
   }
@@ -234,7 +234,7 @@ function parseIntervalSeconds(raw: string, original: string): number {
 
 function intervalSecondsToCron(seconds: number, original: string): string {
   if (seconds < 60) {
-    throw new LocalMavisCronValidationError(
+    throw new LocalAlranCronValidationError(
       `cron self interval ${JSON.stringify(original)} is below the 1-minute minimum; use a cron expression for sub-minute cadences`,
     );
   }
@@ -252,7 +252,7 @@ function intervalSecondsToCron(seconds: number, original: string): string {
       if (days <= 31) return `0 0 */${days} * *`;
     }
   }
-  throw new LocalMavisCronValidationError(
+  throw new LocalAlranCronValidationError(
     `cron self interval ${JSON.stringify(original)} has no faithful cron form; use a whole number of minutes (<60), hours (<24), or days (<=31), or pass an explicit cron expression`,
   );
 }
@@ -263,6 +263,6 @@ export function appendQuietOnSkipPromptSuffix(basePrompt: string, quietOnSkip: b
     basePrompt.trimEnd(),
     '',
     '---',
-    '[gate-discipline] If your guard condition is not met (CI still running, MR not merged, no new evidence), wrap a one-line status in `<mavis-progress>...</mavis-progress>` and exit. The progress tag lets the user glance at "still waiting" without lighting up an unread notification. Do NOT send IMs and do NOT write plain replies on skip ticks.',
+    '[gate-discipline] If your guard condition is not met (CI still running, MR not merged, no new evidence), wrap a one-line status in `<alran-progress>...</alran-progress>` and exit. The progress tag lets the user glance at "still waiting" without lighting up an unread notification. Do NOT send IMs and do NOT write plain replies on skip ticks.',
   ].join('\n');
 }

@@ -3,7 +3,7 @@ import {
   ThinkingMode,
   type IAgentConfig,
   type IModelCapabilities,
-} from '@mavis/protocol';
+} from '@alran/protocol';
 import { describe, expect, it, vi } from 'vitest';
 
 import { streamSimple } from '@earendil-works/pi-ai';
@@ -90,7 +90,7 @@ describe('LocalModelResolver', () => {
             baseURL: 'https://provider.example/v1/',
             headers: {
               Existing: 'kept',
-              'X-Mavis-Session-Id': 'stale',
+              'X-Alran-Session-Id': 'stale',
             },
           },
           models: {
@@ -122,8 +122,8 @@ describe('LocalModelResolver', () => {
       },
       headers: {
         Existing: 'kept',
-        'X-Mavis-Session-Id': 'session-native',
-        'X-Mavis-Agent-Id': 'agent-native',
+        'X-Alran-Session-Id': 'session-native',
+        'X-Alran-Agent-Id': 'agent-native',
       },
     });
     expect(resolved.fetch).toBe(fetchImpl);
@@ -190,7 +190,7 @@ describe('LocalModelResolver', () => {
           options: {
             authMode: 'managed-login',
             apiKey: 'sk-xxx',
-            baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
+            baseURL: 'https://api.ottili.one/alran/api/v1/llm/v1',
           },
         },
       },
@@ -211,12 +211,12 @@ describe('LocalModelResolver', () => {
     expect(authContextGetter).toHaveBeenCalledOnce();
     expect(resolved.apiKey).toBe('sk-xxx');
     expect(resolved.managedProvider).toBe(true);
-    expect(resolved.model.baseUrl).toBe('https://api.ottili.one/mavis/api/v1/llm');
+    expect(resolved.model.baseUrl).toBe('https://api.ottili.one/alran/api/v1/llm');
     expect(resolved.model.compat?.supportsLongCacheRetention).toBe(false);
     expect(resolved.headers).toMatchObject({
       Authorization: 'Bearer managed-token',
       'User-Agent': 'AlranAgent',
-      'X-Mavis-Session-Id': 'session-managed',
+      'X-Alran-Session-Id': 'session-managed',
     });
     expect(resolved.fileApiGatewayAuth).toMatchObject({
       gatewayHeaders: { Authorization: 'Bearer managed-token' },
@@ -257,7 +257,7 @@ describe('LocalModelResolver', () => {
             options: {
               authMode: 'managed-login',
               apiKey: 'sk-xxx',
-              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/alran/api/v1/llm/v1',
             },
           },
         },
@@ -275,7 +275,7 @@ describe('LocalModelResolver', () => {
       for (acceptedVersion = 2; acceptedVersion <= 7; acceptedVersion += 1) {
         // Each expiry is followed by another LLM step using the same resolved headers.
         for (let step = 0; step < 2; step += 1) {
-          const response = await resolved.fetch?.('https://api.ottili.one/mavis/api/v1/llm', {
+          const response = await resolved.fetch?.('https://api.ottili.one/alran/api/v1/llm', {
             method: 'POST',
             headers: resolved.headers,
             body: '{}',
@@ -319,7 +319,7 @@ describe('LocalModelResolver managed auth continuity', () => {
             options: {
               authMode: 'managed-login',
               apiKey: 'sk-xxx',
-              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/alran/api/v1/llm/v1',
             },
           },
         },
@@ -337,7 +337,7 @@ describe('LocalModelResolver managed auth continuity', () => {
         loginEpoch: transition === 'same-login' ? 'login-A' : 'login-B',
       });
       const resolved = await resolving;
-      const response = await resolved.fetch?.('https://api.ottili.one/mavis/api/v1/llm', {
+      const response = await resolved.fetch?.('https://api.ottili.one/alran/api/v1/llm', {
         headers: resolved.headers,
       });
 
@@ -555,7 +555,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       headers: {
         ProviderHeader: 'provider',
         ModelHeader: 'model',
-        'X-Mavis-Session-Id': 'session-custom',
+        'X-Alran-Session-Id': 'session-custom',
       },
     });
   });
@@ -593,7 +593,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       'HTTP-Referer': 'https://api.ottili.one/',
       'X-OpenRouter-Title': 'Alran Code',
       'X-OpenRouter-Categories': 'cli-agent',
-      'X-Mavis-Session-Id': 'session-openrouter',
+      'X-Alran-Session-Id': 'session-openrouter',
     });
     expect(resolved.headers).not.toHaveProperty('http-referer');
     expect(resolved.headers).not.toHaveProperty('x-openrouter-title');
@@ -1045,7 +1045,7 @@ describe('LocalModelResolver credentials and thinking', () => {
         alran: {
           options: {
             apiKey: 'sk-xxx',
-            baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
+            baseURL: 'https://api.ottili.one/alran/api/v1/llm/v1',
           },
         },
       },

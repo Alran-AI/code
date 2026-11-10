@@ -1,26 +1,26 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
 const REGION_PREFERENCE_DIRECTORY = 'preferences';
 const REGION_PREFERENCE_FILE = 'alran-region.json';
 
 interface TuiRegionPreferenceRecord {
   readonly version: 1;
-  readonly regions: Partial<Record<MavisBuildEnv, MavisRegion>>;
+  readonly regions: Partial<Record<AlranBuildEnv, AlranRegion>>;
   readonly updatedAtMs: number;
 }
 
 export interface TuiRegionPreference {
-  readonly buildEnv: MavisBuildEnv;
-  readonly region: MavisRegion;
+  readonly buildEnv: AlranBuildEnv;
+  readonly region: AlranRegion;
 }
 
 export function readTuiRegionPreference(
   dataDir: string,
-  buildEnv: MavisBuildEnv,
-): MavisRegion | undefined {
+  buildEnv: AlranBuildEnv,
+): AlranRegion | undefined {
   try {
     const parsed = JSON.parse(
       fs.readFileSync(resolveTuiRegionPreferencePath(dataDir), 'utf8'),

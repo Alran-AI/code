@@ -4,13 +4,13 @@ import {
   type AssistantMessage,
   type AssistantMessageEventStream,
 } from '@earendil-works/pi-ai';
-import { ThinkingLevel } from '@mavis/protocol';
+import { ThinkingLevel } from '@alran/protocol';
 import {
   projectAgentMessagesForModel,
   type LLMRequestSettledEvent,
-} from '@mavis/agent-core/pi-turn-runner';
-import { createDefaultTokenEstimator } from '@mavis/context-manager';
-import type { PromptReadSnapshot } from '@mavis/agent-runtime';
+} from '@alran/agent-core/pi-turn-runner';
+import { createDefaultTokenEstimator } from '@alran/context-manager';
+import type { PromptReadSnapshot } from '@alran/agent-runtime';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildLocalRequestPayloadTransform } from '../../agent-host/assembly/local-turn-payload-transform.js';

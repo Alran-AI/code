@@ -1,5 +1,5 @@
-import type { PromptConfig } from '@mavis/config';
-import type { PromptSnapshotSource } from '@mavis/agent-runtime';
+import type { PromptConfig } from '@alran/config';
+import type { PromptSnapshotSource } from '@alran/agent-runtime';
 import { LocalPromptSnapshotSource } from '../../service/agent/index.js';
 import {
   initializeRuntimePromptSupport,

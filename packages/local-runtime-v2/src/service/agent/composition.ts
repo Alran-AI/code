@@ -1,6 +1,6 @@
 import { count } from 'drizzle-orm';
 
-import { logger } from '@mavis/shared/local-runtime-logging';
+import { logger } from '@alran/shared/local-runtime-logging';
 
 import type { AppDb } from '../../infra/db/client.js';
 import { agents } from '../../infra/db/schema/agents.js';

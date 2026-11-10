@@ -179,7 +179,7 @@ export interface AgentEnv {
    * Absolute path to the shared root-session scratchpad file. Inherited by
    * child sessions from their root, so both Main and Branch sessions see
    * the same path. Surfaces in `<agent-context>` as `YOUR SCRATCHPAD: ...`
-   * and is also exported as `MAVIS_SCRATCHPAD` in the agent's shells.
+   * and is also exported as `ALRAN_SCRATCHPAD` in the agent's shells.
    */
   scratchpadPath?: string | undefined;
   /** True when running from monorepo source (pnpm dev), false for npm bundle. */
@@ -275,7 +275,7 @@ export interface SystemReminderInput {
   memorySkillReminder?: MemorySkillReminderStatus | undefined;
   /** Topic-file summaries for rendering available memory topics without filesystem reads in agent-core. */
   memoryTopics?: MemoryTopicSummary[] | undefined;
-  /** Memory files that predate the mavis CLI removal and still teach removed CLI commands. */
+  /** Memory files that predate the alran CLI removal and still teach removed CLI commands. */
   cliSunsetMemoryNotice?: CliSunsetMemoryNotice | undefined;
   /** Updated identity — injected when PERSONA.md changes mid-session. */
   identityUpdate?: AgentIdentity | undefined;
@@ -335,12 +335,12 @@ export interface SystemReminderInput {
   /**
    * True when skill-evolve is enabled AND the agent is not excluded from signal/proposal guidance.
    * Controls injection of the <skill-evolution-channels> teaching block AND the
-   * `mavis skill signal report` trigger line inside the <memory-skill-reminder> block.
+   * `alran skill signal report` trigger line inside the <memory-skill-reminder> block.
    */
   skillEvolveEnabled?: boolean | undefined;
   /**
    * True when the skill-proposal pipeline (`skillEvolve.proposal.enabled`) is on
-   * for this agent. Independently controls the `mavis skill proposal report`
+   * for this agent. Independently controls the `alran skill proposal report`
    * trigger line inside the <memory-skill-reminder> block. Always false when
    * `skillEvolveEnabled` is false (parent gate). The signal trigger line and
    * the proposal trigger line gate independently — when both are off, the
@@ -348,11 +348,11 @@ export interface SystemReminderInput {
    * three-question memory-layer attribution test.
    */
   skillProposalEnabled?: boolean | undefined;
-  /** Effective Mavis feature availability. Undefined preserves cloud/legacy behavior. */
-  mavisEnabled?: boolean | undefined;
+  /** Effective Alran feature availability. Undefined preserves cloud/legacy behavior. */
+  alranEnabled?: boolean | undefined;
   /**
    * Effective scheduled-task availability for this turn. `false` on runtime
-   * hosts that expose the Mavis tool without a Cron adapter — notably the
+   * hosts that expose the Alran tool without a Cron adapter — notably the
    * embedded CLI, which disables Cron alongside memory/browser/CU. Reminders
    * that tell the agent to schedule follow-up work MUST honor this, otherwise
    * they send the agent after a capability the host answers with
@@ -472,8 +472,8 @@ export interface MemoryTopicSummary {
 
 /** Stale-memory warning payload for the <cli-sunset-memory-notice> block. */
 export interface CliSunsetMemoryNotice {
-  /** Absolute paths of memory files that still reference removed mavis CLI commands. */
+  /** Absolute paths of memory files that still reference removed alran CLI commands. */
   paths: string[];
-  /** Paths referencing `mavis team` — a surviving CLI whose workflows changed; advisory tier. */
+  /** Paths referencing `alran team` — a surviving CLI whose workflows changed; advisory tier. */
   teamPaths?: string[];
 }

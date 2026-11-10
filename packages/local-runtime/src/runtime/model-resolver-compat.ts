@@ -1,5 +1,5 @@
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { isFirstPartyAlranRoute } from '@mavis/config';
+import { isFirstPartyAlranRoute } from '@alran/config';
 
 export function resolveLocalModelCompatibility(input: {
   api: Api;

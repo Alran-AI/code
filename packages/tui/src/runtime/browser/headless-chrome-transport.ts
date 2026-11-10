@@ -12,8 +12,8 @@ import type {
   BrowserTransportCommandOptions,
   BrowserTransportEvent,
   BrowserTransportEventListener,
-} from '@mavis/browser-core';
-import { describeCdpException } from '@mavis/browser-core';
+} from '@alran/browser-core';
+import { describeCdpException } from '@alran/browser-core';
 import { CdpConnection } from './headless-cdp-connection.js';
 
 const DEFAULT_VIEWPORT = { width: 1280, height: 900 };

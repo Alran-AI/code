@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDeliverAssetsContent } from '@mavis/shared/asset-markup';
+import { parseDeliverAssetsContent } from '@alran/shared/asset-markup';
 import { projectAssistantContentForTerminal } from '../../src/application/assistant-content.js';
 
 describe('terminal attachment projection', () => {

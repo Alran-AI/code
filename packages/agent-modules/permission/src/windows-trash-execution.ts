@@ -6,7 +6,7 @@
 import { parseScriptPlainCommands } from './tools/bash-ast.js';
 import { shellTokenizeWithMetadata } from './tools/shell-tokenize.js';
 
-const WINDOWS_TRASH_EXECUTION = Symbol.for('@mavis/permission/windows-trash-execution');
+const WINDOWS_TRASH_EXECUTION = Symbol.for('@alran/permission/windows-trash-execution');
 
 export interface WindowsTrashExecution {
   readonly targets: readonly string[];

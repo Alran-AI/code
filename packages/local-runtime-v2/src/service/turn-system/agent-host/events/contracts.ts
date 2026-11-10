@@ -1,5 +1,5 @@
-import type { RuntimeEvent } from '@mavis/agent-core/protocol';
-import type { TurnAssemblyCtx } from '@mavis/agent-runtime';
+import type { RuntimeEvent } from '@alran/agent-core/protocol';
+import type { TurnAssemblyCtx } from '@alran/agent-runtime';
 
 import type { CommittedHistoryChange } from '../history/contracts.js';
 import type { AgentHostTurnProvenance } from '../preparation/contracts.js';

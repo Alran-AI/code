@@ -1444,7 +1444,7 @@ export interface DeleteAgentResult {
   success?: boolean;
 }
 
-export interface AgentConfiguredMavisFields {
+export interface AgentConfiguredAlranFields {
   displayName?: string;
   avatar?: string;
   contextWindow?: number;
@@ -1462,7 +1462,7 @@ export interface AgentConfiguredDefinition {
   disallowedTools?: string[];
   mcpServers?: string[];
   skills?: string[];
-  mavis?: AgentConfiguredMavisFields;
+  alran?: AgentConfiguredAlranFields;
   systemPrompt: string;
 }
 

@@ -17,8 +17,8 @@ import {
   replaceRequestImages,
   resolveMaxImagesPerRequest,
   type RequestImage,
-} from '@mavis/agent-core/pi-turn-runner';
-import { type ProgrammaticImageEncoding, recordImageEncodedContent } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/pi-turn-runner';
+import { type ProgrammaticImageEncoding, recordImageEncodedContent } from '@alran/agent-core/tools';
 
 /** Strictest known per-image provider limit, in base64 bytes. */
 export const PROVIDER_IMAGE_MAX_BASE64_BYTES = 5 * 1024 * 1024;

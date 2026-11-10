@@ -28,7 +28,7 @@ import { readLocalAlranPluginPackage } from '../../package/package-readers.js';
 import type { ScannedLocalPluginPackage } from '../../package/types.js';
 import { writeWorkspaceMiniAppScaffold } from './workspace-scaffold.js';
 
-const WORKSPACE_INIT_MARKER = '.mavis-miniapp-init';
+const WORKSPACE_INIT_MARKER = '.alran-miniapp-init';
 const WORKSPACE_PACKAGE_DIRECTORIES = ['miniapps', 'liveboards'] as const;
 
 type WorkspacePackageDirectory = (typeof WORKSPACE_PACKAGE_DIRECTORIES)[number];

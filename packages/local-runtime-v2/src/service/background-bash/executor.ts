@@ -1,7 +1,7 @@
 import { StringDecoder } from 'node:string_decoder';
 
 import { createBashTool, type BashOperations } from '@earendil-works/pi-coding-agent/tools';
-import { createBashEnvSpawnHook } from '@mavis/agent-core/bash-subprocess-env';
+import { createBashEnvSpawnHook } from '@alran/agent-core/bash-subprocess-env';
 import {
   localBashResultFromError,
   localBashResultFromPi,
@@ -9,7 +9,7 @@ import {
   type LocalSandboxBashOperationsFactory,
   type LocalBashEnvPolicySource,
   resolvePermissionBashEnvPolicy,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import type { LocalBackgroundBashExecutor } from './contracts.js';
 

@@ -1,4 +1,4 @@
-import { getRuntimeBuildEnv } from '@mavis/config';
+import { getRuntimeBuildEnv } from '@alran/config';
 
 import {
   ContextUsageCalibrationCoordinator,
@@ -34,7 +34,7 @@ export function createContextUsageRuntime(
   const providerDiagnosticCounter =
     getRuntimeBuildEnv() !== 'prod' &&
     (options.contextUsageProviderDiagnosticCounter ||
-      process.env.MAVIS_CONTEXT_USAGE_PROVIDER_DIAGNOSTICS === '1')
+      process.env.ALRAN_CONTEXT_USAGE_PROVIDER_DIAGNOSTICS === '1')
       ? (options.contextUsageProviderDiagnosticCounter ??
         new HttpRemoteTokenCounter({
           timeoutMs: 10_000,

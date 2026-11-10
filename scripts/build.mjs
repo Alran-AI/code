@@ -31,15 +31,16 @@ const packages = new Map(
   }),
 );
 const location = createTuiBundleModuleLocationConfig();
-// The environment the bundle is built for. Local builds talk to the local
-// Platform and gateway; the release workflow sets MAVIS_BUILD_ENV=prod so a
-// published CLI signs in to the real ottili.one services.
+// The environment the bundle is built for. A plain build signs in to the real
+// ottili.one services; set ALRAN_BUILD_ENV=test (or --env test) to point a
+// local build at the local Platform and gateway. The release workflow sets
+// ALRAN_BUILD_ENV=prod so a published CLI signs in to the real services.
 const EMBEDDED_BUILD_ENV =
-  process.env.MAVIS_BUILD_ENV === "prod"
-    ? "prod"
-    : process.env.MAVIS_BUILD_ENV === "staging"
-      ? "staging"
-      : "test";
+  process.env.ALRAN_BUILD_ENV === "staging"
+    ? "staging"
+    : process.env.ALRAN_BUILD_ENV === "test"
+      ? "test"
+      : "prod";
 const outdir = path.join(root, "dist");
 rmSync(outdir, { recursive: true, force: true });
 mkdirSync(outdir, { recursive: true });

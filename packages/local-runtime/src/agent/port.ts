@@ -1,11 +1,11 @@
 import {
   resolveCanonicalSubagentRole,
   type CanonicalSubagentRole,
-} from '@mavis/agent-tools/desktop/subagent-roles';
-import type { LocalPluginAgentDefinition } from '@mavis/agent-tools/desktop';
-import type { AgentReferenceReadScope, AgentReferenceResolver } from '@mavis/shared';
+} from '@alran/agent-tools/desktop/subagent-roles';
+import type { LocalPluginAgentDefinition } from '@alran/agent-tools/desktop';
+import type { AgentReferenceReadScope, AgentReferenceResolver } from '@alran/shared';
 
-export type { AgentReferenceReadScope, AgentReferenceResolver } from '@mavis/shared';
+export type { AgentReferenceReadScope, AgentReferenceResolver } from '@alran/shared';
 
 /** Private execution facts composed from the four neutral Agent intents. */
 export interface LocalTaskTargetFacts {

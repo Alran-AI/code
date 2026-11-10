@@ -1,4 +1,4 @@
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 import {
   createAuthNamespace,
   createCredentialStore,
@@ -7,12 +7,12 @@ import {
   AlranOAuthCore,
   type HttpOAuthClientOptions,
   type OAuthClient,
-} from '@mavis/oauth-core';
+} from '@alran/oauth-core';
 
 export interface CreateAlranSharedAuthSessionOptions {
   dataDir: string;
-  region: MavisRegion;
-  buildEnv: MavisBuildEnv;
+  region: AlranRegion;
+  buildEnv: AlranBuildEnv;
   oauthClient?: OAuthClient;
   oauthEndpoints?: Pick<
     HttpOAuthClientOptions,

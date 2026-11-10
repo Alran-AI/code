@@ -1,4 +1,4 @@
-import type { ConversationRootReplacement } from '@mavis/conversation-contract';
+import type { ConversationRootReplacement } from '@alran/conversation-contract';
 
 import type {
   CommittedQueueCapability,

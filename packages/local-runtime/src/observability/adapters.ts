@@ -52,7 +52,7 @@ export function createThreadGoalObservabilityEventSink(
       ...(typeof payload.turnId === "string" ? { turnId: payload.turnId } : {}),
     });
     child.info("Thread Goal runtime decision", {
-      schema: "mavis.goal_runtime_event.v1",
+      schema: "alran.goal_runtime_event.v1",
       eventType: event.type,
       eventAtMs: event.at,
       payload,

@@ -6,8 +6,8 @@ import {
   replaceRequestImages,
   type PiTurnRunnerLogger,
   type RequestImage,
-} from '@mavis/agent-core/pi-turn-runner';
-import { archivedImageText } from '@mavis/context-manager';
+} from '@alran/agent-core/pi-turn-runner';
+import { archivedImageText } from '@alran/context-manager';
 
 import type { ToolResultCompactionConfig } from '../contracts.js';
 import { parseToolRounds, type ToolCallIdentity, type ToolRound } from './history-reduction.js';

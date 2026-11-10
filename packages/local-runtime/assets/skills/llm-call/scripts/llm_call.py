@@ -29,7 +29,7 @@ import yaml
 
 def _default_data_dir() -> Path:
     return Path(
-        os.environ.get('__MAVIS_PARENT_DATA_DIR')
+        os.environ.get('__ALRAN_PARENT_DATA_DIR')
         or os.environ.get('ALRAN_DATA_DIR')
         or str(Path.home() / ".alran")
     )

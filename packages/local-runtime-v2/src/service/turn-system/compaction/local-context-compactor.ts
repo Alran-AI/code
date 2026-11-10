@@ -5,13 +5,13 @@ import { DEFAULT_COMPACTION_SETTINGS } from '@earendil-works/pi-coding-agent/com
 import {
   projectAgentMessagesForModel,
   type PiTurnRunnerLogger,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import {
   createDefaultTokenEstimator,
   estimatePreparedContextUsage,
   readContextWindowTokens,
   resolveCompactionTokenBudget,
-} from '@mavis/context-manager';
+} from '@alran/context-manager';
 
 import type {
   ContextCompactionHooks,

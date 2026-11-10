@@ -1,5 +1,5 @@
-import { getRuntimePresetKey, resolveModelAvailability } from '@mavis/config';
-import { ThinkingLevel } from '@mavis/protocol';
+import { getRuntimePresetKey, resolveModelAvailability } from '@alran/config';
+import { ThinkingLevel } from '@alran/protocol';
 
 import type { LocalConversationRuntimeConfig, LocalModelConfig } from '../contracts.js';
 import { MANAGED_ALRAN_PROVIDER_ID } from '../identity.js';

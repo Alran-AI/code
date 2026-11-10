@@ -27,7 +27,7 @@ describe('BuiltinAgentFiles startup reload', () => {
   const bundled = {
     name: 'explore',
     description: 'Explore repositories',
-    features: { mavis: false, delegation: false, webSearch: true },
+    features: { alran: false, delegation: false, webSearch: true },
     systemPrompt: 'Current bundled body.',
   } as const;
 
@@ -115,22 +115,22 @@ describe('BuiltinAgentFiles startup reload', () => {
 
 describe('BuiltinAgentFiles corrupted Builtin repair', () => {
   const bundled = {
-    name: 'mavis',
-    description: 'Mavis',
-    features: { mavis: true, delegation: true, webSearch: true },
+    name: 'alran',
+    description: 'Alran',
+    features: { alran: true, delegation: true, webSearch: true },
     systemPrompt: 'Bundled template.',
   };
 
   async function corruptedBuiltin(prefix: string, raw: Buffer) {
     const { files, builtinFiles } = await createFiles(prefix);
-    const agentDir = files.builtinAgentDir('mavis');
+    const agentDir = files.builtinAgentDir('alran');
     await mkdir(agentDir, { recursive: true });
     await writeFile(join(agentDir, 'agent.md'), raw);
     return { files, builtinFiles, agentDir, archiveFile: `.agent.md.corrupted.${sha256(raw)}.raw` };
   }
 
   it.each([
-    ['broken frontmatter', Buffer.from('---\r\nname: mavis\r\ntools: [\r\n---\r\n用户提示词\r\n')],
+    ['broken frontmatter', Buffer.from('---\r\nname: alran\r\ntools: [\r\n---\r\n用户提示词\r\n')],
     ['plain text without frontmatter', Buffer.from('你是我的私人助理。\nKeep answers short.\n')],
   ])(
     'archives %s byte-for-byte and rewrites agent.md from the bundled template',
@@ -139,34 +139,34 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
         'agent-files-builtin-corrupted-',
         raw,
       );
-      await expect(files.getBuiltinCanonicalConfig('mavis')).rejects.toMatchObject({
+      await expect(files.getBuiltinCanonicalConfig('alran')).rejects.toMatchObject({
         code: 'AGENT_CONFIG_INVALID',
       });
 
-      await expect(builtinFiles.repair('mavis', bundled)).resolves.toEqual({ archiveFile });
+      await expect(builtinFiles.repair('alran', bundled)).resolves.toEqual({ archiveFile });
 
       expect((await readFile(join(agentDir, archiveFile))).equals(raw)).toBe(true);
-      await expect(files.getBuiltinCanonicalConfig('mavis')).resolves.toMatchObject({
-        name: 'mavis',
+      await expect(files.getBuiltinCanonicalConfig('alran')).resolves.toMatchObject({
+        name: 'alran',
         systemPrompt: 'Bundled template.',
       });
     },
   );
 
   it('does not create another archive when the same corrupted bytes are repaired again', async () => {
-    const raw = Buffer.from('---\nname: [mavis\n---\nBody\n');
+    const raw = Buffer.from('---\nname: [alran\n---\nBody\n');
     const { files, builtinFiles, agentDir, archiveFile } = await corruptedBuiltin(
       'agent-files-builtin-corrupted-repeat-',
       raw,
     );
-    await builtinFiles.repair('mavis', bundled);
+    await builtinFiles.repair('alran', bundled);
     await writeFile(join(agentDir, 'agent.md'), raw);
 
-    await expect(builtinFiles.repair('mavis', bundled)).resolves.toEqual({ archiveFile });
+    await expect(builtinFiles.repair('alran', bundled)).resolves.toEqual({ archiveFile });
 
     const archives = (await readdir(agentDir)).filter((name) => name.includes('.corrupted.'));
     expect(archives).toEqual([archiveFile]);
-    await expect(files.getBuiltinCanonicalConfig('mavis')).resolves.toMatchObject({
+    await expect(files.getBuiltinCanonicalConfig('alran')).resolves.toMatchObject({
       systemPrompt: 'Bundled template.',
     });
   });
@@ -180,7 +180,7 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
     const failure = new Error('private archive staging unavailable');
     vi.spyOn(filePublication, 'publishFileIfAbsent').mockRejectedValueOnce(failure);
 
-    await expect(builtinFiles.repair('mavis', bundled)).rejects.toMatchObject({
+    await expect(builtinFiles.repair('alran', bundled)).rejects.toMatchObject({
       name: 'BuiltinAgentConfigRepairError',
       stage: 'archive',
       failure,
@@ -206,7 +206,7 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
       },
     );
 
-    await expect(builtinFiles.repair('mavis', bundled)).rejects.toMatchObject({
+    await expect(builtinFiles.repair('alran', bundled)).rejects.toMatchObject({
       stage: 'rewrite',
       archiveFile,
     });
@@ -219,25 +219,25 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
     // The in-lock re-check must be the full startup read: a YAML-only check
     // would call this file valid and skip the repair.
     const { files, builtinFiles } = await createFiles('agent-files-builtin-corrupted-avatar-');
-    await builtinFiles.seed('mavis', bundled);
-    const agentDir = files.builtinAgentDir('mavis');
+    await builtinFiles.seed('alran', bundled);
+    const agentDir = files.builtinAgentDir('alran');
     const agentFile = join(agentDir, 'agent.md');
     const raw = Buffer.from(
       (await readFile(agentFile, 'utf8')).replace(
         /^---\n/u,
-        '---\nx-mavis:\n  avatar: ./avatar.png\n',
+        '---\nx-alran:\n  avatar: ./avatar.png\n',
       ),
     );
     await writeFile(agentFile, raw);
-    await expect(files.getBuiltinCanonicalConfig('mavis')).rejects.toMatchObject({
+    await expect(files.getBuiltinCanonicalConfig('alran')).rejects.toMatchObject({
       code: 'AGENT_CONFIG_AVATAR_INVALID',
     });
 
     const archiveFile = `.agent.md.corrupted.${sha256(raw)}.raw`;
-    await expect(builtinFiles.repair('mavis', bundled)).resolves.toEqual({ archiveFile });
+    await expect(builtinFiles.repair('alran', bundled)).resolves.toEqual({ archiveFile });
 
     expect((await readFile(join(agentDir, archiveFile))).equals(raw)).toBe(true);
-    await expect(files.getBuiltinCanonicalConfig('mavis')).resolves.toMatchObject({
+    await expect(files.getBuiltinCanonicalConfig('alran')).resolves.toMatchObject({
       systemPrompt: 'Bundled template.',
     });
   });
@@ -246,13 +246,13 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
     const { dataDir, files, builtinFiles } = await createFiles(
       'agent-files-builtin-corrupted-link-',
     );
-    const agentDir = files.builtinAgentDir('mavis');
+    const agentDir = files.builtinAgentDir('alran');
     await mkdir(agentDir, { recursive: true });
     const outside = join(dataDir, 'outside.md');
     await writeFile(outside, 'outside secret\n', 'utf8');
     await symlink(outside, join(agentDir, 'agent.md'));
 
-    await expect(builtinFiles.repair('mavis', bundled)).rejects.toMatchObject({
+    await expect(builtinFiles.repair('alran', bundled)).rejects.toMatchObject({
       stage: 'archive',
     });
 

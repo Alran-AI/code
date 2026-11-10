@@ -1,5 +1,5 @@
 import { getShellConfig } from '@earendil-works/pi-coding-agent/shell';
-import type { ToolDefinition } from '@mavis/agent-core/tools';
+import type { ToolDefinition } from '@alran/agent-core/tools';
 import { Clone, Type } from '@sinclair/typebox';
 
 import { LocalBashToolDef } from './builtin-defs.js';

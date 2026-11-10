@@ -87,34 +87,34 @@ export type { TuiConfig, TuiCustomStatusLineConfig } from "./tui-config.js";
 declare const __IS_NPM_BUILD__: boolean | undefined;
 
 function isLegacyRuntimeEnvAllowed(): boolean {
-  return process.env.__MAVIS_ALLOW_LEGACY_RUNTIME_ENV === "1";
+  return process.env.__ALRAN_ALLOW_LEGACY_RUNTIME_ENV === "1";
 }
 
 // ---------------------------------------------------------------------------
-// Runtime environment types & helpers (MAVIS_* plus Electron cold-start fallbacks)
+// Runtime environment types & helpers (ALRAN_* plus Electron cold-start fallbacks)
 // ---------------------------------------------------------------------------
 
-export type MavisRegion = "cn" | "en";
-export type MavisBuildEnv = "test" | "prod" | "dev" | "staging";
+export type AlranRegion = "cn" | "en";
+export type AlranBuildEnv = "test" | "prod" | "dev" | "staging";
 
 // Electron loads the config package before local-runtime's managed-env
-// bootstrap has copied the build-time NEXT_PUBLIC_* values into MAVIS_*.
+// bootstrap has copied the build-time NEXT_PUBLIC_* values into ALRAN_*.
 // Keep this mapping local to config so the first (sticky) beta-flag read sees
 // the packaged build environment. Electron's dev build uses the test runtime.
-const ELECTRON_BUILD_ENV_TO_RUNTIME: Readonly<Record<string, MavisBuildEnv>> = {
+const ELECTRON_BUILD_ENV_TO_RUNTIME: Readonly<Record<string, AlranBuildEnv>> = {
   dev: "test",
   test: "test",
   staging: "staging",
   prod: "prod",
 };
 
-function isValidRuntimeRegion(value: string | undefined): value is MavisRegion {
+function isValidRuntimeRegion(value: string | undefined): value is AlranRegion {
   return value === "cn" || value === "en";
 }
 
 function isValidRuntimeBuildEnv(
   value: string | undefined,
-): value is MavisBuildEnv {
+): value is AlranBuildEnv {
   return (
     value === "test" ||
     value === "prod" ||
@@ -123,8 +123,8 @@ function isValidRuntimeBuildEnv(
   );
 }
 
-export function getRuntimeRegion(): MavisRegion {
-  const val = process.env.MAVIS_REGION;
+export function getRuntimeRegion(): AlranRegion {
+  const val = process.env.ALRAN_REGION;
   if (isValidRuntimeRegion(val)) return val;
 
   if (isElectronProcess()) {
@@ -136,8 +136,8 @@ export function getRuntimeRegion(): MavisRegion {
   return "en";
 }
 
-export function getRuntimeBuildEnv(): MavisBuildEnv {
-  const val = process.env.MAVIS_BUILD_ENV;
+export function getRuntimeBuildEnv(): AlranBuildEnv {
+  const val = process.env.ALRAN_BUILD_ENV;
   if (isValidRuntimeBuildEnv(val)) return val;
 
   if (isElectronProcess()) {
@@ -161,11 +161,11 @@ export function getRuntimeBuildEnv(): MavisBuildEnv {
  * packaged desktop runtime).
  *
  * Detection priority:
- *   1. Explicit __MAVIS_RUNTIME_MANAGED env var ('1'/'0') — for overrides
- *      - '1': force-enable (e.g. `__MAVIS_RUNTIME_MANAGED=1 pnpm dev` to test C-end locally)
+ *   1. Explicit __ALRAN_RUNTIME_MANAGED env var ('1'/'0') — for overrides
+ *      - '1': force-enable (e.g. `__ALRAN_RUNTIME_MANAGED=1 pnpm dev` to test C-end locally)
  *      - '0': force-disable (used by internal/no-safety Electron builds to opt out)
  *   2. Auto-detect Electron (main process or ELECTRON_RUN_AS_NODE=1 helpers)
- *   3. Auto-detect production build (MAVIS_BUILD_ENV=prod)
+ *   3. Auto-detect production build (ALRAN_BUILD_ENV=prod)
  *   4. Default: false (pnpm dev / npm package)
  *
  * C-end features (safety hooks, remote models, managed token injection,
@@ -173,7 +173,7 @@ export function getRuntimeBuildEnv(): MavisBuildEnv {
  */
 export function isManagedRuntime(): boolean {
   if (hasCliFlag("managed")) return true;
-  const explicit = process.env.__MAVIS_RUNTIME_MANAGED;
+  const explicit = process.env.__ALRAN_RUNTIME_MANAGED;
   if (explicit === "1") return true;
   if (explicit === "0") return false;
 
@@ -198,7 +198,7 @@ function isElectronProcess(): boolean {
   );
 }
 
-export type PresetKey = `${MavisRegion}-${MavisBuildEnv}`;
+export type PresetKey = `${AlranRegion}-${AlranBuildEnv}`;
 
 export function getRuntimePresetKey(): PresetKey {
   return `${getRuntimeRegion()}-${getRuntimeBuildEnv()}` as PresetKey;
@@ -376,7 +376,7 @@ export interface BetaConfig {
   skillProposal: boolean;
   /**
    * Browser bridge HTTP API and UI panel — drives a real Chrome session via
-   * the Mavis Browser Bridge extension (logged-in sites, persistent cookies,
+   * the Alran Browser Bridge extension (logged-in sites, persistent cookies,
    * extensions). `defaultVisibility: 'test', configurableVisibility:
    * 'online'` — ships ON in dev/test for daily use and OFF in prod by
    * default; prod users opt in via `beta.browserBridge: true` once they've
@@ -448,7 +448,7 @@ export interface BetaConfig {
    * /btw side-question peek command (the UI's "Aside" slash palette row). Both visibility fields
    * are `test`, so dev/test ships ON by default while prod is force-off regardless of config.yaml
    * (even `beta.peek: true` cannot open it).
-   * Fail-closed contract: local-runtime `/mavis/api/config` returns the resolved `beta.peek`, UI
+   * Fail-closed contract: local-runtime `/alran/api/config` returns the resolved `beta.peek`, UI
    * hydrates `runtimeFlagStore.peekEnabled` strictly from `beta?.peek === true`, and the composer
    * only exposes `/btw` when that flag is true.
    */
@@ -524,7 +524,7 @@ export interface BetaFeatureDef {
   /** Furthest channel where the feature is enabled without explicit config. */
   defaultVisibility: FeatureVisibility;
   /** Exact build environments where the feature is enabled without explicit config. */
-  defaultBuildEnvironments?: readonly MavisBuildEnv[];
+  defaultBuildEnvironments?: readonly AlranBuildEnv[];
   /** Platforms where any default rollout may enable the feature. */
   defaultPlatforms?: readonly NodeJS.Platform[];
   /**
@@ -676,8 +676,8 @@ export const BETA_FEATURE_DEFS = {
 assertBetaFeatureDefinitions(BETA_FEATURE_DEFS);
 
 export interface BetaFeatureResolutionContext {
-  buildEnv?: MavisBuildEnv;
-  defaultBuildEnvironment?: MavisBuildEnv;
+  buildEnv?: AlranBuildEnv;
+  defaultBuildEnvironment?: AlranBuildEnv;
   internalBuild?: boolean;
   insideBuild?: boolean;
   platform?: NodeJS.Platform;
@@ -717,7 +717,7 @@ function isDefaultEnabledForBuildEnvironment(
   return def.defaultBuildEnvironments?.includes(buildEnv) === true;
 }
 
-function getBetaDefaultBuildEnvironment(): MavisBuildEnv {
+function getBetaDefaultBuildEnvironment(): AlranBuildEnv {
   const electronBuildEnv = isElectronProcess()
     ? process.env.NEXT_PUBLIC_BUILD_ENV
     : undefined;
@@ -777,11 +777,11 @@ export function isBetaFeatureProdReady(feature: keyof BetaConfig): boolean {
 }
 
 export function isInternalBuild(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.__MAVIS_BUILD_INTERNAL === "true";
+  return env.__ALRAN_BUILD_INTERNAL === "true";
 }
 
 function isInsideBuild(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.__MAVIS_BUILD_INSIDE === "true";
+  return env.__ALRAN_BUILD_INSIDE === "true";
 }
 
 export type { AskUserConfig } from "./ask-user-config.js";
@@ -813,10 +813,10 @@ export interface PromptSuggestionConfig {
 
 export interface CliSpawnConfig {
   /**
-   * Expose `mavis session spawn` CLI command.
+   * Expose `alran session spawn` CLI command.
    * `spawn` lets users / external scripts manually create child sessions for an agent
    * (with parent linkage, initial prompt, and optional agent auto-creation).
-   * Mavis itself and its agents do NOT need this — team plans spawn worker sessions
+   * Alran itself and its agents do NOT need this — team plans spawn worker sessions
    * via the in-process daemon API, not via CLI.
    * Default: false. Enable only if you want external tooling to drive spawn.
    */
@@ -870,7 +870,7 @@ export interface MemoryConfig {
    *
    * When false, the desktop daemon/plugin stop injecting memory, showing
    * memory reminders, auto-generating/cleaning memory, and accepting memory
-   * writes through Mavis APIs. Existing files are preserved and read/search
+   * writes through Alran APIs. Existing files are preserved and read/search
    * remains available for inspection.
    *
    * Default: true.
@@ -1259,7 +1259,7 @@ export const BRAND = {
 } as const;
 
 /** Legacy runtime env prefix. New runtime identity travels via args/files. */
-export const RUNTIME_ENV_PREFIX = "__MAVIS_RUNTIME";
+export const RUNTIME_ENV_PREFIX = "__ALRAN_RUNTIME";
 
 /**
  * Read an internal runtime environment variable.
@@ -1299,7 +1299,7 @@ const MAX_GIT_AUTO_PORT_OFFSET =
 export const OPENCODE_PORT_OFFSET =
   MAX_GIT_AUTO_PORT_OFFSET + GIT_AUTO_PORT_STRIDE;
 const OPENCODE_FALLBACK_OFFSET = 1;
-const REPO_NAMES: ReadonlySet<string> = new Set(["agent-archon", "mavis"]);
+const REPO_NAMES: ReadonlySet<string> = new Set(["agent-archon", "alran"]);
 
 // ---------------------------------------------------------------------------
 // Git port / profile detection (inlined here to avoid tsx dual-module-instance
@@ -1370,7 +1370,7 @@ function parseRepoName(remoteUrl: string): string | null {
 
 function getExplicitPublicDataDirEnv(): string | undefined {
   return (
-    process.env.ALRAN_DATA_DIR?.trim() || process.env.MAVIS_DATA_DIR?.trim()
+    process.env.ALRAN_DATA_DIR?.trim() || process.env.ALRAN_DATA_DIR?.trim()
   );
 }
 
@@ -1430,8 +1430,8 @@ export function resetGitDetect(): void {
 
 /**
  * Detect port and profile from git branch name.
- * Any branch in the mavis repo gets a hash-based offset.
- * Default port 5321 is reserved for non-git / non-mavis environments.
+ * Any branch in the alran repo gets a hash-based offset.
+ * Default port 5321 is reserved for non-git / non-alran environments.
  */
 export function detectGitPortInfo(): GitPortInfo {
   if (_gitCached !== null) return _gitCached;
@@ -1535,13 +1535,13 @@ export function getDataDir(): string {
   // 0. ${RUNTIME_ENV_PREFIX}_DISABLE_GIT_AUTO_CONFIG=1 → skip repo auto-detection entirely
   //    and fall back to the explicit env/default "user mode" resolution below.
   // 1. Explicit profile-scoped data dir (service/supervisor) → fixed data dir
-  // 2. Git auto-detection (any branch in mavis repo) → profile-scoped dir
+  // 2. Git auto-detection (any branch in alran repo) → profile-scoped dir
   //    This takes highest priority because the parent daemon process injects
   //    ${RUNTIME_ENV_PREFIX}_DATA_DIR into child process environments, which would
   //    incorrectly override the per-branch isolation that git detection provides.
   // 3. ${RUNTIME_ENV_PREFIX}_DATA_DIR env var → used only when git detection is not active
   // 4. ${RUNTIME_ENV_PREFIX}_PROFILE env var → manual profile override
-  // 5. resolveDataDir() → non-git / non-mavis default data directory
+  // 5. resolveDataDir() → non-git / non-alran default data directory
   const explicitProfile = getExplicitProfileEnv();
   if (shouldPreferExplicitDataDir()) {
     return getExplicitDataDirArg()!;
@@ -1568,11 +1568,11 @@ export function getConfigPath(): string {
 }
 
 // ---------------------------------------------------------------------------
-// Default provider presets per environment combo (MAVIS_REGION x MAVIS_BUILD_ENV)
+// Default provider presets per environment combo (ALRAN_REGION x ALRAN_BUILD_ENV)
 // ---------------------------------------------------------------------------
 
 /**
- * Default provider presets per environment combo (MAVIS_REGION x MAVIS_BUILD_ENV).
+ * Default provider presets per environment combo (ALRAN_REGION x ALRAN_BUILD_ENV).
  *
  * Every preset points at the Ottili AI Platform gateway, which speaks the
  * OpenAI chat-completions protocol. The credential is the user's Ottili API
@@ -1594,7 +1594,7 @@ const PRESET_BASE_URLS: Record<PresetKey, string> = {
 // OpenAI-compatible base. Configs that still point at it are recognized as
 // managed and migrated to the current preset.
 const LEGACY_MANAGED_PRESET_BASE_URLS = [
-  "https://api.ottili.one/mavis/api/v1/llm/v1",
+  "https://api.ottili.one/alran/api/v1/llm/v1",
 ] as const;
 const MANAGED_PRESET_BASE_URLS = new Set([
   ...Object.values(PRESET_BASE_URLS),
@@ -1805,7 +1805,7 @@ const DEFAULTS: Omit<
     sourceRepo: undefined,
     proposal: {
       enabled: false,
-      eligibleAgents: ["mavis"],
+      eligibleAgents: ["alran"],
       minMessageCount: 40,
       skipPassiveSessionEnd: true,
     },
@@ -1848,7 +1848,7 @@ const DEFAULTS: Omit<
       enabled: false,
       maxProcesses: 5,
       maxLifetimeMs: 28_800_000,
-      agents: ["mavis", "main", "verifier", "code-reviewer"],
+      agents: ["alran", "main", "verifier", "code-reviewer"],
     },
     spawnConcurrency: 3,
   },
@@ -2303,7 +2303,7 @@ export function currentBetaResolutionContext(): BetaFeatureResolutionContext {
     internalBuild: isInternalBuild(),
     insideBuild: isInsideBuild(),
     alranToolsDevMode:
-      process.env.MAVIS_DEV_ALRAN_TOOLS_MODE === "published"
+      process.env.ALRAN_DEV_ALRAN_TOOLS_MODE === "published"
         ? "published"
         : undefined,
   };
@@ -2676,7 +2676,7 @@ function parseContextManagementConfig(
       : defaults.cuMaxScreenshotsInContext;
 
   // Semantic validation (ratio vs. token count) lives with the trigger in
-  // @mavis/context-manager; keep numbers so the runtime can warn on bad ones.
+  // @alran/context-manager; keep numbers so the runtime can warn on bad ones.
   const compactionTriggerAt =
     typeof obj.compactionTriggerAt === "number"
       ? obj.compactionTriggerAt
@@ -2775,9 +2775,9 @@ function parseMcpToolSearchConfig(
  *
  * Priority:
  * 0. DISABLE_GIT_AUTO_CONFIG=1 → skip git auto-detection
- * 1. Explicit profile-scoped port (__MAVIS_RUNTIME_PROFILE + __MAVIS_RUNTIME_PORT both set)
- * 2. Git auto-detection (hash-based offset from branch name in mavis repo)
- * 3. __MAVIS_RUNTIME_PORT env var (only when git detection is not active)
+ * 1. Explicit profile-scoped port (__ALRAN_RUNTIME_PROFILE + __ALRAN_RUNTIME_PORT both set)
+ * 2. Git auto-detection (hash-based offset from branch name in alran repo)
+ * 3. __ALRAN_RUNTIME_PORT env var (only when git detection is not active)
  * 4. DEFAULT_PORT (5321)
  *
  * Not cached — env vars and git state can change between calls.

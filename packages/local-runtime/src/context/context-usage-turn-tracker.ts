@@ -6,13 +6,13 @@ import {
   type Model,
   type SimpleStreamOptions,
 } from '@earendil-works/pi-ai';
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
 import {
   RespDataType,
   type AgentMessage,
   type RespData,
-} from '@mavis/agent-core/protocol/agent-message';
-import { RuntimeEventType, type IRuntimeEvent } from '@mavis/protocol';
+} from '@alran/agent-core/protocol/agent-message';
+import { RuntimeEventType, type IRuntimeEvent } from '@alran/protocol';
 
 import {
   applyToolCalibration,

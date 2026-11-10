@@ -3,7 +3,7 @@ import type {
   PiBeforeLlmCallHookInput,
   PiBeforeLlmCallPhase,
   PiTurnRunnerLogger,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 
 type RequestMessage = PiBeforeLlmCallHookInput['messages'][number];
 

@@ -36,7 +36,7 @@ export async function scanGithubSkillRepository(
     );
   }
 
-  const checkoutDir = await mkdtemp(join(tmpdir(), 'mavis-skill-github-'));
+  const checkoutDir = await mkdtemp(join(tmpdir(), 'alran-skill-github-'));
   try {
     const repoUrl = `https://github.com/${archive.github.owner}/${archive.github.repo}.git`;
     await runGit(checkoutDir, ['init']);

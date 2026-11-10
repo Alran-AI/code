@@ -26,6 +26,16 @@ export class TuiLoginRequiredError extends TuiFailure {
   }
 }
 
+/**
+ * True when the account can call the first-party gateway.
+ *
+ * A managed Alran token and a Platform session from `alran login` are both
+ * credentials the gateway accepts, so either one satisfies the login gate.
+ */
+export function tuiManagedAccessPresent(account: TuiAccountStatus): boolean {
+  return account.managedTokenPresent === true || account.platformSessionPresent === true;
+}
+
 export function tuiAgentRequiresLogin(account: TuiAccountStatus): boolean {
   if (account.modelSource) return account.modelSource === 'token-plan';
   return account.authMode === 'managed-login';
@@ -34,7 +44,7 @@ export function tuiAgentRequiresLogin(account: TuiAccountStatus): boolean {
 export function tuiAgentAccessNeedsLogin(account: TuiAccountStatus): boolean {
   return (
     account.status === 'needs-login' ||
-    (tuiAgentRequiresLogin(account) && account.managedTokenPresent !== true)
+    (tuiAgentRequiresLogin(account) && !tuiManagedAccessPresent(account))
   );
 }
 
@@ -81,7 +91,7 @@ export async function requireTuiAccountLogin(
   onAccount?: (account: TuiAccountStatus) => void,
 ): Promise<TuiAccountStatus> {
   const account = await readTuiAccount(runtime, sessionId, onAccount, { requireManagedAuth: true });
-  if (account.managedTokenPresent !== true) {
+  if (!tuiManagedAccessPresent(account)) {
     throw new TuiLoginRequiredError(account, message);
   }
   return account;

@@ -1,9 +1,9 @@
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 import {
-  isPtcMavisChildToolName,
-  PTC_MAVIS_RUN_CODE_NOTE,
-  readPtcMavisChildTarget,
-} from '@mavis/agent-tools';
+  isPtcAlranChildToolName,
+  PTC_ALRAN_RUN_CODE_NOTE,
+  readPtcAlranChildTarget,
+} from '@alran/agent-tools';
 
 interface NativeDataType {
   readonly name: string;
@@ -158,11 +158,11 @@ const NATIVE_DATA_TYPES: Readonly<Record<string, NativeDataType>> = {
   ...COMPUTER_DATA_TYPES,
 };
 
-/** One type for every mavis_* tool: they all return the mavis result object. */
-const MAVIS_DATA_TYPE: NativeDataType = {
-  name: 'MavisData',
+/** One type for every alran_* tool: they all return the alran result object. */
+const ALRAN_DATA_TYPE: NativeDataType = {
+  name: 'AlranData',
   declaration:
-    'type MavisData = { ok: true; command: string; response: unknown } | { ok: false; command: string; error: { kind: string; message: string; [key: string]: unknown } }; // the whole result object; run_code calls are never cut',
+    'type AlranData = { ok: true; command: string; response: unknown } | { ok: false; command: string; error: { kind: string; message: string; [key: string]: unknown } }; // the whole result object; run_code calls are never cut',
 };
 
 /**
@@ -178,9 +178,9 @@ export function renderPtcToolSdk(
 ): string {
   const dataType = (tool: RuntimeTool): NativeDataType | undefined => {
     if (nativeTools.has(tool)) return NATIVE_DATA_TYPES[tool.def.name];
-    // A mavis_* child stands for the native mavis tool it runs as.
-    const mavis = readPtcMavisChildTarget(tool)?.tool;
-    return mavis && nativeTools.has(mavis) ? MAVIS_DATA_TYPE : undefined;
+    // A alran_* child stands for the native alran tool it runs as.
+    const alran = readPtcAlranChildTarget(tool)?.tool;
+    return alran && nativeTools.has(alran) ? ALRAN_DATA_TYPE : undefined;
   };
   return [
     'type ToolResult<T = Record<string, unknown> | undefined> = {',
@@ -361,13 +361,13 @@ export function computerUseRunCodeParagraph(childTools: readonly RuntimeTool[]):
 }
 
 /**
- * mavis_* result convention, only when this run_code lists them: what the
- * mavis tool's OUTPUT section says, once here instead of in every mavis_*
+ * alran_* result convention, only when this run_code lists them: what the
+ * alran tool's OUTPUT section says, once here instead of in every alran_*
  * comment of the SDK below.
  */
-export function mavisRunCodeParagraph(childTools: readonly RuntimeTool[]): readonly string[] {
-  return childTools.some((tool) => isPtcMavisChildToolName(tool.def.name))
-    ? [PTC_MAVIS_RUN_CODE_NOTE]
+export function alranRunCodeParagraph(childTools: readonly RuntimeTool[]): readonly string[] {
+  return childTools.some((tool) => isPtcAlranChildToolName(tool.def.name))
+    ? [PTC_ALRAN_RUN_CODE_NOTE]
     : [];
 }
 

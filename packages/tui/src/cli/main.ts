@@ -4,7 +4,7 @@ import {
   supportsTuiNodeVersion,
 } from '../build-info.js';
 import type { RawTuiExecOptions } from '../headless/invocation.js';
-import type { MavisRegion } from '@mavis/config';
+import type { AlranRegion } from '@alran/config';
 import { createTuiProgram, type TuiInteractiveLaunchRequest } from './program.js';
 import type { AlranProviderCliRequest } from './provider-command.js';
 import type { AlranPluginCliRequest } from '../plugin/contract.js';
@@ -57,13 +57,13 @@ export interface RunTuiCliDependencies {
     systemPromptOverrides?: SystemPromptOverrides,
   ) => Promise<void>;
   readonly runLogin?: (
-    region?: MavisRegion,
+    region?: AlranRegion,
     openBrowser?: boolean,
     lane?: string,
     provider?: 'api-key' | 'keycloak' | 'platform',
     platformEnv?: 'dev' | 'prod',
   ) => Promise<string>;
-  readonly runLogout?: (region?: MavisRegion) => Promise<string>;
+  readonly runLogout?: (region?: AlranRegion) => Promise<string>;
   readonly runUpdate?: (version: string) => Promise<void>;
   readonly runProvider?: (
     request: AlranProviderCliRequest,
@@ -298,7 +298,7 @@ async function defaultRunAcp(
 }
 
 async function defaultRunLogin(
-  region?: MavisRegion,
+  region?: AlranRegion,
   openBrowser = true,
   lane?: string,
   provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
@@ -308,7 +308,7 @@ async function defaultRunLogin(
   return runTuiLogin({ region, openBrowser, lane, provider, platformEnv });
 }
 
-async function defaultRunLogout(region?: MavisRegion): Promise<string> {
+async function defaultRunLogout(region?: AlranRegion): Promise<string> {
   const { runTuiLogout } = await import('./auth-command.js');
   return runTuiLogout({ region });
 }

@@ -33,7 +33,7 @@ import {
   RuntimeEventStatus,
   RuntimeEventType,
   RuntimeStopReasonType,
-} from '@mavis/protocol';
+} from '@alran/protocol';
 
 const fixture = {
   sessionId: 'sess-1',

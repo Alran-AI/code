@@ -2,13 +2,13 @@
 
 const SYNTHETIC_ORIGIN = 'http://local-runtime.transport';
 const CLOUD_ALIAS_PREFIX = '/archon/api/v1/';
-const MAVIS_API_PREFIX = '/mavis/';
+const ALRAN_API_PREFIX = '/alran/';
 const DESKTOP_API_PREFIX = '/alran-desktop/api/';
 const EVENTS_PATH = '/alran-desktop/api/v1/events';
-const EVENT_STREAM_SCOPE_QUERY = '_mavis_stream_scope';
+const EVENT_STREAM_SCOPE_QUERY = '_alran_stream_scope';
 const EVENT_STREAM_SCOPE_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/u;
 const STREAMING_SUFFIXES = ['/message', '/resume'];
-const SESSION_STREAM_PREFIXES = ['/mavis/api/session/', '/alran-desktop/api/v1/session/'];
+const SESSION_STREAM_PREFIXES = ['/alran/api/session/', '/alran-desktop/api/v1/session/'];
 
 function safeDecode(value: string): string {
   try {
@@ -32,10 +32,10 @@ export function resolveRuntimeTransportUrl(rawUrl: string): URL | null {
   const target = new URL(`${url.pathname}${url.search}`, SYNTHETIC_ORIGIN);
   const decodedPath = safeDecode(target.pathname);
   if (decodedPath.startsWith(CLOUD_ALIAS_PREFIX)) {
-    target.pathname = `/mavis/api/${decodedPath.slice(CLOUD_ALIAS_PREFIX.length)}`;
+    target.pathname = `/alran/api/${decodedPath.slice(CLOUD_ALIAS_PREFIX.length)}`;
     return target;
   }
-  if (decodedPath.startsWith(MAVIS_API_PREFIX) || decodedPath.startsWith(DESKTOP_API_PREFIX)) {
+  if (decodedPath.startsWith(ALRAN_API_PREFIX) || decodedPath.startsWith(DESKTOP_API_PREFIX)) {
     return target;
   }
   return null;

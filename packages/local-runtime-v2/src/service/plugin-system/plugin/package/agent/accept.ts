@@ -1,4 +1,4 @@
-import { buildPluginSkillRuntimeName } from '@mavis/shared';
+import { buildPluginSkillRuntimeName } from '@alran/shared';
 
 import type { CanonicalAgentConfig } from '../../../../agent/storage/canonical-agent-config.js';
 import { readPluginTextFile, type CanonicalPluginRoot } from '../filesystem.js';
@@ -36,7 +36,7 @@ export interface AgentCandidate {
   readonly config: AgentCandidateConfig;
 }
 
-export type AgentCandidateConfig = Omit<CanonicalAgentConfig, 'name' | 'diagnostics' | 'xMavis'> & {
+export type AgentCandidateConfig = Omit<CanonicalAgentConfig, 'name' | 'diagnostics' | 'xAlran'> & {
   readonly displayName?: string;
   readonly contextWindow?: number;
   readonly maxOutputTokens?: number;

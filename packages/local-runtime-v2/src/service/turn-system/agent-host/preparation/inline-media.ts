@@ -1,13 +1,13 @@
 import { readFile } from 'node:fs/promises';
 
-import type { UserMessageInput } from '@mavis/agent-core/pi-turn-runner';
+import type { UserMessageInput } from '@alran/agent-core/pi-turn-runner';
 import {
   encodeAttachmentImage,
   nativeMultimodalKindForMime,
   selectMultimodalAttachments,
   type AttachmentImageEncoding,
   type MultimodalAttachmentCapabilities,
-} from '@mavis/agent-tools';
+} from '@alran/agent-tools';
 
 export type LocalMultimodalAttachmentCapabilities = MultimodalAttachmentCapabilities;
 export type LocalAttachmentImageEncoding = AttachmentImageEncoding;

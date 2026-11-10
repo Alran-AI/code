@@ -228,7 +228,7 @@ function warnAboutOrphanedLegacyHistory(rowCount: number): void {
   if (rowCount === 0) return;
   process.emitWarning(
     `Skipped ${rowCount} orphaned legacy Cron history ${rowCount === 1 ? 'row' : 'rows'}`,
-    { code: 'MAVIS_CRON_MIGRATION_ORPHAN_HISTORY_SKIPPED' },
+    { code: 'ALRAN_CRON_MIGRATION_ORPHAN_HISTORY_SKIPPED' },
   );
 }
 

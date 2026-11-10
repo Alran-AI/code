@@ -16,18 +16,18 @@ import type {
   SteerSessionResult as SteerSessionResp,
   SessionStreamErrorBody,
   SessionStreamFrameView,
-} from "@mavis/protocol/local";
-import { TurnContinuationState as TurnContinuationStateView } from "@mavis/protocol/local";
+} from "@alran/protocol/local";
+import { TurnContinuationState as TurnContinuationStateView } from "@alran/protocol/local";
 import type {
   ProcessLocalContext,
   ProcessLocalStreamResult,
-} from "@mavis/conversation-contract";
+} from "@alran/conversation-contract";
 import type {
   ConversationSteerInput,
   ConversationSteerResult,
-} from "@mavis/conversation-contract";
-import { normalizeAbortSource } from "@mavis/agent-core/pi-turn-runner";
-import { isServerOwnedTurnId } from "@mavis/shared/turn-identity";
+} from "@alran/conversation-contract";
+import { normalizeAbortSource } from "@alran/agent-core/pi-turn-runner";
+import { isServerOwnedTurnId } from "@alran/shared/turn-identity";
 
 import {
   isSameSessionAgentName,
@@ -991,7 +991,7 @@ async function validateCompactionSession(
   const session = await sessionReader.find(req.id);
   if (!session) throw sessionNotFound(req.id);
   // The caller-supplied Agent name is a page identity, never the owner of
-  // record. A main-owned primary Session is still the same Agent as mavis.
+  // record. A main-owned primary Session is still the same Agent as alran.
   if (!isSameSessionAgentName(session.agentName, req.name)) {
     throw new ApplicationError(
       403,

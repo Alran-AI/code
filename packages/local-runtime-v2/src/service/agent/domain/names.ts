@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import {
   isTrustedBuiltinCreationSource,
   resolveCanonicalSubagentRole,
-} from '@mavis/agent-tools/desktop/subagent-roles';
+} from '@alran/agent-tools/desktop/subagent-roles';
 
 import { AgentServiceError } from '../errors.js';
 import type {
@@ -15,7 +15,7 @@ import type {
   AgentUpdateInput,
 } from '../contracts.js';
 
-export const PRIMARY_AGENT_NAME = 'mavis';
+export const PRIMARY_AGENT_NAME = 'alran';
 export const LEGACY_PRIMARY_AGENT_NAME = 'main';
 
 export function buildAgentReadScope(
@@ -66,7 +66,7 @@ export function resolveCreatedAgentName(name: string | undefined): string {
 }
 
 export function validateCreateInput(input: AgentCreateInput, name: string): void {
-  const displayName = input.initialDefinition?.mavis?.displayName ?? input.displayName;
+  const displayName = input.initialDefinition?.alran?.displayName ?? input.displayName;
   if (displayName !== undefined && (!displayName || displayName.trim() === '')) {
     throw new AgentServiceError('VALIDATION_ERROR', 'display_name cannot be empty');
   }
@@ -138,12 +138,12 @@ function createRuntimeInsertFields(
   input: AgentCreateInput,
   name: string,
 ): Pick<AgentStoreInsert, 'rootSessionId' | 'defaultWorkspaceDir' | 'displayName'> {
-  const mavis = input.initialDefinition?.mavis;
-  const defaultWorkspaceDir = mavis?.defaultWorkspaceDir ?? input.defaultWorkspaceDir;
+  const alran = input.initialDefinition?.alran;
+  const defaultWorkspaceDir = alran?.defaultWorkspaceDir ?? input.defaultWorkspaceDir;
   return {
     ...(input.rootSessionId === undefined ? {} : { rootSessionId: input.rootSessionId }),
     ...(defaultWorkspaceDir === undefined ? {} : { defaultWorkspaceDir }),
-    displayName: mavis?.displayName ?? input.displayName ?? name,
+    displayName: alran?.displayName ?? input.displayName ?? name,
   };
 }
 
@@ -162,7 +162,7 @@ function initialDefinitionInsertFields(
   input: AgentCreateInput,
   initialDefinition: NonNullable<AgentCreateInput['initialDefinition']>,
 ): Pick<AgentStoreInsert, 'initialDefinition' | 'description' | 'avatar' | 'systemPrompt'> {
-  const avatar = initialDefinition.mavis?.avatar ?? input.avatar;
+  const avatar = initialDefinition.alran?.avatar ?? input.avatar;
   return {
     // Canonical publication filters this definition and writes `insert.name`
     // as the only durable owner name. Keep the presentation object separate so

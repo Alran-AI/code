@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { defineRuntimeTool, type RuntimeTool } from '@mavis/agent-core/tools';
+import { defineRuntimeTool, type RuntimeTool } from '@alran/agent-core/tools';
 import type { McpToolIndex } from './types.js';
 
 /**

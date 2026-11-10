@@ -16,7 +16,7 @@ import {
   type LLMMetricErrorKind,
   type LLMRetryReason,
   type NormalizedLLMError,
-} from '@mavis/shared/llm-error-classifier';
+} from '@alran/shared/llm-error-classifier';
 
 function isByokProvider(provider: string): boolean {
   return provider === 'alran_api' || provider.startsWith('custom_provider:');
@@ -28,11 +28,11 @@ export type LLMCallOutcome = 'success' | 'error' | 'abort';
 export type LLMCallErrorKind = LLMMetricErrorKind | 'none';
 
 /** Symbol-keyed identity shared by physical attempts of one logical call. */
-export const LLM_RETRY_CALL_IDENTITY: unique symbol = Symbol('mavis.llmRetryCallIdentity');
+export const LLM_RETRY_CALL_IDENTITY: unique symbol = Symbol('alran.llmRetryCallIdentity');
 
 /** Symbol-keyed observer for every physical provider request in a logical call. */
 export const LLM_RETRY_REQUEST_SETTLED_OBSERVER: unique symbol = Symbol(
-  'mavis.llmRetryRequestSettledObserver',
+  'alran.llmRetryRequestSettledObserver',
 );
 
 export interface LLMRetryPolicy {

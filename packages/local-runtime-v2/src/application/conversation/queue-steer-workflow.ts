@@ -1,4 +1,4 @@
-import { RuntimeEventStatus, RuntimeEventType } from '@mavis/agent-core/protocol';
+import { RuntimeEventStatus, RuntimeEventType } from '@alran/agent-core/protocol';
 
 import {
   QueueServiceError,

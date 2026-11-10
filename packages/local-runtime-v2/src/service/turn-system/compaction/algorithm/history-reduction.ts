@@ -1,5 +1,5 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
-import { readPtcExecutionDetails, type PtcExecutionDetails } from '@mavis/agent-core/tools';
+import { readPtcExecutionDetails, type PtcExecutionDetails } from '@alran/agent-core/tools';
 
 import { readGenuineUserQueryText } from './checkpoint-format.js';
 

@@ -13,7 +13,7 @@ import { DesktopMatrixClient } from './matrix-client.js';
 export const MATRIX_INLINE_LIMIT_BYTES = 600 * 1024;
 export const MATRIX_MAX_UPLOAD_BYTES = 500 * 1024 * 1024;
 
-const GET_UPLOAD_URL_PATH = '/mavis/api/v1/mcp/get_upload_url';
+const GET_UPLOAD_URL_PATH = '/alran/api/v1/mcp/get_upload_url';
 const DEFAULT_UPLOAD_TIMEOUT_MS = 1_500_000;
 
 interface GetUploadURLResponse {

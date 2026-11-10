@@ -4,7 +4,7 @@ import {
   type ToolDefinition,
   type ToolResult,
   type ToolResultContent,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 import { Type, type Static, type TSchema } from '@sinclair/typebox';
 import { Value } from '@sinclair/typebox/value';
 
@@ -983,7 +983,7 @@ async function capturePostActionVisual(
   preprocessScreenshot: LocalBrowserScreenshotPreprocessor | undefined,
   postActionVisualCountByTurn: Map<string, number> | undefined,
 ): Promise<PostActionVisualCapture | undefined> {
-  if (!preprocessScreenshot || process.env.MAVIS_BROWSER_POST_ACTION_VISUAL_V1 === '0') {
+  if (!preprocessScreenshot || process.env.ALRAN_BROWSER_POST_ACTION_VISUAL_V1 === '0') {
     return undefined;
   }
   const capabilities = adapter.getCapabilities?.();

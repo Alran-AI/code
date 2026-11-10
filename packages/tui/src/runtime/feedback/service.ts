@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { release } from 'node:os';
 
-import { getRuntimeRegion, type MavisBuildEnv, type MavisRegion } from '@mavis/config';
+import { getRuntimeRegion, type AlranBuildEnv, type AlranRegion } from '@alran/config';
 
 import type {
   TuiFeedbackPhase,
@@ -42,8 +42,8 @@ export interface TuiFeedbackServiceOptions {
   readonly nowMs?: () => number;
   readonly createDraftId?: () => string;
   readonly platform?: () => PlatformSnapshot;
-  readonly region?: () => MavisRegion;
-  readonly buildEnv?: () => MavisBuildEnv;
+  readonly region?: () => AlranRegion;
+  readonly buildEnv?: () => AlranBuildEnv;
 }
 
 interface PlatformSnapshot {

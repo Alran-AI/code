@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { Command, InvalidArgumentError } from 'commander';
-import type { MavisRegion } from '@mavis/config';
+import type { AlranRegion } from '@alran/config';
 import { TuiContributionRegistry } from '../contributions/index.js';
 import type { RawTuiExecOptions } from '../headless/invocation.js';
 import {
@@ -50,13 +50,13 @@ export interface CreateTuiProgramOptions {
   ) => Promise<void>;
   runAcp?: (lane?: string, systemPromptOverrides?: SystemPromptOverrides) => Promise<void>;
   runLogin: (
-    region?: MavisRegion,
+    region?: AlranRegion,
     openBrowser?: boolean,
     lane?: string,
     provider?: 'api-key' | 'keycloak' | 'platform',
     platformEnv?: 'dev' | 'prod',
   ) => Promise<void>;
-  runLogout: (region?: MavisRegion) => Promise<void>;
+  runLogout: (region?: AlranRegion) => Promise<void>;
   runUpdate: () => Promise<void>;
   runProvider?: (request: AlranProviderCliRequest, lane?: string) => Promise<void>;
   runPlugin?: (request: AlranPluginCliRequest, lane?: string) => Promise<void>;
@@ -456,7 +456,7 @@ function collectOptionValue(value: string, previous: string[]): string[] {
   return [...previous, value];
 }
 
-function parseLoginRegion(value: string): MavisRegion {
+function parseLoginRegion(value: string): AlranRegion {
   if (value === 'cn') return 'cn';
   if (value === 'global') return 'en';
   throw new InvalidArgumentError('expected "cn" or "global"');

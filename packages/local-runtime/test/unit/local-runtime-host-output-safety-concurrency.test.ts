@@ -9,8 +9,8 @@ import { logger } from '../../src/common/logger.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalRuntimeHost, type LocalTurnRunner } from '../../src/runtime/host.js';
-import { RespDataType } from '@mavis/agent-core/protocol/agent-message';
-import { RuntimeEventStatus, RuntimeEventType, type IRuntimeEvent } from '@mavis/protocol';
+import { RespDataType } from '@alran/agent-core/protocol/agent-message';
+import { RuntimeEventStatus, RuntimeEventType, type IRuntimeEvent } from '@alran/protocol';
 
 function finalMessage(content: string): IRuntimeEvent {
   return {
@@ -197,7 +197,7 @@ describe('LocalRuntimeHost output safety — concurrency isolation', () => {
     expect(blockRecall).toHaveBeenCalledTimes(3);
     expect(fetchMock).toHaveBeenCalledTimes(5);
     const requests = fetchMock.mock.calls.map(([url, init]) => {
-      expect(String(url)).toContain('/mavis/api/v2/content?require_auth=true');
+      expect(String(url)).toContain('/alran/api/v2/content?require_auth=true');
       return JSON.parse(String(init?.body)) as { content_text: string; scene: number };
     });
     expect(requests.filter((body) => body.content_text.includes('BLOCK'))).toHaveLength(4);

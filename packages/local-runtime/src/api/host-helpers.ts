@@ -2,23 +2,23 @@
 // 2000-line block threshold enforced by `scripts/hooks/pre-commit`
 // (see boy-scout warning trail on commits f2b4b14a / d7e454fe). Pure
 // utilities + small interfaces + the SSE writer wrapper — no `this` dependencies.
-import type { PromptSnapshotSource } from "@mavis/agent-core";
+import type { PromptSnapshotSource } from "@alran/agent-core";
 import type {
   PiLLMRequestFailureHook,
   PiLLMRequestObserver,
-} from "@mavis/agent-core/pi-turn-runner";
+} from "@alran/agent-core/pi-turn-runner";
 import {
   RespDataType,
   Role,
   type AgentMessage,
   type RespData,
-} from "@mavis/agent-core/protocol/agent-message";
+} from "@alran/agent-core/protocol/agent-message";
 import type { ToolDiagnosticLogger as MatrixToolLogger } from "../observability/tool-logger.js";
-import type { LocalMavisCronAdapter } from "@mavis/agent-tools/desktop";
-import type { RuntimeConversation } from "@mavis/conversation-contract";
-import type { CronStorePort } from "@mavis/cron";
-import type { PermissionRuleMatcher, ShellFamily } from "@mavis/permission";
-import type { GlobalEventPayloadMap } from "@mavis/shared/global-events";
+import type { LocalAlranCronAdapter } from "@alran/agent-tools/desktop";
+import type { RuntimeConversation } from "@alran/conversation-contract";
+import type { CronStorePort } from "@alran/cron";
+import type { PermissionRuleMatcher, ShellFamily } from "@alran/permission";
+import type { GlobalEventPayloadMap } from "@alran/shared/global-events";
 import type { AgentReferenceResolver } from "../agent/port.js";
 import type { LocalAgentRuntimePort } from "../agent/runtime-port.js";
 import type { LocalBrowserBroker } from "../browser/api.js";
@@ -99,8 +99,8 @@ export interface LocalRuntimeApiHostOptions {
   capabilities?: Partial<LocalRuntimeCapabilities>;
   /** Explicit shell provenance supplied by the local executor; unknown remains fail-closed on Windows native delete. */
   shellFamily?: ShellFamily;
-  /** Composition overrides injected by the Cron v2 owner for legacy Local Mavis commands. */
-  mavisCronAdapterProvider?: () => LocalMavisCronAdapter | undefined;
+  /** Composition overrides injected by the Cron v2 owner for legacy Local Alran commands. */
+  alranCronAdapterProvider?: () => LocalAlranCronAdapter | undefined;
   /** Host boundary for cleaning up Cron definitions when an Agent is deleted. */
   deleteAgentCronTasks?: (agentName: string) => Promise<void>;
   /** Construction-time switch for legacy Cron consumers; false prevents legacy writers from starting. */
@@ -176,7 +176,7 @@ export interface LocalRuntimeApiHostOptions {
   hookService?: LocalHookService;
   browserBroker?: LocalBrowserBroker;
   skillHubStore?: LocalSkillHubStore;
-  skillRegistryRoots?: import("@mavis/skills").SkillSourceRoot[];
+  skillRegistryRoots?: import("@alran/skills").SkillSourceRoot[];
   skillEnabledState?: LocalSkillEnabledStatePort;
   /** V2-owned bounded CLI-sunset state evaluator; V1 only supplies Memory files. */
   cliSunsetNotice?: CliSunsetNoticeEvaluator;
@@ -204,7 +204,7 @@ export interface LocalRuntimeApiHostOptions {
   /**
    * Production WeChat SDK injection point. When provided (typically by the
    * Electron main process after dynamically importing the bundled iLink SDK
-   * from `@mavis/local-runtime` so the SDK does not enter the Electron main
+   * from `@alran/local-runtime` so the SDK does not enter the Electron main
    * static-import graph), the registered `LocalWeChatChannelAdapter` talks to
    * iLink for outbound + attachment downloads. When omitted, the channel
    * subsystem falls back to `stubWeChatRuntimeSdk` so unit tests and offline
@@ -380,7 +380,7 @@ export function buildLegacyDaemonProxyPath(
     | "skill-evolve"
     | "agent",
 ): string | undefined {
-  const rawApiPath = rawPathname.slice("/mavis/api".length);
+  const rawApiPath = rawPathname.slice("/alran/api".length);
   const rawPrefix = `/${root}`;
   if (rawApiPath !== rawPrefix && !rawApiPath.startsWith(`${rawPrefix}/`))
     return undefined;

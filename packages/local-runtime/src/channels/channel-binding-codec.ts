@@ -1,4 +1,4 @@
-import { channelRoutingModeForStrategy, type ChannelRoutingMode } from '@mavis/shared';
+import { channelRoutingModeForStrategy, type ChannelRoutingMode } from '@alran/shared';
 
 import { inferPlatformFromClientName } from './client-owner-routing.js';
 import { buildLocalChannelBindingKey } from './channel-inbound-utils.js';

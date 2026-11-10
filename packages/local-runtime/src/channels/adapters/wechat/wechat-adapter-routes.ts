@@ -47,7 +47,7 @@ export async function dispatchWeChatAdapterRoute(input: {
   dispatcher?: WeChatAdapterRouteDispatcher;
 }): Promise<Response | undefined> {
   const { method, path, request, registry, dispatcher } = input;
-  const defaultAgentName = dispatcher?.defaultAgentName ?? 'mavis';
+  const defaultAgentName = dispatcher?.defaultAgentName ?? 'alran';
 
   if (method === 'POST' && path === 'wechat/inbound') {
     const body = await readJsonBody(request);

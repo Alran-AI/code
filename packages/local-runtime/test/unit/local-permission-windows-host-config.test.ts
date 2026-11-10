@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadConfigFromFile } from '@mavis/config';
+import { loadConfigFromFile } from '@alran/config';
 import { LocalRuntimeApiHost } from '../../src/api/host.js';
 import { resolveLocalPermissionService } from '../../src/permissions/service.js';
 import { closeLocalRuntimeDb } from '../../src/persistence/db.js';

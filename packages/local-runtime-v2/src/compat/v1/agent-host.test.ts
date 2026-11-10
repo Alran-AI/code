@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   RuntimeEventStatus,
   RuntimeEventType,
-} from "@mavis/agent-core/protocol";
-import type { ThreadGoalBudgetCheckResult } from "@mavis/goal";
+} from "@alran/agent-core/protocol";
+import type { ThreadGoalBudgetCheckResult } from "@alran/goal";
 
 import {
   createV1AttachmentRegistration,
@@ -120,7 +120,7 @@ describe("createV1AgentHostProductCapabilities", () => {
     );
     await product.inputPreparation.reminders.buildSystem({
       session: { sessionId: "session-1" },
-      agent: { agentName: "mavis", resourceAgentName: "main" },
+      agent: { agentName: "alran", resourceAgentName: "main" },
       agentConfig: {},
       promptText: "hello",
       turnId: "turn-1",
@@ -134,7 +134,7 @@ describe("createV1AgentHostProductCapabilities", () => {
     });
     await product.inputPreparation.reminders.buildSystem({
       session: { sessionId: "session-1" },
-      agent: { agentName: "mavis", resourceAgentName: "main" },
+      agent: { agentName: "alran", resourceAgentName: "main" },
       agentConfig: {},
       promptText: "again",
       turnId: "turn-2",
@@ -648,7 +648,7 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
 
     await product.inputPreparation.reminders.buildSystem({
       session: { sessionId: "session-1" },
-      agent: { agentName: "mavis", resourceAgentName: "main" },
+      agent: { agentName: "alran", resourceAgentName: "main" },
       agentConfig: {
         model: {
           provider: "alran",
@@ -680,7 +680,7 @@ describe("createV1AgentHostProductCapabilities system reminders", () => {
 
     await product.inputPreparation.reminders.buildSystem({
       session: { sessionId: "session-1" },
-      agent: { agentName: "mavis", resourceAgentName: "main" },
+      agent: { agentName: "alran", resourceAgentName: "main" },
       agentConfig: { model: { provider: "alran", id: "Alran-M2.7" } },
       promptText: "hello",
       turnId: "turn-1",

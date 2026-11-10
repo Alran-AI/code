@@ -20,7 +20,7 @@ const PLUGIN_AGENT = {
 function sessionRecord(sessionId: string, overrides: Partial<LocalSessionRecord> = {}) {
   return {
     sessionId,
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: '/workspace',
     runtime: 'pi-agent',
     sessionType: 'branch',
@@ -50,8 +50,8 @@ function createHost(completion: Promise<unknown>) {
     markDelivered: vi.fn(async () => []),
   };
   const host = {
-    agentName: 'mavis',
-    agentDisplayName: 'Mavis',
+    agentName: 'alran',
+    agentDisplayName: 'Alran',
     agentResolver: {
       resolveAgentReadScope: unknownAgent,
       resolveAgentWriteTarget: unknownAgent,
@@ -82,7 +82,7 @@ function toolContext(pluginAgents?: { list(): unknown[]; resolve(name: string): 
   return {
     sessionId: 'parent',
     turnId: 'turn-parent',
-    agentName: 'mavis',
+    agentName: 'alran',
     toolCallId: 'call-task',
     ...(pluginAgents ? { pluginAgents } : {}),
   };

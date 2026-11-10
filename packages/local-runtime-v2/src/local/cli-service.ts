@@ -73,18 +73,18 @@ import type {
   UpdateQueueItemResult as UpdateQueueItemResp,
   UpdateSessionInput as UpdateSessionReq,
   UpdateSessionResult as UpdateSessionResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 import {
   PermissionReply,
   QuestionnairePurpose,
   QuestionnaireSelectionMode,
   QuestionnaireStatus,
-} from "@mavis/protocol/local";
-import type { ConversationSteerInput } from "@mavis/conversation-contract";
+} from "@alran/protocol/local";
+import type { ConversationSteerInput } from "@alran/conversation-contract";
 import type {
   ProcessLocalContext,
   ProcessLocalStreamResult,
-} from "@mavis/conversation-contract";
+} from "@alran/conversation-contract";
 
 import type {
   ConversationApplication,

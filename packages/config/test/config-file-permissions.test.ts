@@ -36,7 +36,7 @@ describe.skipIf(process.platform === "win32")(
       fs.mkdirSync(dataDir);
       vi.spyOn(os, "homedir").mockReturnValue(root);
       vi.stubEnv("ALRAN_DATA_DIR", dataDir);
-      vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "0");
+      vi.stubEnv("__ALRAN_RUNTIME_MANAGED", "0");
       resetConfig();
       setLegacyByokProviderMigrationEnabled(false);
       setManagedPresetBaseUrlSyncEnabled(false);
@@ -177,7 +177,7 @@ describe.skipIf(process.platform === "win32")(
     });
 
     it("creates managed defaults privately", () => {
-      vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "1");
+      vi.stubEnv("__ALRAN_RUNTIME_MANAGED", "1");
       getConfig();
       expect(fs.statSync(configPath).mode & 0o777).toBe(0o600);
     });

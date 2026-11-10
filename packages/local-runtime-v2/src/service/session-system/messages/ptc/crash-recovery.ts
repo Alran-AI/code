@@ -4,8 +4,8 @@ import {
   type PtcExecutionDetails,
   type PtcRetainedFact,
   type PtcToolCallRecord,
-} from '@mavis/agent-core/tools';
-import { logger } from '@mavis/shared/local-runtime-logging';
+} from '@alran/agent-core/tools';
+import { logger } from '@alran/shared/local-runtime-logging';
 
 import type { SessionSystemCanonicalHistoryProvider } from '../history/canonical-history-provider.js';
 import type { DisplayMessageRecord, MessageRepository } from '../repo/contract.js';

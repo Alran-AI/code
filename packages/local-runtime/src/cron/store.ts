@@ -8,7 +8,7 @@ import {
   type CronLoadResult,
   type CronSessionRecord,
   type CronStorePort,
-} from '@mavis/cron';
+} from '@alran/cron';
 
 import { type DataDirInput, type DatabaseLike, withLocalRuntimeDb } from '../persistence/db.js';
 

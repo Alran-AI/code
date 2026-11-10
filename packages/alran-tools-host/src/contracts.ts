@@ -1,4 +1,4 @@
-import type { AuthLeaseStatus } from '@mavis/oauth-lease-protocol';
+import type { AuthLeaseStatus } from '@alran/oauth-lease-protocol';
 
 export interface AlranToolsAccessTokenLease {
   accessToken: string;

@@ -12,10 +12,10 @@ description:
 
 本技能指导你如何通过lark-cli操作飞书资源, 以及有哪些注意事项。
 
-> **mavis 适配说明 (重要)**:
+> **alran 适配说明 (重要)**:
 >
 > - **绑定飞书 bot（首次使用、新机器）**：用
->   `mavis im channel bind <agent> --platform feishu --app-id <appId> --app-secret <appSecret>`
+>   `alran im channel bind <agent> --platform feishu --app-id <appId> --app-secret <appSecret>`
 >   写入 local-runtime 原生 Feishu channel store（详见入口 `lark-tools/SKILL.md`）。
 > - **首次用户身份授权（一次性拿到推荐 scope 全集）**：需要用户身份时，由 agent 运行
 >   `lark-cli auth login --recommend`，UI/聊天里只展示授权 URL 给用户点击。
@@ -26,7 +26,7 @@ description:
 
 ## 配置初始化
 
-mavis 中**首次绑定 bot** 走 local-runtime channel bind（详见
+alran 中**首次绑定 bot** 走 local-runtime channel bind（详见
 `lark-tools/SKILL.md`）。`lark-cli config init` 只在官方 CLI
 store 尚未初始化、且你需要直接运行 terminal `lark-cli` 时使用。
 
@@ -86,7 +86,7 @@ lark-cli auth login --scope "<missing_scope>"
 - **不要再用 `--domain`**——按 domain 申请会让用户每用一个新模块就被弹一次授权，体验差。`--recommend`
   已经覆盖各 domain 的常用 scope。
 - 多次 login 的 scope 会累积（增量授权），`--recommend` 之上再叠 `--scope` 是安全的。
-- 在 mavis 中，local-runtime 负责 bot 绑定；用户 OAuth 仍由 `lark-cli auth login --recommend` 或增量
+- 在 alran 中，local-runtime 负责 bot 绑定；用户 OAuth 仍由 `lark-cli auth login --recommend` 或增量
   `--scope` 完成。
 
 #### Agent 代理发起认证

@@ -3,7 +3,7 @@ import {
   type CliService,
   type SessionInfoView,
   type SessionTreeChildView,
-} from '@mavis/local-runtime-v2/cli-service';
+} from '@alran/local-runtime-v2/cli-service';
 
 import type {
   CreateTuiSessionInput,

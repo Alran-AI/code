@@ -3,12 +3,12 @@ import { createHash } from 'node:crypto';
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
 
 const PUBLIC_GATEWAY_ORIGINS: Readonly<
-  Record<MavisRegion, Readonly<Record<MavisBuildEnv, string>>>
+  Record<AlranRegion, Readonly<Record<AlranBuildEnv, string>>>
 > = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
@@ -25,8 +25,8 @@ const PUBLIC_GATEWAY_ORIGINS: Readonly<
 };
 
 export function publicGatewayOrigin(input: {
-  readonly region?: () => MavisRegion;
-  readonly buildEnv?: () => MavisBuildEnv;
+  readonly region?: () => AlranRegion;
+  readonly buildEnv?: () => AlranBuildEnv;
 }): string {
   const region = (input.region ?? getRuntimeRegion)();
   const buildEnv = (input.buildEnv ?? getRuntimeBuildEnv)();
@@ -38,7 +38,7 @@ export function createPublicGatewayRequest(input: {
   readonly token: string;
   readonly realUserID: string;
   readonly appVersion: string;
-  readonly region: MavisRegion;
+  readonly region: AlranRegion;
   readonly nowMs: number;
   readonly query?: Readonly<Record<string, string>>;
   readonly body?: string;

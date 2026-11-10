@@ -93,7 +93,7 @@ export class LocalFeishuOnboardService {
     const body = await readJsonBody(request);
     const connectionId = readFirstString(body, ['connectionId', 'connection_id']);
     const explicitRequestedName = readFirstString(body, ['agentName', 'agent_name']);
-    const requestedName = explicitRequestedName ?? 'mavis';
+    const requestedName = explicitRequestedName ?? 'alran';
     if (!connectionId && !this.resolveAgentWriteTarget) {
       throw new LocalAgentContractError(
         503,
@@ -374,7 +374,7 @@ export class LocalFeishuOnboardService {
       agentName: session.agentName,
       appId: session.appId,
       appSecret: session.appSecret,
-      botName: 'Mavis Feishu Bot',
+      botName: 'Alran Feishu Bot',
       mode: 'websocket',
     });
     if ('error' in result) {

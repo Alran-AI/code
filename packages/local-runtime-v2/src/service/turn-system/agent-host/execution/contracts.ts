@@ -1,4 +1,4 @@
-import type { RuntimeEvent } from '@mavis/agent-core/protocol';
+import type { RuntimeEvent } from '@alran/agent-core/protocol';
 import type {
   PiAfterToolCallHook,
   PiBeforeLlmCallHook,
@@ -10,13 +10,13 @@ import type {
   RunTurnInput,
   TurnEventReporter,
   UserMessageInput,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import type {
   PtcToolFactCollector,
   PtcToolResultProjection,
   RuntimeTool,
   ToolExecutionContext,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 import type { InputSafetyDecision } from '../../../content-safety/index.js';
 import type {

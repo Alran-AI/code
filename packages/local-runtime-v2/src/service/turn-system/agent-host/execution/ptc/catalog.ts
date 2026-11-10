@@ -1,4 +1,4 @@
-import type { PtcToolExecutionRequest, PtcToolSource, RuntimeTool } from '@mavis/agent-core/tools';
+import type { PtcToolExecutionRequest, PtcToolSource, RuntimeTool } from '@alran/agent-core/tools';
 
 interface PtcChildCatalog {
   readonly childTools: readonly RuntimeTool[];

@@ -1,5 +1,6 @@
 import { createServer, type Server as HttpServer } from 'node:http';
 
+import { parsePlatformOidcCallbackUri } from './contracts.js';
 import { AuthorizationCodeClient, type AuthorizationCodeStartResult } from './authorization-code-client.js';
 import { OAuthProtocolError } from './oauth-client.js';
 import { platformOidcLoginUrl, platformOidcRedeem, type PlatformSession } from './platform-oauth.js';
@@ -25,13 +26,21 @@ export interface CallbackServerOptions {
   readonly host?: string;
   /** Base URL of the callback server (e.g. http://127.0.0.1:54321). */
   readonly baseUrl: string;
+  /**
+   * Exact absolute callback URI registered on the Platform. When set, the
+   * server binds to that URI's host and port and serves its path, and the
+   * Platform OIDC `return_to` is exactly this URI. `port` and `host` are then
+   * ignored: an advertised URI that differs from the listening socket cannot
+   * complete a login.
+   */
+  readonly callbackUri?: string;
   /** Authorization code client (optional; can be set later with setClient). */
   readonly client?: AuthorizationCodeClient;
   /** Expected state value for CSRF protection (OAuth 2.0 flow only). */
   readonly expectedState?: string;
   /** Platform OIDC options: when set, the /login page redirects to the
    *  Platform's `/v2/auth/oidc/login` (Keycloak), and the /callback redeems
-   *  the one-time handoff code via the Platform's `/__dev/oidc/redeem`. */
+   *  the one-time handoff code via the Platform's `/v2/auth/sessions/handoff`. */
   readonly platformOidc?: {
     /** The Platform base URL this process reaches (e.g. http://127.0.0.1:18150). */
     readonly platformBaseUrl: string;
@@ -268,25 +277,32 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#039;');
 }
 
+/** Format a bind host for use inside a URL (IPv6 needs brackets). */
+function hostForUrl(host: string): string {
+  return host.includes(':') && !host.startsWith('[') ? `[${host}]` : host;
+}
+
 /**
  * A local HTTP server that hosts the OAuth 2.0 / Platform OIDC callback.
  *
  * Routes:
  *   GET /login      - starts the sign-in flow, presents a page that redirects
  *                     to Keycloak (OAuth 2.0) or the Platform's OIDC endpoint
- *   GET /callback   - Keycloak/Platform redirects here with `?code=` (and
- *                     `?state=` for OAuth 2.0)
+ *   GET /callback   - Keycloak/Platform redirects here with `?ottili_handoff=`
+ *                     (the Platform) or `?code=` (OAuth 2.0, plus `?state=`)
  *   GET /           - simple status page
  *
  * When `platformOidc` is configured, the callback is a Platform OIDC handoff:
- * the one-time code is redeemed via the Platform's `/__dev/oidc/redeem` for a
- * Platform session (session_id, company_id, base_url).
+ * the one-time `ottili_handoff` code is redeemed via the Platform's
+ * `/v2/auth/sessions/handoff` for a Platform session (session_id, company_id).
  */
 export class CallbackServer {
   private server: HttpServer | null = null;
   private listenedPort: number | null = null;
   private readonly host: string;
   private readonly baseUrl: string;
+  private readonly callbackUri?: string;
+  private readonly callbackPath: string;
   private client: AuthorizationCodeClient | null = null;
   private readonly expectedState?: string;
   private readonly platformOidc?: CallbackServerOptions['platformOidc'];
@@ -297,9 +313,14 @@ export class CallbackServer {
   private rejectLogin: ((error: Error) => void) | null = null;
 
   constructor(options: CallbackServerOptions) {
-    this.listenedPort = options.port ?? 0;
-    this.host = options.host ?? '127.0.0.1';
+    const endpoint = options.callbackUri
+      ? parsePlatformOidcCallbackUri(options.callbackUri)
+      : null;
+    this.listenedPort = endpoint?.port ?? options.port ?? 0;
+    this.host = endpoint?.host ?? options.host ?? '127.0.0.1';
     this.baseUrl = options.baseUrl;
+    this.callbackUri = endpoint?.uri;
+    this.callbackPath = endpoint?.path ?? '/callback';
     this.expectedState = options.expectedState;
     this.platformOidc = options.platformOidc;
     this.onLogin = options.onLogin;
@@ -331,7 +352,7 @@ export class CallbackServer {
         if (address && typeof address === 'object') {
           this.listenedPort = address.port;
         }
-        resolve(`${this.baseUrl.split('://')[0]}://${this.host}:${this.listenedPort}`);
+        resolve(`${this.baseUrl.split('://')[0]}://${hostForUrl(this.host)}:${this.listenedPort}`);
       });
     });
   }
@@ -347,7 +368,8 @@ export class CallbackServer {
   platformOidcAuthorizeUrl(): string {
     if (!this.platformOidc) throw new Error('Platform OIDC is not configured.');
     const port = this.listenedPort ?? 0;
-    const callback = `http://${this.host}:${port}/callback`;
+    const callback =
+      this.callbackUri ?? `http://${hostForUrl(this.host)}:${port}/callback`;
     return platformOidcLoginUrl({
       platformOrigin: this.platformOidc.platformBaseUrl,
       callback,
@@ -396,7 +418,7 @@ export class CallbackServer {
         return;
       }
 
-      if (path === '/callback') {
+      if (path === this.callbackPath || path === '/callback') {
         await this.handleCallback(url, res);
         return;
       }
@@ -429,6 +451,10 @@ export class CallbackServer {
     res: import('node:http').ServerResponse,
   ): Promise<void> {
     const code = url.searchParams.get('code') ?? undefined;
+    // The Platform appends the one-time code as `ottili_handoff`, not as
+    // `code`; that name is its published handoff parameter. Accept `code` as a
+    // fallback for an older Platform/dev stand-in that used the OAuth name.
+    const handoffCode = url.searchParams.get('ottili_handoff') ?? code;
     const state = url.searchParams.get('state') ?? undefined;
     const error = url.searchParams.get('error') ?? undefined;
     const errorDescription = url.searchParams.get('error_description') ?? undefined;
@@ -447,7 +473,8 @@ export class CallbackServer {
       return;
     }
 
-    if (!code) {
+    const sourceCode = this.platformOidc ? handoffCode : code;
+    if (!sourceCode) {
       res.statusCode = 400;
       res.end(errorPage('Missing authorization code or handoff code.'));
       const err = new Error('Missing authorization code or handoff code.');
@@ -481,13 +508,13 @@ export class CallbackServer {
       if (this.platformOidc) {
         // Platform OIDC: redeem the one-time handoff code for a Platform session.
         const session = await platformOidcRedeem(
-          { platformBaseUrl: this.platformOidc.platformBaseUrl, code },
+          { platformBaseUrl: this.platformOidc.platformBaseUrl, code: handoffCode! },
         );
         result = { platformSession: session };
       } else {
         // OAuth 2.0 authorization code: exchange code for tokens.
         const grant = await this.client!.exchangeCodeForToken(
-          code,
+          code!,
           this.startResult?.codeVerifier ?? '',
           this.expectedState ?? '',
           state ?? '',

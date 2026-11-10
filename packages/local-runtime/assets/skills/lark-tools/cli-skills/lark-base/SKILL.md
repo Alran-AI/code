@@ -276,7 +276,7 @@ view 完整操作链路时再读。
 多维表格通常属于用户的个人或团队资源。**默认应优先使用
 `--as user`（用户身份）执行所有 Base 操作**，始终显式指定身份。
 
-- **`--as user`（推荐）**：以当前登录用户身份操作其有权访问的 Base。在 mavis 中，若尚未授权，先运行
+- **`--as user`（推荐）**：以当前登录用户身份操作其有权访问的 Base。在 alran 中，若尚未授权，先运行
   `lark-cli auth login --recommend`
   拿到推荐 scope 全集（含 base 常用读写 scope）；若仍提示缺特定 base scope（如
   `base:record:update`），按 `cli-skills/lark-shared/SKILL.md`

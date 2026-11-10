@@ -1,4 +1,4 @@
-import { parseRequestMediaConfig } from '@mavis/config';
+import { parseRequestMediaConfig } from '@alran/config';
 
 import {
   initializeBrowserUseService,

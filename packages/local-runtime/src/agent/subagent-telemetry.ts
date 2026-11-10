@@ -1,5 +1,5 @@
-import { resolveCanonicalSubagentRole } from '@mavis/agent-tools/desktop/subagent-roles';
-import type { LocalTaskRunResult, VerificationReport } from '@mavis/agent-tools/desktop';
+import { resolveCanonicalSubagentRole } from '@alran/agent-tools/desktop/subagent-roles';
+import type { LocalTaskRunResult, VerificationReport } from '@alran/agent-tools/desktop';
 
 import type { ModuleMetricsReporter } from '../common/metrics.js';
 
@@ -91,7 +91,7 @@ export function inferNameResolutionSource(requestedName: string, canonicalName?:
   const requested = requestedName.trim();
   if (requested.toLowerCase().startsWith('agent:')) return 'explicit_agent';
   if (resolveCanonicalSubagentRole(requested)) return 'canonical_name';
-  if (requested.toLowerCase() === 'mavis' || requested.toLowerCase() === 'main') {
+  if (requested.toLowerCase() === 'alran' || requested.toLowerCase() === 'main') {
     return 'stable_name';
   }
   if (canonicalName && canonicalName !== requested) return 'display_name_compat';

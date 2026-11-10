@@ -6,13 +6,13 @@ import {
   DEFAULT_SKILLS_CONFIG,
   type ExternalSourceKindLabel,
   type SkillsConfig,
-} from '@mavis/config';
-import type { SkillSourceKind, SkillSourceRoot } from '@mavis/skills';
+} from '@alran/config';
+import type { SkillSourceKind, SkillSourceRoot } from '@alran/skills';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import { getBuiltinAgentsDirCandidates, getBuiltinSkillsDirCandidates } from './builtin.js';
 
-const DEFAULT_LOCAL_AGENT_NAME = 'mavis';
+const DEFAULT_LOCAL_AGENT_NAME = 'alran';
 const BUILTIN_SKILLS_DIR_NAME = '.builtin-skills';
 
 export function resolveBuiltinSkillsDir(config: LocalRuntimeConfig): string {

@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 
-import type { LocalBrowserScreenshotPreprocessor } from '@mavis/agent-tools/desktop';
-import { encodeRequestImageDetails } from '@mavis/context-manager';
-import { parseImageDimensionsFromBytes } from '@mavis/shared/image-dimensions';
+import type { LocalBrowserScreenshotPreprocessor } from '@alran/agent-tools/desktop';
+import { encodeRequestImageDetails } from '@alran/context-manager';
+import { parseImageDimensionsFromBytes } from '@alran/shared/image-dimensions';
 
 import type { BrowserScreenshotImageEncoding, BrowserUseServiceOptions } from './contracts.js';
 

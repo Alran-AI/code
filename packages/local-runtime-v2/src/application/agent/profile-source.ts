@@ -4,11 +4,11 @@ import type {
   LocalAgentService,
 } from '../../service/agent/index.js';
 import { describeAgentPromptSnapshot } from '../../service/agent/index.js';
-import { isLocalSourceProvenanceEnabled } from '@mavis/config';
+import { isLocalSourceProvenanceEnabled } from '@alran/config';
 import {
   omitManagedSourceCitationInstructions,
   restoreLegacyFileReferenceInstructions,
-} from '@mavis/shared/source-provenance';
+} from '@alran/shared/source-provenance';
 import type { LocalConversationRuntimeConfig } from '../../service/model-system/index.js';
 import type {
   LocalAgentExecutionProfile,
@@ -89,7 +89,7 @@ function resolveConfiguredCapabilities(
   if (capabilityProfile !== 'cli') return configured;
   return {
     ...configured,
-    features: { ...configured?.features, mavis: false },
+    features: { ...configured?.features, alran: false },
   };
 }
 

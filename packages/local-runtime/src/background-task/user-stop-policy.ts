@@ -1,4 +1,4 @@
-import { CONVERSATION_STOP_CONFIG_DEFAULTS, type ConversationStopConfigRead } from '@mavis/config';
+import { CONVERSATION_STOP_CONFIG_DEFAULTS, type ConversationStopConfigRead } from '@alran/config';
 
 import { logger } from '../common/logger.js';
 import type { BackgroundTask } from './domain.js';

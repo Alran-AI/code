@@ -1,4 +1,4 @@
-import type { ToolResult, ToolResultContent } from '@mavis/agent-core/tools';
+import type { ToolResult, ToolResultContent } from '@alran/agent-core/tools';
 
 export const DESKTOP_GREP_CONTENT_MAX_BYTES = 16 * 1024;
 export const DESKTOP_READ_TEXT_MAX_BYTES = 24 * 1024;
@@ -12,7 +12,7 @@ export const DESKTOP_BASH_PREVIEW_BYTES = DESKTOP_BASH_MAX_BYTES - 2048;
  * (agent-core pi-turn-runner/ptc-tool-executor.ts); top-level calls never
  * carry it.
  *
- * The Desktop output caps (this file, and the token caps of mavis, memory and
+ * The Desktop output caps (this file, and the token caps of alran, memory and
  * web_fetch) exist to keep the model's context small. A child result goes to
  * the program, not to the model: only run_code's return value reaches the
  * model, and that is cut at 64 KiB (local-runtime-v2 runner/ptc
@@ -49,7 +49,7 @@ export type DesktopOutputLimitStrategy = 'prefix_lines' | 'head_tail_lines';
 export type DesktopOutputOffsetUnit = 'line' | 'match' | 'file';
 
 export interface DesktopOutputContinuationHint {
-  tool: 'read' | 'grep' | 'glob' | 'mavis' | 'bash' | 'task_output';
+  tool: 'read' | 'grep' | 'glob' | 'alran' | 'bash' | 'task_output';
   preserve_args: readonly string[];
   instruction: string;
 }

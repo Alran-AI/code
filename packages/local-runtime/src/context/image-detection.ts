@@ -1,5 +1,5 @@
-import type { PiBeforeLlmCallHookInput } from '@mavis/agent-core/pi-turn-runner';
-import { parseImageDimensionsFromBytes } from '@mavis/shared/image-dimensions';
+import type { PiBeforeLlmCallHookInput } from '@alran/agent-core/pi-turn-runner';
+import { parseImageDimensionsFromBytes } from '@alran/shared/image-dimensions';
 
 type LocalContextMessage = PiBeforeLlmCallHookInput['messages'][number];
 type MediaDetail = 'low' | 'default' | 'high';

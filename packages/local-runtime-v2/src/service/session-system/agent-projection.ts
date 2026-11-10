@@ -7,9 +7,9 @@ import {
   type ContextUsageComponentKind,
   type ContextUsageSnapshot,
   type RuntimeEvent,
-} from '@mavis/agent-core/protocol';
-import { RespDataType, Role, type AgentMessage } from '@mavis/agent-core/protocol/agent-message';
-import type { CompactionTokenUsage } from '@mavis/shared/global-events';
+} from '@alran/agent-core/protocol';
+import { RespDataType, Role, type AgentMessage } from '@alran/agent-core/protocol/agent-message';
+import type { CompactionTokenUsage } from '@alran/shared/global-events';
 
 import type { DisplayMessageRecord, MessageRepository } from './messages/repo/contract.js';
 import {

@@ -1,4 +1,4 @@
-import { getRuntimePresetKey, listRouteModelIds, resolveProviderAuthMode } from '@mavis/config';
+import { getRuntimePresetKey, listRouteModelIds, resolveProviderAuthMode } from '@alran/config';
 
 import type {
   LocalCustomProviderConfig,

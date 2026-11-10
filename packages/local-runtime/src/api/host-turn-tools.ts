@@ -1,13 +1,13 @@
 import type { LocalSessionRecord } from '../sessions/controller.js';
-import type { AgentBuiltinSkillId, ResolvedAgentCapabilities } from '@mavis/config';
+import type { AgentBuiltinSkillId, ResolvedAgentCapabilities } from '@alran/config';
 import { buildLocalBashAdapter } from '../background-task/bash-runner.js';
 import type {
-  LocalMavisAgentAdapter,
-  LocalMavisCronAdapter,
-  LocalMavisSessionAdapter,
+  LocalAlranAgentAdapter,
+  LocalAlranCronAdapter,
+  LocalAlranSessionAdapter,
   LocalCodeReviewAdapter,
   LocalSandboxBashExecutionPort,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 import { buildLocalTurnToolSources, type LocalTurnToolSources } from './local-native-tools.js';
 import { buildLocalTaskAdapter } from './local-task-runner.js';
 import { buildLocalTaskAppendAdapter } from './local-task-append.js';
@@ -69,9 +69,9 @@ function liveAuthSources(host: LocalRuntimeApiHost) {
 export async function buildLocalTurnToolSourcesForHost(
   input: BuildOwnerTurnToolSourcesInput & {
     host: LocalRuntimeApiHost;
-    mavisAgentAdapter: LocalMavisAgentAdapter;
-    mavisCronAdapter?: LocalMavisCronAdapter;
-    mavisSessionAdapter: LocalMavisSessionAdapter;
+    alranAgentAdapter: LocalAlranAgentAdapter;
+    alranCronAdapter?: LocalAlranCronAdapter;
+    alranSessionAdapter: LocalAlranSessionAdapter;
   },
 ): Promise<OwnerTurnToolSources> {
   const runtimeConfig = input.host.configGetter();
@@ -123,11 +123,11 @@ export async function buildLocalTurnToolSourcesForHost(
       ? {}
       : { allowedExtensionSkillNames: input.allowedExtensionSkillNames }),
     metrics: input.host.metrics,
-    mavisAgentAdapter: input.mavisAgentAdapter,
-    ...(input.cronEnabled !== false && input.mavisCronAdapter
-      ? { mavisCronAdapter: input.mavisCronAdapter }
+    alranAgentAdapter: input.alranAgentAdapter,
+    ...(input.cronEnabled !== false && input.alranCronAdapter
+      ? { alranCronAdapter: input.alranCronAdapter }
       : {}),
-    mavisSessionAdapter: input.mavisSessionAdapter,
+    alranSessionAdapter: input.alranSessionAdapter,
     cuModeActive: input.cuModeActive,
     ...(input.miniappAvailable === true ? { miniappAvailable: true } : {}),
     ...(input.desktopCapabilities ? { desktopCapabilities: input.desktopCapabilities } : {}),

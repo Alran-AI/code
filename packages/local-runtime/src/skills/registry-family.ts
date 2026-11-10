@@ -1,4 +1,4 @@
-import { type SkillEntry, type SkillRegistry, type SkillViewEntry } from '@mavis/skills';
+import { type SkillEntry, type SkillRegistry, type SkillViewEntry } from '@alran/skills';
 
 import { isLocalBuiltinSkillEnabled } from './builtin.js';
 import {
@@ -6,7 +6,7 @@ import {
   type SubagentTelemetryHost,
 } from '../agent/subagent-telemetry.js';
 
-const DEFAULT_LOCAL_AGENT_NAME = 'mavis';
+const DEFAULT_LOCAL_AGENT_NAME = 'alran';
 
 /** Contract-level resolution failure without adding fields to DesktopService. */
 export class LocalSkillResolutionError extends Error {

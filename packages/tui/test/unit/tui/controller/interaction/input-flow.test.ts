@@ -512,7 +512,7 @@ describe("TuiInputFlow steer Draft handling", () => {
     harness.commandFlow.catalog.resolve.mockReturnValue({ name: "help" });
     Object.assign(harness.submissionSeed, {
       transportContent:
-        "<mavis-chat-context>hidden</mavis-chat-context>\n\n/help should remain message text",
+        "<alran-chat-context>hidden</alran-chat-context>\n\n/help should remain message text",
     });
 
     harness.editor.onSubmit?.(
@@ -526,7 +526,7 @@ describe("TuiInputFlow steer Draft handling", () => {
     expect(harness.onSubmissionStarted).toHaveBeenCalledWith(
       "/help should remain message text",
       expect.objectContaining({
-        transportContent: expect.stringContaining("mavis-chat-context"),
+        transportContent: expect.stringContaining("alran-chat-context"),
       }),
     );
   });

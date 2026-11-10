@@ -8,8 +8,8 @@ import {
   type AssistantMessageEventStream,
 } from '@earendil-works/pi-ai';
 import type { StreamFn } from '@earendil-works/pi-agent-core';
-import { toRuntimeTool, type RuntimeTool } from '@mavis/agent-core/tools';
-import { LocalTaskOutputTool } from '@mavis/agent-tools/desktop';
+import { toRuntimeTool, type RuntimeTool } from '@alran/agent-core/tools';
+import { LocalTaskOutputTool } from '@alran/agent-tools/desktop';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LocalTaskRunnerHostWithSessionLookup } from '../../src/api/local-task-host.js';
@@ -77,9 +77,9 @@ async function createTaskOutputPollingCompositionHarness() {
   const dataDir = await mkdtemp(join(tmpdir(), 'task-output-polling-composition-'));
   const session = createSession(dataDir);
   const agent = {
-    agentName: 'mavis',
-    displayName: 'Mavis',
-    systemPrompt: 'You are Mavis.',
+    agentName: 'alran',
+    displayName: 'Alran',
+    systemPrompt: 'You are Alran.',
   };
   const sessionRepository = {
     get: vi.fn(async (sessionId: string) =>
@@ -150,7 +150,7 @@ async function createTaskOutputPollingCompositionHarness() {
 function createSession(dataDir: string): SessionRecord {
   return {
     sessionId: 'session-task-output-polling',
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: dataDir,
     runtime: 'pi-agent',
     sessionType: 'root',

@@ -1,4 +1,4 @@
-import type { ThreadGoalState } from '@mavis/goal';
+import type { ThreadGoalState } from '@alran/goal';
 
 export const GOAL_TERMINAL_AUDIT_INTERVAL = 5;
 

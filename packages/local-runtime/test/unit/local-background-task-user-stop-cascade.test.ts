@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { ConversationStopConfigRead } from '@mavis/config';
+import type { ConversationStopConfigRead } from '@alran/config';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LocalTaskRunnerHostWithSessionLookup } from '../../src/api/local-task-host.js';

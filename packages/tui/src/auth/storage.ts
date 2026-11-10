@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { retryWindowsFileSystemOperation } from '@mavis/shared';
+import { retryWindowsFileSystemOperation } from '@alran/shared';
 
 import {
   clearLocalRuntimeAuthContextFile,
@@ -9,8 +9,8 @@ import {
   readLocalRuntimeAuthContext,
   writeLocalRuntimeAuthContext,
   type LocalRuntimeAuthContextSnapshot,
-  type MavisBuildEnv,
-} from '@mavis/config';
+  type AlranBuildEnv,
+} from '@alran/config';
 import type { CliAuthScope } from './types.js';
 import {
   clearCliAccountIdentity,
@@ -48,7 +48,7 @@ export function resolveCliAuthContextDataDir(dataDir: string, scope: CliAuthScop
   return path.join(dataDir, CLI_AUTH_CONTEXT_DIRECTORY, scope.buildEnv, scope.region);
 }
 
-function resolveLegacyCliAuthContextDataDir(dataDir: string, buildEnv: MavisBuildEnv): string {
+function resolveLegacyCliAuthContextDataDir(dataDir: string, buildEnv: AlranBuildEnv): string {
   return path.join(dataDir, CLI_AUTH_CONTEXT_DIRECTORY, buildEnv);
 }
 
@@ -81,7 +81,7 @@ export function readPrivateCliAuthContext(
 
 export function readCliAuthContextProjection(
   dataDir: string,
-  buildEnv: MavisBuildEnv,
+  buildEnv: AlranBuildEnv,
 ): CliAuthContextProjection | undefined {
   const activeProjection =
     readCliOwnedSharedProjection(dataDir) ?? readLegacyCliAuthProjection(dataDir, buildEnv);
@@ -93,7 +93,7 @@ export function readCliAuthContextProjection(
 
 function readLegacyCliAuthProjection(
   dataDir: string,
-  buildEnv: MavisBuildEnv,
+  buildEnv: AlranBuildEnv,
 ): CliAuthScopeRecord | undefined {
   const legacyDirectory = resolveLegacyCliAuthContextDataDir(dataDir, buildEnv);
   const scope = readCliAuthScopeRecord(path.join(legacyDirectory, CLI_AUTH_SCOPE_FILE));

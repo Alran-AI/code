@@ -1,6 +1,6 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import type { Api, Model } from '@earendil-works/pi-ai';
-import type { PiBeforeLlmCallHookInput } from '@mavis/agent-core/pi-turn-runner';
+import type { PiBeforeLlmCallHookInput } from '@alran/agent-core/pi-turn-runner';
 import { describe, expect, it } from 'vitest';
 
 import { validateCanonicalHistoryMessages } from '../../agent-host/history/canonical-history-validation.js';

@@ -19,6 +19,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      better-sqlite3:
+        specifier: '12'
+        version: 12.11.1
     devDependencies:
       '@types/node':
         specifier: ^20.19.0
@@ -77,6 +81,12 @@ importers:
 
   packages/agent-core:
     dependencies:
+      '@alran/protocol':
+        specifier: workspace:^
+        version: link:../protocol
+      '@alran/shared':
+        specifier: workspace:^
+        version: link:../shared
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
@@ -86,12 +96,6 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/coding-agent
-      '@mavis/protocol':
-        specifier: workspace:^
-        version: link:../protocol
-      '@mavis/shared':
-        specifier: workspace:^
-        version: link:../shared
       '@sinclair/typebox':
         specifier: ^0.34.0
         version: 0.34.52
@@ -99,7 +103,7 @@ importers:
         specifier: ^3
         version: 3.25.76
     devDependencies:
-      '@mavis/config':
+      '@alran/config':
         specifier: workspace:^
         version: link:../config
       '@types/node':
@@ -117,40 +121,40 @@ importers:
 
   packages/agent-extension:
     dependencies:
-      '@mavis/agent-runtime':
+      '@alran/agent-runtime':
         specifier: workspace:^
         version: link:../agent-runtime
-      '@mavis/context-manager':
+      '@alran/context-manager':
         specifier: workspace:^
         version: link:../agent-modules/context-manager
-      '@mavis/permission':
+      '@alran/permission':
         specifier: workspace:^
         version: link:../agent-modules/permission
-      '@mavis/runaway-guard':
+      '@alran/runaway-guard':
         specifier: workspace:^
         version: link:../agent-modules/runaway-guard
-      '@mavis/session-report':
+      '@alran/session-report':
         specifier: workspace:^
         version: link:../agent-modules/session-report
-      '@mavis/skills':
+      '@alran/skills':
         specifier: workspace:^
         version: link:../agent-modules/skills
-      '@mavis/system-reminder':
+      '@alran/system-reminder':
         specifier: workspace:^
         version: link:../agent-modules/system-reminder
       '@sinclair/typebox':
         specifier: ^0.34.0
         version: 0.34.52
     devDependencies:
+      '@alran/protocol':
+        specifier: workspace:^
+        version: link:../protocol
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
       '@earendil-works/pi-ai':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/ai
-      '@mavis/protocol':
-        specifier: workspace:^
-        version: link:../protocol
       '@types/node':
         specifier: ^20
         version: 20.19.43
@@ -175,6 +179,9 @@ importers:
 
   packages/agent-modules/context-manager:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:^
+        version: link:../../agent-core
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../../third_party/pi-mono/packages/agent
@@ -184,9 +191,6 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../../third_party/pi-mono/packages/coding-agent
-      '@mavis/agent-core':
-        specifier: workspace:^
-        version: link:../../agent-core
       gpt-tokenizer:
         specifier: ^3.4.0
         version: 3.4.0
@@ -215,10 +219,10 @@ importers:
 
   packages/agent-modules/cron:
     dependencies:
-      '@mavis/agent-core':
+      '@alran/agent-core':
         specifier: workspace:^
         version: link:../../agent-core
-      '@mavis/shared':
+      '@alran/shared':
         specifier: workspace:^
         version: link:../../shared
     devDependencies:
@@ -234,12 +238,12 @@ importers:
 
   packages/agent-modules/goal:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:^
+        version: link:../../agent-core
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../../third_party/pi-mono/packages/agent
-      '@mavis/agent-core':
-        specifier: workspace:^
-        version: link:../../agent-core
       '@sinclair/typebox':
         specifier: ^0.34.0
         version: 0.34.52
@@ -281,7 +285,7 @@ importers:
 
   packages/agent-modules/permission:
     dependencies:
-      '@mavis/agent-core':
+      '@alran/agent-core':
         specifier: workspace:^
         version: link:../../agent-core
     devDependencies:
@@ -309,7 +313,7 @@ importers:
 
   packages/agent-modules/runaway-guard:
     dependencies:
-      '@mavis/agent-core':
+      '@alran/agent-core':
         specifier: workspace:^
         version: link:../../agent-core
     devDependencies:
@@ -356,10 +360,10 @@ importers:
 
   packages/agent-modules/system-reminder:
     devDependencies:
-      '@mavis/config':
+      '@alran/config':
         specifier: workspace:^
         version: link:../../config
-      '@mavis/shared':
+      '@alran/shared':
         specifier: workspace:^
         version: link:../../shared
       '@types/node':
@@ -374,12 +378,12 @@ importers:
 
   packages/agent-runtime:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:^
+        version: link:../agent-core
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
-      '@mavis/agent-core':
-        specifier: workspace:^
-        version: link:../agent-core
       '@sinclair/typebox':
         specifier: ^0.34.0
         version: 0.34.52
@@ -399,33 +403,33 @@ importers:
 
   packages/agent-tools:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:^
+        version: link:../agent-core
+      '@alran/background-task':
+        specifier: workspace:^
+        version: link:../agent-modules/background-task
+      '@alran/context-manager':
+        specifier: workspace:^
+        version: link:../agent-modules/context-manager
+      '@alran/plugin-hooks':
+        specifier: workspace:^
+        version: link:../agent-modules/plugin-hooks
+      '@alran/protocol':
+        specifier: workspace:^
+        version: link:../protocol
+      '@alran/shared':
+        specifier: workspace:^
+        version: link:../shared
+      '@alran/system-reminder':
+        specifier: workspace:^
+        version: link:../agent-modules/system-reminder
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/coding-agent
-      '@mavis/agent-core':
-        specifier: workspace:^
-        version: link:../agent-core
-      '@mavis/background-task':
-        specifier: workspace:^
-        version: link:../agent-modules/background-task
-      '@mavis/context-manager':
-        specifier: workspace:^
-        version: link:../agent-modules/context-manager
-      '@mavis/plugin-hooks':
-        specifier: workspace:^
-        version: link:../agent-modules/plugin-hooks
-      '@mavis/protocol':
-        specifier: workspace:^
-        version: link:../protocol
-      '@mavis/shared':
-        specifier: workspace:^
-        version: link:../shared
-      '@mavis/system-reminder':
-        specifier: workspace:^
-        version: link:../agent-modules/system-reminder
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@3.25.76)
@@ -481,7 +485,7 @@ importers:
 
   packages/alran-tools-host:
     dependencies:
-      '@mavis/oauth-lease-protocol':
+      '@alran/oauth-lease-protocol':
         specifier: workspace:*
         version: link:../oauth-lease-protocol
 
@@ -497,15 +501,9 @@ importers:
         specifier: 4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
-  packages/code-sdk:
-    devDependencies:
-      '@ottili/alran-code':
-        specifier: link:test/fixtures/cli-package
-        version: link:test/fixtures/cli-package
-
   packages/config:
     dependencies:
-      '@mavis/shared':
+      '@alran/shared':
         specifier: workspace:^
         version: link:../shared
       js-yaml:
@@ -530,6 +528,45 @@ importers:
 
   packages/local-runtime:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:^
+        version: link:../agent-core
+      '@alran/agent-tools':
+        specifier: workspace:^
+        version: link:../agent-tools
+      '@alran/config':
+        specifier: workspace:^
+        version: link:../config
+      '@alran/context-manager':
+        specifier: workspace:^
+        version: link:../agent-modules/context-manager
+      '@alran/conversation-contract':
+        specifier: workspace:^
+        version: link:../agent-modules/conversation-contract
+      '@alran/cron':
+        specifier: workspace:^
+        version: link:../agent-modules/cron
+      '@alran/goal':
+        specifier: workspace:^
+        version: link:../agent-modules/goal
+      '@alran/mcp':
+        specifier: workspace:^
+        version: link:../agent-modules/mcp
+      '@alran/permission':
+        specifier: workspace:^
+        version: link:../agent-modules/permission
+      '@alran/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      '@alran/shared':
+        specifier: workspace:^
+        version: link:../shared
+      '@alran/skills':
+        specifier: workspace:^
+        version: link:../agent-modules/skills
+      '@alran/system-reminder':
+        specifier: workspace:^
+        version: link:../agent-modules/system-reminder
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
@@ -539,45 +576,6 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/coding-agent
-      '@mavis/agent-core':
-        specifier: workspace:^
-        version: link:../agent-core
-      '@mavis/agent-tools':
-        specifier: workspace:^
-        version: link:../agent-tools
-      '@mavis/config':
-        specifier: workspace:^
-        version: link:../config
-      '@mavis/context-manager':
-        specifier: workspace:^
-        version: link:../agent-modules/context-manager
-      '@mavis/conversation-contract':
-        specifier: workspace:^
-        version: link:../agent-modules/conversation-contract
-      '@mavis/cron':
-        specifier: workspace:^
-        version: link:../agent-modules/cron
-      '@mavis/goal':
-        specifier: workspace:^
-        version: link:../agent-modules/goal
-      '@mavis/mcp':
-        specifier: workspace:^
-        version: link:../agent-modules/mcp
-      '@mavis/permission':
-        specifier: workspace:^
-        version: link:../agent-modules/permission
-      '@mavis/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@mavis/shared':
-        specifier: workspace:^
-        version: link:../shared
-      '@mavis/skills':
-        specifier: workspace:^
-        version: link:../agent-modules/skills
-      '@mavis/system-reminder':
-        specifier: workspace:^
-        version: link:../agent-modules/system-reminder
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@3.25.76)
@@ -652,6 +650,54 @@ importers:
 
   packages/local-runtime-v2:
     dependencies:
+      '@alran/agent-core':
+        specifier: workspace:*
+        version: link:../agent-core
+      '@alran/agent-extension':
+        specifier: workspace:^
+        version: link:../agent-extension
+      '@alran/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@alran/agent-tools':
+        specifier: workspace:*
+        version: link:../agent-tools
+      '@alran/config':
+        specifier: workspace:*
+        version: link:../config
+      '@alran/context-manager':
+        specifier: workspace:^
+        version: link:../agent-modules/context-manager
+      '@alran/conversation-contract':
+        specifier: workspace:*
+        version: link:../agent-modules/conversation-contract
+      '@alran/goal':
+        specifier: workspace:^
+        version: link:../agent-modules/goal
+      '@alran/local-runtime':
+        specifier: workspace:*
+        version: link:../local-runtime
+      '@alran/mcp':
+        specifier: workspace:^
+        version: link:../agent-modules/mcp
+      '@alran/permission':
+        specifier: workspace:^
+        version: link:../agent-modules/permission
+      '@alran/plugin-hooks':
+        specifier: workspace:^
+        version: link:../agent-modules/plugin-hooks
+      '@alran/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      '@alran/session-report':
+        specifier: workspace:^
+        version: link:../agent-modules/session-report
+      '@alran/shared':
+        specifier: workspace:^
+        version: link:../shared
+      '@alran/system-reminder':
+        specifier: workspace:^
+        version: link:../agent-modules/system-reminder
       '@earendil-works/pi-agent-core':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/agent
@@ -661,54 +707,6 @@ importers:
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/coding-agent
-      '@mavis/agent-core':
-        specifier: workspace:*
-        version: link:../agent-core
-      '@mavis/agent-extension':
-        specifier: workspace:^
-        version: link:../agent-extension
-      '@mavis/agent-runtime':
-        specifier: workspace:*
-        version: link:../agent-runtime
-      '@mavis/agent-tools':
-        specifier: workspace:*
-        version: link:../agent-tools
-      '@mavis/config':
-        specifier: workspace:*
-        version: link:../config
-      '@mavis/context-manager':
-        specifier: workspace:^
-        version: link:../agent-modules/context-manager
-      '@mavis/conversation-contract':
-        specifier: workspace:*
-        version: link:../agent-modules/conversation-contract
-      '@mavis/goal':
-        specifier: workspace:^
-        version: link:../agent-modules/goal
-      '@mavis/local-runtime':
-        specifier: workspace:*
-        version: link:../local-runtime
-      '@mavis/mcp':
-        specifier: workspace:^
-        version: link:../agent-modules/mcp
-      '@mavis/permission':
-        specifier: workspace:^
-        version: link:../agent-modules/permission
-      '@mavis/plugin-hooks':
-        specifier: workspace:^
-        version: link:../agent-modules/plugin-hooks
-      '@mavis/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@mavis/session-report':
-        specifier: workspace:^
-        version: link:../agent-modules/session-report
-      '@mavis/shared':
-        specifier: workspace:^
-        version: link:../shared
-      '@mavis/system-reminder':
-        specifier: workspace:^
-        version: link:../agent-modules/system-reminder
       '@ottili/alran-sandbox-runtime':
         specifier: workspace:*
         version: link:../../third_party/sandbox-runtime
@@ -811,33 +809,33 @@ importers:
       '@agentclientprotocol/sdk':
         specifier: 1.3.0
         version: 1.3.0(zod@4.6.7)
+      '@alran/agent-tools':
+        specifier: workspace:^
+        version: link:../agent-tools
+      '@alran/alran-tools-host':
+        specifier: workspace:*
+        version: link:../alran-tools-host
+      '@alran/browser-core':
+        specifier: workspace:^
+        version: link:../browser-core
+      '@alran/config':
+        specifier: workspace:^
+        version: link:../config
+      '@alran/local-runtime-v2':
+        specifier: workspace:*
+        version: link:../local-runtime-v2
+      '@alran/oauth-core':
+        specifier: workspace:*
+        version: link:../oauth-core
+      '@alran/oauth-lease-protocol':
+        specifier: workspace:*
+        version: link:../oauth-lease-protocol
+      '@alran/shared':
+        specifier: workspace:^
+        version: link:../shared
       '@earendil-works/pi-coding-agent':
         specifier: workspace:*
         version: link:../../third_party/pi-mono/packages/coding-agent
-      '@mavis/agent-tools':
-        specifier: workspace:^
-        version: link:../agent-tools
-      '@mavis/alran-tools-host':
-        specifier: workspace:*
-        version: link:../alran-tools-host
-      '@mavis/browser-core':
-        specifier: workspace:^
-        version: link:../browser-core
-      '@mavis/config':
-        specifier: workspace:^
-        version: link:../config
-      '@mavis/local-runtime-v2':
-        specifier: workspace:*
-        version: link:../local-runtime-v2
-      '@mavis/oauth-core':
-        specifier: workspace:*
-        version: link:../oauth-core
-      '@mavis/oauth-lease-protocol':
-        specifier: workspace:*
-        version: link:../oauth-lease-protocol
-      '@mavis/shared':
-        specifier: workspace:^
-        version: link:../shared
       ajv:
         specifier: 8.18.0
         version: 8.18.0
@@ -2001,7 +1999,9 @@ packages:
   '@smithy/core@3.33.3':
     resolution: {integrity: sha512-CsOeKq/9kA3y6VJHt+/+VTCtBaxJ4OTFpgrjIUhPpDIKxBci1k2bJaQASF2h/ELWrulGp+t97DZ0mevfAD8idg==}
     engines: {node: '>=18.0.0'}
-    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
+    deprecated: |-
+      Deprecated due to a bug in custom logger data redaction. Upgrade to the latest version. If you used a custom logger with this
+        version, review your logs and rotate any credentials or other secrets. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/credential-provider-imds@4.5.2':
     resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}
@@ -5807,7 +5807,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      vitest: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
 
   '@vitest/expect@4.1.11':
     dependencies:

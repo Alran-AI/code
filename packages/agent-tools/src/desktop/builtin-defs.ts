@@ -2,15 +2,15 @@ import { Type, type Static } from '@sinclair/typebox';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import type { ToolDefinition } from '@mavis/agent-core/tools';
+import type { ToolDefinition } from '@alran/agent-core/tools';
 
-import { createMavisOperationClassifier } from '../shared/mavis-operation-classifier.js';
-import { LOCAL_MAVIS_COMMANDS } from './local-mavis-commands.js';
+import { createAlranOperationClassifier } from '../shared/alran-operation-classifier.js';
+import { LOCAL_ALRAN_COMMANDS } from './local-alran-commands.js';
 import { BashDescriptionSchema } from './local-bash-input.js';
 import { prepareAskUserArguments } from './prepare-ask-user-arguments.js';
 
 import {
-  LOCAL_MAVIS_AGENT_NAME_DESCRIPTION,
+  LOCAL_ALRAN_AGENT_NAME_DESCRIPTION,
   agentNameDescription,
   roleDirectoryText,
 } from './subagent-roles.js';
@@ -347,7 +347,7 @@ export type LocalMemoryToolInput = Static<typeof LocalMemoryToolDef.schema>;
 
 const LocalAskUserImageSchema = Type.Object({
   src: Type.String({
-    description: 'HTTPS URL or local /mavis/api/... path for an image shown in the question UI.',
+    description: 'HTTPS URL or local /alran/api/... path for an image shown in the question UI.',
   }),
   alt: Type.Optional(Type.String({ description: 'Accessible alt text for the image.' })),
   caption: Type.Optional(Type.String({ description: 'Optional image caption.' })),
@@ -552,7 +552,7 @@ for the parent to persist.
   work while you continue non-overlapping work. Completion automatically resumes
   the owner; avoid routine polling.
 - Continue the child asynchronously with task_append using task_id; read
-  task_output with the returned task_id. If the native mavis tool is available,
+  task_output with the returned task_id. If the native alran tool is available,
   "session send" with session_id waits synchronously for a reply. Start a new
   task for independent work needing fresh context.`.concat(
     '\n\n---\n\n' + loadToolAgentPrompt()
@@ -642,7 +642,7 @@ up by <background-task-finished>, and stop it with task_stop(task_id). Once the
 append is admitted, ending or aborting the parent turn does not cancel the child.
 
 Only the owner of the task may append to it, and only while its child Session
-still exists and is not archived. Use the native mavis tool with command
+still exists and is not archived. Use the native alran tool with command
 "session send" when you want a synchronous reply from a Session by session_id
 instead.`;
 
@@ -730,7 +730,7 @@ export const LocalTaskStopToolDef = {
 } as const satisfies ToolDefinition;
 export type LocalTaskStopToolInput = Static<typeof LocalTaskStopToolDef.schema>;
 
-const LocalMavisArgsSchema = Type.Object(
+const LocalAlranArgsSchema = Type.Object(
   {
     cursor: Type.Optional(
       Type.String({
@@ -749,7 +749,7 @@ const LocalMavisArgsSchema = Type.Object(
     ),
     agent_name: Type.Optional(
       Type.String({
-        description: `${LOCAL_MAVIS_AGENT_NAME_DESCRIPTION} Required for agent get/update/delete; optional filter for session list. For cron list, optional owner filter; for cron create/once, see session for owner selection.`,
+        description: `${LOCAL_ALRAN_AGENT_NAME_DESCRIPTION} Required for agent get/update/delete; optional filter for session list. For cron list, optional owner filter; for cron create/once, see session for owner selection.`,
       }),
     ),
     name: Type.Optional(
@@ -783,7 +783,7 @@ const LocalMavisArgsSchema = Type.Object(
     ),
     include_primary: Type.Optional(
       Type.Boolean({
-        description: 'agent list: include the primary Mavis agent. Defaults to false.',
+        description: 'agent list: include the primary Alran agent. Defaults to false.',
       }),
     ),
     cron_id: Type.Optional(
@@ -983,11 +983,11 @@ const LocalMavisArgsSchema = Type.Object(
   },
 );
 
-export const LocalMavisToolDef = {
-  name: 'mavis',
+export const LocalAlranToolDef = {
+  name: 'alran',
   executionMode: 'sequential',
-  operationClassifier: createMavisOperationClassifier(LOCAL_MAVIS_COMMANDS),
-  description: `Manage local desktop Mavis agents and their services. Use "<group> help" for command details and examples.
+  operationClassifier: createAlranOperationClassifier(LOCAL_ALRAN_COMMANDS),
+  description: `Manage local desktop Alran agents and their services. Use "<group> help" for command details and examples.
 
 agent — local desktop agent roster
   Suggest agent creation or tool setup only after repeated work shows a need, supported by facts from memory; do not promote setup flows.
@@ -1004,12 +1004,12 @@ session — local desktop conversations
   Use session send to continue an existing unarchived local session, synchronously wait for completion, and fail without queueing when it is busy.
 
   Cross-session progress reporting in root sessions:
-  - For the built-in mavis agent, report when the user asks, returns after time away, or a meaningful cross-session change matters to them. On return, open with a brief status snapshot; surface other changes once at an appropriate moment.
+  - For the built-in alran agent, report when the user asks, returns after time away, or a meaningful cross-session change matters to them. On return, open with a brief status snapshot; surface other changes once at an appropriate moment.
   - For other agents, summarize recent sessions of the current agent when the user asks for overall progress.
   - Skip cross-session reporting when the user scopes the request to the current task.
   - Call session list with agent_name: "me". Cover only sessions whose updatedAt is later than max(the previous user message timestamp in this root session, now - 6h).
   - Report the 10 newest matches. If more match, mention the remaining count without listing older entries.
-  - For unfamiliar outcomes, call session messages with the target session_id and limit: 5 for the built-in mavis agent, or limit: 3 for other agents.
+  - For unfamiliar outcomes, call session messages with the target session_id and limit: 5 for the built-in alran agent, or limit: 3 for other agents.
   - Use one line per session, newest first: deliverables, links, blockers. These limits apply only to progress summaries; other history queries follow the user's requested scope.
 
 mcp — current-profile MCP server settings
@@ -1053,10 +1053,10 @@ mcp update — Update server settings.
 mcp delete — Remove a server.
 mcp help — Show MCP command details.`,
     }),
-    args: Type.Optional(LocalMavisArgsSchema),
+    args: Type.Optional(LocalAlranArgsSchema),
   }),
 } as const satisfies ToolDefinition;
-export type LocalMavisToolInput = Static<typeof LocalMavisToolDef.schema>;
+export type LocalAlranToolInput = Static<typeof LocalAlranToolDef.schema>;
 
 export const LOCAL_BASE_TOOL_DEFS = [
   LocalReadToolDef,
@@ -1076,5 +1076,5 @@ export const LOCAL_BASE_TOOL_DEFS = [
   LocalTaskQueryToolDef,
   LocalTaskOutputToolDef,
   LocalTaskStopToolDef,
-  LocalMavisToolDef,
+  LocalAlranToolDef,
 ] as const;

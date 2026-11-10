@@ -3,8 +3,8 @@ import {
   isTrustedBuiltinCreationSource,
   resolveCanonicalSubagentRole,
   toAgentRequestRef,
-} from '@mavis/agent-tools/desktop/subagent-roles';
-import type { PromptReadScope } from '@mavis/agent-runtime';
+} from '@alran/agent-tools/desktop/subagent-roles';
+import type { PromptReadScope } from '@alran/agent-runtime';
 
 import {
   BuiltinAgentCatalog,
@@ -187,8 +187,8 @@ export class LocalAgentService extends AgentConfigDocuments {
       configuredModelSelection: toConfiguredModelSelection(candidate),
     });
     if (this.isBuiltin(input.meta)) return;
-    const nextDisplayName = candidate.xMavis?.displayName ?? input.meta.name;
-    const currentDisplayName = input.current.configured.mavis?.displayName ?? input.meta.name;
+    const nextDisplayName = candidate.xAlran?.displayName ?? input.meta.name;
+    const currentDisplayName = input.current.configured.alran?.displayName ?? input.meta.name;
     if (sameDisplayName(currentDisplayName, nextDisplayName)) return;
     await this.assertDisplayNameIsAvailable(nextDisplayName, input.meta.name);
   }
@@ -532,7 +532,7 @@ export class LocalAgentService extends AgentConfigDocuments {
     assertTrustedPrimaryFamily(this.primaryFamilyMembers(metas));
     // Once all persisted reserved rows have passed the trusted-family check,
     // both logical aliases stay readable. A historical channel/session record
-    // may still be stored under `main` after V2 seeded only `mavis`; filtering
+    // may still be stored under `main` after V2 seeded only `alran`; filtering
     // aliases by current Agent metadata makes that exact physical record
     // invisible to recovery and exact-unbind flows.
     const compatibleNames = [active, this.primaryAgentName, LEGACY_PRIMARY_AGENT_NAME].filter(
@@ -676,7 +676,7 @@ export class LocalAgentService extends AgentConfigDocuments {
         }
       }
       scope = await this.resolveAgentReadScopeRaw(requested);
-      // A canonical Mavis view can still be backed by the pre-Session-V2
+      // A canonical Alran view can still be backed by the pre-Session-V2
       // Main row. Only this trusted primary-family split writes to the winner;
       // every other resolver path preserves its established canonical target.
       const target =
@@ -983,8 +983,8 @@ export class LocalAgentService extends AgentConfigDocuments {
 
   /**
    * Single idempotent overlay pass, run right after the canonical seed and
-   * before `mavis` first becomes execution owner. Persona / system prompt keep
-   * using the Mavis builtin package and Owner / ACL are out of scope.
+   * before `alran` first becomes execution owner. Persona / system prompt keep
+   * using the Alran builtin package and Owner / ACL are out of scope.
    */
   private async convergeLegacyPrimaryProfile(
     definitions: readonly BuiltinAgentDefinition[],
@@ -1000,7 +1000,7 @@ export class LocalAgentService extends AgentConfigDocuments {
     const members = this.primaryFamilyMembers(await this.options.repository.list());
     assertTrustedPrimaryFamily(members);
     const present = new Set(members.map((member) => member.name));
-    // A fresh install (no `main`) or a pre-seed call (no `mavis`) has nothing
+    // A fresh install (no `main`) or a pre-seed call (no `alran`) has nothing
     // to converge. Reported so it is distinguishable from "converged to zero
     // fields" below.
     if (!present.has(this.primaryAgentName) || !present.has(LEGACY_PRIMARY_AGENT_NAME)) {

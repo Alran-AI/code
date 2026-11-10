@@ -4,7 +4,7 @@
 Renders selected pages with pdf2image (poppler), stitches them vertically into
 ≤ --max-bytes images (3 MB default; page-count uncapped), then sends each
 chunk to the Matrix `images_understand` tool via the local runtime's HTTP API
-(POST /mavis/api/matrix/tool/call). Internal chunking is hidden from the caller —
+(POST /alran/api/matrix/tool/call). Internal chunking is hidden from the caller —
 just pick pages.
 
 This is the only wrapped read script in pdf: vision needs page
@@ -23,7 +23,7 @@ Dependencies (all `pip3 install --user`):
   - Pillow
 
 Local runtime must be running with authenticated native Matrix tools; the script
-reads __MAVIS_RUNTIME_PORT first, then the active Alran Code data directory's daemon.port file
+reads __ALRAN_RUNTIME_PORT first, then the active Alran Code data directory's daemon.port file
 name (fallback 5321).
 """
 
@@ -81,18 +81,18 @@ def _safe_tmp_root() -> Path:
     env_tmp = os.environ.get("TMPDIR", "")
     if env_tmp and not env_tmp.startswith("/tmp"):
         return Path(env_tmp)
-    return cache_dir().parent  # ~/.cache/mavis/
+    return cache_dir().parent  # ~/.cache/alran/
 
 
 def _runtime_port() -> int:
-    if env := os.environ.get("__MAVIS_RUNTIME_PORT"):
+    if env := os.environ.get("__ALRAN_RUNTIME_PORT"):
         try:
             return int(env)
         except ValueError:
             pass
     data_dir = Path(
-        os.environ.get("__MAVIS_RUNTIME_DATA_DIR")
-        or os.environ.get("__MAVIS_PARENT_DATA_DIR")
+        os.environ.get("__ALRAN_RUNTIME_DATA_DIR")
+        or os.environ.get("__ALRAN_PARENT_DATA_DIR")
         or os.environ.get("ALRAN_DATA_DIR")
         or str(Path.home() / ".alran")
     )
@@ -106,7 +106,7 @@ def _runtime_port() -> int:
 
 
 def _runtime_call_matrix_tool(tool: str, args: dict) -> dict:
-    url = f"http://127.0.0.1:{_runtime_port()}/mavis/api/matrix/tool/call"
+    url = f"http://127.0.0.1:{_runtime_port()}/alran/api/matrix/tool/call"
     body = json.dumps(
         {
             "tool": tool,
@@ -131,7 +131,7 @@ def _runtime_call_matrix_tool(tool: str, args: dict) -> dict:
     except urllib.error.URLError as e:
         die(
             f"Cannot connect to local runtime at port {_runtime_port()}: {e.reason}. "
-            f"Restart the Alran Code app, or set __MAVIS_RUNTIME_PORT to the runtime port."
+            f"Restart the Alran Code app, or set __ALRAN_RUNTIME_PORT to the runtime port."
         )
 
 

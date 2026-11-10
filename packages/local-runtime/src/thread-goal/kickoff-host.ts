@@ -1,4 +1,4 @@
-import type { RuntimeConversation } from '@mavis/conversation-contract';
+import type { RuntimeConversation } from '@alran/conversation-contract';
 
 import type {
   InternalGoalPromptTurn,

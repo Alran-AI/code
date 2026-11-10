@@ -13,7 +13,7 @@ const UNDICI_DEFAULT_TIMEOUT_MS = 300_000;
 const LONG_REQUEST_THRESHOLD_MS = UNDICI_DEFAULT_TIMEOUT_MS - 20_000;
 const LONG_REQUEST_TIMEOUT_BUFFER_MS = 15_000;
 const MATRIX_PROXY_PREFIX = '/matrix/api/v1/mcp/';
-const LOCAL_GATEWAY_PREFIX = '/mavis/api/v1/mcp/';
+const LOCAL_GATEWAY_PREFIX = '/alran/api/v1/mcp/';
 
 export interface DesktopMatrixAuthContext {
   readonly accessToken?: string;

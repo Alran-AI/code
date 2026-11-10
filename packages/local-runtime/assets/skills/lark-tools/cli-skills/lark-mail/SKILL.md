@@ -62,7 +62,7 @@ metadata:
 邮箱是用户的个人资源，**策略上应优先显式使用 `--as user`（用户身份）请求**（CLI 的 `--as` 默认值为
 `auto`）。
 
-- **`--as user`（推荐）**：以当前登录用户的身份访问其邮箱。在 mavis 中，若尚未授权，先运行
+- **`--as user`（推荐）**：以当前登录用户的身份访问其邮箱。在 alran 中，若尚未授权，先运行
   `lark-cli auth login --recommend` 拿到推荐 scope 全集（含 mail）；若仍报 `LARK_USER_AUTH_REQUIRED`
   或缺特定 mail scope，按 `cli-skills/lark-shared/SKILL.md`
   §Agent 代理发起认证 的 canonical 模板执行增量授权。

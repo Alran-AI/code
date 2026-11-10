@@ -4,8 +4,8 @@ import type {
   AgentBuiltinSkillId,
   AgentBuiltinToolId,
   ResolvedAgentCapabilities,
-} from '@mavis/config';
-import type { PromptReadScope } from '@mavis/agent-runtime';
+} from '@alran/config';
+import type { PromptReadScope } from '@alran/agent-runtime';
 import type { InputSafetyDecision } from '../../../content-safety/index.js';
 import type { LocalResolvedModelConfig } from '../../../model-system/index.js';
 import type {
@@ -144,7 +144,7 @@ export interface AgentExecutionSnapshot {
    * that predate the split; consumers fall back to `agentName`.
    */
   readonly executionOwnerName?: string;
-  /** Physical Agent resource owner; differs for migrated `main` -> `mavis` aliases. */
+  /** Physical Agent resource owner; differs for migrated `main` -> `alran` aliases. */
   readonly resourceAgentName?: string;
   readonly displayName?: string;
   readonly agentRole?: string;
@@ -167,7 +167,7 @@ export interface LocalAgentCapabilityCeiling {
   readonly builtinTools?: readonly AgentBuiltinMcpToolId[];
   readonly skills?: readonly AgentBuiltinSkillId[];
   readonly features: Readonly<{
-    mavis: boolean;
+    alran: boolean;
     delegation: boolean;
     webSearch: boolean;
   }>;

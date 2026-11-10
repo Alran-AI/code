@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import type { ResolvedAgentCapabilities } from "@mavis/config";
-import { getRuntimeRegion } from "@mavis/config";
+import type { ResolvedAgentCapabilities } from "@alran/config";
+import { getRuntimeRegion } from "@alran/config";
 import {
   AgentFrameworkType,
   AgentRole,
@@ -11,11 +11,11 @@ import {
   type MessageRequest,
   type SessionInfo,
   type SystemReminderInput,
-} from "@mavis/system-reminder";
+} from "@alran/system-reminder";
 import type {
   GetAgentInput as GetAgentInput,
   GetAgentResult as GetAgentResult,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import type { LocalSessionRecord } from "../sessions/controller.js";
 import { isLocalDirectTaskPurpose } from "../sessions/session-policy.js";
@@ -246,7 +246,7 @@ export class LocalDataCollector {
       ...(memoryWriteEnabled && this.input.proactiveMemoryEnabled?.() === true
         ? { proactiveMemoryEnabled: true }
         : {}),
-      mavisEnabled: session.builtinCapabilities?.features.mavis !== false,
+      alranEnabled: session.builtinCapabilities?.features.alran !== false,
       ...(this.input.cronEnabled
         ? { cronEnabled: this.input.cronEnabled() }
         : {}),
@@ -453,7 +453,7 @@ function suffix(prev: string | undefined, current: string): string {
 }
 
 function isPrimaryAgent(agentName: string): boolean {
-  return agentName === "mavis" || agentName === "main";
+  return agentName === "alran" || agentName === "main";
 }
 
 function isTrustedPrimaryAgentDetail(

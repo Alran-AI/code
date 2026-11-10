@@ -10,8 +10,8 @@ export function isCuModeAvailable(
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
   if (gateEnabled !== true) return false;
-  if (env.MAVIS_BUILD_ENV !== 'prod') return true;
-  return env.__MAVIS_BUILD_INTERNAL === 'true' || env.__MAVIS_BUILD_INSIDE === 'true';
+  if (env.ALRAN_BUILD_ENV !== 'prod') return true;
+  return env.__ALRAN_BUILD_INTERNAL === 'true' || env.__ALRAN_BUILD_INSIDE === 'true';
 }
 
 /** CU tools use the shared desktop_* namespace across native and MCP paths. */

@@ -1,5 +1,5 @@
-import { digestThreadGoalObjective, type ThreadGoalState } from "@mavis/goal";
-import type { RuntimeConversation } from "@mavis/conversation-contract";
+import { digestThreadGoalObjective, type ThreadGoalState } from "@alran/goal";
+import type { RuntimeConversation } from "@alran/conversation-contract";
 import { describe, expect, it, vi } from "vitest";
 
 import type { LocalSessionRecord } from "../../src/sessions/controller.js";
@@ -13,7 +13,7 @@ import {
 
 const session = {
   sessionId: "session-a",
-  agentName: "mavis",
+  agentName: "alran",
 } as LocalSessionRecord;
 const goal = {
   goalId: "tg_1",

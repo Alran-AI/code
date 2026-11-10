@@ -6,7 +6,7 @@ export type BetterSqlite3Module<T> = T | { default?: T };
 const require = createRequire(import.meta.url);
 
 export function loadBetterSqlite3Module<T>(): T {
-  const overridePath = getBetterSqlite3ModuleOverridePath(process.env.MAVIS_SQLITE3_MODULE_PATH);
+  const overridePath = getBetterSqlite3ModuleOverridePath(process.env.ALRAN_SQLITE3_MODULE_PATH);
   const mod = overridePath
     ? createRequire(path.join(overridePath, 'package.json'))('better-sqlite3')
     : require('better-sqlite3');

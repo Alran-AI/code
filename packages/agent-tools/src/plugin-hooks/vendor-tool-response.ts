@@ -1,4 +1,4 @@
-import type { ToolResult } from '@mavis/agent-core/tools';
+import type { ToolResult } from '@alran/agent-core/tools';
 import { parsePatch } from 'diff';
 
 /**
@@ -10,9 +10,9 @@ import { parsePatch } from 'diff';
  * or otherwise lossy.
  */
 export const PLUGIN_HOOK_COMPATIBLE_TOOL_RESPONSE = Symbol.for(
-  'mavis.pluginHooks.compatibleToolResponse',
+  'alran.pluginHooks.compatibleToolResponse',
 );
-export const PLUGIN_HOOK_CODEX_TOOL_RESPONSE = Symbol.for('mavis.pluginHooks.codexToolResponse');
+export const PLUGIN_HOOK_CODEX_TOOL_RESPONSE = Symbol.for('alran.pluginHooks.codexToolResponse');
 
 interface ToolResultDetailsWithVendorResponse extends Record<string, unknown> {
   [PLUGIN_HOOK_COMPATIBLE_TOOL_RESPONSE]?: Readonly<Record<string, unknown>>;

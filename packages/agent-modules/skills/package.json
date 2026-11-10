@@ -1,7 +1,7 @@
 {
-  "name": "@mavis/skills",
+  "name": "@alran/skills",
   "version": "0.2.1",
-  "description": "Filesystem-backed skill registry core for Mavis runtimes.",
+  "description": "Filesystem-backed skill registry core for Alran runtimes.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {

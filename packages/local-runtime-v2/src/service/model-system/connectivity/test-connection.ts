@@ -5,7 +5,7 @@
 // their reason after removing configured secrets and common credential shapes.
 
 import { completeSimple, type ThinkingLevel } from '@earendil-works/pi-ai';
-import { withOpenCodeGoHeaders } from '@mavis/shared';
+import { withOpenCodeGoHeaders } from '@alran/shared';
 
 import { buildProviderHeaders, providerCompletionUrl } from './provider-request.js';
 import {

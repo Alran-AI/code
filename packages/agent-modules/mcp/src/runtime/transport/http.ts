@@ -1,5 +1,5 @@
 /**
- * HTTP / SSE MCP transport for Mavis runtimes.
+ * HTTP / SSE MCP transport for Alran runtimes.
  *
  * Ported from the retired `packages/daemon/src/mcp/runtime/transport/http.ts`.
  * Built on top of `@modelcontextprotocol/sdk` rather than hand-rolling fetch

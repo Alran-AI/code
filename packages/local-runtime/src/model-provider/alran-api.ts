@@ -1,8 +1,8 @@
-import { resolveOttiliApiBaseUrl } from '@mavis/config';
+import { resolveOttiliApiBaseUrl } from '@alran/config';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 
-export { alranApiModels } from '@mavis/config';
+export { alranApiModels } from '@alran/config';
 
 /**
  * The Ottili AI Platform gateway speaks the OpenAI chat-completions protocol,

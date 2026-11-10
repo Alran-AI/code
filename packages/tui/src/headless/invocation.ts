@@ -18,7 +18,7 @@ import {
   type SystemPromptOverrides,
 } from '../cli/system-prompt-options.js';
 import type { TuiExecFormat } from './output.js';
-import type { AlranContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@alran/protocol/local';
 
 export type TuiInputFormat = 'text' | 'json';
 export type TuiPermissionPolicy = 'smart' | 'full' | 'off';

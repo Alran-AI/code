@@ -1,11 +1,11 @@
-import { buildPluginId, parsePluginMentions } from '@mavis/shared/plugin-mention';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+import { buildPluginId, parsePluginMentions } from '@alran/shared/plugin-mention';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 import {
   attachPluginCapabilityAttribution,
   normalizedPluginSkillAttributionKey,
   selectPreferredAppPluginOwners,
   type PluginCapabilityAttributionIndex,
-} from '@mavis/agent-core/event-bridge';
+} from '@alran/agent-core/event-bridge';
 import {
   authorizeMcpInvokeReference,
   buildOrReuseIndex,
@@ -18,17 +18,17 @@ import {
   type McpModelIdentity,
   type McpInvokeReferenceTarget,
   type McpInvokeTargetResolution,
-} from '@mavis/agent-tools';
+} from '@alran/agent-tools';
 import {
   buildPluginReferenceReminder,
   detectPluginReferencesForMessages,
   type EffectivePluginCapabilityInventory,
-} from '@mavis/system-reminder';
+} from '@alran/system-reminder';
 import {
   InstalledPluginSource,
   PluginCapabilityType,
   type IPluginCapabilityProvenance,
-} from '@mavis/protocol';
+} from '@alran/protocol';
 
 import type { AgentHostUserInput } from '../preparation/contracts.js';
 import type {

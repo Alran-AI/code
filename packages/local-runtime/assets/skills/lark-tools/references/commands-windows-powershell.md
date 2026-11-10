@@ -40,7 +40,7 @@ $Status | Select-Object appId, identity, userOpenId, userName, tokenStatus, scop
 
 ```powershell
 $AgentName = if ($env:AGENT_NAME) { $env:AGENT_NAME } else { "main" }
-mavis im channel bind $AgentName `
+alran im channel bind $AgentName `
   --platform feishu `
   --app-id $env:FEISHU_APP_ID `
   --app-secret $env:FEISHU_APP_SECRET

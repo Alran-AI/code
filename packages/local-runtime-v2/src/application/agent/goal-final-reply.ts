@@ -1,5 +1,5 @@
-import type { AgentExtension } from '@mavis/agent-runtime';
-import { createGoalFinalReplyGate } from '@mavis/goal';
+import type { AgentExtension } from '@alran/agent-runtime';
+import { createGoalFinalReplyGate } from '@alran/goal';
 
 import type { LocalTurnToolPolicyGuard } from '../../service/turn-system/index.js';
 

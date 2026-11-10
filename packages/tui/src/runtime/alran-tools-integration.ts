@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 import {
   startAlranToolsAuthLeaseBroker,
   validateAlranToolsResource,
@@ -12,7 +12,7 @@ import {
   type AlranToolsHostAuthSession,
   type AlranToolsHostLogger,
   type ValidatedAlranToolsResource,
-} from '@mavis/alran-tools-host';
+} from '@alran/alran-tools-host';
 
 import {
   activateTuiAlranToolsHostEnvironment,
@@ -39,8 +39,8 @@ export interface AlranToolsReadiness {
 export interface PrepareTuiAlranToolsIntegrationOptions {
   requested: boolean;
   dataDir: string;
-  buildEnv: MavisBuildEnv;
-  region: MavisRegion;
+  buildEnv: AlranBuildEnv;
+  region: AlranRegion;
   session: AlranToolsHostAuthSession;
   entryUrl: string;
   bedrockLane?: string;
@@ -63,10 +63,10 @@ export function resolveBundledAlranToolsResourceDir(
   entryUrl: string,
   environment: Record<string, string | undefined> = process.env,
 ): string {
-  if (environment.MAVIS_DEV_ALRAN_TOOLS_MODE === 'published') {
-    const override = environment.MAVIS_DEV_ALRAN_TOOLS_RESOURCE_DIR?.trim();
+  if (environment.ALRAN_DEV_ALRAN_TOOLS_MODE === 'published') {
+    const override = environment.ALRAN_DEV_ALRAN_TOOLS_RESOURCE_DIR?.trim();
     if (!override || !path.isAbsolute(override)) {
-      throw new Error('MAVIS_DEV_ALRAN_TOOLS_RESOURCE_DIR must be an absolute path');
+      throw new Error('ALRAN_DEV_ALRAN_TOOLS_RESOURCE_DIR must be an absolute path');
     }
     return path.normalize(override);
   }
@@ -139,7 +139,7 @@ export async function prepareTuiAlranToolsIntegration(
   }
 }
 
-export function normalizeAlranToolsHostBuildEnv(buildEnv: MavisBuildEnv): AlranToolsBuildEnv {
+export function normalizeAlranToolsHostBuildEnv(buildEnv: AlranBuildEnv): AlranToolsBuildEnv {
   return buildEnv === 'dev' ? 'test' : buildEnv;
 }
 

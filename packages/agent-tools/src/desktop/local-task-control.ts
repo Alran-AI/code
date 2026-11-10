@@ -1,5 +1,5 @@
-import { bindTool, type ToolImpl, type ToolResult } from '@mavis/agent-core/tools';
-import { isActiveTaskStatus, type BackgroundTask, type TaskQuery } from '@mavis/background-task';
+import { bindTool, type ToolImpl, type ToolResult } from '@alran/agent-core/tools';
+import { isActiveTaskStatus, type BackgroundTask, type TaskQuery } from '@alran/background-task';
 
 import {
   LocalTaskOutputToolDef,

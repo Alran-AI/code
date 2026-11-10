@@ -1,4 +1,4 @@
-import { resolveSourceProvenanceEnabled } from '@mavis/shared/source-provenance';
+import { resolveSourceProvenanceEnabled } from '@alran/shared/source-provenance';
 
 /** Local product ownership is supplied by the host, never inferred from env. */
 export function isLocalSourceProvenanceEnabled(
@@ -7,7 +7,7 @@ export function isLocalSourceProvenanceEnabled(
 ): boolean {
   return resolveSourceProvenanceEnabled({
     platform: runtimeOwnerKind,
-    internalBuild: env.__MAVIS_BUILD_INTERNAL === 'true',
-    insideBuild: env.__MAVIS_BUILD_INSIDE === 'true',
+    internalBuild: env.__ALRAN_BUILD_INTERNAL === 'true',
+    insideBuild: env.__ALRAN_BUILD_INSIDE === 'true',
   });
 }

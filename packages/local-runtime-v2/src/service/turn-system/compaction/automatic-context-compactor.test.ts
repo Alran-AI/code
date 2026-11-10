@@ -5,9 +5,9 @@ import {
   type AssistantMessageEventStream,
   type Model,
 } from "@earendil-works/pi-ai";
-import { resolveCompactionTokenBudget } from "@mavis/context-manager";
-import { wrapInternalContext } from "@mavis/goal";
-import type { PromptReadSnapshot } from "@mavis/agent-runtime";
+import { resolveCompactionTokenBudget } from "@alran/context-manager";
+import { wrapInternalContext } from "@alran/goal";
+import type { PromptReadSnapshot } from "@alran/agent-runtime";
 import { describe, expect, it, vi } from "vitest";
 
 import { buildLocalRequestPayloadTransform } from "../agent-host/assembly/local-turn-payload-transform.js";

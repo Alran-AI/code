@@ -37,7 +37,7 @@ import {
 } from "../../../../src/service/agent/storage/canonical-agent-patch.js";
 
 const cleanup: Array<() => Promise<void>> = [];
-const DATA_DIR_SOURCE_ENV = "__MAVIS_RUNTIME_DATA_DIR_SOURCE";
+const DATA_DIR_SOURCE_ENV = "__ALRAN_RUNTIME_DATA_DIR_SOURCE";
 const ORIGINAL_DATA_DIR_SOURCE = process.env[DATA_DIR_SOURCE_ENV];
 
 afterEach(async () => {
@@ -139,20 +139,20 @@ function registerCanonicalConfigParsingTests(): void {
 
   it("keeps route ownership with the directory name, normalizes blank workspace, and diagnoses unknown fields", () => {
     const parsed = parseCanonicalAgentMarkdown(
-      '---\nname: portable-name\ndescription: Evidence first.\nunknownCompatibilityKey: keep-me\nx-mavis:\n  displayName: Portable display\n  avatar: ./avatar.png\n  defaultWorkspaceDir: "   "\n  unknownMavisKey: keep-me\n---\n',
+      '---\nname: portable-name\ndescription: Evidence first.\nunknownCompatibilityKey: keep-me\nx-alran:\n  displayName: Portable display\n  avatar: ./avatar.png\n  defaultWorkspaceDir: "   "\n  unknownAlranKey: keep-me\n---\n',
       "researcher",
     );
 
     expect(parsed).toMatchObject({
       name: "portable-name",
       description: "Evidence first.",
-      xMavis: { displayName: "Portable display", avatar: "./avatar.png" },
+      xAlran: { displayName: "Portable display", avatar: "./avatar.png" },
     });
-    expect(parsed.xMavis).not.toHaveProperty("defaultWorkspaceDir");
+    expect(parsed.xAlran).not.toHaveProperty("defaultWorkspaceDir");
     expect(parsed.diagnostics).toEqual([
       { code: "agent_name_mismatch", field: "name" },
       { code: "unsupported_agent_field", field: "unknownCompatibilityKey" },
-      { code: "unsupported_agent_field", field: "x-mavis.unknownMavisKey" },
+      { code: "unsupported_agent_field", field: "x-alran.unknownAlranKey" },
     ]);
   });
 
@@ -254,34 +254,34 @@ function registerCanonicalConfigParsingTests(): void {
       "skills",
     ],
     [
-      "invalid x-mavis display name",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  displayName: [display]\n---\n",
+      "invalid x-alran display name",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  displayName: [display]\n---\n",
       "displayName",
     ],
     [
-      "invalid x-mavis avatar",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: 42\n---\n",
+      "invalid x-alran avatar",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: 42\n---\n",
       "avatar",
     ],
     [
-      "invalid x-mavis limit",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  contextWindow: -1\n---\n",
+      "invalid x-alran limit",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  contextWindow: -1\n---\n",
       "contextWindow",
     ],
     [
-      "invalid x-mavis output limit",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  maxOutputTokens: zero\n---\n",
+      "invalid x-alran output limit",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  maxOutputTokens: zero\n---\n",
       "maxOutputTokens",
     ],
     [
-      "invalid x-mavis extension skills",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  extensionSkills: research\n---\n",
+      "invalid x-alran extension skills",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  extensionSkills: research\n---\n",
       "extensionSkills",
     ],
     [
       "relative workspace",
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  defaultWorkspaceDir: relative/workspace\n---\n",
-      "x-mavis.defaultWorkspaceDir",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  defaultWorkspaceDir: relative/workspace\n---\n",
+      "x-alran.defaultWorkspaceDir",
     ],
   ])(
     "fails closed for %s with a field-level diagnostic",
@@ -343,9 +343,9 @@ function registerCanonicalConfigCapabilityTests(): void {
   it.each([
     ["a scalar frontmatter document", "---\nplain text\n---\n", "frontmatter"],
     [
-      "a non-mapping x-mavis section",
-      "---\nname: researcher\ndescription: desc\nx-mavis: []\n---\n",
-      "x-mavis",
+      "a non-mapping x-alran section",
+      "---\nname: researcher\ndescription: desc\nx-alran: []\n---\n",
+      "x-alran",
     ],
     [
       "a blank required value",
@@ -364,11 +364,11 @@ function registerCanonicalConfigCapabilityTests(): void {
       "researcher",
     );
     const disabled = parseCanonicalAgentMarkdown(
-      "---\nname: researcher\ndescription: desc\ntools: []\ndisallowedTools: []\nmcpServers: []\nskills: []\nx-mavis:\n  extensionSkills: []\n---\n",
+      "---\nname: researcher\ndescription: desc\ntools: []\ndisallowedTools: []\nmcpServers: []\nskills: []\nx-alran:\n  extensionSkills: []\n---\n",
       "researcher",
     );
     const selected = parseCanonicalAgentMarkdown(
-      "---\nname: researcher\ndescription: desc\ntools: [Read]\ndisallowedTools: [Write]\nmcpServers: [local-mcp]\nskills: [research]\nx-mavis:\n  extensionSkills: [extension-research]\n---\n",
+      "---\nname: researcher\ndescription: desc\ntools: [Read]\ndisallowedTools: [Write]\nmcpServers: [local-mcp]\nskills: [research]\nx-alran:\n  extensionSkills: [extension-research]\n---\n",
       "researcher",
     );
 
@@ -376,18 +376,18 @@ function registerCanonicalConfigCapabilityTests(): void {
     expect(inherited).not.toHaveProperty("disallowedTools");
     expect(inherited).not.toHaveProperty("mcpServers");
     expect(inherited).not.toHaveProperty("skills");
-    expect(inherited.xMavis).toBeUndefined();
+    expect(inherited.xAlran).toBeUndefined();
     expect(disabled.tools).toEqual([]);
     expect(disabled.disallowedTools).toEqual([]);
     expect(disabled.mcpServers).toEqual([]);
     expect(disabled.skills).toEqual([]);
-    expect(disabled.xMavis?.extensionSkills).toEqual([]);
+    expect(disabled.xAlran?.extensionSkills).toEqual([]);
     expect(selected).toMatchObject({
       tools: ["Read"],
       disallowedTools: ["Write"],
       mcpServers: ["local-mcp"],
       skills: ["research"],
-      xMavis: { extensionSkills: ["extension-research"] },
+      xAlran: { extensionSkills: ["extension-research"] },
     });
   });
 }
@@ -398,18 +398,18 @@ describe("managed Builtin Agent config", () => {
       config: {
         name: "explore",
         description: "Explore",
-        features: { mavis: false, delegation: false, webSearch: true },
+        features: { alran: false, delegation: false, webSearch: true },
         systemPrompt: "Builtin prompt",
       },
     });
 
     expect(serialized).toContain(
-      "features:\n  mavis: false\n  delegation: false\n  webSearch: true",
+      "features:\n  alran: false\n  delegation: false\n  webSearch: true",
     );
     expect(
       parseBuiltinCanonicalAgentMarkdown(serialized, "explore"),
     ).toMatchObject({
-      features: { mavis: false, delegation: false, webSearch: true },
+      features: { alran: false, delegation: false, webSearch: true },
     });
     const custom = parseCanonicalAgentMarkdown(serialized, "explore");
     expect(custom).not.toHaveProperty("features");
@@ -435,7 +435,7 @@ describe("managed Builtin Agent config", () => {
     ).toThrow(
       expect.objectContaining({
         code: "AGENT_CONFIG_INVALID",
-        field: "features.mavis",
+        field: "features.alran",
       }),
     );
   });
@@ -447,7 +447,7 @@ describe("canonical Custom Agent profile patching", () => {
       "---",
       "name: researcher",
       "description: Before",
-      "x-mavis:",
+      "x-alran:",
       "  displayName: Before Name",
       "  avatar: ./before.png",
       "---",
@@ -470,7 +470,7 @@ describe("canonical Custom Agent profile patching", () => {
       description: "After",
     });
     expect(
-      parseCanonicalAgentMarkdown(rendered, "researcher").xMavis,
+      parseCanonicalAgentMarkdown(rendered, "researcher").xAlran,
     ).toBeUndefined();
   });
 
@@ -494,7 +494,7 @@ describe("canonical Custom Agent profile patching", () => {
 
   it("keeps the existing avatar until a staged local reference is available", () => {
     const source =
-      "---\nname: researcher\ndescription: Before\nx-mavis:\n  avatar: ./before.png\n---\nBody\n";
+      "---\nname: researcher\ndescription: Before\nx-alran:\n  avatar: ./before.png\n---\nBody\n";
 
     const rendered = patchCanonicalMarkdown(
       source,
@@ -504,7 +504,7 @@ describe("canonical Custom Agent profile patching", () => {
     );
 
     expect(
-      parseCanonicalAgentMarkdown(rendered, "researcher").xMavis?.avatar,
+      parseCanonicalAgentMarkdown(rendered, "researcher").xAlran?.avatar,
     ).toBe("./before.png");
     expect(rendered.endsWith("Body\n")).toBe(true);
   });
@@ -534,7 +534,7 @@ describe("canonical Custom Agent profile patching", () => {
 
   it.each([
     [{ description: null }, "description"],
-    [{ displayName: undefined }, "x-mavis.displayName"],
+    [{ displayName: undefined }, "x-alran.displayName"],
   ] as const)("rejects an explicitly blank profile field", (patch, field) => {
     const source = "---\nname: researcher\ndescription: Before\n---\n";
 
@@ -704,7 +704,7 @@ describe("canonical Custom Agent file safety", () => {
     );
     await writeFile(
       join(externalAgentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./avatar.png\n---\n",
     );
     await symlink(join(outsideDir, "agents"), join(dataDir, "agents"));
 
@@ -716,7 +716,7 @@ describe("canonical Custom Agent file safety", () => {
       }),
     ).resolves.toMatchObject({
       name: "researcher",
-      xMavis: { avatar: "./avatar.png" },
+      xAlran: { avatar: "./avatar.png" },
     });
   });
 });
@@ -730,29 +730,29 @@ describe("canonical Custom Agent avatar safety", () => {
     );
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./avatar.png\n---\n",
     );
 
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
     ).resolves.toMatchObject({
-      xMavis: { avatar: "./avatar.png" },
+      xAlran: { avatar: "./avatar.png" },
     });
 
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: https://example.invalid/avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: https://example.invalid/avatar.png\n---\n",
     );
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
     ).rejects.toMatchObject({
       code: "AGENT_CONFIG_AVATAR_INVALID",
-      field: "x-mavis.avatar",
+      field: "x-alran.avatar",
     });
 
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ../avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ../avatar.png\n---\n",
     );
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
@@ -763,7 +763,7 @@ describe("canonical Custom Agent avatar safety", () => {
     await symlink(join(agentDir, "avatar.png"), join(agentDir, "linked.png"));
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./linked.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./linked.png\n---\n",
     );
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
@@ -773,7 +773,7 @@ describe("canonical Custom Agent avatar safety", () => {
 
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./avatar.png\n---\n",
     );
     const linkedAgentDir = join(agentDir, "..", "linked-researcher");
     await symlink(agentDir, linkedAgentDir);
@@ -795,7 +795,7 @@ describe("canonical Custom Agent avatar safety", () => {
     await symlink(outsideDir, join(agentDir, "nested"));
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./nested/avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./nested/avatar.png\n---\n",
     );
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
@@ -828,14 +828,14 @@ describe("canonical Custom Agent avatar safety", () => {
     );
     await writeFile(
       join(agentDir, "agent.md"),
-      "---\nname: researcher\ndescription: desc\nx-mavis:\n  avatar: ./avatar.png\n---\n",
+      "---\nname: researcher\ndescription: desc\nx-alran:\n  avatar: ./avatar.png\n---\n",
     );
 
     await expect(
       readCanonicalAgentConfig({ agentDir, routeName: "researcher" }),
     ).rejects.toMatchObject({
       code: "AGENT_CONFIG_AVATAR_INVALID",
-      field: "x-mavis.avatar",
+      field: "x-alran.avatar",
     });
   });
 
@@ -846,12 +846,12 @@ describe("canonical Custom Agent avatar safety", () => {
           name: "researcher",
           description: "Evidence first.",
           tools: [],
-          xMavis: { defaultWorkspaceDir: "/workspace/researcher" },
+          xAlran: { defaultWorkspaceDir: "/workspace/researcher" },
           systemPrompt: "Use primary sources.",
         },
       }),
     ).toBe(
-      "---\nname: researcher\ndescription: Evidence first.\ntools: []\nx-mavis:\n  defaultWorkspaceDir: /workspace/researcher\n---\n\nUse primary sources.",
+      "---\nname: researcher\ndescription: Evidence first.\ntools: []\nx-alran:\n  defaultWorkspaceDir: /workspace/researcher\n---\n\nUse primary sources.",
     );
   });
 
@@ -892,12 +892,12 @@ describe("canonical Custom Agent avatar safety", () => {
     ).toBe(whitespaceOnly);
   });
 
-  it("serializes every x-mavis field while omitting an explicitly empty extension object", () => {
+  it("serializes every x-alran field while omitting an explicitly empty extension object", () => {
     const complete = serializeCanonicalAgentConfig({
       config: {
         name: "researcher",
         description: "Evidence first.",
-        xMavis: {
+        xAlran: {
           displayName: "Researcher",
           avatar: "./avatar.png",
           contextWindow: 64_000,
@@ -914,17 +914,17 @@ describe("canonical Custom Agent avatar safety", () => {
         config: {
           name: "minimal",
           description: "Minimal",
-          xMavis: {},
+          xAlran: {},
           systemPrompt: "",
         },
       }),
-    ).not.toContain("x-mavis");
+    ).not.toContain("x-alran");
   });
 });
 
 describe("canonical Agent directory safety", () => {
   it("follows linked Agent-directory segments and records their targets", async () => {
-    process.env[DATA_DIR_SOURCE_ENV] = "mavis_env";
+    process.env[DATA_DIR_SOURCE_ENV] = "alran_env";
     const parentDir = await mkdtemp(
       join(tmpdir(), "canonical-agent-linked-config-"),
     );
@@ -1035,7 +1035,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "data_dir",
         logical_link_path: mavisRoot,
         readlink_raw_target: alranRoot,
@@ -1049,7 +1049,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agents",
         logical_link_path: join(agentsRoot, "agents"),
         readlink_raw_target: agentsTarget,
@@ -1063,7 +1063,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "builtin",
         logical_link_path: join(builtinRoot, "agents", ".builtin"),
         readlink_raw_target: builtinTarget,
@@ -1077,7 +1077,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agent",
         logical_link_path: join(agentRoot, "agents", "researcher"),
         readlink_raw_target: agentTarget,
@@ -1091,7 +1091,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agent",
         logical_link_path: join(insideRoot, "agents", "researcher"),
         readlink_raw_target: insideTarget,
@@ -1105,7 +1105,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "nested",
         logical_link_path: nestedLink,
         readlink_raw_target: nestedTarget,
@@ -1164,7 +1164,7 @@ describe("canonical Agent directory safety", () => {
   });
 
   it("persists a directory-link warning in the local-runtime disk log", async () => {
-    process.env[DATA_DIR_SOURCE_ENV] = "mavis_env";
+    process.env[DATA_DIR_SOURCE_ENV] = "alran_env";
     const dataDir = await mkdtemp(
       join(tmpdir(), "canonical-agent-persistent-link-"),
     );
@@ -1217,7 +1217,7 @@ describe("canonical Agent directory safety", () => {
       expect(fieldsIndex).toBeGreaterThanOrEqual(0);
       expect(JSON.parse(persistedLine!.slice(fieldsIndex))).toMatchObject({
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agents",
         logical_link_path: logicalLink,
         readlink_raw_target: targetDir,
@@ -1232,7 +1232,7 @@ describe("canonical Agent directory safety", () => {
   });
 
   it("reports dangling and non-directory links without a link-prohibition error", async () => {
-    process.env[DATA_DIR_SOURCE_ENV] = "mavis_env";
+    process.env[DATA_DIR_SOURCE_ENV] = "alran_env";
     const dataDir = await mkdtemp(
       join(tmpdir(), "canonical-agent-diagnostic-unresolved-"),
     );
@@ -1263,7 +1263,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agent",
         logical_link_path: danglingLink,
         readlink_raw_target: missingTarget,
@@ -1293,7 +1293,7 @@ describe("canonical Agent directory safety", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       {
         event: "agent_directory_link_followed",
-        data_dir_source: "mavis_env",
+        data_dir_source: "alran_env",
         segment: "agents",
         logical_link_path: nonDirectoryLink,
         readlink_raw_target: fileTarget,

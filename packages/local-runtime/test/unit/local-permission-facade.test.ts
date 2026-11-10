@@ -18,7 +18,7 @@
  *     askPolicy and runs BEFORE the gate, so the gate cannot weaken it
  *   - designated skill assets remain readable; private runtime state and
  *     directory-wide searches require approval, including aliases.
- *   - rewrittenInput (rm → mavis-trash) survives the ask branch
+ *   - rewrittenInput (rm → alran-trash) survives the ask branch
  *   - localeHint is derived from inline latestUserMessages
  *   - cloud-gateway timeout / block / confirm route to ask-user with
  *     formatted reason prefixes (Auto classifier / Blocked / timed out)
@@ -36,13 +36,13 @@ import {
   configurePermissionHost,
   readWindowsTrashExecution,
   resetPermissionHostForTesting,
-} from '@mavis/permission';
+} from '@alran/permission';
 import { describe, expect, it, vi } from 'vitest';
 import type {
   CloudClassifyRequest,
   CloudClassifyVerdict,
   CloudGatewayClient,
-} from '@mavis/permission';
+} from '@alran/permission';
 
 import {
   LocalPermissionFacade,
@@ -127,8 +127,8 @@ function freshFacade(
 function seedWindowsTrashRuntime(dataDir: string): void {
   const binDir = path.join(dataDir, 'bin');
   mkdirSync(binDir, { recursive: true });
-  writeFileSync(path.join(binDir, 'mavis-trash.js'), TRASH_SCRIPT_WIN_CONTENT, 'utf8');
-  writeFileSync(path.join(binDir, 'mavis-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT, 'utf8');
+  writeFileSync(path.join(binDir, 'alran-trash.js'), TRASH_SCRIPT_WIN_CONTENT, 'utf8');
+  writeFileSync(path.join(binDir, 'alran-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT, 'utf8');
 }
 
 function sandboxConfig(
@@ -180,7 +180,7 @@ describe('LocalPermissionFacade', () => {
   it.each([
     { nativeDelete: false, command: 'rm ./old.txt', rewritten: true },
     { nativeDelete: true, command: 'rm ./old.txt', rewritten: false },
-    { nativeDelete: false, command: 'mavis-trash -- ./old.txt', rewritten: false },
+    { nativeDelete: false, command: 'alran-trash -- ./old.txt', rewritten: false },
   ])(
     'keeps corrupt-store approval semantics for $command with nativeDelete=$nativeDelete',
     async ({ nativeDelete, command, rewritten }) => {
@@ -193,7 +193,7 @@ describe('LocalPermissionFacade', () => {
         writeFileSync(path.join(dataDir, 'permission.json'), '{"version":2,"allow":[');
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command },
         });
         expect(result.behavior).toBe('ask');
@@ -202,7 +202,7 @@ describe('LocalPermissionFacade', () => {
         expect(result.executionPlan?.nativeDelete).toBe(nativeDelete);
         expect(result.executionPlan?.transforms).toHaveLength(rewritten ? 1 : 0);
         expect(result.executionPlan?.effectiveInput.command).toEqual(
-          rewritten ? expect.stringContaining('mavis-trash') : command,
+          rewritten ? expect.stringContaining('alran-trash') : command,
         );
       } finally {
         cleanup(dataDir);
@@ -221,7 +221,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const params = {
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: 'rm /workspace/private.pem' },
         };
         for (const corrupt of [false, true]) {
@@ -230,7 +230,7 @@ describe('LocalPermissionFacade', () => {
           const result = await facade.checkPermission(params);
           expect(result.behavior).toBe('ask');
           expect(result.executionPlan?.transforms).toHaveLength(1);
-          expect(result.executionPlan?.effectiveInput.command).toContain('mavis-trash');
+          expect(result.executionPlan?.effectiveInput.command).toContain('alran-trash');
         }
       } finally {
         cleanup(dataDir);
@@ -326,7 +326,7 @@ describe('LocalPermissionFacade', () => {
     const info = vi.spyOn(logger, 'info').mockImplementation(() => undefined);
     const { facade, dataDir } = freshFacade({ policyOwner: 'core' });
     try {
-      const command = 'echo smoke > /tmp/mavis-permission-smoke.txt';
+      const command = 'echo smoke > /tmp/alran-permission-smoke.txt';
       const result = await facade.checkPermission({
         toolName: 'bash',
         sessionId: 'mvs_safety_observability',
@@ -480,7 +480,7 @@ describe('LocalPermissionFacade', () => {
 
         expect(result).toMatchObject({
           behavior: 'allow',
-          rewrittenInput: { command: expect.stringContaining('mavis-trash') },
+          rewrittenInput: { command: expect.stringContaining('alran-trash') },
         });
       } finally {
         cleanup(dataDir);
@@ -511,7 +511,7 @@ describe('LocalPermissionFacade', () => {
         facade.checkPermission({
           toolName: 'bash',
           input: { command: 'npm publish' },
-          agentName: 'mavis',
+          agentName: 'alran',
           sessionId: 'session-1',
         }),
       ).resolves.toMatchObject({ behavior: 'deny', reason: expect.stringMatching(/dontAsk/) });
@@ -519,7 +519,7 @@ describe('LocalPermissionFacade', () => {
         facade.checkPermission({
           toolName: 'read',
           input: { path: sharedFile },
-          agentName: 'mavis',
+          agentName: 'alran',
           sessionId: 'session-1',
         }),
       ).resolves.toMatchObject({ behavior: 'allow' });
@@ -541,7 +541,7 @@ describe('LocalPermissionFacade', () => {
         facade.checkPermission({
           toolName: 'bash',
           input: { command: 'npm publish' },
-          agentName: 'mavis',
+          agentName: 'alran',
           sessionId: 'session-1',
         }),
       ).resolves.toMatchObject({ behavior: 'allow' });
@@ -567,7 +567,7 @@ describe('LocalPermissionFacade', () => {
           const input = { command: 'rm ./old.txt', timeout: 9 };
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input,
           });
           expect(result.behavior).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -600,7 +600,7 @@ describe('LocalPermissionFacade', () => {
           try {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -650,7 +650,7 @@ describe('LocalPermissionFacade', () => {
               ]) {
                 const result = await facade.checkPermission({
                   toolName: 'bash',
-                  agentName: 'mavis',
+                  agentName: 'alran',
                   input: { command },
                 });
                 expect(result, `${permissionMode}: ${command}`).toMatchObject({
@@ -679,7 +679,7 @@ describe('LocalPermissionFacade', () => {
           try {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command: 'rm -rf ./Downloads' },
             });
             expect(result.behavior).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -701,7 +701,7 @@ describe('LocalPermissionFacade', () => {
         });
         try {
           const input = { command: 'rm ./old.txt' };
-          const pending = facade.checkPermission({ toolName: 'bash', agentName: 'mavis', input });
+          const pending = facade.checkPermission({ toolName: 'bash', agentName: 'alran', input });
           config.permission!.nativeDelete = !nativeDelete;
           const result = await pending;
 
@@ -713,7 +713,7 @@ describe('LocalPermissionFacade', () => {
             expect(result.executionPlan?.effectiveInput).toEqual(input);
             expect(result.executionPlan?.transforms).toEqual([]);
           } else {
-            expect(result.rewrittenInput?.command).toContain('mavis-trash');
+            expect(result.rewrittenInput?.command).toContain('alran-trash');
             expect(result.executionPlan?.effectiveInput).toEqual(result.rewrittenInput);
             expect(result.executionPlan?.transforms).toHaveLength(1);
           }
@@ -730,9 +730,9 @@ describe('LocalPermissionFacade', () => {
         workspaceDir: '/workspace',
       });
       try {
-        const params = { toolName: 'bash', agentName: 'mavis', input: { command: 'rm ./old.txt' } };
+        const params = { toolName: 'bash', agentName: 'alran', input: { command: 'rm ./old.txt' } };
         const recoverable = await facade.checkPermission(params);
-        expect(recoverable.rewrittenInput?.command).toContain('mavis-trash');
+        expect(recoverable.rewrittenInput?.command).toContain('alran-trash');
         config.permission = { ...config.permission, nativeDelete: true };
         const native = await facade.checkPermission(params);
         expect(native.rewrittenInput).toBeUndefined();
@@ -740,7 +740,7 @@ describe('LocalPermissionFacade', () => {
         expect(recoverable.executionPlan?.transforms).toHaveLength(1);
         config.permission = { ...config.permission, nativeDelete: false };
         expect((await facade.checkPermission(params)).rewrittenInput?.command).toContain(
-          'mavis-trash',
+          'alran-trash',
         );
       } finally {
         cleanup(dataDir);
@@ -763,15 +763,15 @@ describe('LocalPermissionFacade', () => {
           for (const command of [
             String.raw`del C:\workspace\old.txt`,
             String.raw`cmd /c "del C:\workspace\old.txt"`,
-            String.raw`mavis-trash -- C:\workspace\old.txt`,
+            String.raw`alran-trash -- C:\workspace\old.txt`,
           ]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             const expected =
-              permissionMode === 'default' && !command.startsWith('mavis-trash') ? 'ask' : 'allow';
+              permissionMode === 'default' && !command.startsWith('alran-trash') ? 'ask' : 'allow';
             expect(result.behavior).toBe(expected);
             expect(result.rewrittenInput).toBeUndefined();
             expect(readWindowsTrashExecution(result.executionPlan?.effectiveInput)).toBeUndefined();
@@ -806,7 +806,7 @@ describe('LocalPermissionFacade', () => {
           ]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             expect(result, command).toMatchObject({
@@ -819,7 +819,7 @@ describe('LocalPermissionFacade', () => {
           for (const target of [String.raw`${home}\Downloads`, `${home}-old`]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command: `Remove-Item -Recurse "${target}"` },
             });
             expect(result.behavior, target).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -849,7 +849,7 @@ describe('LocalPermissionFacade', () => {
           ]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -879,7 +879,7 @@ describe('LocalPermissionFacade', () => {
             };
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input,
             });
             expect(result.behavior).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -889,7 +889,7 @@ describe('LocalPermissionFacade', () => {
             }
             const denied = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: {
                 command: `${prefix}powershell.exe -NoProfile -Command "rm -LiteralPath:C:\\Windows\\Temp\\old.txt -ErrorAction Stop"`,
               },
@@ -920,7 +920,7 @@ describe('LocalPermissionFacade', () => {
             };
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input,
             });
             if (target === String.raw`C:\workspace\build`) {
@@ -957,7 +957,7 @@ describe('LocalPermissionFacade', () => {
           ]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -971,7 +971,7 @@ describe('LocalPermissionFacade', () => {
           ]) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input: { command },
             });
             expect(result.behavior).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -1004,7 +1004,7 @@ describe('LocalPermissionFacade', () => {
             const input = { command: `${command} C:\\workspace\\old` };
             const allowed = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               input,
             });
             expect(allowed.behavior).toBe(permissionMode === 'default' ? 'ask' : 'allow');
@@ -1024,7 +1024,7 @@ describe('LocalPermissionFacade', () => {
             ]) {
               const denied = await facade.checkPermission({
                 toolName: 'bash',
-                agentName: 'mavis',
+                agentName: 'alran',
                 input: { command: `${command} ${target}` },
               });
               expect(denied).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -1051,7 +1051,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: {
               command: String.raw`Remove-Item -LiteralPath C:\Windows\Temp\old.txt -ErrorAction Stop`,
             },
@@ -1076,7 +1076,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: {
               command: String.raw`rm -LiteralPath:C:\Windows\Temp\old.txt -ErrorAction Stop`,
             },
@@ -1100,7 +1100,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: {
               command: String.raw`powershell.exe -NoProfile -Command "rm -LiteralPath:C:\Windows\Temp\old.txt -ErrorAction Stop"`,
             },
@@ -1128,7 +1128,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command },
         });
         expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -1151,7 +1151,7 @@ describe('LocalPermissionFacade', () => {
         });
         try {
           const command = 'rm -- C:/outside/old.txt';
-          const params = { toolName: 'bash', agentName: 'mavis', input: { command } };
+          const params = { toolName: 'bash', agentName: 'alran', input: { command } };
           const result = await facade.checkPermission(params);
           expect(result.behavior, result.reason).toBe(
             permissionMode === 'default' ? 'ask' : 'allow',
@@ -1205,7 +1205,7 @@ describe('LocalPermissionFacade', () => {
           for (const permissionModeOverride of ['off', 'default', 'bypassPermissions'] as const) {
             const result = await facade.checkPermission({
               toolName: 'bash',
-              agentName: 'mavis',
+              agentName: 'alran',
               permissionModeOverride,
               input: { command: `rm -- C:/Win\\${newline}dows/Temp/old.txt` },
             });
@@ -1229,7 +1229,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`del C:\workspace\old.txt; vssadmin delete shadows` },
         });
         expect(result.behavior).toBe('deny');
@@ -1250,7 +1250,7 @@ describe('LocalPermissionFacade', () => {
       seedWindowsTrashRuntime(dataDir);
       const result = await facade.checkPermission({
         toolName: 'bash',
-        agentName: 'mavis',
+        agentName: 'alran',
         input: { command: 'rm -- ./old.txt' },
       });
       expect(result.behavior, result.reason).toBe('allow');
@@ -1295,16 +1295,16 @@ describe('LocalPermissionFacade', () => {
       try {
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: 'rm ./old.txt', timeout: 9 },
         });
 
         expect(result.behavior).toBe('allow');
-        expect(result.rewrittenInput?.command).toContain('mavis-trash --rm-compatible ./old.txt');
+        expect(result.rewrittenInput?.command).toContain('alran-trash --rm-compatible ./old.txt');
         // The plan validates the executable replacement while the shell retains
         // the original operands and redirections.
         expect(result.executionPlan?.transforms).toEqual([
-          { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'mavis-trash') },
+          { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'alran-trash') },
         ]);
         expect(readWindowsTrashExecution(result.rewrittenInput)).toBeUndefined();
       } finally {
@@ -1341,7 +1341,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: 'echo ok && rm ./old.txt' },
         });
 
@@ -1349,7 +1349,7 @@ describe('LocalPermissionFacade', () => {
         // not reshape the permission verdict for deletes. Compare with the
         // sandbox-disabled case below: the outcome is identical.
         expect(result.behavior).toBe('allow');
-        expect(result.rewrittenInput?.command).toContain('mavis-trash --rm-compatible ./old.txt');
+        expect(result.rewrittenInput?.command).toContain('alran-trash --rm-compatible ./old.txt');
         expect(readWindowsTrashExecution(result.rewrittenInput)).toBeUndefined();
       } finally {
         cleanup(dataDir);
@@ -1365,12 +1365,12 @@ describe('LocalPermissionFacade', () => {
       try {
         const result = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: 'echo ok && rm ./old.txt' },
         });
 
         expect(result.behavior).toBe('allow');
-        expect(result.rewrittenInput?.command).toContain('mavis-trash --rm-compatible ./old.txt');
+        expect(result.rewrittenInput?.command).toContain('alran-trash --rm-compatible ./old.txt');
         expect(readWindowsTrashExecution(result.rewrittenInput)).toBeUndefined();
       } finally {
         cleanup(dataDir);
@@ -1404,7 +1404,7 @@ describe('LocalPermissionFacade', () => {
               ]) {
                 const result = await facade.checkPermission({
                   toolName: 'bash',
-                  agentName: 'mavis',
+                  agentName: 'alran',
                   input: { command },
                 });
                 expect(result.behavior, command).toBe('allow');
@@ -1451,7 +1451,7 @@ describe('LocalPermissionFacade', () => {
             ]) {
               const result = await facade.checkPermission({
                 toolName: 'bash',
-                agentName: 'mavis',
+                agentName: 'alran',
                 input: { command: `rm -rf ${target}` },
               });
               expect(result.behavior).toBe('allow');
@@ -1481,10 +1481,10 @@ describe('LocalPermissionFacade', () => {
         try {
           seedWindowsTrashRuntime(dataDir);
           const input = { command: String.raw`rm -rf C:\workspace\build` };
-          const params = { toolName: 'bash', agentName: 'mavis', input };
+          const params = { toolName: 'bash', agentName: 'alran', input };
           const recoverable = await facade.checkPermission(params);
           expect(recoverable.behavior).toBe('allow');
-          expect(recoverable.rewrittenInput?.command).toContain('mavis-trash');
+          expect(recoverable.rewrittenInput?.command).toContain('alran-trash');
           expect(readWindowsTrashExecution(recoverable.executionPlan?.effectiveInput)).toEqual({
             targets: [String.raw`C:\workspace\build`],
           });
@@ -1518,7 +1518,7 @@ describe('LocalPermissionFacade', () => {
             for (const target of [String.raw`C:\Windows\Temp`, String.raw`C:\outside\build`]) {
               const result = await facade.checkPermission({
                 toolName: 'bash',
-                agentName: 'mavis',
+                agentName: 'alran',
                 input: { command: `rm ${flags} ${target}` },
               });
               expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -1528,7 +1528,7 @@ describe('LocalPermissionFacade', () => {
           }
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command: String.raw`rm -Recurse C:\workspace\build` },
           });
           expect(result.behavior).toBe('allow');
@@ -1558,7 +1558,7 @@ describe('LocalPermissionFacade', () => {
             expect(r.reason).toMatch(/windows|delete|永久|删除/i);
             expect(r.reason).toContain('Deletion intent detected');
             expect(r.reason).toContain('Do not bypass this denial');
-            expect(r.reason).toContain('trusted mavis-trash launcher');
+            expect(r.reason).toContain('trusted alran-trash launcher');
             expect(r.reason).not.toContain('must be removed manually');
           } finally {
             cleanup(dataDir);
@@ -1578,7 +1578,7 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command: String.raw`echo ok && powershell.exe -NoProfile -Command "ri -Recurse C:\Users\16379\project\mock"`,
           },
@@ -1612,11 +1612,11 @@ describe('LocalPermissionFacade', () => {
           seedWindowsTrashRuntime(dataDir);
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r.behavior).toBe('allow');
-          expect(r.rewrittenInput?.command).toBe('mavis-trash --');
+          expect(r.rewrittenInput?.command).toBe('alran-trash --');
           expect(JSON.stringify(r.rewrittenInput)).not.toContain(command);
           expect(readWindowsTrashExecution(r.rewrittenInput)?.targets.length).toBeGreaterThan(0);
         } finally {
@@ -1643,7 +1643,7 @@ describe('LocalPermissionFacade', () => {
           seedWindowsTrashRuntime(dataDir);
           const result = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
 
@@ -1667,17 +1667,17 @@ describe('LocalPermissionFacade', () => {
       try {
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`del C:\Users\16379\project\old.txt` },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toMatch(/mavis-trash|trash.*unavailable|安全删除/i);
+        expect(r.reason).toMatch(/alran-trash|trash.*unavailable|安全删除/i);
         expect(r.reason).toContain('Deletion intent detected');
         expect(r.reason).toContain('The target was not deleted');
         expect(r.reason).toContain('Do not fall back to any permanent delete command');
-        expect(r.reason).toContain('Re-check mavis-trash availability before retrying');
+        expect(r.reason).toContain('Re-check alran-trash availability before retrying');
         expect(r.reason).toContain('use only the trusted local-runtime launcher');
-        expect(r.reason).toContain('If mavis-trash remains unavailable');
+        expect(r.reason).toContain('If alran-trash remains unavailable');
         expect(r.rewrittenInput).toBeUndefined();
       } finally {
         cleanup(dataDir);
@@ -1703,7 +1703,7 @@ describe('LocalPermissionFacade', () => {
           seedWindowsTrashRuntime(dataDir);
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r.behavior).toBe('deny');
@@ -1726,13 +1726,13 @@ describe('LocalPermissionFacade', () => {
           input: { command: String.raw`rm -rf C:\Users\16379\project\mock` },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toMatch(/mavis-trash|trash.*unavailable|安全删除/i);
+        expect(r.reason).toMatch(/alran-trash|trash.*unavailable|安全删除/i);
       } finally {
         cleanup(dataDir);
       }
     });
 
-    it('rewrites an in-workspace rm to mavis-trash even when permission mode is off', async () => {
+    it('rewrites an in-workspace rm to alran-trash even when permission mode is off', async () => {
       const workspaceDir = String.raw`C:\Users\16379\project`;
       const { facade, dataDir } = freshFacade({
         permissionMode: 'off',
@@ -1743,11 +1743,11 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`rm -rf C:\Users\16379\project\mock` },
         });
         expect(r.behavior).toBe('allow');
-        expect(r.rewrittenInput?.command).toBe('mavis-trash --');
+        expect(r.rewrittenInput?.command).toBe('alran-trash --');
         expect(readWindowsTrashExecution(r.executionPlan?.effectiveInput)).toEqual({
           targets: [String.raw`C:\Users\16379\project\mock`],
         });
@@ -1760,14 +1760,14 @@ describe('LocalPermissionFacade', () => {
 
         const bareTrash = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
-          input: { command: String.raw`mavis-trash -rf C:\Users\16379\project\mock` },
+          agentName: 'alran',
+          input: { command: String.raw`alran-trash -rf C:\Users\16379\project\mock` },
         });
         expect(bareTrash.behavior).toBe('deny');
-        expect(bareTrash.reason).toContain('bare or non-canonical mavis-trash is untrusted');
+        expect(bareTrash.reason).toContain('bare or non-canonical alran-trash is untrusted');
         expect(bareTrash.reason).toContain('The target was not deleted');
         expect(bareTrash.reason).toContain('one top-level rm command');
-        expect(bareTrash.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(bareTrash.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
       } finally {
         cleanup(dataDir);
       }
@@ -1782,10 +1782,10 @@ describe('LocalPermissionFacade', () => {
       });
       try {
         seedWindowsTrashRuntime(dataDir);
-        const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+        const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command: `"${launcherPath}" -rf ${String.raw`C:\Users\16379\project\mock`}`,
           },
@@ -1805,16 +1805,16 @@ describe('LocalPermissionFacade', () => {
         workspaceDir,
       });
       try {
-        const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+        const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command: `"${launcherPath}" -rf ${String.raw`C:\Users\16379\project\mock`}`,
           },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toMatch(/mavis-trash|trash.*unavailable|安全删除/i);
+        expect(r.reason).toMatch(/alran-trash|trash.*unavailable|安全删除/i);
       } finally {
         cleanup(dataDir);
       }
@@ -1831,20 +1831,20 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
-            command: String.raw`C:\Users\16379\Downloads\mavis-trash.cmd -rf C:\Users\16379\project\mock`,
+            command: String.raw`C:\Users\16379\Downloads\alran-trash.cmd -rf C:\Users\16379\project\mock`,
           },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toContain('bare or non-canonical mavis-trash is untrusted');
-        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(r.reason).toContain('bare or non-canonical alran-trash is untrusted');
+        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
       } finally {
         cleanup(dataDir);
       }
     });
 
-    it('does not trust a bare mavis-trash.cmd resolved from the current directory', async () => {
+    it('does not trust a bare alran-trash.cmd resolved from the current directory', async () => {
       const workspaceDir = String.raw`C:\Users\16379\project`;
       const { facade, dataDir } = freshFacade({
         permissionMode: 'off',
@@ -1855,22 +1855,22 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
-          input: { command: String.raw`mavis-trash.cmd -rf C:\Users\16379\project\mock` },
+          agentName: 'alran',
+          input: { command: String.raw`alran-trash.cmd -rf C:\Users\16379\project\mock` },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toContain('bare or non-canonical mavis-trash is untrusted');
-        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(r.reason).toContain('bare or non-canonical alran-trash is untrusted');
+        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
       } finally {
         cleanup(dataDir);
       }
     });
 
     it.each([
-      String.raw`cmd /c "mavis-trash -- C:\Users\16379\project\mock"`,
-      String.raw`powershell.exe -NoProfile -Command "mavis-trash -- C:\Users\16379\project\mock"`,
-      String.raw`cmd /c "mavis-trash -rf .\mock"`,
-    ])('does not trust bare mavis-trash after wrapper expansion: %s', async (command) => {
+      String.raw`cmd /c "alran-trash -- C:\Users\16379\project\mock"`,
+      String.raw`powershell.exe -NoProfile -Command "alran-trash -- C:\Users\16379\project\mock"`,
+      String.raw`cmd /c "alran-trash -rf .\mock"`,
+    ])('does not trust bare alran-trash after wrapper expansion: %s', async (command) => {
       const workspaceDir = String.raw`C:\Users\16379\project`;
       const { facade, dataDir } = freshFacade({
         permissionMode: 'off',
@@ -1881,18 +1881,18 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toContain('bare or non-canonical mavis-trash is untrusted');
-        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(r.reason).toContain('bare or non-canonical alran-trash is untrusted');
+        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
       } finally {
         cleanup(dataDir);
       }
     });
 
-    it('explains how to retry a direct compound mavis-trash invocation safely', async () => {
+    it('explains how to retry a direct compound alran-trash invocation safely', async () => {
       const workspaceDir = String.raw`C:\Users\admin\project`;
       const { facade, dataDir } = freshFacade({
         permissionMode: 'off',
@@ -1903,20 +1903,20 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command:
-              'mavis-trash "C:\\Users\\admin\\nonexistent-test-file-12345.txt" 2>&1; Write-Output "---exit: $LASTEXITCODE---"',
+              'alran-trash "C:\\Users\\admin\\nonexistent-test-file-12345.txt" 2>&1; Write-Output "---exit: $LASTEXITCODE---"',
           },
         });
 
         expect(r.behavior).toBe('deny');
         expect(r.denySource).toBe('safety-immune');
-        expect(r.reason).toContain('bare or non-canonical mavis-trash is untrusted');
+        expect(r.reason).toContain('bare or non-canonical alran-trash is untrusted');
         expect(r.reason).toContain('PATH/CWD may select a different executable');
         expect(r.reason).toContain('The target was not deleted');
         expect(r.reason).toContain('one top-level rm command');
-        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
         expect(r.reason).toContain('Do not bypass this with a permanent delete command');
         expect(r.reason.length).toBeLessThan(500);
         expect(r.reason).not.toContain('wrapped or compound Windows delete command');
@@ -1935,10 +1935,10 @@ describe('LocalPermissionFacade', () => {
       });
       try {
         seedWindowsTrashRuntime(dataDir);
-        const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+        const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command: `cmd /c "\"${launcherPath}\" -- ${String.raw`C:\Users\16379\project\mock`}"`,
           },
@@ -1958,17 +1958,17 @@ describe('LocalPermissionFacade', () => {
       });
       try {
         seedWindowsTrashRuntime(dataDir);
-        const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+        const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
-            command: `"${launcherPath}" -- ${String.raw`C:\Users\16379\project\a`} && mavis-trash.cmd -- ${String.raw`C:\Users\16379\project\b`}`,
+            command: `"${launcherPath}" -- ${String.raw`C:\Users\16379\project\a`} && alran-trash.cmd -- ${String.raw`C:\Users\16379\project\b`}`,
           },
         });
         expect(r.behavior).toBe('deny');
-        expect(r.reason).toContain('bare or non-canonical mavis-trash is untrusted');
-        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'mavis-trash.cmd'));
+        expect(r.reason).toContain('bare or non-canonical alran-trash is untrusted');
+        expect(r.reason).toContain(path.win32.join(dataDir, 'bin', 'alran-trash.cmd'));
       } finally {
         cleanup(dataDir);
       }
@@ -1997,10 +1997,10 @@ describe('LocalPermissionFacade', () => {
         });
         try {
           seedWindowsTrashRuntime(dataDir);
-          const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+          const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: {
               command: `"${launcherPath}" -- ${String.raw`C:\Users\16379\project\a`} && ${tail}`,
             },
@@ -2023,14 +2023,14 @@ describe('LocalPermissionFacade', () => {
         seedWindowsTrashRuntime(dataDir);
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`cmd /c "rm -rf C:\Users\16379\project\mock"` },
         });
         expect(r.behavior).toBe('deny');
         expect(r.reason).toMatch(/wrapped|rewrite|permanent delete/i);
         expect(r.reason).toContain('Deletion intent detected');
         expect(r.reason).toContain('Do not bypass this denial');
-        expect(r.reason).toContain('trusted mavis-trash launcher');
+        expect(r.reason).toContain('trusted alran-trash launcher');
         expect(r.reason).not.toContain('must be removed manually');
       } finally {
         cleanup(dataDir);
@@ -2049,7 +2049,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r.behavior).toBe('allow');
@@ -2076,7 +2076,7 @@ describe('LocalPermissionFacade', () => {
           seedWindowsTrashRuntime(dataDir);
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r.behavior).toBe('deny');
@@ -2096,10 +2096,10 @@ describe('LocalPermissionFacade', () => {
       });
       try {
         seedWindowsTrashRuntime(dataDir);
-        const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+        const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: `"${launcherPath}" -rf "C:\\Program Files\\Adobe"` },
         });
         expect(r.behavior).toBe('deny');
@@ -2119,7 +2119,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`echo ok > C:\Windows\Temp\blocked.txt` },
         });
         expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2139,7 +2139,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`echo ok >> "C:\Program Files\Example\blocked.txt"` },
         });
         expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2159,7 +2159,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: {
             command: String.raw`powershell.exe -NoProfile -Command "Set-Content -Path C:\Windows\Temp\blocked.txt -Value blocked"`,
           },
@@ -2188,7 +2188,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2230,7 +2230,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2263,7 +2263,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2291,7 +2291,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2307,7 +2307,7 @@ describe('LocalPermissionFacade', () => {
       try {
         const r = await facade.checkPermission({
           toolName: 'bash',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { command: String.raw`cp -r .\source .\build` },
         });
         expect(r).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -2332,7 +2332,7 @@ describe('LocalPermissionFacade', () => {
         try {
           const r = await facade.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
           });
           expect(r.behavior).toBe('deny');
@@ -3059,7 +3059,7 @@ describe('LocalPermissionFacade', () => {
           toolName: 'read',
           input: { path: '/Users/someone/some-random-project/notes.md' },
         });
-        // The sandbox allow is for mavis's own dataDir only. A random
+        // The sandbox allow is for alran's own dataDir only. A random
         // external path still requires the normal ask flow.
         expect(r.behavior).toBe('ask');
         expect(r.hookAutoApprovalEligible).toBe(true);
@@ -3214,7 +3214,7 @@ describe('LocalPermissionFacade', () => {
     });
   });
 
-  describe('rewrittenInput (rm → mavis-trash)', () => {
+  describe('rewrittenInput (rm → alran-trash)', () => {
     it('preserves rewrittenInput and exposes the complete production execution plan', async () => {
       const { facade, dataDir } = freshFacade({ permissionMode: 'default' });
       try {
@@ -3222,16 +3222,16 @@ describe('LocalPermissionFacade', () => {
           toolName: 'bash',
           input: { command: 'rm -rf ./tmp-build', timeout: 9 },
         });
-        // The rm → mavis-trash rewrite is engine-side and exposed via
+        // The rm → alran-trash rewrite is engine-side and exposed via
         // rewrittenInput regardless of behavior. We just pin its existence
         // through the facade so a future change that swallows the field
         // surfaces as a failing test.
         expect(r.rewrittenInput).toBeDefined();
         expect(r.executionPlan).toMatchObject({
           originalInput: { command: 'rm -rf ./tmp-build', timeout: 9 },
-          effectiveInput: { command: expect.stringContaining('mavis-trash'), timeout: 9 },
+          effectiveInput: { command: expect.stringContaining('alran-trash'), timeout: 9 },
           transforms: [
-            { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'mavis-trash') },
+            { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'alran-trash') },
           ],
         });
       } finally {
@@ -3281,7 +3281,7 @@ describe('LocalPermissionFacade', () => {
             },
           ],
           transforms: [
-            { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'mavis-trash') },
+            { type: 'recoverable-shell-delete', launcher: path.join(dataDir, 'bin', 'alran-trash') },
           ],
         });
       } finally {

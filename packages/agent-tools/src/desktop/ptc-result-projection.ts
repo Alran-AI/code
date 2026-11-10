@@ -1,4 +1,4 @@
-import { withProgrammaticResult } from '@mavis/agent-core/tools';
+import { withProgrammaticResult } from '@alran/agent-core/tools';
 import type {
   ProgrammaticToolResult,
   PtcChildCallStatus,
@@ -11,9 +11,9 @@ import type {
   PtcToolResultProjectionInput,
   PtcToolSource,
   ToolResult,
-} from '@mavis/agent-core/tools';
-import { redactSecretText } from '@mavis/shared/logging/redact-log-secret';
-import { sanitizeObservabilityText } from '@mavis/shared/local-runtime-diagnostics/redaction';
+} from '@alran/agent-core/tools';
+import { redactSecretText } from '@alran/shared/logging/redact-log-secret';
+import { sanitizeObservabilityText } from '@alran/shared/local-runtime-diagnostics/redaction';
 
 /** Only final admitted builtin arguments may become durable model evidence. */
 export function projectDesktopPtcEvidenceInput(
@@ -360,7 +360,7 @@ const VERIFIED_TOOL_MARKERS: ReadonlyMap<string, MarkerRule> = new Map<string, M
   // session_create (desktop/local-session-create-tool.ts), self_reminder
   // (desktop/local-cron-tools.ts) and workspace_semantic_search
   // (desktop/local-workspace-semantic-search.ts).
-  // memory (desktop/local-memory.ts) and mavis (desktop/local-mavis.ts) cut only
+  // memory (desktop/local-memory.ts) and alran (desktop/local-alran.ts) cut only
   // through their head+tail limits, which write the generic marker.
   ['edit', () => []],
   ['write', () => []],
@@ -371,7 +371,7 @@ const VERIFIED_TOOL_MARKERS: ReadonlyMap<string, MarkerRule> = new Map<string, M
   ['self_reminder', () => []],
   ['workspace_semantic_search', () => []],
   ['memory', () => []],
-  ['mavis', () => []],
+  ['alran', () => []],
   // computer_* (local-runtime-v2 service/computer-use): the host never cuts
   // their text except by omitting a large application menu from
   // computer_app_state, which the tool reports itself as truncated.

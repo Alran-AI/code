@@ -4,7 +4,7 @@ import { lstat, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 
-import { isDefaultAgentAvatarMarker } from '@mavis/shared/agent-avatar';
+import { isDefaultAgentAvatarMarker } from '@alran/shared/agent-avatar';
 import yaml from 'yaml';
 
 import { publishFileIfAbsent, replaceFileAtomically } from '../../../infra/file/jsonl.js';
@@ -371,7 +371,7 @@ export class AgentFiles {
    */
   async readCanonicalAvatar(name: string): Promise<AgentAvatarAsset | undefined> {
     const config = await this.getCanonicalConfig(name);
-    const avatar = config.xMavis?.avatar;
+    const avatar = config.xAlran?.avatar;
     if (!avatar || isDefaultAgentAvatarMarker(avatar)) return undefined;
     const { bytes, extension } = await readSafeAgentAvatar(
       this.agentDir(name),
@@ -402,8 +402,8 @@ export class AgentFiles {
     content: string,
   ): Promise<CanonicalAgentConfig> {
     const config = parseCanonicalAgentMarkdown(content, routeName);
-    if (config.xMavis?.avatar) {
-      await validateAgentAvatar(agentDir, config.xMavis.avatar, this.dataDir);
+    if (config.xAlran?.avatar) {
+      await validateAgentAvatar(agentDir, config.xAlran.avatar, this.dataDir);
     }
     return config;
   }
@@ -518,7 +518,7 @@ export class AgentFiles {
     if (outcome !== 'published') {
       throw new AgentConfigError(
         'AGENT_CONFIG_AVATAR_INVALID',
-        'x-mavis.avatar',
+        'x-alran.avatar',
         'Custom Agent avatar target already exists.',
       );
     }
@@ -587,8 +587,8 @@ export class AgentFiles {
         rendered,
         async (temporaryPath) => {
           const parsed = parseCanonicalAgentMarkdown(await readFile(temporaryPath, 'utf8'), name);
-          if (parsed.xMavis?.avatar) {
-            await validateAgentAvatar(agentDir, parsed.xMavis.avatar, this.dataDir);
+          if (parsed.xAlran?.avatar) {
+            await validateAgentAvatar(agentDir, parsed.xAlran.avatar, this.dataDir);
           }
         },
       );
@@ -631,7 +631,7 @@ export class AgentFiles {
       if (!existing.bytes.equals(decoded.bytes)) {
         throw new AgentConfigError(
           'AGENT_CONFIG_AVATAR_INVALID',
-          'x-mavis.avatar',
+          'x-alran.avatar',
           'Custom Agent avatar target does not match the requested image.',
         );
       }
@@ -727,8 +727,8 @@ export class AgentFiles {
     config: Omit<CanonicalAgentConfig, 'diagnostics'>,
   ): Promise<void> {
     parseCanonicalAgentMarkdown(serializeCanonicalAgentConfig({ config }), routeName);
-    if (config.xMavis?.avatar) {
-      await validateAgentAvatar(agentDir, config.xMavis.avatar, this.dataDir);
+    if (config.xAlran?.avatar) {
+      await validateAgentAvatar(agentDir, config.xAlran.avatar, this.dataDir);
     }
   }
 
@@ -1103,13 +1103,13 @@ function immutableBuiltinDocumentSource(content: string): {
   delete frontmatter.model;
   delete frontmatter.effort;
 
-  const mavis = frontmatter['x-mavis'];
-  if (mavis && typeof mavis === 'object' && !Array.isArray(mavis)) {
-    const immutableMavis = { ...(mavis as Record<string, unknown>) };
-    delete immutableMavis.contextWindow;
-    delete immutableMavis.maxOutputTokens;
-    if (Object.keys(immutableMavis).length === 0) delete frontmatter['x-mavis'];
-    else frontmatter['x-mavis'] = immutableMavis;
+  const alran = frontmatter['x-alran'];
+  if (alran && typeof alran === 'object' && !Array.isArray(alran)) {
+    const immutableAlran = { ...(alran as Record<string, unknown>) };
+    delete immutableAlran.contextWindow;
+    delete immutableAlran.maxOutputTokens;
+    if (Object.keys(immutableAlran).length === 0) delete frontmatter['x-alran'];
+    else frontmatter['x-alran'] = immutableAlran;
   }
   return { frontmatter, body: source.body };
 }
@@ -1135,7 +1135,7 @@ function contentTypeForAvatarExtension(extension: string): AgentAvatarAsset['con
       // validator changes later.
       throw new AgentConfigError(
         'AGENT_CONFIG_AVATAR_INVALID',
-        'x-mavis.avatar',
+        'x-alran.avatar',
         'Avatar must be a supported image file.',
       );
   }

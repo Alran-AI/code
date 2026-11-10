@@ -1,4 +1,4 @@
-import { DeferredRuntimeConversation } from "@mavis/conversation-contract";
+import { DeferredRuntimeConversation } from "@alran/conversation-contract";
 import {
   LocalQuestionnaireService,
   createDeferredLocalAgentRuntimePort,
@@ -8,8 +8,8 @@ import {
   resolveAgentBashEnvPolicy,
   type DeferredLocalAgentRuntimePort,
   type CreatedLocalRuntimeHost as V1CreatedLocalRuntimeHost,
-} from "@mavis/local-runtime";
-import { logger } from "@mavis/shared/local-runtime-logging";
+} from "@alran/local-runtime";
+import { logger } from "@alran/shared/local-runtime-logging";
 
 import {
   createBackgroundRuntime,
@@ -51,7 +51,7 @@ import {
 } from "./services.js";
 
 const V2_LAYOUT_MIGRATION_RECEIPT_CARRIER = Symbol.for(
-  "mavis.local-runtime.v2-layout-migration-receipt",
+  "alran.local-runtime.v2-layout-migration-receipt",
 );
 
 /** @internal Component-scoped overrides used by runtime tests and parity probes. */

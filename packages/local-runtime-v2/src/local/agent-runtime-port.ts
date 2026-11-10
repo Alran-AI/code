@@ -1,4 +1,4 @@
-import type { LocalAgentRuntimeManagementPort } from "@mavis/local-runtime";
+import type { LocalAgentRuntimeManagementPort } from "@alran/local-runtime";
 import type {
   CreateAgentInput as CreateAgentReq,
   CreateAgentResult as CreateAgentResp,
@@ -10,7 +10,7 @@ import type {
   ListAgentsResult as ListAgentsResp,
   UpdateAgentInput as UpdateAgentReq,
   UpdateAgentResult as UpdateAgentResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import type { AgentApplication } from "../application/agent/agent-application.js";
 import { createAgentManagementApplication } from "../application/agent/management-application.js";
@@ -59,7 +59,7 @@ export function createV2AgentRuntimeManagementPort(input: {
     setMainSession: (agentName, sessionId) =>
       input.application.setRootSession(agentName, sessionId),
     // This is a storage predicate, not a canonical view lookup: old installs
-    // may render Mavis while persisting only Main.
+    // may render Alran while persisting only Main.
     agentExists: async (agentName) =>
       Boolean(await input.service.getPersistedOwner(agentName)),
     canDelegate: async (agentName) => {
@@ -73,7 +73,7 @@ export function createV2AgentRuntimeManagementPort(input: {
       });
       const tools = profile.capabilityCeiling.tools;
       return (
-        profile.capabilityCeiling.features.mavis &&
+        profile.capabilityCeiling.features.alran &&
         profile.capabilityCeiling.features.delegation &&
         (tools === undefined || tools.includes("bash"))
       );

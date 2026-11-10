@@ -1,7 +1,7 @@
 /**
  * Skills external-source ingestion config (Unified Skill Ingestion).
  *
- * — user-authored skill directories that Mavis honours as external sources
+ * — user-authored skill directories that Alran honours as external sources
  * independent of which runtime executes the agent session. See plan
  * `~/.claude/plans/ok-image-1-unified-tower.md`.
  *
@@ -16,7 +16,7 @@
  *     winner.
  *   - `sources`: per-source-kind `{ enabled, priority }`. Higher priority
  *     wins on name collision. Only the externally-discoverable sources are
- *     surfaced — Mavis-internal sources (`builtin-*`, `agent-*`, `user-mavis`)
+ *     surfaced — Alran-internal sources (`builtin-*`, `agent-*`, `user-alran`)
  *     are not user-configurable here (handled by the SkillStore directly).
  */
 

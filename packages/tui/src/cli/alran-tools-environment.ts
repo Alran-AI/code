@@ -1,16 +1,16 @@
 import path from 'node:path';
 
-import { stripRuntimeBoundaryKeysFrom } from '@mavis/shared/runtime-boundary-env';
+import { stripRuntimeBoundaryKeysFrom } from '@alran/shared/runtime-boundary-env';
 
 type ProcessEnvironment = Record<string, string | undefined>;
 
 const HOST_ENVIRONMENT_KEYS = {
-  runtimeExecutable: '__MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE',
-  brokerEndpoint: '__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT',
-  brokerCapabilityFile: '__MAVIS_ALRAN_TOOLS_BROKER_CAPABILITY_FILE',
-  configDir: '__MAVIS_ALRAN_TOOLS_CONFIG_DIR',
-  region: '__MAVIS_ALRAN_TOOLS_REGION',
-  extraHeaders: '__MAVIS_ALRAN_TOOLS_EXTRA_HEADERS',
+  runtimeExecutable: '__ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE',
+  brokerEndpoint: '__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT',
+  brokerCapabilityFile: '__ALRAN_ALRAN_TOOLS_BROKER_CAPABILITY_FILE',
+  configDir: '__ALRAN_ALRAN_TOOLS_CONFIG_DIR',
+  region: '__ALRAN_ALRAN_TOOLS_REGION',
+  extraHeaders: '__ALRAN_ALRAN_TOOLS_EXTRA_HEADERS',
 } as const;
 
 const CHILD_ENVIRONMENT_KEYS_TO_CLEAR = [

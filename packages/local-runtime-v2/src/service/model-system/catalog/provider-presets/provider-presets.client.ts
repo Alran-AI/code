@@ -1,5 +1,5 @@
-import { DEFAULT_MODEL_PRESETS, getRuntimePresetKey, getRuntimeRegion } from '@mavis/config';
-import { MODELS_DEV_CATALOG_SOURCE_URL, type ModelsDevRegion } from '@mavis/shared/models-dev';
+import { DEFAULT_MODEL_PRESETS, getRuntimePresetKey, getRuntimeRegion } from '@alran/config';
+import { MODELS_DEV_CATALOG_SOURCE_URL, type ModelsDevRegion } from '@alran/shared/models-dev';
 
 export const MODELS_DEV_URL = MODELS_DEV_CATALOG_SOURCE_URL;
 
@@ -7,7 +7,7 @@ const MODELS_DEV_TIMEOUT_MS = 8_000;
 const COMMON_CONFIG_TIMEOUT_MS = 600;
 const PINNED_PROVIDER_IDS_CONFIG_KEY = 'agent_byok_pinned_provider_ids';
 const COMMON_CONFIG_PATH = '/v1/api/config/web/common_config';
-const MODELS_DEV_DESCRIPTOR_PATH = '/mavis/api/v1/models-dev/catalog';
+const MODELS_DEV_DESCRIPTOR_PATH = '/alran/api/v1/models-dev/catalog';
 const MODELS_DEV_ICON_BASE_URL = 'https://models.dev/logos/';
 const MODELS_DEV_MIRROR_HOST = 'cdn.ottili.one';
 const MIRROR_CATALOG_PATH = /^\/public\/models-dev\/catalog\/([0-9a-f]{64})\/api\.json$/;

@@ -1,5 +1,5 @@
-import { MEMORY_CLEANUP_CRON_NAME, parseCronSessionPurpose } from '@mavis/shared/cron-purpose';
-import type { CronSessionRecord, CronStorePort } from '@mavis/cron';
+import { MEMORY_CLEANUP_CRON_NAME, parseCronSessionPurpose } from '@alran/shared/cron-purpose';
+import type { CronSessionRecord, CronStorePort } from '@alran/cron';
 
 import { logger } from '../common/logger.js';
 import { type DataDirInput, type DatabaseLike, withLocalRuntimeDb } from '../persistence/db.js';

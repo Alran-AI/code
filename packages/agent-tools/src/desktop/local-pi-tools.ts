@@ -7,8 +7,8 @@ import {
   type ToolResult,
   type ToolResultContent,
   withProgrammaticResult,
-} from '@mavis/agent-core/tools';
-import { sanitizeBashSubprocessEnv } from '@mavis/agent-core/bash-subprocess-env';
+} from '@alran/agent-core/tools';
+import { sanitizeBashSubprocessEnv } from '@alran/agent-core/bash-subprocess-env';
 import {
   createBashTool,
   createEditTool,
@@ -22,7 +22,7 @@ import { access, readFile, stat } from "node:fs/promises";
 import {
   IMAGE_DIMENSION_HEADER_BYTES,
   parseImageDimensionsFromBytes,
-} from "@mavis/shared/image-dimensions";
+} from "@alran/shared/image-dimensions";
 import { isAbsolute, resolve as resolvePath } from 'node:path';
 import { homedir, release } from 'node:os';
 import { fileURLToPath } from 'node:url';

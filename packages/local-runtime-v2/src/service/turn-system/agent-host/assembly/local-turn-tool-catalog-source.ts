@@ -1,7 +1,7 @@
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import type { ModelContextAssemblyCtx } from '@mavis/agent-runtime';
-import type { IModelCapabilities } from '@mavis/protocol';
-import type { ResolvedAgentCapabilities } from '@mavis/config';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import type { ModelContextAssemblyCtx } from '@alran/agent-runtime';
+import type { IModelCapabilities } from '@alran/protocol';
+import type { ResolvedAgentCapabilities } from '@alran/config';
 import type { LocalTurnAgentProfileFacts } from './local-turn-tool-catalog.js';
 import type { AgentHostTurnCapabilityView } from './turn-capability-lifecycle.js';
 
@@ -190,7 +190,7 @@ function hasValidCapabilityCeiling(
 ): boolean {
   return (
     typeof ceiling.personaEnabled === 'boolean' &&
-    typeof features.mavis === 'boolean' &&
+    typeof features.alran === 'boolean' &&
     typeof features.delegation === 'boolean' &&
     typeof features.webSearch === 'boolean'
   );
@@ -223,7 +223,7 @@ function toCapabilityCeiling(
     ...(Array.isArray(ceiling.builtinTools) ? { builtinTools: ceiling.builtinTools as never } : {}),
     ...(Array.isArray(ceiling.skills) ? { skills: ceiling.skills as never } : {}),
     features: {
-      mavis: features.mavis as boolean,
+      alran: features.alran as boolean,
       delegation: features.delegation as boolean,
       webSearch: features.webSearch as boolean,
     },

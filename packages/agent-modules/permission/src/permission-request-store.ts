@@ -13,7 +13,7 @@ export interface PermissionRequestRecord {
   reason?: string;
   /**
    * Rewritten tool input produced by the permission layer (e.g. `rm` →
-   * `mavis-trash`). Persisted so that the ASK card flow does not lose
+   * `alran-trash`). Persisted so that the ASK card flow does not lose
    * the rewrite — the framework adapter checks `rewrittenInput` BEFORE
    * `behavior` and instructs the agent to re-run with the rewritten
    * command regardless of allow/ask/deny.

@@ -4,7 +4,7 @@ import type {
   GoalTurnSignal,
   ThreadGoalDecisionResult,
   ThreadGoalWorkerProposalInput,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 import type { ThreadGoalRuntimeEventSink } from './events.js';
 import { normalizeThreadGoalWorkerProposalSummary } from './store-worker-proposal.js';

@@ -2,8 +2,8 @@ import {
   multimodalDemotionTextNotes,
   selectMultimodalAttachments,
   type MultimodalAttachmentCapabilities,
-} from '@mavis/agent-tools';
-import type { PtcRetainedFact, ToolResultContent } from '@mavis/agent-core/tools';
+} from '@alran/agent-tools';
+import type { PtcRetainedFact, ToolResultContent } from '@alran/agent-core/tools';
 
 import type { PtcMediaDelivery } from '../../execution/ptc/contracts.js';
 

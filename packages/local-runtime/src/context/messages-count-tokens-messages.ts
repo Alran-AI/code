@@ -1,6 +1,6 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import { convertToLlm } from '@earendil-works/pi-coding-agent/messages';
-import { removeOrphanToolResults } from '@mavis/agent-core/pi-turn-runner';
+import { removeOrphanToolResults } from '@alran/agent-core/pi-turn-runner';
 import type {
   Api,
   AssistantMessage,

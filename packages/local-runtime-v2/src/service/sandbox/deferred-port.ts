@@ -5,7 +5,7 @@ import {
 import type {
   LocalBashEnvPolicySource,
   LocalSandboxBashOperationsFactory,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import { initializeLocalBackgroundBashExecutor } from '../background-bash/index.js';
 import type { DeferredLocalSandboxBashOperationsFactory } from './contracts.js';

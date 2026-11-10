@@ -1,4 +1,4 @@
-import type { IModelCapabilities } from '@mavis/protocol';
+import type { IModelCapabilities } from '@alran/protocol';
 
 import type { LocalModelConfig } from '../contracts.js';
 

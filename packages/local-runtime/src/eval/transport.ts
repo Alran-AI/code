@@ -1,4 +1,4 @@
-import type { EvalMetaInfo } from '@mavis/shared/eval-meta-info';
+import type { EvalMetaInfo } from '@alran/shared/eval-meta-info';
 import { logger } from '../common/logger.js';
 import type {
   EvalReportRequest,
@@ -23,7 +23,7 @@ export async function uploadLocalEvalRequest(input: {
       headers: {
         Authorization: `Bearer ${input.accessToken}`,
         'User-Agent': 'AlranAgent',
-        'X-Mavis-Desktop-Channel': 'desktop',
+        'X-Alran-Desktop-Channel': 'desktop',
         'Content-Type': 'application/json',
       },
       body: request.body,

@@ -67,7 +67,7 @@ describe("QueueRepository front placement", () => {
     const second = await queue.enqueue(input("second", "second"));
     const implementation = await queue.enqueue({
       ...input("implementation", "implementation"),
-      clientRequestId: "mavis-internal:plan-review:review-1",
+      clientRequestId: "alran-internal:plan-review:review-1",
       queuePlacement: "front",
     });
     if (!first || !second || !implementation)
@@ -90,7 +90,7 @@ describe("QueueRepository front placement", () => {
     });
     const replay = await queue.enqueue({
       ...input("ignored replay content", "ignored-replay"),
-      clientRequestId: "mavis-internal:plan-review:review-1",
+      clientRequestId: "alran-internal:plan-review:review-1",
       queuePlacement: "front",
     });
 
@@ -111,7 +111,7 @@ describe("QueueRepository front placement", () => {
     await expect(
       queue.enqueue({
         ...input("implementation", "implementation"),
-        clientRequestId: "mavis-internal:plan-review:review-1",
+        clientRequestId: "alran-internal:plan-review:review-1",
         queuePlacement: "front",
       }),
     ).resolves.toBeUndefined();
@@ -119,7 +119,7 @@ describe("QueueRepository front placement", () => {
 
     const retry = await queue.enqueue({
       ...input("implementation", "implementation"),
-      clientRequestId: "mavis-internal:plan-review:review-1",
+      clientRequestId: "alran-internal:plan-review:review-1",
       queuePlacement: "front",
     });
     expect(retry?.position).toBe(1);
@@ -1029,7 +1029,7 @@ describe("QueueRepository claims, recovery, and migration", () => {
     const legacy = {
       itemId: "legacy-1",
       sessionId: "legacy",
-      agentName: "mavis",
+      agentName: "alran",
       source: "api",
       status: "queued",
       message: message("legacy"),
@@ -1193,7 +1193,7 @@ describe("QueueRepository mutations, recovery, and deletion", () => {
 
 function input(content: string, dedupeKey: string) {
   return {
-    session: { sessionId: "s1", agentName: "mavis" },
+    session: { sessionId: "s1", agentName: "alran" },
     message: message(content),
     source: "api" as const,
     dedupeKey,
@@ -1305,7 +1305,7 @@ function legacyItem(itemId: string, sessionId: string) {
   return {
     itemId,
     sessionId,
-    agentName: "mavis",
+    agentName: "alran",
     source: "api" as const,
     status: "queued" as const,
     message: message(itemId),

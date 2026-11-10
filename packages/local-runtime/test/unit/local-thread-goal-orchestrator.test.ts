@@ -19,7 +19,7 @@ import {
   type ThreadGoalPatchInput,
   type ThreadGoalState,
   type ThreadGoalStore,
-} from "@mavis/goal";
+} from "@alran/goal";
 
 import {
   createThreadGoalContinuationOrchestrator,

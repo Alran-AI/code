@@ -5,7 +5,7 @@ import type {
   ConversationResumeUserInput,
   ConversationSteerInput,
   ConversationSubmitInput,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import { sanitizeDisplayAttachment } from '../session-system/index.js';
 import {

@@ -1,7 +1,7 @@
 import type {
   ConversationModelThinkingBudgets,
   ConversationModelThinkingSelection,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 export type LocalModelThinkingBudgets = ConversationModelThinkingBudgets;
 export type LocalModelThinkingSelection = ConversationModelThinkingSelection;

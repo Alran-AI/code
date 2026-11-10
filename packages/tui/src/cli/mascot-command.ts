@@ -126,7 +126,7 @@ export function runMascot(options: MascotCommandOptions = {}): void {
     const lines = renderMascotFrame(mode, posY, tick);
 
     process.stdout.write(ANSI_CLEAR_SCREEN + ANSI_CURSOR_HOME);
-    process.stdout.write(lines.join('\n') + '\n');
+    process.stdout.write(`${lines.join('\n')}\n`);
     process.stdout.write(
       chalk.dim('Alran Mascot — drücke q zum Beenden. Befehle: jump, dance, sleep\n'),
     );
@@ -227,14 +227,14 @@ export function runMascot(options: MascotCommandOptions = {}): void {
   process.on('SIGINT', () => {
     cleanup();
     clearInterval(interval);
-    process.stdout.write(ANSI_CURSOR_SHOW + '\n');
+    process.stdout.write(`${ANSI_CURSOR_SHOW}\n`);
     process.exit(0);
   });
 
   process.on('SIGTERM', () => {
     cleanup();
     clearInterval(interval);
-    process.stdout.write(ANSI_CURSOR_SHOW + '\n');
+    process.stdout.write(`${ANSI_CURSOR_SHOW}\n`);
     process.exit(0);
   });
 }

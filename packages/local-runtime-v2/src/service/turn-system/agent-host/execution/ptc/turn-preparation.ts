@@ -1,9 +1,9 @@
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 import {
   createPtcToolFactCollector,
   type RuntimeTool,
   type ToolExecutionContext,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 import type { AgentExecutionSnapshot } from '../../preparation/contracts.js';
 import type { LocalTurnExecutionInput } from '../../runner/contracts.js';

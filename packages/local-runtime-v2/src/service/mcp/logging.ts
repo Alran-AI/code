@@ -1,5 +1,5 @@
-import type { McpRuntimeLogger } from '@mavis/mcp/runtime/types';
-import type { ObservabilityLogger } from '@mavis/shared/local-runtime-diagnostics';
+import type { McpRuntimeLogger } from '@alran/mcp/runtime/types';
+import type { ObservabilityLogger } from '@alran/shared/local-runtime-diagnostics';
 
 export function createMcpRuntimeLogger(
   diagnostics?: ObservabilityLogger,

@@ -1,6 +1,6 @@
-import { buildStreamRespEvent } from '@mavis/agent-core/event-bridge';
-import { MsgType, RespDataType, type AgentMessage } from '@mavis/agent-core/protocol/agent-message';
-import type { LocalRuntimeToolContext, LocalTodoWriteToolInput } from '@mavis/agent-tools/desktop';
+import { buildStreamRespEvent } from '@alran/agent-core/event-bridge';
+import { MsgType, RespDataType, type AgentMessage } from '@alran/agent-core/protocol/agent-message';
+import type { LocalRuntimeToolContext, LocalTodoWriteToolInput } from '@alran/agent-tools/desktop';
 
 import { logger } from '../common/logger.js';
 

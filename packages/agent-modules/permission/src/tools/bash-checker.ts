@@ -17,7 +17,7 @@
  *     by `bypassPermissions` mode. `bypassImmune` on the result is reserved
  *     for narrow ASK shapes that must NEVER be silently upgraded by mode
  *     shortcuts; HARD is no longer one of them because it is now `deny`.
- *   - The recoverable rm → mavis-trash rewrite is preserved verbatim and
+ *   - The recoverable rm → alran-trash rewrite is preserved verbatim and
  *     runs after explicit deny + HARD detection.
  */
 
@@ -760,7 +760,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
         });
         if (pathDecision.behavior === 'allow') continue;
         if (pathDecision.behavior === 'deny') {
-          // Deny wins outright. Do NOT attach the rm→mavis-trash rewrite — a
+          // Deny wins outright. Do NOT attach the rm→alran-trash rewrite — a
           // denied line must be blocked, not silently rewritten into a runnable
           // (trashing) command that an engine bypass / approval could execute.
           return {
@@ -796,7 +796,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
         if (decisionAskImmune) pendingAsk.bypassImmune = true;
         // Returning the path ASK here short-circuits the buildRmRewriteInput call
         // at the end of checkPermissions. If an EARLIER subcommand on the same
-        // line is a RECOVERABLE rm, carry its mavis-trash rewrite forward so an
+        // line is a RECOVERABLE rm, carry its alran-trash rewrite forward so an
         // approval / downstream bypass trashes (recoverable) instead of running
         // the original irrecoverable rm. A dangerous rm would have hit the deny
         // branch above and never reach here.
@@ -858,7 +858,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
     // Codex-aligned read-only whitelist (is_known_safe_command). Reached only
     // AFTER the path-capability loop above had its say: a terminal DENY and any
     // sensitive-read / boundary ASK (e.g. `cat .env`, `cat ~/.ssh/id_rsa`)
-    // already returned earlier, so mavis's HARD/SOFT backstop keeps precedence.
+    // already returned earlier, so alran's HARD/SOFT backstop keeps precedence.
     // Here we downgrade the remaining heuristic ASK to ALLOW when the command is
     // provably read-only (`ls`, `cat README.md`, `git status`, word-only safe
     // sequences, …), mirroring Codex routing is_known_safe commands to Allow.
@@ -952,7 +952,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
    * Build rewritten tool input when rm commands are detected in the decision.
    *
    * Scans subcommand results for `rmRewrite` reasons and replaces each
-   * rm subcommand with its `mavis-trash` equivalent. Returns undefined
+   * rm subcommand with its `alran-trash` equivalent. Returns undefined
    * if no rm rewrites are needed.
    */
   private buildRecoverableDeleteRewriteInput(
@@ -1017,7 +1017,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
             relative === '..' || relative.startsWith('..\\') || path.win32.isAbsolute(relative)
           );
         });
-      const rewrittenCommand = 'mavis-trash --';
+      const rewrittenCommand = 'alran-trash --';
       const executionKind = context.platform === 'win32' ? 'windows-trash' : 'host-trash';
       logger.info(
         {
@@ -1036,7 +1036,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
           executionKind,
           ...backgroundCtx(),
         },
-        '[permission] Recoverable delete rewritten to host-owned mavis-trash argv',
+        '[permission] Recoverable delete rewritten to host-owned alran-trash argv',
       );
       // POSIX eligibility guarantees a single top-level segment. The execution
       // plan's target-set check remains the hard consistency backstop.
@@ -1048,7 +1048,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
     }
 
     if (context.platform === 'darwin' || context.platform === 'linux') {
-      const launcher = path.join(dataDir, 'bin', 'mavis-trash');
+      const launcher = path.join(dataDir, 'bin', 'alran-trash');
       const rewritten = rewritePosixRm(originalCommand, launcher);
       if (rewritten) {
         return withPosixTrashExecution(
@@ -1060,7 +1060,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
 
     let hasRmRewrite = false;
     const rewrittenParts: Map<string, string> = new Map();
-    // Per-subcommand instrumentation for the rm→mavis-trash rewrite path.
+    // Per-subcommand instrumentation for the rm→alran-trash rewrite path.
     // Emitted only when at least one subcommand triggers rmRewrite so we
     // do not spam logs on unrelated commands. Enables post-hoc diagnosis
     // when a downstream trash invocation misbehaves (e.g. paths lost to
@@ -1077,12 +1077,12 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
       if (result.reason.type === 'rmRewrite') {
         hasRmRewrite = true;
         // On Windows the trash script is a Node.js file invoked via the .cmd launcher;
-        // on POSIX it's the bash script directly. Both are named `mavis-trash` at the
+        // on POSIX it's the bash script directly. Both are named `alran-trash` at the
         // command level (.cmd extension auto-resolved by Windows shell).
         const trashBin =
           context.platform === 'win32'
-            ? path.win32.join(dataDir, 'bin', 'mavis-trash.cmd')
-            : path.join(dataDir, 'bin', 'mavis-trash');
+            ? path.win32.join(dataDir, 'bin', 'alran-trash.cmd')
+            : path.join(dataDir, 'bin', 'alran-trash');
         const parsedRm = parseRmCommand(subcmd, context.platform);
         const rawTargetsWithMeta = parsedRm.targets;
         // Only HOME-expand unquoted targets; single/double-quoted or
@@ -1172,7 +1172,7 @@ export class BashToolPermissionChecker implements ToolPermissionChecker {
         rewrittenCommand,
         ...backgroundCtx(),
       },
-      `[permission] rm-rewrite applied: ${replacements.length} subcommand(s) rewritten to mavis-trash`,
+      `[permission] rm-rewrite applied: ${replacements.length} subcommand(s) rewritten to alran-trash`,
     );
 
     return { ...originalInput, command: rewrittenCommand };

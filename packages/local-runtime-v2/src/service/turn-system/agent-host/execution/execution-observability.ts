@@ -1,6 +1,6 @@
-import { buildStreamRespEvent } from '@mavis/agent-core/event-bridge';
-import { MsgType, RespDataType } from '@mavis/agent-core/protocol';
-import type { PiBeforeLlmCallHookInput, PiTurnHooks } from '@mavis/agent-core/pi-turn-runner';
+import { buildStreamRespEvent } from '@alran/agent-core/event-bridge';
+import { MsgType, RespDataType } from '@alran/agent-core/protocol';
+import type { PiBeforeLlmCallHookInput, PiTurnHooks } from '@alran/agent-core/pi-turn-runner';
 
 /** Metadata-only opt-in. No budget decisions, prompt changes or tool controls. */
 export function withExecutionObservability(hooks: PiTurnHooks, enabled: boolean): PiTurnHooks {

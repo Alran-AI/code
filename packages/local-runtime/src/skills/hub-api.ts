@@ -5,10 +5,10 @@ import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
   isManagedRuntime,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
-import type { SkillSourceType } from '@mavis/protocol/local';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
+import type { SkillSourceType } from '@alran/protocol/local';
 
 import { json, readJsonBody } from '../api/host-helpers.js';
 import { LocalSkillHubInstallError } from './hub-errors.js';
@@ -83,8 +83,8 @@ export interface LocalSkillHubStoreOptions {
   nowMs?: () => number;
   remoteEnabled?: () => boolean;
   fetch?: typeof fetch;
-  region?: () => MavisRegion;
-  buildEnv?: () => MavisBuildEnv;
+  region?: () => AlranRegion;
+  buildEnv?: () => AlranBuildEnv;
   authContextGetter?: () => LocalRuntimeAuthContext | undefined;
   routingContextGetter?: () => LocalRuntimeRoutingContext | undefined;
 }
@@ -95,7 +95,7 @@ const SOURCE_TYPE_ALL = 0;
 const REMOTE_SKILL_SORT_TYPE_USE_COUNT = 1;
 const REMOTE_SKILL_HUB_TIMEOUT_MS = 10_000;
 const AGENT_NAME_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/u;
-const SKILL_HUB_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const SKILL_HUB_BASE: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
     test: 'https://api.ottili.one/alran-cloud/api/v1/skill-hub',
@@ -505,7 +505,7 @@ export class LocalSkillHubStore {
     };
   }
 
-  private remoteUrl(region?: MavisRegion, buildEnv?: MavisBuildEnv): string {
+  private remoteUrl(region?: AlranRegion, buildEnv?: AlranBuildEnv): string {
     const resolvedRegion = region ?? (this.options.region ?? getRuntimeRegion)();
     const resolvedBuildEnv = buildEnv ?? (this.options.buildEnv ?? getRuntimeBuildEnv)();
     return SKILL_HUB_BASE[resolvedRegion][resolvedBuildEnv];

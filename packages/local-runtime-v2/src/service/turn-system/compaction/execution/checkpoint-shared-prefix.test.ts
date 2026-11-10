@@ -14,7 +14,7 @@ import {
 import {
   projectAgentMessagesForModel,
   type PiBeforeLlmCallHookInput,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import { describe, expect, it, vi } from 'vitest';
 
 import { CHECKPOINT_SYSTEM_PROMPT } from './checkpoint-prompt.js';

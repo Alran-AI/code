@@ -1,5 +1,5 @@
-import type { PiEventWriter } from "@mavis/agent-core/pi-turn-runner";
-import type { RuntimeTool } from "@mavis/agent-core/tools";
+import type { PiEventWriter } from "@alran/agent-core/pi-turn-runner";
+import type { RuntimeTool } from "@alran/agent-core/tools";
 import {
   buildLocalToolRegistry,
   LocalTodoWriteToolDef,
@@ -9,25 +9,25 @@ import {
   type LocalRuntimeTool,
   type LocalRuntimeToolContext,
   type LocalSandboxBashOperationsFactory,
-  type LocalMavisAgentAdapter,
-  type LocalMavisCronAdapter,
-  type LocalMavisMcpAdapter,
-  type LocalMavisSessionAdapter,
+  type LocalAlranAgentAdapter,
+  type LocalAlranCronAdapter,
+  type LocalAlranMcpAdapter,
+  type LocalAlranSessionAdapter,
   type LocalTaskAdapter,
   type LocalTaskAppendAdapter,
   type LocalTaskControlAdapter,
   type LocalWebFetchAdapter,
   type LocalWebSearchAdapter,
   WebSearchToolDef,
-} from "@mavis/agent-tools/desktop";
-import { MatrixWebSearchToolDef } from "@mavis/agent-tools";
+} from "@alran/agent-tools/desktop";
+import { MatrixWebSearchToolDef } from "@alran/agent-tools";
 import {
   getConfig,
   resolveAgentCapabilities,
   type AgentBuiltinMcpToolId,
   type AgentBuiltinSkillId,
   type ResolvedAgentCapabilities,
-} from "@mavis/config";
+} from "@alran/config";
 import { resolveFeatureAwareBuiltinSkillNames } from "../agent/feature-owned-skills.js";
 import type { ModuleMetricsReporter } from "../common/metrics.js";
 import { CU_DESKTOP_SKILL_NAME } from "../cu/gate.js";
@@ -46,7 +46,7 @@ import { LocalWebsiteDeployClient } from "../website-deploy/index.js";
 import { buildLocalAskUserAdapter } from "./local-ask-user-adapter.js";
 import { mergeDesktopTurnTools } from "./local-desktop-tool-modes.js";
 import { withLocalMemoryPolicyGuidance } from "./local-memory-policy-guidance.js";
-import { withoutLocalMavisCronGuidance } from "./local-mavis-cron-guidance.js";
+import { withoutLocalAlranCronGuidance } from "./local-alran-cron-guidance.js";
 import {
   filterLocalBuiltinCapabilityTools,
   isDesktopExtensionSkillSelected,
@@ -92,10 +92,10 @@ export function buildLocalNativeRuntimeTools(input: {
   taskAppendAdapter?: LocalTaskAppendAdapter;
   taskControlAdapter?: LocalTaskControlAdapter;
   memoryFacade?: LocalMemoryFacade;
-  mavisAgentAdapter?: LocalMavisAgentAdapter;
-  mavisCronAdapter?: LocalMavisCronAdapter;
-  mavisMcpAdapter?: LocalMavisMcpAdapter;
-  mavisSessionAdapter?: LocalMavisSessionAdapter;
+  alranAgentAdapter?: LocalAlranAgentAdapter;
+  alranCronAdapter?: LocalAlranCronAdapter;
+  alranMcpAdapter?: LocalAlranMcpAdapter;
+  alranSessionAdapter?: LocalAlranSessionAdapter;
   emitBusEvent?: (type: string, payload: Record<string, unknown>) => void;
   /** Optional metrics reporter injected by the host. Absent → noop. */
   metrics?: ModuleMetricsReporter;
@@ -239,10 +239,10 @@ export function buildLocalNativeRuntimeTools(input: {
                 ),
             }
           : undefined,
-      mavisAgentAdapter: input.mavisAgentAdapter,
-      mavisCronAdapter: input.mavisCronAdapter,
-      mavisMcpAdapter: input.mavisMcpAdapter,
-      mavisSessionAdapter: input.mavisSessionAdapter,
+      alranAgentAdapter: input.alranAgentAdapter,
+      alranCronAdapter: input.alranCronAdapter,
+      alranMcpAdapter: input.alranMcpAdapter,
+      alranSessionAdapter: input.alranSessionAdapter,
       websiteDeployAdapter: new LocalWebsiteDeployClient({
         ...(input.authContext ? { authContext: input.authContext } : {}),
         ...(input.dataDir ? { dataDir: input.dataDir } : {}),
@@ -252,9 +252,9 @@ export function buildLocalNativeRuntimeTools(input: {
       codeReviewAdapter: input.codeReviewAdapter,
     }).values(),
   ];
-  const modelVisibleNativeTools = input.mavisCronAdapter
+  const modelVisibleNativeTools = input.alranCronAdapter
     ? nativeTools
-    : nativeTools.map(withoutLocalMavisCronGuidance);
+    : nativeTools.map(withoutLocalAlranCronGuidance);
   return filterLocalBuiltinCapabilityTools(
     modelVisibleNativeTools.map((tool) =>
       withLocalMemoryPolicyGuidance(tool, {
@@ -316,10 +316,10 @@ export async function buildLocalTurnToolSources(
       ? input.taskControlAdapter
       : undefined,
     memoryFacade: input.memoryFacade,
-    mavisAgentAdapter: input.mavisAgentAdapter,
-    mavisCronAdapter: input.mavisCronAdapter,
-    mavisMcpAdapter: input.mcpService.createMavisAdapter(input.emitBusEvent),
-    mavisSessionAdapter: input.mavisSessionAdapter,
+    alranAgentAdapter: input.alranAgentAdapter,
+    alranCronAdapter: input.alranCronAdapter,
+    alranMcpAdapter: input.mcpService.createAlranAdapter(input.emitBusEvent),
+    alranSessionAdapter: input.alranSessionAdapter,
     codeReviewAdapter: input.codeReviewAdapter,
     emitBusEvent: input.emitBusEvent,
     metrics: input.metrics,

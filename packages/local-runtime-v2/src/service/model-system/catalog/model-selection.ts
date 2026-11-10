@@ -1,16 +1,16 @@
-import { ThinkingLevel } from '@mavis/protocol';
+import { ThinkingLevel } from '@alran/protocol';
 import { modelRefForModel, type ManagedModelParameterSnapshot } from '../resolution/model-ref.js';
 import type {
   ConversationModelThinkingBudgets,
   ConversationModelThinkingSelection,
   ConversationModelSelection,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 import {
   DEFAULT_MODEL_PRESETS,
   getRuntimePresetKey,
   isLegacyManagedAlranProvider,
   resolveModelAvailability,
-} from '@mavis/config';
+} from '@alran/config';
 import { LocalModelProviderError, type LocalRuntimeConfig } from '../contracts.js';
 import { parseProviderId, parseSourceQualifiedModelKey } from '../resolution/model-key.js';
 

@@ -17,7 +17,7 @@
  *   yet, so the gate only produced a misleading prompt note with no delivery.
  */
 
-import type { ChannelDeliveryPort, CronChannelRunner } from '@mavis/cron';
+import type { ChannelDeliveryPort, CronChannelRunner } from '@alran/cron';
 
 import type { LocalChannelBindingStore, LocalChannelContext } from '../channels/infra.js';
 import type { LocalChannelRunner } from '../channels/runner.js';
@@ -48,10 +48,10 @@ function resolveCronChannelTarget(clientName: string): ResolvedCronChannelTarget
   const trimmed = clientName.trim();
   if (!trimmed) return undefined;
   if (trimmed.startsWith('telegram:')) {
-    return { platform: 'telegram', agentName: trimmed.slice('telegram:'.length) || 'mavis' };
+    return { platform: 'telegram', agentName: trimmed.slice('telegram:'.length) || 'alran' };
   }
   if (trimmed.startsWith('wechat:')) {
-    return { platform: 'wechat', agentName: trimmed.slice('wechat:'.length) || 'mavis' };
+    return { platform: 'wechat', agentName: trimmed.slice('wechat:'.length) || 'alran' };
   }
   return { platform: 'feishu', agentName: trimmed };
 }

@@ -18,7 +18,7 @@ import {
   AUTH_LEASE_PROTOCOL_PACKAGE_NAME,
   AUTH_LEASE_PROTOCOL_PACKAGE_VERSION,
   AUTH_LEASE_PROTOCOL_VERSION,
-} from '@mavis/oauth-lease-protocol';
+} from '@alran/oauth-lease-protocol';
 
 export type AlranToolsBuildEnv = 'test' | 'staging' | 'prod';
 export type AlranToolsRegion = 'cn' | 'en';
@@ -170,7 +170,7 @@ function renderPosixDispatcher(): string {
   return [
     '#!/bin/sh',
     'alran_tools_bin_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)',
-    ['alran_tools_region=$', '{ALRAN_REGION:-$', '{MAVIS_REGION:-}}'].join(''),
+    ['alran_tools_region=$', '{ALRAN_REGION:-$', '{ALRAN_REGION:-}}'].join(''),
     'case "$alran_tools_region" in',
     '  cn) alran_tools_target="$alran_tools_bin_dir/alran-tools-cn" ;;',
     '  en|global) alran_tools_target="$alran_tools_bin_dir/alran-tools-global" ;;',
@@ -196,7 +196,7 @@ function renderWindowsDispatcher(): string {
     '@echo off',
     'setlocal DisableDelayedExpansion',
     'set "alran_tools_region=%ALRAN_REGION%"',
-    'if not defined alran_tools_region set "alran_tools_region=%MAVIS_REGION%"',
+    'if not defined alran_tools_region set "alran_tools_region=%ALRAN_REGION%"',
     'if /i "%alran_tools_region%"=="cn" goto alran_tools_cn',
     'if /i "%alran_tools_region%"=="en" goto alran_tools_global',
     'if /i "%alran_tools_region%"=="global" goto alran_tools_global',
@@ -229,10 +229,10 @@ export function renderPosixLauncher(options: {
 }): string {
   const lines = [
     '#!/bin/sh',
-    'unset MAVIS_ACCESS_TOKEN MAVIS_DATA_DIR ALRAN_DATA_DIR MAVIS_PORT MAVIS_PROFILE IS_SANDBOX ALRAN_API_BASE_URL ALRAN_AUTH_BASE_URL ALRAN_CLIENT_ID ALRAN_SCOPE ALRAN_AUTH_PROVIDER ALRAN_AUTH_BROKER_ENDPOINT ALRAN_AUTH_BROKER_CAPABILITY_FILE ALRAN_EXTRA_HEADERS',
+    'unset ALRAN_ACCESS_TOKEN ALRAN_DATA_DIR ALRAN_DATA_DIR ALRAN_PORT ALRAN_PROFILE IS_SANDBOX ALRAN_API_BASE_URL ALRAN_AUTH_BASE_URL ALRAN_CLIENT_ID ALRAN_SCOPE ALRAN_AUTH_PROVIDER ALRAN_AUTH_BROKER_ENDPOINT ALRAN_AUTH_BROKER_CAPABILITY_FILE ALRAN_EXTRA_HEADERS',
     "for alran_tools_name in $(env | sed -n 's/^\\([^=]*\\)=.*$/\\1/p'); do",
     '  case "$alran_tools_name" in',
-    '    __MAVIS_PARENT_*|__MAVIS_RUNTIME_*|AGENTARCHON_*|AGENT_ARCHON_*) unset "$alran_tools_name" ;;',
+    '    __ALRAN_PARENT_*|__ALRAN_RUNTIME_*|AGENTARCHON_*|AGENT_ARCHON_*) unset "$alran_tools_name" ;;',
     '  esac',
     'done',
     'unset alran_tools_name',
@@ -266,11 +266,11 @@ export function renderWindowsLauncher(options: {
   const lines = [
     '@echo off',
     'setlocal DisableDelayedExpansion',
-    'set "MAVIS_ACCESS_TOKEN="',
-    'set "MAVIS_DATA_DIR="',
+    'set "ALRAN_ACCESS_TOKEN="',
     'set "ALRAN_DATA_DIR="',
-    'set "MAVIS_PORT="',
-    'set "MAVIS_PROFILE="',
+    'set "ALRAN_DATA_DIR="',
+    'set "ALRAN_PORT="',
+    'set "ALRAN_PROFILE="',
     'set "IS_SANDBOX="',
     'set "ALRAN_API_BASE_URL="',
     'set "ALRAN_AUTH_BASE_URL="',
@@ -280,8 +280,8 @@ export function renderWindowsLauncher(options: {
     'set "ALRAN_AUTH_BROKER_ENDPOINT="',
     'set "ALRAN_AUTH_BROKER_CAPABILITY_FILE="',
     'set "ALRAN_EXTRA_HEADERS="',
-    'for /f "tokens=1 delims==" %%V in (\'set __MAVIS_PARENT_ 2^>nul\') do set "%%V="',
-    'for /f "tokens=1 delims==" %%V in (\'set __MAVIS_RUNTIME_ 2^>nul\') do set "%%V="',
+    'for /f "tokens=1 delims==" %%V in (\'set __ALRAN_PARENT_ 2^>nul\') do set "%%V="',
+    'for /f "tokens=1 delims==" %%V in (\'set __ALRAN_RUNTIME_ 2^>nul\') do set "%%V="',
     'for /f "tokens=1 delims==" %%V in (\'set AGENTARCHON_ 2^>nul\') do set "%%V="',
     'for /f "tokens=1 delims==" %%V in (\'set AGENT_ARCHON_ 2^>nul\') do set "%%V="',
     'set "ELECTRON_RUN_AS_NODE=1"',

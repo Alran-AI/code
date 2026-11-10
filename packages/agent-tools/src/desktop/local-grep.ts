@@ -22,7 +22,7 @@ import {
   withProgrammaticResult,
   type ToolImpl,
   type ToolResult,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 import {
   DEFAULT_GREP_OUTPUT_MODE,

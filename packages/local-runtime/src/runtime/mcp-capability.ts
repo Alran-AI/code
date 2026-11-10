@@ -1,5 +1,5 @@
-import type { McpToolEntry } from '@mavis/agent-tools';
-import type { LocalMavisMcpAdapter } from '@mavis/agent-tools/desktop';
+import type { McpToolEntry } from '@alran/agent-tools';
+import type { LocalAlranMcpAdapter } from '@alran/agent-tools/desktop';
 import type { LocalRuntimeAuthContext } from './model-resolver.js';
 import type { LocalRuntimeRoutingContext } from './routing-headers.js';
 
@@ -7,9 +7,9 @@ import type { LocalRuntimeRoutingContext } from './routing-headers.js';
 export interface LocalMcpRuntimeCapability {
   isBuiltinMatrixAvailable(): boolean;
   readConfiguredServerNames(): Promise<Set<string>>;
-  createMavisAdapter(
+  createAlranAdapter(
     emit: (type: string, payload: Record<string, unknown>) => void,
-  ): LocalMavisMcpAdapter;
+  ): LocalAlranMcpAdapter;
   listToolEntriesForTurn(input: {
     sessionId: string;
     workspaceRoot: string;

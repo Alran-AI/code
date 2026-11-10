@@ -1,6 +1,6 @@
-import type { IAgentConfig } from '@mavis/protocol';
+import type { IAgentConfig } from '@alran/protocol';
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { allowsManagedAlranProviderOverride, type ProviderAuthMode } from '@mavis/config';
+import { allowsManagedAlranProviderOverride, type ProviderAuthMode } from '@alran/config';
 
 import { MANAGED_PROVIDER_USER_AGENT } from './model-resolver.js';
 import {
@@ -45,9 +45,9 @@ export function buildLocalProviderHeaders(input: {
 }): Record<string, string> | undefined {
   const headers: Record<string, string> = {
     ...(input.headers ?? {}),
-    'X-Mavis-Session-Id': input.sessionId,
-    'X-Mavis-Agent-Id': input.agentId,
-    'X-Mavis-Timezone-Offset': String(new Date().getTimezoneOffset() * -60),
+    'X-Alran-Session-Id': input.sessionId,
+    'X-Alran-Agent-Id': input.agentId,
+    'X-Alran-Timezone-Offset': String(new Date().getTimezoneOffset() * -60),
   };
   // Lane selection is trusted local-runtime state, never provider/user input.
   // Strip both historical spellings for every provider so BYOK/custom

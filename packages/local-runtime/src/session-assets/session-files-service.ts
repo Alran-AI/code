@@ -5,7 +5,7 @@
  * session asset index: legacy message migration, lazy index build, page
  * query, and mapping asset records into generated `DriveNode` views. Local
  * deliverables fill `path`; only drive-backed assets (commit-id transport)
- * fill `nodeId`. There is intentionally NO legacy `/mavis/api` route for
+ * fill `nodeId`. There is intentionally NO legacy `/alran/api` route for
  * this endpoint — the product path is DesktopService only.
  *
  * Per the desktop-service ownership ADR the domain owns service creation,
@@ -18,16 +18,16 @@ import {
   collectMessageAssetItems,
   isCommitIdTransportId,
   type DeliverAssetItem,
-} from "@mavis/shared/asset-markup";
-import { deriveMediaKind, inferAssetMimeType } from "@mavis/shared";
+} from "@alran/shared/asset-markup";
+import { deriveMediaKind, inferAssetMimeType } from "@alran/shared";
 import {
   DriveNodeSource,
   DriveNodeType,
   type DriveNode,
   type ListSessionFilesResult as ListSessionFilesResult,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
-import type { AgentMessage } from "@mavis/agent-core/protocol/agent-message";
+import type { AgentMessage } from "@alran/agent-core/protocol/agent-message";
 import type {
   SessionAssetRecord,
   SessionAssetStore,

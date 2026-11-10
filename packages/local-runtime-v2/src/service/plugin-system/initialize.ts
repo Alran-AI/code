@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { getRuntimeBuildEnv, getRuntimeRegion } from "@mavis/config";
+import { getRuntimeBuildEnv, getRuntimeRegion } from "@alran/config";
 import type { AgentHostTurnCapabilityLifecycle } from "../turn-system/index.js";
 
 import type { MiniAppPluginPublicationCapability } from "../miniapp/index.js";
@@ -73,7 +73,7 @@ export function initializePluginService(
     authContextGetter: compatibility.authContextGetter,
     appVersion: compatibility.appVersion,
     previewSecret: process.env.PREVIEW_SECRET,
-    lane: process.env.MAVIS_PLUGIN_CLOUD_LANE,
+    lane: process.env.ALRAN_PLUGIN_CLOUD_LANE,
   });
   const registryClient = new PluginRegistryClient(cloudTransport);
   const githubImporter = new GithubPluginImporter({

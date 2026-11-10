@@ -2,12 +2,12 @@ import type {
   AfterLlmCallHandler,
   AfterToolCallHandler,
   AgentExtension,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import {
   encodeRequestImageBlocks,
   isRequestMediaRejection,
   type RequestImageEncoding,
-} from '@mavis/context-manager';
+} from '@alran/context-manager';
 
 export interface RequestMediaExtensionOptions {
   readonly id?: string;

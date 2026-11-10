@@ -9,12 +9,12 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { ToolResult } from '@mavis/agent-core/tools';
-import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@mavis/shared/memory-limits';
+import type { ToolResult } from '@alran/agent-core/tools';
+import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@alran/shared/memory-limits';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalGrepTool } from '../../src/desktop/local-grep.js';
-import { LocalMavisTool } from '../../src/desktop/local-mavis.js';
+import { LocalAlranTool } from '../../src/desktop/local-alran.js';
 import { LocalMemoryTool } from '../../src/desktop/local-memory.js';
 import { LocalBashTool, LocalReadTool } from '../../src/desktop/local-pi-tools.js';
 import { LocalWebFetchTool } from '../../src/desktop/local-webfetch.js';
@@ -26,8 +26,8 @@ import {
 } from '../../src/desktop/output-limit.js';
 import { projectDesktopPtcToolResult } from '../../src/desktop/ptc-result-projection.js';
 import type {
-  LocalMavisAgentAdapter,
-  LocalMavisSessionAdapter,
+  LocalAlranAgentAdapter,
+  LocalAlranSessionAdapter,
   LocalRuntimeToolContext,
 } from '../../src/desktop/types.js';
 
@@ -35,7 +35,7 @@ const DIRECT: LocalRuntimeToolContext = {
   sessionId: 'sess-ptc',
   turnId: 'turn-ptc',
   toolCallId: 'call-ptc',
-  agentName: 'mavis',
+  agentName: 'alran',
 };
 const CHILD: LocalRuntimeToolContext = { ...DIRECT, parentToolCallId: 'run-code-1' };
 
@@ -54,7 +54,7 @@ describe('isPtcChildCall', () => {
   });
 });
 
-describe('mavis child calls', () => {
+describe('alran child calls', () => {
   // A reported Session: 100 messages over 16,000 tokens; the cut data kept only { ok, command }.
   // Message text is returned in full, so these stay over the cap after the session messages projection.
   const messages = Array.from({ length: 100 }, (_, index) => ({
@@ -62,7 +62,7 @@ describe('mavis child calls', () => {
     role: index % 2 === 0 ? 'user' : 'assistant',
     msg_content: `message-${index}:` + '会话内容🙂'.repeat(60),
   }));
-  const tool = new LocalMavisTool(
+  const tool = new LocalAlranTool(
     agentAdapter(),
     undefined,
     sessionAdapter({ listMessages: async () => ({ messages, nextCursor: 'cursor-100' }) }),
@@ -85,7 +85,7 @@ describe('mavis child calls', () => {
       completeness: { truncated: false },
       uncappedOutput: true,
     });
-    const program = guest('mavis', result);
+    const program = guest('alran', result);
     expect(program.status).toBe('complete');
     expect(program.data).toEqual(expected);
   });
@@ -93,15 +93,15 @@ describe('mavis child calls', () => {
   it('keeps the head+tail preview and { ok, command } data for a direct call', async () => {
     const result = await tool.execute(DIRECT, input);
 
-    expect(result.text).toContain('desktop mavis output truncated');
+    expect(result.text).toContain('desktop alran output truncated');
     expect(result.details).toHaveProperty('desktop_output_truncation');
     expect(result.programmatic?.data).toEqual({ ok: true, command: 'session messages' });
     expect(result.programmatic).not.toHaveProperty('uncappedOutput');
-    expect(guest('mavis', result).status).toBe('truncated');
+    expect(guest('alran', result).status).toBe('truncated');
   });
 
   it('returns a small response exactly as a direct call does', async () => {
-    const small = new LocalMavisTool(
+    const small = new LocalAlranTool(
       agentAdapter(),
       undefined,
       sessionAdapter({ listMessages: async () => ({ messages: messages.slice(0, 2) }) }),
@@ -447,7 +447,7 @@ describe('memory child calls', () => {
   });
 });
 
-function agentAdapter(): LocalMavisAgentAdapter {
+function agentAdapter(): LocalAlranAgentAdapter {
   return {
     listAgents: async () => ({ agents: [] }),
     createAgent: async () => ({ name: 'created' }),
@@ -460,7 +460,7 @@ function agentAdapter(): LocalMavisAgentAdapter {
   };
 }
 
-function sessionAdapter(overrides: Partial<LocalMavisSessionAdapter>): LocalMavisSessionAdapter {
+function sessionAdapter(overrides: Partial<LocalAlranSessionAdapter>): LocalAlranSessionAdapter {
   return {
     listSessions: async () => ({ sessions: [] }),
     getSession: async ({ sessionId }) => ({ session: { sessionId } }),

@@ -1,6 +1,6 @@
 import { publishBestEffort } from '../events.js';
-import { ThinkingLevel } from '@mavis/protocol';
-import { getRuntimePresetKey, resolveModelAvailability } from '@mavis/config';
+import { ThinkingLevel } from '@alran/protocol';
+import { getRuntimePresetKey, resolveModelAvailability } from '@alran/config';
 import {
   LocalModelProviderError,
   MANAGED_ALRAN_PROVIDER_ID,

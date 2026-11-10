@@ -1,5 +1,5 @@
-import type { RunTurnInput } from '@mavis/agent-core/pi-turn-runner';
-import type { ToolExecutionContext } from '@mavis/agent-core/tools';
+import type { RunTurnInput } from '@alran/agent-core/pi-turn-runner';
+import type { ToolExecutionContext } from '@alran/agent-core/tools';
 
 import type { HistoryReconcileIntent } from '../history/contracts.js';
 import type { AgentExecutionSnapshot } from '../preparation/contracts.js';

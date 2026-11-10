@@ -28,7 +28,7 @@ export { PRIMARY_AGENT_BINDING_OWNER_MISSING } from './primary-agent-family-reco
 
 const CHANNEL_PLATFORMS: readonly ChannelPlatform[] = ['feishu', 'telegram', 'wechat'];
 /** Bare name the family is resolved from; never a caller-supplied `agent:main`. */
-const PRIMARY_FAMILY_REQUEST_NAME = 'mavis';
+const PRIMARY_FAMILY_REQUEST_NAME = 'alran';
 /** Bounded reconcile event (plan §13): names and outcome only, never credentials. */
 const RECONCILE_EVENT = 'primary_agent_channel_reconcile';
 
@@ -38,7 +38,7 @@ export interface PrimaryAgentChannelReconcileResult {
   readonly platform: ChannelPlatform;
   readonly outcome: PrimaryAgentChannelReconcileOutcome;
   readonly canonicalAgentName?: string;
-  /** Physical credential / transport owner; canonical stays the Mavis view. */
+  /** Physical credential / transport owner; canonical stays the Alran view. */
   readonly winnerAgentName?: string;
   readonly legacyAgentName?: string;
   /** True when the physical winner record is enabled and its transport was started. */
@@ -50,7 +50,7 @@ export interface PrimaryAgentFamilyReconcilerInput {
   /**
    * The host's Agent resolver. The family is ALWAYS derived by resolving the
    * bare canonical name through it — the channel layer must never carry its own
-   * `['mavis', 'main']` list, and must never trust a caller-supplied
+   * `['alran', 'main']` list, and must never trust a caller-supplied
    * `agent:main`.
    */
   readonly resolveAgentReadScope: ChannelAgentReadScopeResolver;

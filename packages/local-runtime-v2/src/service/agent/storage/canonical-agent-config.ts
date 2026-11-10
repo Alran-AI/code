@@ -3,7 +3,7 @@ import { lstat, open, readlink, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { TextDecoder } from 'node:util';
 
-import { isDefaultAgentAvatarMarker } from '@mavis/shared/agent-avatar';
+import { isDefaultAgentAvatarMarker } from '@alran/shared/agent-avatar';
 import yaml from 'yaml';
 
 import { logger } from '../../../infra/logging/index.js';
@@ -26,7 +26,7 @@ export interface CanonicalAgentConfig {
   readonly disallowedTools?: readonly string[];
   readonly mcpServers?: readonly string[];
   readonly skills?: readonly string[];
-  readonly xMavis?: CanonicalAgentMavisConfig;
+  readonly xAlran?: CanonicalAgentAlranConfig;
   readonly systemPrompt: string;
   /** Unknown keys are retained in the file and only surfaced as diagnostics. */
   readonly diagnostics: readonly AgentConfigDiagnostic[];
@@ -34,7 +34,7 @@ export interface CanonicalAgentConfig {
 
 /** Runtime-owned policy written only into the rebuilt `.builtin` mirror. */
 interface BuiltinAgentFeaturePolicy {
-  readonly mavis: boolean;
+  readonly alran: boolean;
   readonly delegation: boolean;
   readonly webSearch: boolean;
 }
@@ -50,7 +50,7 @@ export type BuiltinCanonicalAgentConfigForWrite = Omit<CanonicalAgentConfig, 'di
   readonly features: BuiltinAgentFeaturePolicy;
 };
 
-export interface CanonicalAgentMavisConfig {
+export interface CanonicalAgentAlranConfig {
   readonly displayName?: string;
   readonly avatar?: string;
   readonly contextWindow?: number;
@@ -92,13 +92,13 @@ const DATA_IMAGE_TYPES: Readonly<Record<string, string>> = {
   'image/webp': '.webp',
 };
 const MAX_DATA_IMAGE_BASE64_LENGTH = 4 * Math.ceil(AGENT_AVATAR_MAX_BYTES / 3);
-const DATA_DIR_SOURCE_ENV = '__MAVIS_RUNTIME_DATA_DIR_SOURCE';
+const DATA_DIR_SOURCE_ENV = '__ALRAN_RUNTIME_DATA_DIR_SOURCE';
 const KNOWN_DATA_DIR_SOURCES = new Set([
   'default',
   'profile',
   'desktop_custom',
   'alran_env',
-  'mavis_env',
+  'alran_env',
   'legacy_runtime_env',
   'test_isolation',
 ]);
@@ -111,11 +111,11 @@ const KNOWN_FIELDS = new Set([
   'disallowedTools',
   'mcpServers',
   'skills',
-  'x-mavis',
+  'x-alran',
 ]);
 const BUILTIN_KNOWN_FIELDS = new Set([...KNOWN_FIELDS, 'features']);
-const BUILTIN_FEATURE_FIELDS = new Set(['mavis', 'delegation', 'webSearch']);
-const KNOWN_MAVIS_FIELDS = new Set([
+const BUILTIN_FEATURE_FIELDS = new Set(['alran', 'delegation', 'webSearch']);
+const KNOWN_ALRAN_FIELDS = new Set([
   'displayName',
   'avatar',
   'contextWindow',
@@ -136,8 +136,8 @@ export async function readCanonicalAgentConfig(input: {
 }): Promise<CanonicalAgentConfig> {
   const contents = await readStableAgentMarkdown(input);
   const parsed = parseCanonicalAgentMarkdown(contents, input.routeName);
-  if (parsed.xMavis?.avatar) {
-    await validateAgentAvatar(input.agentDir, parsed.xMavis.avatar, input.trustedRoot);
+  if (parsed.xAlran?.avatar) {
+    await validateAgentAvatar(input.agentDir, parsed.xAlran.avatar, input.trustedRoot);
   }
   return parsed;
 }
@@ -152,8 +152,8 @@ export async function readBuiltinCanonicalAgentConfig(input: {
 }): Promise<BuiltinCanonicalAgentConfig> {
   const contents = await readStableAgentMarkdown(input);
   const parsed = parseBuiltinCanonicalAgentMarkdown(contents, input.routeName);
-  if (parsed.config.xMavis?.avatar) {
-    await validateAgentAvatar(input.agentDir, parsed.config.xMavis.avatar, input.trustedRoot);
+  if (parsed.config.xAlran?.avatar) {
+    await validateAgentAvatar(input.agentDir, parsed.config.xAlran.avatar, input.trustedRoot);
   }
   return parsed;
 }
@@ -329,7 +329,7 @@ function canonicalConfigFromSource(
   const disallowedTools = optionalTextArray(source, 'disallowedTools');
   const mcpServers = optionalTextArray(source, 'mcpServers');
   const skills = optionalTextArray(source, 'skills');
-  const xMavis = parseMavis(source['x-mavis']);
+  const xAlran = parseAlran(source['x-alran']);
   return {
     name,
     description,
@@ -339,7 +339,7 @@ function canonicalConfigFromSource(
     ...(disallowedTools === undefined ? {} : { disallowedTools }),
     ...(mcpServers === undefined ? {} : { mcpServers }),
     ...(skills === undefined ? {} : { skills }),
-    ...(xMavis ? { xMavis } : {}),
+    ...(xAlran ? { xAlran } : {}),
     systemPrompt,
     diagnostics: diagnosticsForSource(source, name, routeName, knownFields),
   };
@@ -354,9 +354,9 @@ function diagnosticsForSource(
   const diagnostics: AgentConfigDiagnostic[] = [];
   if (name !== routeName) diagnostics.push({ code: 'agent_name_mismatch', field: 'name' });
   diagnostics.push(...unsupportedFieldDiagnostics(source, knownFields));
-  const mavisSource = asPlainObject(source['x-mavis']);
-  if (mavisSource) {
-    diagnostics.push(...unsupportedFieldDiagnostics(mavisSource, KNOWN_MAVIS_FIELDS, 'x-mavis.'));
+  const alranSource = asPlainObject(source['x-alran']);
+  if (alranSource) {
+    diagnostics.push(...unsupportedFieldDiagnostics(alranSource, KNOWN_ALRAN_FIELDS, 'x-alran.'));
   }
   return Object.freeze(diagnostics);
 }
@@ -405,13 +405,13 @@ function serializeAgentConfig(
   if (config.skills !== undefined) frontmatter.skills = [...config.skills];
   if (features) {
     frontmatter.features = {
-      mavis: features.mavis,
+      alran: features.alran,
       delegation: features.delegation,
       webSearch: features.webSearch,
     };
   }
-  const xMavis = serializeMavis(config.xMavis);
-  if (xMavis) frontmatter['x-mavis'] = xMavis;
+  const xAlran = serializeAlran(config.xAlran);
+  if (xAlran) frontmatter['x-alran'] = xAlran;
   const rendered = yaml.stringify(frontmatter, { indent: 2, lineWidth: -1 }).trimEnd();
   const body = config.systemPrompt;
   return `---\n${rendered}\n---${body.length > 0 ? `\n\n${body}` : '\n'}`;
@@ -905,12 +905,12 @@ function bodyAfterFrontmatter(source: string, lineEnd: number, closingLine: stri
   return body.startsWith(lineEnding) ? body.slice(lineEnding.length) : body;
 }
 
-function parseMavis(value: unknown): CanonicalAgentMavisConfig | undefined {
+function parseAlran(value: unknown): CanonicalAgentAlranConfig | undefined {
   if (value === undefined) return undefined;
   const source = asPlainObject(value);
-  if (!source) throw invalid('x-mavis', 'x-mavis must be a mapping.');
+  if (!source) throw invalid('x-alran', 'x-alran must be a mapping.');
   const defaultWorkspaceDir = canonicalWorkspace(source);
-  const result = mavisFields(source, defaultWorkspaceDir);
+  const result = alranFields(source, defaultWorkspaceDir);
   return Object.keys(result).length === 0 ? undefined : result;
 }
 
@@ -918,17 +918,17 @@ function canonicalWorkspace(source: Record<string, unknown>): string | undefined
   const workspace = optionalText(source, 'defaultWorkspaceDir', { allowBlank: true })?.trim();
   if (workspace && !isAbsolute(workspace)) {
     throw invalid(
-      'x-mavis.defaultWorkspaceDir',
+      'x-alran.defaultWorkspaceDir',
       'defaultWorkspaceDir must be an absolute path or empty.',
     );
   }
   return workspace || undefined;
 }
 
-function mavisFields(
+function alranFields(
   source: Record<string, unknown>,
   defaultWorkspaceDir: string | undefined,
-): CanonicalAgentMavisConfig {
+): CanonicalAgentAlranConfig {
   const displayName = optionalText(source, 'displayName');
   const avatar = optionalText(source, 'avatar');
   const contextWindow = optionalPositiveInteger(source, 'contextWindow');
@@ -944,8 +944,8 @@ function mavisFields(
   };
 }
 
-function serializeMavis(
-  value: CanonicalAgentMavisConfig | undefined,
+function serializeAlran(
+  value: CanonicalAgentAlranConfig | undefined,
 ): Record<string, unknown> | undefined {
   if (!value) return undefined;
   const result: Record<string, unknown> = {};
@@ -979,7 +979,7 @@ function requiredBuiltinFeaturePolicy(source: Record<string, unknown>): BuiltinA
     throw invalid('features', 'features contains unsupported fields.');
   }
   return Object.freeze({
-    mavis: requiredBoolean(features, 'mavis'),
+    alran: requiredBoolean(features, 'alran'),
     delegation: requiredBoolean(features, 'delegation'),
     webSearch: requiredBoolean(features, 'webSearch'),
   });
@@ -1102,7 +1102,7 @@ function invalid(field: string, message: string): AgentConfigError {
 }
 
 function avatarInvalid(message: string): AgentConfigError {
-  return new AgentConfigError('AGENT_CONFIG_AVATAR_INVALID', 'x-mavis.avatar', message);
+  return new AgentConfigError('AGENT_CONFIG_AVATAR_INVALID', 'x-alran.avatar', message);
 }
 
 function isNotFound(error: unknown): boolean {

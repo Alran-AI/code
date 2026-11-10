@@ -1,8 +1,8 @@
-import type { LocalRuntimeToolContext, LocalTaskRunResult } from '@mavis/agent-tools/desktop';
+import type { LocalRuntimeToolContext, LocalTaskRunResult } from '@alran/agent-tools/desktop';
 import {
   RuntimeConversationShutdownError,
   type ConversationTurnResult,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import type { BackgroundTask } from '../background-task/domain.js';
 import { admitBackgroundTask, type BackgroundTaskAdmission } from '../background-task/lifecycle.js';

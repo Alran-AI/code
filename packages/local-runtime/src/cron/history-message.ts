@@ -1,4 +1,4 @@
-import type { CronSendMessageRequest } from '@mavis/cron';
+import type { CronSendMessageRequest } from '@alran/cron';
 
 export interface CronHistoryMessage {
   content: string;

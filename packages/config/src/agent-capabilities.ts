@@ -57,7 +57,7 @@ export const AGENT_BUILTIN_SKILL_IDS = [
   'lark-tools',
   'llm-call',
   'alran-tools-master',
-  'mavis-doctor',
+  'alran-doctor',
   'pdf',
   'plugin-creator',
   'pptx',
@@ -74,7 +74,7 @@ export const AGENT_CAPABILITY_OWNED_SKILL_IDS = [
   'control-in-app-browser',
   'cu-desktop',
   'resume-codex',
-  'mavis',
+  'alran',
   'create-agent',
   'alran-code-product',
   'miniapp-creator',
@@ -91,7 +91,7 @@ export interface AgentCapabilityConfig {
   /** Undefined keeps every compatible standalone Builtin Skill; [] selects none. */
   skills?: AgentBuiltinSkillId[];
   features?: {
-    mavis?: boolean;
+    alran?: boolean;
     delegation?: boolean;
     webSearch?: boolean;
   };
@@ -107,7 +107,7 @@ export interface ResolvedAgentCapabilities {
   builtinTools: AgentBuiltinMcpToolId[] | undefined;
   skills: AgentBuiltinSkillId[] | undefined;
   features: {
-    mavis: boolean;
+    alran: boolean;
     delegation: boolean;
     webSearch: boolean;
   };
@@ -122,7 +122,7 @@ const ROOT_KEYS = new Set([
   'features',
 ]);
 const PERSONA_KEYS = new Set(['enabled']);
-const FEATURE_KEYS = new Set(['mavis', 'delegation', 'webSearch']);
+const FEATURE_KEYS = new Set(['alran', 'delegation', 'webSearch']);
 const TOOL_IDS = new Set<string>(AGENT_BUILTIN_TOOL_IDS);
 const TASK_CONTROL_IDS: readonly AgentBuiltinToolId[] = ['task_query', 'task_output', 'task_stop'];
 const MCP_TOOL_IDS = new Set<string>(AGENT_BUILTIN_MCP_TOOL_IDS);
@@ -218,7 +218,7 @@ export function parseAgentCapabilityConfig(raw: unknown, path = 'agent'): AgentC
       }
     }
     result.features = {
-      ...(typeof features.mavis === 'boolean' ? { mavis: features.mavis } : {}),
+      ...(typeof features.alran === 'boolean' ? { alran: features.alran } : {}),
       ...(typeof features.delegation === 'boolean' ? { delegation: features.delegation } : {}),
       ...(typeof features.webSearch === 'boolean' ? { webSearch: features.webSearch } : {}),
     };
@@ -307,7 +307,7 @@ export function resolveAgentCapabilities(
     builtinTools: cloneOptionalArray(override.builtinTools ?? defaults.builtinTools),
     skills: cloneOptionalArray(override.skills ?? defaults.skills),
     features: {
-      mavis: override.features?.mavis ?? defaults.features?.mavis ?? true,
+      alran: override.features?.alran ?? defaults.features?.alran ?? true,
       delegation: override.features?.delegation ?? defaults.features?.delegation ?? true,
       webSearch: override.features?.webSearch ?? defaults.features?.webSearch ?? true,
     },

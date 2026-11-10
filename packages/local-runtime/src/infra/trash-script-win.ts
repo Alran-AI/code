@@ -1,20 +1,20 @@
 /**
- * mavis-trash.js — Node.js script that moves files to Windows Recycle Bin.
+ * alran-trash.js — Node.js script that moves files to Windows Recycle Bin.
  *
- * Seeded into `<dataDir>/bin/mavis-trash.js` on daemon startup (Windows only).
- * Companion to the POSIX bash `mavis-trash` script (macOS/Linux).
+ * Seeded into `<dataDir>/bin/alran-trash.js` on daemon startup (Windows only).
+ * Companion to the POSIX bash `alran-trash` script (macOS/Linux).
  *
  * Uses PowerShell's Microsoft.VisualBasic.FileIO API to send files/directories
  * to the Recycle Bin, which is the Windows equivalent of macOS Finder Trash.
  *
- * A `.cmd` launcher (`mavis-trash.cmd`) is also seeded so the permission
- * pipeline can invoke `mavis-trash <paths>` uniformly across platforms.
+ * A `.cmd` launcher (`alran-trash.cmd`) is also seeded so the permission
+ * pipeline can invoke `alran-trash <paths>` uniformly across platforms.
  */
 
 /* eslint-disable no-useless-escape */
 
 /**
- * The Node.js script content. Runs standalone via `node mavis-trash.js [flags] file1 file2 ...`.
+ * The Node.js script content. Runs standalone via `node alran-trash.js [flags] file1 file2 ...`.
  *
  * Matches the bash script's interface:
  * - Silently strips rm-style flags (-r, -f, -rf, --recursive, --force, -R, --)
@@ -41,7 +41,7 @@ const RM_FLAGS = new Set(['-r', '-f', '-rf', '-fr', '--recursive', '--force', '-
 const files = process.argv.slice(2).filter((arg) => !RM_FLAGS.has(arg));
 
 if (files.length === 0) {
-  process.stderr.write('mavis-trash: no files specified\\n');
+  process.stderr.write('alran-trash: no files specified\\n');
   process.exit(1);
 }
 
@@ -141,7 +141,7 @@ function runPowerShellScript(script) {
 function createPowerShellPayloadPath() {
   return path.join(
     os.tmpdir(),
-    'mavis-trash-reparse-' +
+    'alran-trash-reparse-' +
       process.pid +
       '-' +
       Date.now() +
@@ -308,7 +308,7 @@ function inspectWindowsReparseTags(paths) {
       'using System;',
       'using System.ComponentModel;',
       'using System.Runtime.InteropServices;',
-      'public static class MavisReparseTagReader {',
+      'public static class AlranReparseTagReader {',
       '  [StructLayout(LayoutKind.Sequential)]',
       '  public struct FILETIME {',
       '    public uint dwLowDateTime;',
@@ -349,7 +349,7 @@ function inspectWindowsReparseTags(paths) {
       "foreach ($p in $paths) {",
       "  try {",
       "    $item = Get-Item -LiteralPath $p -Force;",
-      "    $tag = [MavisReparseTagReader]::GetTag($item.FullName);",
+      "    $tag = [AlranReparseTagReader]::GetTag($item.FullName);",
       "    $tagText = ('0x{0:X8}' -f $tag);",
       "    if (($tag -band 0x20000000) -ne 0) {",
       "      $results += [pscustomobject]@{ kind = 'BLOCK'; path = $p; tag = $tagText }",
@@ -530,13 +530,13 @@ function reportRefusedLink(filePath, absPath, linkInfo) {
   const guidance = linkInfo.inspectionFailed
     ? '; could not verify Windows reparse point tag, refusing to delete'
     : linkInfo.linkPath === absPath
-      ? '; mavis-trash refuses link-like paths and did not recycle this link object'
+      ? '; alran-trash refuses link-like paths and did not recycle this link object'
       : target === null
         ? '; inspect the redirect target explicitly before deleting it'
-        : "; run mavis-trash '" + target + "' explicitly if you intend to delete the redirect target";
+        : "; run alran-trash '" + target + "' explicitly if you intend to delete the redirect target";
 
   process.stderr.write(
-    "mavis-trash: refused to trash redirecting reparse point '" + filePath + "' (resolved '" + absPath + "')" +
+    "alran-trash: refused to trash redirecting reparse point '" + filePath + "' (resolved '" + absPath + "')" +
       linkPathText +
       linkTargetText +
       tagText +
@@ -553,7 +553,7 @@ function trashFile(filePath) {
   const protectedReason = findProtectedWindowsPath(absPath);
   if (protectedReason !== null) {
     process.stderr.write(
-      "mavis-trash: refused to trash protected Windows path '" +
+      "alran-trash: refused to trash protected Windows path '" +
         filePath +
         "' (resolved '" +
         absPath +
@@ -566,7 +566,7 @@ function trashFile(filePath) {
 
   const pathInfo = inspectPathForLinkLike(absPath);
   if (pathInfo.missingPath !== null) {
-    process.stderr.write(\`mavis-trash: '\${filePath}' (resolved '\${absPath}', missing '\${pathInfo.missingPath}'): No such file or directory\\n\`);
+    process.stderr.write(\`alran-trash: '\${filePath}' (resolved '\${absPath}', missing '\${pathInfo.missingPath}'): No such file or directory\\n\`);
     return false;
   }
   if (pathInfo.linkInfo !== null) {
@@ -575,7 +575,7 @@ function trashFile(filePath) {
   }
   const stat = pathInfo.stat;
   if (stat === null) {
-    process.stderr.write(\`mavis-trash: '\${filePath}' (resolved '\${absPath}'): No such file or directory\\n\`);
+    process.stderr.write(\`alran-trash: '\${filePath}' (resolved '\${absPath}'): No such file or directory\\n\`);
     return false;
   }
 
@@ -599,7 +599,7 @@ function trashFile(filePath) {
     return true;
   } catch (err) {
     const stderr = err.stderr ? err.stderr.toString().trim() : err.message;
-    process.stderr.write(\`mavis-trash: failed to trash '\${absPath}': \${stderr}\\n\`);
+    process.stderr.write(\`alran-trash: failed to trash '\${absPath}': \${stderr}\\n\`);
     return false;
   }
 }
@@ -607,7 +607,7 @@ function trashFile(filePath) {
 let exitCode = 0;
 for (const file of files) {
   if (trashFile(file)) {
-    process.stdout.write(\`mavis-trash: moved to trash: '\${file}'\\n\`);
+    process.stdout.write(\`alran-trash: moved to trash: '\${file}'\\n\`);
   } else {
     exitCode = 1;
   }
@@ -617,7 +617,7 @@ process.exit(exitCode);
 `;
 
 /**
- * CMD launcher script so that `mavis-trash file.txt` works on Windows
+ * CMD launcher script so that `alran-trash file.txt` works on Windows
  * without requiring a separately-installed `node` on PATH. The local runtime
  * executable is a bundled Node/Electron runtime; `ELECTRON_RUN_AS_NODE` is
  * ignored by node.exe and makes an Electron executable run the script as Node.
@@ -626,7 +626,7 @@ export function buildTrashCmdLauncherContent(runtimeExecutable: string = process
   const escapedExecutable = runtimeExecutable.replaceAll('%', '%%').replaceAll('"', '""');
   return `@echo off
 set "ELECTRON_RUN_AS_NODE=1"
-"${escapedExecutable}" "%~dp0mavis-trash.js" %*
+"${escapedExecutable}" "%~dp0alran-trash.js" %*
 `;
 }
 

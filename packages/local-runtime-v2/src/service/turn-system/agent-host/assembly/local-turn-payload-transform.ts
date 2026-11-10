@@ -1,8 +1,8 @@
 import { Buffer } from 'node:buffer';
 
 import { isDefaultThinkingModelId, type Api, type Model } from '@earendil-works/pi-ai';
-import type { LLMModelConfig } from '@mavis/agent-core/pi-turn-runner';
-import { ThinkingLevel, ThinkingMode } from '@mavis/protocol';
+import type { LLMModelConfig } from '@alran/agent-core/pi-turn-runner';
+import { ThinkingLevel, ThinkingMode } from '@alran/protocol';
 
 import { parseProviderId } from '../../../model-system/index.js';
 import type { LocalResolvedModelConfig } from '../../../model-system/index.js';

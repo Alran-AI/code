@@ -3,14 +3,14 @@ import { join } from "node:path";
 import type {
   AgentDetail,
   CreateAgentInput as CreateAgentInput,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 import type {
   ConversationPluginAgentDefinition,
   ConversationSessionKind,
   ConversationTaskModelSelection,
   RuntimeConversation,
-} from "@mavis/conversation-contract";
-import type { GlobalEventInput } from "@mavis/shared/global-events";
+} from "@alran/conversation-contract";
+import type { GlobalEventInput } from "@alran/shared/global-events";
 import { type ResolvedLocalRunLocation } from "../../runtime/run-location.js";
 import type { LocalRuntimeConfig } from "../../config/types.js";
 import type { LocalAgentRecord } from "../../persistence/ports.js";
@@ -797,7 +797,7 @@ export class LocalApiAgentRoutes {
   /**
    * Create a brand-new local Pi agent and persist its root session.
    *
-   * Used by `POST /mavis/api/agent` (with body). Without a body, the host
+   * Used by `POST /alran/api/agent` (with body). Without a body, the host
    *'s `ensureRootSession()` path returns the primary agent. With a body
    * (e.g. `{displayName, defaultWorkspaceDir, ...}`), this method mints a
    * fresh `agent-<hex12>` name (or uses the requested name), creates its
@@ -904,7 +904,7 @@ export class LocalApiAgentRoutes {
     if (agentName === this.agentName) {
       this.rootSessionId = rootSessionId;
     }
-    // Primary agent is also present in the `agents` table (built-in mavis
+    // Primary agent is also present in the `agents` table (built-in alran
     // seed); flip its `main_session_id` too so the desktop sidebar sees the
     // new root without waiting for a full refetch.
     const ok = await this.agentService.setMainSession(agentName, rootSessionId);

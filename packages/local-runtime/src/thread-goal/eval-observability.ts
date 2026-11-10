@@ -1,7 +1,7 @@
 import type { LocalEvalReporterFactoryLike, LocalEvalRuntimeEventDelivery } from '../eval/types.js';
 import type { ThreadGoalRuntimeEvent, ThreadGoalRuntimeEventSink } from './events.js';
 
-const GOAL_RUNTIME_EVENT_SCHEMA = 'mavis.goal_runtime_event.v1';
+const GOAL_RUNTIME_EVENT_SCHEMA = 'alran.goal_runtime_event.v1';
 
 /** Projects Goal decisions into the existing Session Clio lifecycle stream. */
 export function createThreadGoalEvalEventSink(

@@ -14,14 +14,14 @@ import {
   type RunTurnInput,
   type UserMessageInput,
   toPiUserMessage,
-} from '@mavis/agent-core/pi-turn-runner';
-import { type RuntimeTool, type ToolExecutionContext } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/pi-turn-runner';
+import { type RuntimeTool, type ToolExecutionContext } from '@alran/agent-core/tools';
 import { prepareBashTurnTools } from '../assembly/local-turn-tool-catalog.js';
 import { createPluginAgentRoster } from '../assembly/turn-capability-lifecycle.js';
 import {
   buildCompletedTerminalStatusEvent,
   buildRuntimeWarningEvent,
-} from '@mavis/agent-core/event-bridge';
+} from '@alran/agent-core/event-bridge';
 import { withPtcCompactionReminder } from './ptc/compaction-reminder.js';
 import {
   createPtcTurnCompactionReminder,
@@ -872,7 +872,7 @@ interface PreparedRunnerInput<TContext extends ToolExecutionContext> {
   readonly contextUsagePromptRanges?: readonly LocalContextUsagePromptRange[];
   readonly contextUsageRequiresProviderAnchor?: boolean;
   readonly readTaskOutputTaskIds: Set<string>;
-  readonly ptcFactCollector: import('@mavis/agent-core/tools').PtcToolFactCollector;
+  readonly ptcFactCollector: import('@alran/agent-core/tools').PtcToolFactCollector;
   readonly prepareSteering: (
     input: AgentHostSteeringMessage,
   ) => Promise<PreparedSteeringUserMessage>;

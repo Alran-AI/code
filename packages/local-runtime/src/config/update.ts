@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import { dirname, join } from 'node:path';
-import { getConfig, getConfigPath, alranApiModels, resetConfig } from '@mavis/config';
+import { getConfig, getConfigPath, alranApiModels, resetConfig } from '@alran/config';
 import yaml from 'js-yaml';
 import lockfile from 'proper-lockfile';
 

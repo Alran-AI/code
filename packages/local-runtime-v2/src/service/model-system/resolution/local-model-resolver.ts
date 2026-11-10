@@ -10,7 +10,7 @@ import {
   knownMaxImagesPerRequestForBaseUrl,
   normalizeMaxImagesPerRequest,
   type ModelRequestImageLimit,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import {
   isFirstPartyAlranRoute,
   resolveOttiliApiKey,
@@ -18,10 +18,10 @@ import {
   resolveProviderAuthMode,
   type ProviderAuthMode,
   type ProviderAuthModeSource,
-} from '@mavis/config';
-import { ThinkingLevel, type IAgentConfig, type IModelRef } from '@mavis/protocol';
-import type { ManagedBackendRoutingContext } from '@mavis/agent-tools/desktop';
-import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@mavis/shared';
+} from '@alran/config';
+import { ThinkingLevel, type IAgentConfig, type IModelRef } from '@alran/protocol';
+import type { ManagedBackendRoutingContext } from '@alran/agent-tools/desktop';
+import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@alran/shared';
 
 import type {
   LocalModelCompatOverrides,

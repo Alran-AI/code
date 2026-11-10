@@ -34,7 +34,7 @@ export type ConversationSessionStatus =
  * one trusted legacy root without treating every Agent root as a project task.
  */
 export const TRUSTED_LEGACY_IM_ROOT_PURPOSE_MARKER =
-  "[mavis:trusted-legacy-im-root]";
+  "[alran:trusted-legacy-im-root]";
 
 /** A user-selected model thinking configuration persisted with one Conversation. */
 export interface ConversationModelThinkingSelection {

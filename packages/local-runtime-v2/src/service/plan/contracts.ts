@@ -1,6 +1,6 @@
-import type { PiBeforeToolCallHook } from '@mavis/agent-core/pi-turn-runner';
-import type { AgentExtension } from '@mavis/agent-runtime';
-import type { QuestionnaireOwnedActionHandler } from '@mavis/local-runtime';
+import type { PiBeforeToolCallHook } from '@alran/agent-core/pi-turn-runner';
+import type { AgentExtension } from '@alran/agent-runtime';
+import type { QuestionnaireOwnedActionHandler } from '@alran/local-runtime';
 
 import type { AppDb } from '../../infra/db/client.js';
 import type { TurnAdmissionPolicy } from '../turn-system/index.js';

@@ -25,9 +25,9 @@ describe('TUI data directory', () => {
 
   it.each([
     [{}, '/default'],
-    [{ ALRAN_DATA_DIR: '  ', MAVIS_DATA_DIR: ' ' }, '/default'],
-    [{ ALRAN_DATA_DIR: ' /public ', MAVIS_DATA_DIR: '/legacy' }, '/public'],
-    [{ ALRAN_DATA_DIR: ' ', MAVIS_DATA_DIR: ' /legacy ' }, '/legacy'],
+    [{ ALRAN_DATA_DIR: '  ' }, '/default'],
+    [{ ALRAN_DATA_DIR: ' /public ' }, '/public'],
+    [{ ALRAN_DATA_DIR: ' /legacy ' }, '/legacy'],
   ])('preserves override precedence for %j', (environment, expected) => {
     expect(getTuiDataDirPath(environment, () => '/default')).toBe(expected);
   });

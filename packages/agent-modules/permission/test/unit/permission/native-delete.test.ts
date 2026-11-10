@@ -45,7 +45,7 @@ describe('native delete permission policy', () => {
         rules: [{ toolName: 'read' }],
       }).nativeDelete,
     ).toBe(true);
-    expect(check('rm ./old.txt')?.rewrittenInput?.command).toContain('mavis-trash --rm-compatible ./old.txt');
+    expect(check('rm ./old.txt')?.rewrittenInput?.command).toContain('alran-trash --rm-compatible ./old.txt');
   });
 
   it.each(['default', 'auto', 'bypassPermissions'] as const)(
@@ -191,7 +191,7 @@ describe('native delete permission policy', () => {
     });
     const targets = [target.replaceAll('/', '\\')];
     expect(result?.behavior).toBe(behavior);
-    expect(plan.effectiveInput.command).toBe('mavis-trash --');
+    expect(plan.effectiveInput.command).toBe('alran-trash --');
     expect(plan.transforms).toEqual([{ type: 'recoverable-delete', targets }]);
     expect(readWindowsTrashExecution(plan.effectiveInput)).toEqual({
       targets,

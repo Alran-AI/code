@@ -1,5 +1,5 @@
 {
-  "name": "@mavis/shared",
+  "name": "@alran/shared",
   "version": "0.2.1",
   "type": "module",
   "exports": {
@@ -7,9 +7,9 @@
       "types": "./src/index.ts",
       "import": "./dist/index.js"
     },
-    "./mavis-tags": {
-      "types": "./src/mavis-tags.ts",
-      "import": "./dist/mavis-tags.js"
+    "./alran-tags": {
+      "types": "./src/alran-tags.ts",
+      "import": "./dist/alran-tags.js"
     },
     "./llm-error-classifier": {
       "types": "./src/llm-error-classifier.ts",
@@ -88,9 +88,9 @@
       "types": "./src/logging/redact-log-secret.ts",
       "import": "./dist/logging/redact-log-secret.js"
     },
-    "./mavis-widget-types": {
-      "types": "./src/mavis-widget-types.ts",
-      "import": "./dist/mavis-widget-types.js"
+    "./alran-widget-types": {
+      "types": "./src/alran-widget-types.ts",
+      "import": "./dist/alran-widget-types.js"
     },
     "./asset-markup": {
       "types": "./src/asset-markup/index.ts",
@@ -227,8 +227,8 @@
       "logging/redact-log-secret": [
         "src/logging/redact-log-secret.ts"
       ],
-      "mavis-tags": [
-        "src/mavis-tags.ts"
+      "alran-tags": [
+        "src/alran-tags.ts"
       ],
       "llm-error-classifier": [
         "src/llm-error-classifier.ts"
@@ -269,8 +269,8 @@
       "metrics-proxy": [
         "src/metrics-proxy.ts"
       ],
-      "mavis-widget-types": [
-        "src/mavis-widget-types.ts"
+      "alran-widget-types": [
+        "src/alran-widget-types.ts"
       ],
       "asset-markup": [
         "src/asset-markup/index.ts"

@@ -50,7 +50,7 @@ function snapshot(updatedAt: number, modelId: string, etag?: string, iconBaseUrl
 }
 
 async function catalogPaths() {
-  const root = await mkdtemp(join(tmpdir(), 'mavis-provider-presets-'));
+  const root = await mkdtemp(join(tmpdir(), 'alran-provider-presets-'));
   temporaryDirectories.push(root);
   const dataDir = join(root, 'data');
   const bundledCatalogPath = join(root, 'bundled.json.gz');

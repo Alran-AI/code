@@ -8,7 +8,7 @@ import type {
   AlranToolsAuthStatusSnapshot,
   AlranToolsHostAuthSession,
   ValidatedAlranToolsResource,
-} from '@mavis/alran-tools-host';
+} from '@alran/alran-tools-host';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -114,20 +114,20 @@ describe('TUI alran-tools integration readiness', () => {
       session: auth.session,
       logger: expect.any(Object),
     });
-    expect(environment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).toBe(
+    expect(environment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).toBe(
       path.join(runtimeDir, 'broker.sock'),
     );
-    expect(environment.__MAVIS_ALRAN_TOOLS_BROKER_CAPABILITY_FILE).toBe(
+    expect(environment.__ALRAN_ALRAN_TOOLS_BROKER_CAPABILITY_FILE).toBe(
       path.join(runtimeDir, 'broker.cap'),
     );
-    expect(environment.__MAVIS_ALRAN_TOOLS_CONFIG_DIR).toBe(
+    expect(environment.__ALRAN_ALRAN_TOOLS_CONFIG_DIR).toBe(
       path.join(dataDir, 'integrations', 'alran-tools', 'en'),
     );
-    expect(environment.__MAVIS_ALRAN_TOOLS_REGION).toBe('en');
-    expect(environment.__MAVIS_ALRAN_TOOLS_EXTRA_HEADERS).toBe(
+    expect(environment.__ALRAN_ALRAN_TOOLS_REGION).toBe('en');
+    expect(environment.__ALRAN_ALRAN_TOOLS_EXTRA_HEADERS).toBe(
       'bedrock_lane:oauth2,bedrock-lane:oauth2',
     );
-    expect(environment.__MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBe(process.execPath);
+    expect(environment.__ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBe(process.execPath);
     expect(environment.PATH?.split(path.delimiter)[0]).toBe(
       path.resolve('/package', 'internal-bin'),
     );
@@ -140,8 +140,8 @@ describe('TUI alran-tools integration readiness', () => {
     await result.dispose();
     expect(brokerDispose).toHaveBeenCalledOnce();
     expect(removeRuntimeDir).toHaveBeenCalledOnce();
-    expect(environment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
-    expect(environment.__MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
+    expect(environment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
+    expect(environment.__ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
     expect(environment.PATH?.split(path.delimiter)).not.toContain(
       path.resolve('/package', 'internal-bin'),
     );
@@ -187,8 +187,8 @@ describe('TUI alran-tools integration readiness', () => {
     try {
       expect(first).toMatchObject({ ready: true, category: 'ready' });
       expect(second).toMatchObject({ ready: true, category: 'ready' });
-      expect(firstEnvironment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).not.toBe(
-        secondEnvironment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT,
+      expect(firstEnvironment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).not.toBe(
+        secondEnvironment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT,
       );
       expect(firstEnvironment.PATH?.split(path.delimiter)[0]).toBe(
         path.resolve('/package', 'internal-bin'),
@@ -198,8 +198,8 @@ describe('TUI alran-tools integration readiness', () => {
       );
 
       await first.dispose();
-      expect(firstEnvironment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
-      expect(secondEnvironment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).toBeDefined();
+      expect(firstEnvironment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
+      expect(secondEnvironment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).toBeDefined();
       expect(second).toMatchObject({ ready: true, category: 'ready' });
       expect(brokerDisposals.map((dispose) => dispose.mock.calls.length).sort()).toEqual([0, 1]);
     } finally {
@@ -238,14 +238,14 @@ describe('TUI alran-tools integration readiness', () => {
   it('uses only an explicit absolute dev resource override', () => {
     expect(
       resolveBundledAlranToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
-        MAVIS_DEV_ALRAN_TOOLS_MODE: 'published',
-        MAVIS_DEV_ALRAN_TOOLS_RESOURCE_DIR: path.resolve(tmpdir(), 'alran-tools-resource'),
+        ALRAN_DEV_ALRAN_TOOLS_MODE: 'published',
+        ALRAN_DEV_ALRAN_TOOLS_RESOURCE_DIR: path.resolve(tmpdir(), 'alran-tools-resource'),
       }),
     ).toBe(path.resolve(tmpdir(), 'alran-tools-resource'));
     expect(() =>
       resolveBundledAlranToolsResourceDir(pathToFileURL('/pkg/cli.js').href, {
-        MAVIS_DEV_ALRAN_TOOLS_MODE: 'published',
-        MAVIS_DEV_ALRAN_TOOLS_RESOURCE_DIR: '../alran-tools-resource',
+        ALRAN_DEV_ALRAN_TOOLS_MODE: 'published',
+        ALRAN_DEV_ALRAN_TOOLS_RESOURCE_DIR: '../alran-tools-resource',
       }),
     ).toThrow(/absolute/u);
   });
@@ -329,26 +329,26 @@ describe('alran-tools command environment', () => {
 
   it('maps the TUI broker into the child and removes inherited routing overrides', () => {
     const environment: Record<string, string | undefined> = {
-      __MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT: '/runtime/broker.sock',
-      __MAVIS_ALRAN_TOOLS_BROKER_CAPABILITY_FILE: '/runtime/broker.cap',
-      __MAVIS_ALRAN_TOOLS_CONFIG_DIR: '/profile/integrations/alran-tools/cn',
-      __MAVIS_ALRAN_TOOLS_REGION: 'cn',
-      __MAVIS_ALRAN_TOOLS_EXTRA_HEADERS: 'bedrock_lane:oauth2,bedrock-lane:oauth2',
-      __MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE: process.execPath,
+      __ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT: '/runtime/broker.sock',
+      __ALRAN_ALRAN_TOOLS_BROKER_CAPABILITY_FILE: '/runtime/broker.cap',
+      __ALRAN_ALRAN_TOOLS_CONFIG_DIR: '/profile/integrations/alran-tools/cn',
+      __ALRAN_ALRAN_TOOLS_REGION: 'cn',
+      __ALRAN_ALRAN_TOOLS_EXTRA_HEADERS: 'bedrock_lane:oauth2,bedrock-lane:oauth2',
+      __ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE: process.execPath,
       ALRAN_AUTH_PROVIDER: 'attacker-provider',
       ALRAN_API_BASE_URL: 'https://attacker.invalid/api',
       ALRAN_AUTH_BASE_URL: 'https://attacker.invalid/oauth',
       ALRAN_CLIENT_ID: 'attacker-client',
       ALRAN_SCOPE: 'attacker-scope',
       IS_SANDBOX: '1',
-      MAVIS_BUILD_ENV: 'prod',
-      MAVIS_REGION: 'us',
-      MAVIS_AGENT: 'agent',
-      MAVIS_SESSION: 'session',
-      __MAVIS_RUNTIME_SECRET: 'runtime-secret',
+      ALRAN_BUILD_ENV: 'prod',
+      ALRAN_REGION: 'us',
+      ALRAN_AGENT: 'agent',
+      ALRAN_SESSION: 'session',
+      __ALRAN_RUNTIME_SECRET: 'runtime-secret',
       AGENTARCHON_SECRET: 'legacy-secret',
       alran_api_base_url: 'https://case-insensitive-attacker.invalid/api',
-      __mavis_parent_access_token: 'case-insensitive-token',
+      __alran_parent_access_token: 'case-insensitive-token',
     };
 
     expect(configureAlranToolsChildEnvironment(environment)).toBe(true);
@@ -366,22 +366,22 @@ describe('alran-tools command environment', () => {
     expect(environment.ALRAN_CLIENT_ID).toBeUndefined();
     expect(environment.ALRAN_SCOPE).toBeUndefined();
     expect(environment.IS_SANDBOX).toBeUndefined();
-    expect(environment.MAVIS_BUILD_ENV).toBeUndefined();
-    expect(environment.MAVIS_REGION).toBeUndefined();
-    expect(environment.MAVIS_AGENT).toBeUndefined();
-    expect(environment.MAVIS_SESSION).toBeUndefined();
-    expect(environment.__MAVIS_RUNTIME_SECRET).toBeUndefined();
+    expect(environment.ALRAN_BUILD_ENV).toBeUndefined();
+    expect(environment.__ALRAN_ALRAN_TOOLS_REGION).toBeUndefined();
+    expect(environment.ALRAN_AGENT).toBeUndefined();
+    expect(environment.ALRAN_SESSION).toBeUndefined();
+    expect(environment.__ALRAN_RUNTIME_SECRET).toBeUndefined();
     expect(environment.AGENTARCHON_SECRET).toBeUndefined();
     expect(environment.alran_api_base_url).toBeUndefined();
-    expect(environment.__mavis_parent_access_token).toBeUndefined();
-    expect(environment.__MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
-    expect(environment.__MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
+    expect(environment.__alran_parent_access_token).toBeUndefined();
+    expect(environment.__ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT).toBeUndefined();
+    expect(environment.__ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE).toBeUndefined();
   });
 
   it('rejects a partial TUI host environment', () => {
     expect(() =>
       configureAlranToolsChildEnvironment({
-        __MAVIS_ALRAN_TOOLS_BROKER_ENDPOINT: '/runtime/broker.sock',
+        __ALRAN_ALRAN_TOOLS_BROKER_ENDPOINT: '/runtime/broker.sock',
       }),
     ).toThrow(/Restart Alran/u);
   });
@@ -431,7 +431,7 @@ function validatedResource(rootDir: string): ValidatedAlranToolsResource {
       auth: {
         mode: 'shared-broker',
         protocol: {
-          name: '@mavis/oauth-lease-protocol',
+          name: '@alran/oauth-lease-protocol',
           version: '0.1.0-beta.0',
           wireVersion: 1,
         },

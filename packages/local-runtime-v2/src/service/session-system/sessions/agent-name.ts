@@ -1,9 +1,9 @@
 import type { SessionRecord } from './repo/contract.js';
 
-export const PRIMARY_SESSION_AGENT_NAMES = ['mavis', 'main'] as const;
+export const PRIMARY_SESSION_AGENT_NAMES = ['alran', 'main'] as const;
 
 export function isPrimarySessionAgentName(agentName: string): boolean {
-  return agentName === 'mavis' || agentName === 'main';
+  return agentName === 'alran' || agentName === 'main';
 }
 
 export function isSameSessionAgentName(left: string, right: string): boolean {

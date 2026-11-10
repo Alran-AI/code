@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createServer } from "node:http";
 import { afterEach, expect, it, vi } from "vitest";
-import { McpConnectionPool } from "@mavis/mcp/runtime/connection-pool";
+import { McpConnectionPool } from "@alran/mcp/runtime/connection-pool";
 import { LocalMcpService } from "../../../src/service/mcp/index.js";
 import { LocalMcpPublicFacade } from "../../../src/service/mcp/tools/public-facade.js";
 
@@ -265,7 +265,7 @@ it("keeps built-in reserved names intact even when the project declares them", a
   const { data, a } = await setup();
   // This case inspects reserved-name configuration without starting Matrix.
   // Use the local fixture instead of requiring an unrelated package dist build.
-  vi.stubEnv("MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT", join(a, "server.cjs"));
+  vi.stubEnv("ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT", join(a, "server.cjs"));
   const service = new LocalMcpService(() => data, {
     builtinMatrix: { enabled: true },
     connectionPool: new McpConnectionPool({ getResolvedServer: () => null }),

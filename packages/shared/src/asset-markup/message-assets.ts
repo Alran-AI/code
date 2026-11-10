@@ -69,7 +69,7 @@ export function shouldSkipAssetPath(path: string): boolean {
     isDataUrl(trimmed) ||
     isHttpUrl(trimmed) ||
     isBlobUrl(trimmed) ||
-    /^\/(?:mavis\/api|api)\//u.test(trimmed)
+    /^\/(?:alran\/api|api)\//u.test(trimmed)
   );
 }
 

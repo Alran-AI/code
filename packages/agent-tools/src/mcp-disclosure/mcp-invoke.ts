@@ -5,7 +5,7 @@ import {
   defineRuntimeTool,
   type RuntimeTool,
   type ToolExecutionContext,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 export interface McpInvokeReferenceTarget {
   readonly tool: RuntimeTool;
@@ -43,7 +43,7 @@ interface McpInvokeMetadata {
 }
 
 const METADATA = new WeakMap<RuntimeTool, McpInvokeMetadata>();
-const MCP_INVOKE_METADATA = Symbol('mavis.mcp-invoke.metadata');
+const MCP_INVOKE_METADATA = Symbol('alran.mcp-invoke.metadata');
 const MAX_ARGUMENTS_JSON_BYTES = 256 * 1024;
 const MAX_ARGUMENTS_JSON_DEPTH = 64;
 const MAX_ARGUMENTS_JSON_NODES = 10_000;

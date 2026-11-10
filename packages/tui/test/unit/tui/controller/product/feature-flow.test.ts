@@ -105,7 +105,7 @@ function createHarness(
         session: activeSessionId
           ? {
               sessionId: activeSessionId,
-              agentName: "mavis",
+              agentName: "alran",
               title: "Runtime review",
               workspaceDir: "/workspace",
             }
@@ -146,7 +146,7 @@ function createHarness(
     workspaceDir: "/workspace",
     version: "1.2.3",
     planMode: () => ({ displayMode: "plan", transition: "next-message" }),
-    defaultAgentName: "mavis",
+    defaultAgentName: "alran",
     terminalRows: () => 40,
     append,
     setCompacting,
@@ -393,7 +393,7 @@ describe("TuiFeatureFlow", () => {
       }),
     );
     await vi.waitFor(() =>
-      expect(harness.runtime.listSkills).toHaveBeenCalledWith("mavis"),
+      expect(harness.runtime.listSkills).toHaveBeenCalledWith("alran"),
     );
     expect(harness.flow.skillCommands()).toEqual(
       expect.arrayContaining([
@@ -445,7 +445,7 @@ describe("TuiFeatureFlow", () => {
 
     expect(harness.runtime.requestCompaction).toHaveBeenCalledWith(
       "session-a",
-      "mavis",
+      "alran",
       "preserve decisions",
     );
     expect(harness.refreshCurrentSessionHistory).not.toHaveBeenCalled();

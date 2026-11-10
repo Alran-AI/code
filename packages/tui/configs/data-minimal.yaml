@@ -9,7 +9,7 @@ agents:
     builtinTools: []
     skills: []
     features:
-      mavis: false
+      alran: false
       delegation: false
       webSearch: false
 

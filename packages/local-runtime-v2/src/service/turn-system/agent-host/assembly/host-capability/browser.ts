@@ -1,8 +1,8 @@
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 
 import type { HostCapabilityAdapter, HostCapabilityReferenceTarget } from './contracts.js';
 
-const BROWSER_HOST_BINDING = Symbol('mavis.browser.host-binding');
+const BROWSER_HOST_BINDING = Symbol('alran.browser.host-binding');
 
 /** Preserve turn-local admission across the existing tool attribution wrappers. */
 function withBrowserHostBinding(binding: HostCapabilityReferenceTarget): RuntimeTool {

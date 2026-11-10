@@ -58,20 +58,20 @@ export {
   PTC_CHILD_FULL_OUTPUT_MAX_BYTES,
 } from "./desktop/output-limit.js";
 export {
-  isPtcMavisChildToolName,
-  isPtcMavisDirectCommand,
-  isPtcMavisProgrammaticCommand,
-  PTC_MAVIS_CHILD_TOOLS,
-  ptcMavisChildToolName,
-  ptcMavisRunCodeCall,
-  ptcMavisRunCodeTool,
-  type PtcMavisChildToolName,
-} from "./desktop/local-mavis-commands.js";
+  isPtcAlranChildToolName,
+  isPtcAlranDirectCommand,
+  isPtcAlranProgrammaticCommand,
+  PTC_ALRAN_CHILD_TOOLS,
+  ptcAlranChildToolName,
+  ptcAlranRunCodeCall,
+  ptcAlranRunCodeTool,
+  type PtcAlranChildToolName,
+} from "./desktop/local-alran-commands.js";
 export {
-  createPtcMavisTools,
-  PTC_MAVIS_RUN_CODE_NOTE,
-  readPtcMavisChildTarget,
-} from "./desktop/local-mavis-ptc.js";
+  createPtcAlranTools,
+  PTC_ALRAN_RUN_CODE_NOTE,
+  readPtcAlranChildTarget,
+} from "./desktop/local-alran-ptc.js";
 export { getMcpInvokeRegistries } from "./mcp-disclosure/mcp-invoke.js";
 export { withLocalBrowserObserve } from "./desktop/local-browser.js";
 export { pluginHookTranscriptPath, pluginHookCodexTranscriptPath } from "./plugin-hooks/index.js";

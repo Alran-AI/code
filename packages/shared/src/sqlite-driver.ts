@@ -14,7 +14,7 @@ function normalizeBetterSqlite3Module(
 }
 
 export function loadBetterSqlite3(): BetterSqlite3Module {
-  const overridePath = process.env.MAVIS_SQLITE3_MODULE_PATH?.trim();
+  const overridePath = process.env.ALRAN_SQLITE3_MODULE_PATH?.trim();
   if (overridePath) {
     const overrideRequire = createRequire(path.join(overridePath, 'package.json'));
     return normalizeBetterSqlite3Module(overrideRequire('better-sqlite3'));

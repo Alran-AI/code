@@ -4,8 +4,8 @@ import { calculateContextTokens } from '@earendil-works/pi-coding-agent/compacti
 import {
   computeCompactionTriggerAt as computeSharedCompactionTriggerAt,
   createDefaultTokenEstimator,
-} from '@mavis/context-manager';
-import type { PiBeforeLlmCallHookInput } from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/context-manager';
+import type { PiBeforeLlmCallHookInput } from '@alran/agent-core/pi-turn-runner';
 
 type LocalContextMessage = PiBeforeLlmCallHookInput['messages'][number];
 type PiUsage = Parameters<typeof calculateContextTokens>[0];

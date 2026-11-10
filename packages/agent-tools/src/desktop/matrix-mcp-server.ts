@@ -7,7 +7,7 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { RuntimeTool, ToolResultContent } from '@mavis/agent-core/tools';
+import type { RuntimeTool, ToolResultContent } from '@alran/agent-core/tools';
 import type { TSchema } from '@sinclair/typebox';
 import type { MatrixMediaClient, MatrixToolContext } from '../cloud/matrix-tools/index.js';
 import {
@@ -105,16 +105,16 @@ export function createMatrixMcpRuntimeFromEnv(
   env: NodeJS.ProcessEnv = process.env,
   options: CreateMatrixMcpRuntimeFromEnvOptions = {},
 ): MatrixMcpRuntime {
-  const workspaceRoot = env.MAVIS_MATRIX_WORKSPACE_ROOT || env.WORKSPACE_ROOT || process.cwd();
+  const workspaceRoot = env.ALRAN_MATRIX_WORKSPACE_ROOT || env.WORKSPACE_ROOT || process.cwd();
   // path.delimiter-joined extra input roots (fail-closed: absent env keeps the
   // fence workspace-only).
-  const extraInputRoots = (env.MAVIS_MATRIX_EXTRA_INPUT_ROOTS ?? '')
+  const extraInputRoots = (env.ALRAN_MATRIX_EXTRA_INPUT_ROOTS ?? '')
     .split(delimiter)
     .map((segment) => segment.trim())
     .filter((segment) => segment.length > 0);
   const endpoint = getDesktopMatrixEndpoint(env);
   const managedAccessToken =
-    endpoint.managed && (env.MAVIS_MATRIX_ACCESS_TOKEN || env.MATRIX_ACCESS_TOKEN);
+    endpoint.managed && (env.ALRAN_MATRIX_ACCESS_TOKEN || env.MATRIX_ACCESS_TOKEN);
   return createMatrixMcpRuntime({
     workspaceRoot,
     ...(extraInputRoots.length > 0 ? { extraInputRoots } : {}),
@@ -124,8 +124,8 @@ export function createMatrixMcpRuntimeFromEnv(
     ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
     routingHeadersGetter: () =>
       managedBackendRoutingHeaders(
-        { bedrockLane: env.MAVIS_MATRIX_BEDROCK_LANE },
-        env.MAVIS_BUILD_ENV,
+        { bedrockLane: env.ALRAN_MATRIX_BEDROCK_LANE },
+        env.ALRAN_BUILD_ENV,
       ),
   });
 }
@@ -169,7 +169,7 @@ export async function executeMatrixMcpTool(
 
 export function createMatrixMcpServer(runtime: MatrixMcpRuntime): Server {
   const server = new Server(
-    { name: 'mavis-matrix-mcp-server', version: '0.2.1' },
+    { name: 'alran-matrix-mcp-server', version: '0.2.1' },
     { capabilities: { tools: {} } },
   );
 
@@ -190,7 +190,7 @@ export async function runMatrixMcpStdioServer(runtime = createMatrixMcpRuntimeFr
   const server = createMatrixMcpServer(runtime);
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  process.stderr.write('[mavis-matrix-mcp-server] ready\n');
+  process.stderr.write('[alran-matrix-mcp-server] ready\n');
 }
 
 function formatToolResultAsMcp(

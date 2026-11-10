@@ -23,12 +23,12 @@ export const SUBAGENT_ROLES = {
 export const CANONICAL_SUBAGENT_ROLES = Object.keys(SUBAGENT_ROLES) as CanonicalSubagentRole[];
 
 /** Model-visible built-in targets. */
-const TASK_AGENT_TARGETS = ['mavis', ...CANONICAL_SUBAGENT_ROLES] as const;
+const TASK_AGENT_TARGETS = ['alran', ...CANONICAL_SUBAGENT_ROLES] as const;
 
 const TASK_AGENT_TARGET_DESCRIPTIONS: Readonly<
   Record<(typeof TASK_AGENT_TARGETS)[number], string>
 > = {
-  mavis: 'Broad or mixed-scope work that does not fit a specialist role.',
+  alran: 'Broad or mixed-scope work that does not fit a specialist role.',
   explore: SUBAGENT_ROLES.explore.whenToUse,
   worker: SUBAGENT_ROLES.worker.whenToUse,
   verifier: SUBAGENT_ROLES.verifier.whenToUse,
@@ -38,7 +38,7 @@ const TASK_AGENT_TARGET_DESCRIPTIONS: Readonly<
 export const RESERVED_SUBAGENT_NAMES = [
   ...CANONICAL_SUBAGENT_ROLES,
   'main',
-  'mavis',
+  'alran',
 ] as readonly string[];
 
 const RESERVED_SUBAGENT_NAME_SET = new Set(RESERVED_SUBAGENT_NAMES);
@@ -69,14 +69,14 @@ export function toAgentRequestRef(
 }
 
 export const AGENT_REQUEST_REF_DESCRIPTION =
-  'Use the `requestRef` returned by the native `mavis` tool with command "agent list". For built-in work use mavis, explore, worker, or verifier. Use `agent:<stable-name>` to select the exact manual/custom Agent when its name collides with a reserved role or primary alias; ordinary custom names use their raw stable name.';
+  'Use the `requestRef` returned by the native `alran` tool with command "agent list". For built-in work use alran, explore, worker, or verifier. Use `agent:<stable-name>` to select the exact manual/custom Agent when its name collides with a reserved role or primary alias; ordinary custom names use their raw stable name.';
 
-export const LOCAL_MAVIS_AGENT_NAME_DESCRIPTION = `${AGENT_REQUEST_REF_DESCRIPTION} "me" selects the current Agent.`;
+export const LOCAL_ALRAN_AGENT_NAME_DESCRIPTION = `${AGENT_REQUEST_REF_DESCRIPTION} "me" selects the current Agent.`;
 
 const TASK_AGENT_REQUEST_REF_DESCRIPTION =
-  'Built-in name or stable custom `requestRef`. Use `agent:<stable-name>` for a custom Agent whose name collides with a reserved role or primary alias; ordinary custom names use their raw stable name. Use the native `mavis` tool with command "agent list" for discovery only when needed and available.';
+  'Built-in name or stable custom `requestRef`. Use `agent:<stable-name>` for a custom Agent whose name collides with a reserved role or primary alias; ordinary custom names use their raw stable name. Use the native `alran` tool with command "agent list" for discovery only when needed and available.';
 
-const WITHOUT_MAVIS_AGENT_REQUEST_REF_DESCRIPTION =
+const WITHOUT_ALRAN_AGENT_REQUEST_REF_DESCRIPTION =
   'Use explore, worker, or verifier for built-in work. For a known custom Agent, use its stable `requestRef`. Use `agent:<stable-name>` to select the exact manual/custom Agent when its name collides with a reserved role or primary alias; ordinary custom names use their raw stable name.';
 
 export function isCanonicalSubagentRole(value: string): value is CanonicalSubagentRole {
@@ -100,8 +100,8 @@ export function roleDirectoryText(): string {
  * Returns model-visible Task target guidance for the currently exposed
  * capability surface. Resolver compatibility stays unchanged.
  */
-export function agentNameDescription(options: { includeMavis?: boolean } = {}): string {
-  return options.includeMavis === false
-    ? WITHOUT_MAVIS_AGENT_REQUEST_REF_DESCRIPTION
+export function agentNameDescription(options: { includeAlran?: boolean } = {}): string {
+  return options.includeAlran === false
+    ? WITHOUT_ALRAN_AGENT_REQUEST_REF_DESCRIPTION
     : TASK_AGENT_REQUEST_REF_DESCRIPTION;
 }

@@ -2,7 +2,7 @@ import type { BaseInfo } from './ilink-types.js';
 
 export const ILINK_CHANNEL_VERSION = '2.4.6';
 export const ILINK_APP_ID = 'bot';
-export const ILINK_BOT_AGENT = `Mavis/${ILINK_CHANNEL_VERSION}`;
+export const ILINK_BOT_AGENT = `Alran/${ILINK_CHANNEL_VERSION}`;
 export const ILINK_APP_CLIENT_VERSION = encodeIlinkClientVersion(ILINK_CHANNEL_VERSION);
 
 export function encodeIlinkClientVersion(version: string): number {

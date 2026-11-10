@@ -1,6 +1,6 @@
-import { buildMcpToolRuntimeName } from '@mavis/mcp';
+import { buildMcpToolRuntimeName } from '@alran/mcp';
 
-import type { TransportConfig } from '@mavis/mcp/runtime/types';
+import type { TransportConfig } from '@alran/mcp/runtime/types';
 import type { LocalMcpServerConfig, LocalMcpToolInfo } from '../contracts.js';
 import { isBuiltinMatrixConfig } from './builtin-matrix.js';
 

@@ -1,8 +1,8 @@
 /**
- * `@mavis/agent-core`
+ * `@alran/agent-core`
  * -------------------
  *
- * Pure TypeScript core for Mavis agent-loop contracts.
+ * Pure TypeScript core for Alran agent-loop contracts.
  *
  * **Zero IO.** This package contains no filesystem access, no process
  * spawning, no SQLite, no HTTP server. IO modules belong in the host
@@ -18,17 +18,17 @@
 
 export * from './protocol/index.js';
 export * from './prompt-read.js';
-export { collectFetchedWebSources } from '@mavis/shared/fetched-web-sources';
-export { shellSourceStages } from '@mavis/shared/shell-source-stages';
-export { collapseAdjacentDuplicateFileCitations } from '@mavis/shared/file-source-citation';
+export { collectFetchedWebSources } from '@alran/shared/fetched-web-sources';
+export { shellSourceStages } from '@alran/shared/shell-source-stages';
+export { collapseAdjacentDuplicateFileCitations } from '@alran/shared/file-source-citation';
 export {
   collectWebSourceCitations,
   collectUsedWebEvidenceIds,
   type ContextualWebCitation,
-} from '@mavis/shared';
+} from '@alran/shared';
 export {
   buildToolCallCitationId,
   compactToolCallCitationKey,
   findUniqueSingleSubstitutionCitationAlias,
   resolveKnownCitationAlias,
-} from '@mavis/shared/source-citation-id';
+} from '@alran/shared/source-citation-id';

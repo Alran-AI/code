@@ -1,4 +1,4 @@
-import { getPrimaryDataDirPath, getProfile } from '@mavis/config';
+import { getPrimaryDataDirPath, getProfile } from '@alran/config';
 import { resolveAlranDataEnvironment, type AlranDataEnvironment } from '../auth/environment.js';
 import { configureTuiRuntimeEnvironment } from '../cli/environment.js';
 
@@ -6,7 +6,6 @@ export type TuiDefaultDataDirResolver = () => string;
 
 export interface TuiDataDirEnvironment {
   ALRAN_DATA_DIR?: string;
-  MAVIS_DATA_DIR?: string;
 }
 
 export interface PrepareTuiDataDirOptions {
@@ -32,8 +31,7 @@ function readDataDirOverride(environment: TuiDataDirEnvironment): string | undef
   const alranDataDir = environment.ALRAN_DATA_DIR?.trim();
   if (alranDataDir) return alranDataDir;
 
-  const mavisDataDir = environment.MAVIS_DATA_DIR?.trim();
-  return mavisDataDir || undefined;
+  return undefined;
 }
 
 export function getTuiDataDirPath(

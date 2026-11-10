@@ -44,8 +44,8 @@ export async function readAlranPluginAgents(
       diagnostics.push(agentDiagnostic(diagnostic.code, `${agentPath}#${diagnostic.field}`));
     }
     for (const field of ['avatar', 'defaultWorkspaceDir'] as const) {
-      if (config.xMavis?.[field] !== undefined) {
-        diagnostics.push(agentDiagnostic('AGENT_FIELD_IGNORED', `${agentPath}#x-mavis.${field}`));
+      if (config.xAlran?.[field] !== undefined) {
+        diagnostics.push(agentDiagnostic('AGENT_FIELD_IGNORED', `${agentPath}#x-alran.${field}`));
       }
     }
     candidates.push({
@@ -70,20 +70,20 @@ function miniMaxCandidateConfig(config: CanonicalAgentConfig): AgentCandidateCon
     ...(config.disallowedTools === undefined ? {} : { disallowedTools: config.disallowedTools }),
     ...(config.mcpServers === undefined ? {} : { mcpServers: config.mcpServers }),
     ...(config.skills === undefined ? {} : { skills: config.skills }),
-    ...(config.xMavis ? miniMaxExtensionConfig(config.xMavis) : {}),
+    ...(config.xAlran ? miniMaxExtensionConfig(config.xAlran) : {}),
   };
 }
 
 function miniMaxExtensionConfig(
-  mavis: NonNullable<CanonicalAgentConfig['xMavis']>,
+  alran: NonNullable<CanonicalAgentConfig['xAlran']>,
 ): Pick<
   AgentCandidateConfig,
   'displayName' | 'contextWindow' | 'maxOutputTokens' | 'extensionSkills'
 > {
   return {
-    ...(mavis.displayName ? { displayName: mavis.displayName } : {}),
-    ...(mavis.contextWindow === undefined ? {} : { contextWindow: mavis.contextWindow }),
-    ...(mavis.maxOutputTokens === undefined ? {} : { maxOutputTokens: mavis.maxOutputTokens }),
-    ...(mavis.extensionSkills === undefined ? {} : { extensionSkills: mavis.extensionSkills }),
+    ...(alran.displayName ? { displayName: alran.displayName } : {}),
+    ...(alran.contextWindow === undefined ? {} : { contextWindow: alran.contextWindow }),
+    ...(alran.maxOutputTokens === undefined ? {} : { maxOutputTokens: alran.maxOutputTokens }),
+    ...(alran.extensionSkills === undefined ? {} : { extensionSkills: alran.extensionSkills }),
   };
 }

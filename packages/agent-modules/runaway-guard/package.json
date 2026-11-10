@@ -1,8 +1,8 @@
 {
-  "name": "@mavis/runaway-guard",
+  "name": "@alran/runaway-guard",
   "version": "0.1.0",
   "private": true,
-  "description": "Turn-local structured observation and bounded reminder policy for Mavis agents.",
+  "description": "Turn-local structured observation and bounded reminder policy for Alran agents.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {
@@ -12,7 +12,7 @@
     }
   },
   "dependencies": {
-    "@mavis/agent-core": "workspace:^"
+    "@alran/agent-core": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20",

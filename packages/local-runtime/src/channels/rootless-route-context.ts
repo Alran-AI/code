@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import type { ChannelRoutingMode } from '@mavis/shared';
+import type { ChannelRoutingMode } from '@alran/shared';
 
 import type {
   LocalChannelBinding,

@@ -1,4 +1,4 @@
-import type { LLMRequestSettledEvent } from '@mavis/agent-core/pi-turn-runner';
+import type { LLMRequestSettledEvent } from '@alran/agent-core/pi-turn-runner';
 
 import type { CompactionTokenUsage } from './contracts.js';
 

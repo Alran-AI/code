@@ -6,7 +6,7 @@ import type {
   AgentHostUserInput,
   CompactionOutcome,
 } from '../agent-host/contracts.js';
-import { normalizeAbortSource } from '@mavis/agent-core/pi-turn-runner';
+import { normalizeAbortSource } from '@alran/agent-core/pi-turn-runner';
 import type {
   AbortTurnInput,
   AbortTurnResult,

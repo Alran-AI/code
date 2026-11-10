@@ -2,7 +2,7 @@ import type {
   AskQuestionnaireReplyAnswer,
   AskQuestionnaireReplyPayload,
   AskQuestionnaireRequest,
-} from '@mavis/shared/questionnaire';
+} from '@alran/shared/questionnaire';
 
 import type {
   ChannelOutboundResult,

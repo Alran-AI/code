@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 
-import type { AttachmentInput } from "@mavis/protocol/local";
+import type { AttachmentInput } from "@alran/protocol/local";
 
 import {
   isInlineDisplayDataUrl,

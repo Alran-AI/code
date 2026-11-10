@@ -4,7 +4,7 @@ import type {
   VerificationEvidenceMode,
 } from './verifier-port.js';
 import { isInternalContextMessage } from '../internal-context-fragment.js';
-import { readPtcExecutionDetails, type PtcExecutionDetails } from '@mavis/agent-core/tools';
+import { readPtcExecutionDetails, type PtcExecutionDetails } from '@alran/agent-core/tools';
 
 export const MAX_VERIFICATION_BRIEF_CHARS = 14_000;
 export const MAX_SUBAGENT_VERIFICATION_PROMPT_CHARS = 16_000;

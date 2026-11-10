@@ -40,15 +40,15 @@
 import { accessSync, chmodSync, constants, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { resolveBashEnvPolicy, type BashEnvPolicy } from '@mavis/agent-core/bash-subprocess-env';
+import { resolveBashEnvPolicy, type BashEnvPolicy } from '@alran/agent-core/bash-subprocess-env';
 
 /**
- * Delegates to the sibling `../bin/mavis-trash` rather than an absolute path so
+ * Delegates to the sibling `../bin/alran-trash` rather than an absolute path so
  * the shim keeps working if the dataDir is moved or mounted elsewhere.
  *
- * `exec` replaces the shim process, so the caller observes mavis-trash's own
+ * `exec` replaces the shim process, so the caller observes alran-trash's own
  * exit status and stderr directly — an `rm` failure must stay an `rm` failure.
- * Arguments are forwarded verbatim: mavis-trash already accepts rm's surface
+ * Arguments are forwarded verbatim: alran-trash already accepts rm's surface
  * (`-f`, `-r`/`-R`, `-rf`, `--`) and mirrors `rm -f`'s empty-operand success.
  */
 export const RM_SHIM_CONTENT = `#!/bin/bash
@@ -61,7 +61,7 @@ export const RM_SHIM_CONTENT = `#!/bin/bash
 # This file is NOT on the user's interactive PATH; it applies to agent bash only.
 set -u
 shim_dir="$(cd -- "$(dirname -- "\${BASH_SOURCE[0]}")" && pwd -P)"
-trash_bin="$shim_dir/../bin/mavis-trash"
+trash_bin="$shim_dir/../bin/alran-trash"
 if [ ! -x "$trash_bin" ]; then
   echo "rm: recoverable-delete runtime is missing at $trash_bin" >&2
   echo "rm: refusing to fall back to an unrecoverable delete" >&2
@@ -104,7 +104,7 @@ export function resolveManagedBinDir(dataDir: string): string {
  * PATH. That copy is the *embedded* CLI, which aborts unless the host injected
  * `ALRAN_AUTH_PROVIDER=shared-broker`, so a shadowed lookup failed every App
  * call with `error: Embedded alran-tools requires ALRAN_AUTH_PROVIDER=…`.
- * `mavis`, `alran` and `mavis-trash` gain the same protection. `ensureBinInProcessPath`
+ * `alran`, `alran` and `alran-trash` gain the same protection. `ensureBinInProcessPath`
  * prepends the same directory into `process.env.PATH`, but that happens too
  * early: a login shell re-running the user's rc files can reorder it back.
  *

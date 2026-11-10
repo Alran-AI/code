@@ -1,4 +1,4 @@
-import type { AskQuestionnaireRequest } from '@mavis/shared/questionnaire';
+import type { AskQuestionnaireRequest } from '@alran/shared/questionnaire';
 
 import { toRenderableQuestionnaire } from '../../questionnaire-bridge.js';
 import {

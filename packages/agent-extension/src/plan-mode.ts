@@ -8,7 +8,7 @@ import {
   type ToolExecutionContext,
   type TurnAssemblyCtx,
   type TurnEndHandler,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import { Type } from '@sinclair/typebox';
 
 export const PLAN_MODE_GUIDANCE = `<plan-mode-guidance>

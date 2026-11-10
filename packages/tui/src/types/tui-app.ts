@@ -24,7 +24,7 @@ import type { TuiTranscriptExporter } from '../host/transcript-export.js';
 import type { AlranBusinessTelemetry } from '../analytics/business-telemetry.js';
 import type { TuiNotificationSettings } from '../tui/platform/terminal-notifications.js';
 import type { TerminalCapabilities } from '../tui/platform/terminal-capabilities.js';
-import type { MavisRegion } from '@mavis/config';
+import type { AlranRegion } from '@alran/config';
 import type { TuiKeybindingOverride, TuiKeybindingRegistry } from '../tui/shell/keybindings.js';
 import type { FindRecentCodexSession } from '../host/recent-codex-session.js';
 
@@ -89,7 +89,7 @@ export interface CreateTuiAppOptions extends TuiUpdateOptions {
     overrides: Readonly<Record<string, TuiKeybindingOverride>>,
   ) => Promise<void> | void;
   reloadTui?: () => Promise<void>;
-  requestRestart?: (region?: MavisRegion, initialPrompt?: string) => void;
+  requestRestart?: (region?: AlranRegion, initialPrompt?: string) => void;
   notifyAuthContextChanged?: (authState: 'authenticated' | 'logged_out') => void | Promise<void>;
   resumeDraftAfterLogin?: boolean;
   findRecentCodexSession?: FindRecentCodexSession;

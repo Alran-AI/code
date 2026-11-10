@@ -1,4 +1,4 @@
-import type { PiBeforeLlmCallHook, PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiBeforeLlmCallHook, PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 import type { ExecutionBudgetReminderAdmission } from '../execution/contracts.js';
 
 /** Remaining-budget fractions that each emit one reminder when first crossed. */

@@ -1,4 +1,4 @@
-import { readImageEncodedContent } from '@mavis/agent-core/tools';
+import { readImageEncodedContent } from '@alran/agent-core/tools';
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@earendil-works/pi-coding-agent/image-resize', async (importOriginal) => {

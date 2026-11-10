@@ -1,5 +1,5 @@
-import type { ConversationPluginAgentDefinition } from '@mavis/conversation-contract';
-import { resolvePluginDataDirectory } from '@mavis/plugin-hooks';
+import type { ConversationPluginAgentDefinition } from '@alran/conversation-contract';
+import { resolvePluginDataDirectory } from '@alran/plugin-hooks';
 import type { AgentExecutionProfile, LocalAgentService } from '../../service/agent/index.js';
 import { isAgentSelectorMcpToolName } from '../../service/turn-system/index.js';
 

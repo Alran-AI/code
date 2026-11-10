@@ -591,7 +591,7 @@ export abstract class BrowserActionSupport extends BrowserActionTargetSupport {
     x: number,
     y: number,
   ): Promise<{ key: string; before: string }> {
-    const key = `__mavisClickProbe_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const key = `__alranClickProbe_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const before = await evaluate<string>(
       session,
       `(() => {
@@ -1325,7 +1325,7 @@ export abstract class BrowserActionSupport extends BrowserActionTargetSupport {
       `(() => {
       const command = ${JSON.stringify(command)};
       const documentScroller = document.scrollingElement || document.documentElement;
-      const ownerRegistryKey = Symbol.for('mavis.browser.scroll-owner-registry');
+      const ownerRegistryKey = Symbol.for('alran.browser.scroll-owner-registry');
       const ownerRegistry = globalThis[ownerRegistryKey] ||
         (globalThis[ownerRegistryKey] = { nextId: 1, ids: new WeakMap() });
       const ownerId = (element) => {

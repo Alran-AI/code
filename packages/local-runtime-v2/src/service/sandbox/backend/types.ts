@@ -2,7 +2,7 @@ import type {
   SandboxFilesystemPolicy,
   SandboxLocalAccess,
   SandboxNetworkPolicy,
-} from '@mavis/config';
+} from '@alran/config';
 
 export type SandboxPolicyPathRoot =
   | 'workspace'

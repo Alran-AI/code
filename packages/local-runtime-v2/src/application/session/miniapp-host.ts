@@ -1,4 +1,4 @@
-import type { MiniAppLifecycle } from '@mavis/agent-extension';
+import type { MiniAppLifecycle } from '@alran/agent-extension';
 
 import type { MiniAppSupervisor } from '../../service/miniapp/index.js';
 import type {

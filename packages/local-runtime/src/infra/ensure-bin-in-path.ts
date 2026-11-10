@@ -1,10 +1,10 @@
 /**
  * Inject `<dataDir>/bin` into `process.env.PATH` so that shell commands
  * spawned by the agent (via pi-mono's `getShellEnv()`) can find tools like
- * `mavis-trash`, `mavis`, and `alran`.
+ * `alran-trash`, `alran`, and `alran`.
  *
  * `getShellEnv()` (third_party/pi-mono) spreads `process.env` and prepends
- * `~/.pi/agent/bin`, but does NOT add the mavis data-dir bin. Rather than
+ * `~/.pi/agent/bin`, but does NOT add the alran data-dir bin. Rather than
  * patching third-party code, we inject the entry into `process.env` early
  * — once is enough for the lifetime of the Electron process.
  *
@@ -20,6 +20,6 @@ export function ensureBinInProcessPath(dataDir: string): void {
 
   if (entries.includes(binDir)) return;
 
-  // Prepend so mavis-trash takes priority over any stale copy elsewhere.
+  // Prepend so alran-trash takes priority over any stale copy elsewhere.
   process.env[pathKey] = [binDir, currentPath].filter(Boolean).join(delimiter);
 }

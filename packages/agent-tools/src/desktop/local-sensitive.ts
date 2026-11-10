@@ -21,7 +21,7 @@ export function isSensitiveSearchPath(path: string): boolean {
     }
     return (
       minimatch(normalized, pattern, options) ||
-      minimatch(`${normalized}/__mavis_sensitive_root_probe__`, pattern, options)
+      minimatch(`${normalized}/__alran_sensitive_root_probe__`, pattern, options)
     );
   });
 }

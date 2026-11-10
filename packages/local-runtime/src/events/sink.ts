@@ -1,5 +1,5 @@
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
-import type { IRuntimeEvent } from '@mavis/protocol';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
+import type { IRuntimeEvent } from '@alran/protocol';
 
 import {
   projectLocalRuntimeEvent,

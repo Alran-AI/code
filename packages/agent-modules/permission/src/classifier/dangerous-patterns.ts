@@ -18,7 +18,7 @@
  * desktop rules SOFT_RISK_PATTERNS plus archon-specific MR design notes.
  */
 
-import { SENSITIVE_ENV_NAME_RE } from '@mavis/agent-core/bash-subprocess-env';
+import { SENSITIVE_ENV_NAME_RE } from '@alran/agent-core/bash-subprocess-env';
 import { logger, backgroundCtx } from '../host-utils.js';
 
 // ---------------------------------------------------------------------------
@@ -139,7 +139,7 @@ export type HardBlockedCategory =
   | 'windows-secure-erase'
   // Windows CMD/PowerShell delete commands. CLI-driven deletes on Windows
   // skip the Recycle Bin entirely and are irrecoverable. With the Windows
-  // mavis-trash.js script now available, the rm-rewrite pipeline can
+  // alran-trash.js script now available, the rm-rewrite pipeline can
   // intercept these — but until that rewrite path is wired for Windows
   // delete commands (del/rd/Remove-Item), the safest policy is HARD deny.
   | 'windows-delete'
@@ -530,7 +530,7 @@ const HARD_BLOCKED_BASH_PATTERNS: ReadonlyArray<{
 
   // ---- windows-delete: CMD/PowerShell delete commands. CLI-driven Windows
   // deletes do not move to Recycle Bin and are irrecoverable. The Windows
-  // mavis-trash.js script provides Recycle Bin support, but rm-rewrite for
+  // alran-trash.js script provides Recycle Bin support, but rm-rewrite for
   // Windows delete commands (del/rd/Remove-Item) is not yet wired, so HARD
   // deny until that pipeline is extended.
   {
@@ -1099,7 +1099,7 @@ export const SOFT_RISK_REGISTRY = {
 // Legacy convenience exports for bash-permission's safety check phase.
 //
 // bash-permission.ts has its own safety net that flags suspicious
-// command shapes (rm aliases that bypass the mavis-trash rewrite, encoding
+// command shapes (rm aliases that bypass the alran-trash rewrite, encoding
 // bypass, etc.). These don't quite belong in HARD_BLOCKED (the user might
 // legitimately need them) and don't quite belong in SOFT_RISK either (most
 // are already covered by the classifier's first-word fast-path /
@@ -1130,7 +1130,7 @@ const FIND_EXECDIR_RM_PATTERN = new RegExp(`-execdir\\s+(?:${_BIN_PATH_PREFIX})?
  * Deletion command variants that bypass the rm-rewrite shortcut.
  *
  * `rm` (first word) is intercepted in bash-permission and rewritten
- * to `mavis-trash`. These patterns catch shapes that smuggle `rm` past
+ * to `alran-trash`. These patterns catch shapes that smuggle `rm` past
  * that interception (absolute path, busybox wrapper, env wrapper,
  * find -exec rm, etc.) so they still trip the safety check.
  */
@@ -1168,7 +1168,7 @@ const LEGACY_DELETE_BYPASS_PATTERNS: ReadonlyArray<{ pattern: RegExp; category: 
   // xargs + rm
   { pattern: /\bxargs\s+.*\brm\b/, category: 'xargs + rm' },
   // GNU parallel + rm — find/grep | parallel rm or `parallel rm ::: files`.
-  // Same shape category as xargs + rm: smuggles `rm` past the mavis-trash rewrite.
+  // Same shape category as xargs + rm: smuggles `rm` past the alran-trash rewrite.
   { pattern: /\bparallel\s+.*\brm\b/, category: 'parallel + rm' },
   // fd / fdfind -x rm or -X rm — fd's per-result (-x) and batch (-X) exec.
   // fdfind is the Debian/Ubuntu binary name for the same tool.
@@ -1549,7 +1549,7 @@ export function matchSecretReadForm(surface: string): string | undefined {
  * Includes:
  * - HARD_BLOCKED bash patterns (catastrophic + secure-erase + ransomware indicators)
  * - SOFT_RISK bash patterns (sudo, chmod 777, interpreter -c, container exec, ...)
- * - LEGACY_DELETE_BYPASS (rm aliases that smuggle past the mavis-trash rewrite)
+ * - LEGACY_DELETE_BYPASS (rm aliases that smuggle past the alran-trash rewrite)
  * - LEGACY_ENCODING_BYPASS (base64 decode, pipe-to-shell, eval, ...)
  */
 export const ALL_DANGEROUS_COMMAND_PATTERNS: ReadonlyArray<{

@@ -1,4 +1,4 @@
-import type { PiAfterToolCallHook } from '@mavis/agent-core/pi-turn-runner';
+import type { PiAfterToolCallHook } from '@alran/agent-core/pi-turn-runner';
 
 /**
  * Reminder for a run_code child the model called directly on a PTC Turn.

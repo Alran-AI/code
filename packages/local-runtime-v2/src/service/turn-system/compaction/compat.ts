@@ -1,11 +1,11 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 
-const APPENDIX_START_V1 = '<mavis-context-appendix version="1">';
-const APPENDIX_START_V2 = '<mavis-context-appendix version="2">';
-const APPENDIX_START_V3 = '<mavis-context-appendix version="3">';
-const APPENDIX_START_V4 = '<mavis-context-appendix version="4">';
-const APPENDIX_START_V5 = '<mavis-context-appendix version="5">';
-const APPENDIX_END = '</mavis-context-appendix>';
+const APPENDIX_START_V1 = '<alran-context-appendix version="1">';
+const APPENDIX_START_V2 = '<alran-context-appendix version="2">';
+const APPENDIX_START_V3 = '<alran-context-appendix version="3">';
+const APPENDIX_START_V4 = '<alran-context-appendix version="4">';
+const APPENDIX_START_V5 = '<alran-context-appendix version="5">';
+const APPENDIX_END = '</alran-context-appendix>';
 const APPENDIX_SUFFIX = `\n${APPENDIX_END}`;
 export const TODO_CADENCE_INTERVAL = 15;
 const APPENDIX_V1_KEYS = new Set(['version', 'recentUserQueries', 'todoState']);

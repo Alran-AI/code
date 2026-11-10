@@ -1,7 +1,7 @@
 import type {
   AskQuestionnaireReplyPayload,
   AskQuestionnaireRequest,
-} from '@mavis/shared/questionnaire';
+} from '@alran/shared/questionnaire';
 
 import type {
   LocalQuestionnaireServiceDeps,

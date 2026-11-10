@@ -137,7 +137,7 @@ export class LocalAssetManifestDiagnosticSource implements DiagnosticArtifactSou
     );
     return [
       {
-        name: 'mavis-assets/asset-manifest.json',
+        name: 'alran-assets/asset-manifest.json',
         content,
         bytes: content.byteLength,
         source: this.id,

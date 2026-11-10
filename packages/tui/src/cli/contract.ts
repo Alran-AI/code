@@ -3,7 +3,7 @@ import { parseHeadlessModelOverride } from '../headless/model-selection.js';
 import type { TuiMode } from '../tui/engine/public.js';
 import { parseTuiStartupEnvironment } from './environment.js';
 import type { TuiBuildEnvironment } from '../auth/environment.js';
-import type { AlranContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@alran/protocol/local';
 import {
   applySystemPromptCliOptions,
   resolveSystemPromptOverrides,

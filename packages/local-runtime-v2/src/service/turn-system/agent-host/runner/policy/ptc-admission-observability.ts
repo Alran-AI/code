@@ -1,4 +1,4 @@
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 
 import type { LocalTurnExecutionInput } from '../contracts.js';
 import { report, writeLog, type PtcMetrics, type PtcSurface } from '../ptc/ptc-observability.js';

@@ -6,7 +6,7 @@
  *   - Deterministic layer: `PermissionEngine` dispatches
  *     `BashToolPermissionChecker` / `FsToolPermissionChecker`; Permission Core
  *     is the default final reducer. Together they produce all rule contents
- *     (`bash(npm publish:*)`), rewrittenInput (`rm` → `mavis-trash`), and
+ *     (`bash(npm publish:*)`), rewrittenInput (`rm` → `alran-trash`), and
  *     bypass-immune flags; these define every wire shape (UI, route JSON,
  *     persisted rules).
  *   - Decision layer: the `PermissionMode` (`default` / `auto` /
@@ -15,7 +15,7 @@
  *     flow is routed through `PermissionEngine.checkPermission(...)` with a
  *     snapshotted `core` (default) or `engine` (rollback) policy owner.
  *   - LLM layer: `auto` mode consults `HttpCloudGatewayClient` →
- *     `POST /mavis/api/v1/permission/check`. acceptEdits is normalized to
+ *     `POST /alran/api/v1/permission/check`. acceptEdits is normalized to
  *     `default` at entry.
  *
  * `LocalPermissionApprovalService` owns pending/dedupe/waiter/persistence;
@@ -58,8 +58,8 @@ import {
   isRmCommand,
   splitCommand,
   parseWindowsNativeDelete,
-} from '@mavis/permission';
-import type { AgentMessageProtocol } from '@mavis/agent-core/protocol/agent-message';
+} from '@alran/permission';
+import type { AgentMessageProtocol } from '@alran/agent-core/protocol/agent-message';
 
 import type { LocalPermissionMessageSource } from './service.js';
 import { LocalPermissionStoreUnhealthyError, type LocalPermissionRuleStore } from './rules.js';
@@ -179,14 +179,14 @@ function resolveWindowsShellFamily(
   );
 }
 
-function isMavisTrashExecutable(command: string): boolean {
+function isAlranTrashExecutable(command: string): boolean {
   const executable = readLeadingExecutable(command);
   if (!executable) return false;
   return (
     path.win32
       .basename(executable)
       .replace(/\.(?:cmd|bat|exe)$/i, '')
-      .toLowerCase() === 'mavis-trash'
+      .toLowerCase() === 'alran-trash'
   );
 }
 
@@ -217,14 +217,14 @@ function isRecoverableDeleteInsideWorkspace(
  * A single surface (already expanded by `commandSurfaces`) is delete-like
  * if its leading executable would delete files: bash `rm`, PowerShell
  * `Remove-Item` / `ri` / `remove`, Windows CMD `del` / `erase` / `rmdir`
- * / `rd`, POSIX `unlink` / `shred`, or the recoverable `mavis-trash`
+ * / `rd`, POSIX `unlink` / `shred`, or the recoverable `alran-trash`
  * launcher itself. This is the set the safety net must audit segment by
  * segment — see `everyDeleteSegmentIsSafelyRewritable`.
  */
 function isDeleteLikeSegment(surface: string): boolean {
   return (
     /^\s*(?:rm|rmdir|rd|del|erase|remove-item|ri|remove|unlink|shred)\b/i.test(surface) ||
-    isMavisTrashExecutable(surface)
+    isAlranTrashExecutable(surface)
   );
 }
 
@@ -240,10 +240,10 @@ function normalizeWindowsExecutablePath(executable: string): string {
   return path.win32.normalize(executable.replaceAll('/', '\\')).toLowerCase();
 }
 
-function hasUntrustedMavisTrashExecutable(command: string, launcherPath: string): boolean {
+function hasUntrustedAlranTrashExecutable(command: string, launcherPath: string): boolean {
   const expectedLauncher = normalizeWindowsExecutablePath(launcherPath);
   return commandSurfaces(command).some((surface) => {
-    if (!isMavisTrashExecutable(surface)) return false;
+    if (!isAlranTrashExecutable(surface)) return false;
     const executable = readLeadingExecutable(surface);
     return Boolean(executable && normalizeWindowsExecutablePath(executable) !== expectedLauncher);
   });
@@ -252,11 +252,11 @@ function hasUntrustedMavisTrashExecutable(command: string, launcherPath: string)
 /**
  * Every delete-like segment in a compound Windows command must independently
  * resolve to a safe deletion path — either a bare `rm` that the engine will
- * rewrite into `mavis-trash <path>` further down the pipeline, or the exact
- * canonical `mavis-trash.cmd` absolute path emitted by that rewrite.
+ * rewrite into `alran-trash <path>` further down the pipeline, or the exact
+ * canonical `alran-trash.cmd` absolute path emitted by that rewrite.
  *
  * Without a per-segment audit, a compound command like
- *   "<dataDir>\bin\mavis-trash.cmd" -- .\a && unlink .\b
+ *   "<dataDir>\bin\alran-trash.cmd" -- .\a && unlink .\b
  * would sneak the `unlink` permanent delete past the boundary because the
  * only trash surface (segment 1) satisfies the trusted-launcher check, and
  * `unlink` is not in the row-anchored windows-delete hard-regex nor the
@@ -283,9 +283,9 @@ function everyDeleteSegmentIsSafelyRewritable(
 
   return deleteSurfaces.every((surface) => {
     // Canonical absolute launcher is always safe — the exact executable
-    // the rm rewrite emits. Bare `mavis-trash` / any other basename is
+    // the rm rewrite emits. Bare `alran-trash` / any other basename is
     // NOT accepted here (Windows CWD-first resolution risk).
-    if (isMavisTrashExecutable(surface)) {
+    if (isAlranTrashExecutable(surface)) {
       const executable = readLeadingExecutable(surface)!;
       return normalizeWindowsExecutablePath(executable) === expectedLauncher;
     }
@@ -397,7 +397,7 @@ export interface LocalPermissionFacadeDeps {
    * Optional override for tests — swap the cloud gateway for an in-memory
    * client. Production never passes this; the facade default-constructs an
    * HttpCloudGatewayClient pointing at the
-   * /mavis/api/v1/permission/check endpoint via region routing.
+   * /alran/api/v1/permission/check endpoint via region routing.
    */
   cloudGateway?: CloudGatewayClient;
   /** Per-call cloud-gateway timeout (ms). Default 60_000. */
@@ -411,7 +411,7 @@ export interface LocalPermissionFacadeDeps {
   platform?: NodeJS.Platform;
   /** Actual shell family used by the host executor; unknown keeps native delete fail-closed. */
   shellFamily?: ShellFamily;
-  /** Test-only trash health probe override; production invokes mavis-trash.cmd. */
+  /** Test-only trash health probe override; production invokes alran-trash.cmd. */
   trashRuntimeProbe?: (scriptPath: string, launcherPath: string) => boolean;
 }
 
@@ -767,7 +767,7 @@ export class LocalPermissionFacade {
     //   - behavior (allow / ask / deny)
     //   - reason (structured DecisionReason — rendered with reason-format)
     //   - ruleContents (BashChecker/FsChecker normalized — e.g. "npm publish:*")
-    //   - rewrittenInput (rm → mavis-trash)
+    //   - rewrittenInput (rm → alran-trash)
     //   - skipAutoClassifier (defensive net — keep ask out of LLM)
     const decision = this.engine.checkPermission(params.toolName, params.input, ctx, {
       policyOwner,
@@ -1210,11 +1210,11 @@ export class LocalPermissionFacade {
 
     const recoverableDeleteInstruction =
       'Deletion intent detected. Do not bypass this denial with another permanent delete command, wrapper, script, or filesystem API. ' +
-      'Retry only through a simple, top-level recoverable deletion that the runtime can route through its trusted mavis-trash launcher.';
+      'Retry only through a simple, top-level recoverable deletion that the runtime can route through its trusted alran-trash launcher.';
     const unavailableTrashInstruction =
       'Deletion intent detected. The target was not deleted. Do not fall back to any permanent delete command, wrapper, script, or filesystem API. ' +
-      'Re-check mavis-trash availability before retrying and use only the trusted local-runtime launcher. ' +
-      'If mavis-trash remains unavailable, tell the user that the target must be removed manually.';
+      'Re-check alran-trash availability before retrying and use only the trusted local-runtime launcher. ' +
+      'If alran-trash remains unavailable, tell the user that the target must be removed manually.';
 
     const shellFamily = command
       ? resolveWindowsShellFamily(command, this.deps.shellFamily)
@@ -1231,7 +1231,7 @@ export class LocalPermissionFacade {
         return {
           denial: {
             behavior: 'deny',
-            reason: `Local hard safety policy blocked ${params.toolName}: ${permanentDeleteReason}. Use mavis-trash for recoverable removal; permanent Windows delete commands are not allowed. ${recoverableDeleteInstruction}`,
+            reason: `Local hard safety policy blocked ${params.toolName}: ${permanentDeleteReason}. Use alran-trash for recoverable removal; permanent Windows delete commands are not allowed. ${recoverableDeleteInstruction}`,
             denySource: 'safety-immune',
           },
         };
@@ -1244,17 +1244,17 @@ export class LocalPermissionFacade {
           return {
             denial: {
               behavior: 'deny',
-              reason: `Local hard safety policy blocked deletion: the Windows mavis-trash launcher is unavailable (${trash.reason ?? 'health check failed'}). The agent must not fall back to a permanent delete command. ${unavailableTrashInstruction}`,
+              reason: `Local hard safety policy blocked deletion: the Windows alran-trash launcher is unavailable (${trash.reason ?? 'health check failed'}). The agent must not fall back to a permanent delete command. ${unavailableTrashInstruction}`,
               denySource: 'safety-immune',
             },
           };
         }
-        const launcherPath = path.win32.join(dataDir, 'bin', 'mavis-trash.cmd');
-        if (hasUntrustedMavisTrashExecutable(command, launcherPath)) {
+        const launcherPath = path.win32.join(dataDir, 'bin', 'alran-trash.cmd');
+        if (hasUntrustedAlranTrashExecutable(command, launcherPath)) {
           return {
             denial: {
               behavior: 'deny',
-              reason: `Local hard safety policy blocked deletion: bare or non-canonical mavis-trash is untrusted because PATH/CWD may select a different executable. The target was not deleted. Retry with one top-level rm command; the runtime will use the trusted launcher at "${launcherPath}". Do not bypass this with a permanent delete command, wrapper, script, or filesystem API.`,
+              reason: `Local hard safety policy blocked deletion: bare or non-canonical alran-trash is untrusted because PATH/CWD may select a different executable. The target was not deleted. Retry with one top-level rm command; the runtime will use the trusted launcher at "${launcherPath}". Do not bypass this with a permanent delete command, wrapper, script, or filesystem API.`,
               denySource: 'safety-immune',
             },
           };
@@ -1263,7 +1263,7 @@ export class LocalPermissionFacade {
           return {
             denial: {
               behavior: 'deny',
-              reason: `Local hard safety policy blocked a wrapped or compound Windows delete command that cannot be safely rewritten. Use the trusted local-runtime mavis-trash launcher for recoverable removal. ${recoverableDeleteInstruction}`,
+              reason: `Local hard safety policy blocked a wrapped or compound Windows delete command that cannot be safely rewritten. Use the trusted local-runtime alran-trash launcher for recoverable removal. ${recoverableDeleteInstruction}`,
               denySource: 'safety-immune',
             },
           };
@@ -1329,7 +1329,7 @@ export class LocalPermissionFacade {
     const dataDir = this.deps.configGetter().dataDir;
     const trash = inspectTrashRuntime(dataDir, platform);
     if (trash.available) return undefined;
-    const scriptPath = path.join(dataDir, 'bin', 'mavis-trash');
+    const scriptPath = path.join(dataDir, 'bin', 'alran-trash');
     return {
       behavior: 'deny',
       reason:

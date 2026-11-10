@@ -3,7 +3,7 @@
  *
  * Adapted from the retired `packages/daemon/src/mcp/types.ts`. We trim the
  * legacy daemon surface (OAuth2 flow, manifest entries, lock-file write
- * mediator) down to what Mavis runtimes need to spawn MCP transports, run
+ * mediator) down to what Alran runtimes need to spawn MCP transports, run
  * `tools/list` / `tools/call`, and recover stderr.
  */
 import type { Client } from '@modelcontextprotocol/sdk/client/index.js';

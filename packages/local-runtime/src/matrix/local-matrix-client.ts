@@ -3,7 +3,7 @@ import {
   DesktopMatrixClient,
   toLocalGatewayPath,
   type DesktopMatrixClientOptions,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import { logger } from '../common/logger.js';
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';

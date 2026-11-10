@@ -1,4 +1,4 @@
-import { getConfig, getConfigPath, type Config } from '@mavis/config';
+import { getConfig, getConfigPath, type Config } from '@alran/config';
 import {
   createAlranBusinessTelemetryPreview,
   resolveAlranBusinessTelemetryPolicy,
@@ -74,6 +74,6 @@ export function runAlranTelemetryCommand(
 
 function defaultResolveEnvironment(environment: NodeJS.ProcessEnv): AlranAuthEnvironment {
   return resolveAlranAuthEnvironment({
-    runtimeRegion: environment.MAVIS_REGION === 'cn' ? 'cn' : 'en',
+    runtimeRegion: environment.ALRAN_REGION === 'cn' ? 'cn' : 'en',
   });
 }

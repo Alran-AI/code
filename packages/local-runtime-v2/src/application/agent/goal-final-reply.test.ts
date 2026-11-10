@@ -1,4 +1,4 @@
-import { GOAL_COMPLETION_TOOL_REFUSAL, GOAL_FINAL_REPLY_RETRY_PROMPT } from '@mavis/goal';
+import { GOAL_COMPLETION_TOOL_REFUSAL, GOAL_FINAL_REPLY_RETRY_PROMPT } from '@alran/goal';
 import { describe, expect, it } from 'vitest';
 
 import {

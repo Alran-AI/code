@@ -1,1 +1,1 @@
-export * from '@mavis/shared/local-runtime-paths';
+export * from '@alran/shared/local-runtime-paths';

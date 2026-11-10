@@ -1,5 +1,5 @@
-import type { PromptReadScope, PromptSnapshotSource } from '@mavis/agent-core';
-import { getRuntimeRegion } from '@mavis/config';
+import type { PromptReadScope, PromptSnapshotSource } from '@alran/agent-core';
+import { getRuntimeRegion } from '@alran/config';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import { readPromptBundleScopeWithBuiltinFallback } from '../runtime/prompt-read.js';

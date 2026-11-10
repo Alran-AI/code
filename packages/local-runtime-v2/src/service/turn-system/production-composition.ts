@@ -4,7 +4,7 @@ import type {
   AgentExtension,
   InternalTurnPromptReadRegistry,
   PromptSnapshotSource,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import {
   outputLimitRecoveryExtension,
   requestMediaExtension,
@@ -13,11 +13,11 @@ import {
   type OutputLimitRecoveryObservation,
   type RequestMediaExtensionOptions,
   type ToolOutputArtifactInput,
-} from '@mavis/agent-extension';
-import type { LLMRetryOptions } from '@mavis/agent-core/pi-turn-runner';
-import { describeLocalBrowserToolInput } from '@mavis/agent-tools/desktop';
-import type { IAgentConfig } from '@mavis/protocol';
-import type { GlobalEventInput } from '@mavis/shared/global-events';
+} from '@alran/agent-extension';
+import type { LLMRetryOptions } from '@alran/agent-core/pi-turn-runner';
+import { describeLocalBrowserToolInput } from '@alran/agent-tools/desktop';
+import type { IAgentConfig } from '@alran/protocol';
+import type { GlobalEventInput } from '@alran/shared/global-events';
 import {
   TOOL_RESULT_COMPACTION_DEFAULTS,
   parseRequestMediaConfig,
@@ -26,8 +26,8 @@ import {
   type RequestMediaSettings,
   type ResolvedAgentCapabilities,
   type RunawayGuardOverride,
-} from '@mavis/config';
-import { isValidCompactionTriggerSetting } from '@mavis/context-manager';
+} from '@alran/config';
+import { isValidCompactionTriggerSetting } from '@alran/context-manager';
 import type { AppDb } from '../../infra/db/client.js';
 
 import type { ContentSafetyService } from '../content-safety/index.js';
@@ -447,7 +447,7 @@ export async function createLocalAgentHost<
             ? { expectedAgentInstanceId: input.expectedAgentInstanceId }
             : {}),
           ...(input.builtinCapabilities ? { builtinCapabilities: input.builtinCapabilities } : {}),
-          toolsDisabled: process.env.MAVIS_LOCAL_RUNTIME_DISABLE_TOOLS === '1',
+          toolsDisabled: process.env.ALRAN_LOCAL_RUNTIME_DISABLE_TOOLS === '1',
           cuModeActive: input.cuModeActive,
           ...(input.agentMemoryEnabled === undefined
             ? {}

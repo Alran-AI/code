@@ -21,7 +21,7 @@ export interface ChannelAgentOwnerIdentity {
  * owner. Custom Agents always require the exact name + incarnation. Builtins
  * may cross names only when the shared resolver proves both names belong to
  * the same trusted primary family (for example historical `main` and current
- * `mavis`).
+ * `alran`).
  */
 export async function isCompatibleChannelAgentOwner(input: {
   persisted: { exactOwnerName: string; ownerInstanceId?: string };

@@ -10,15 +10,15 @@ import {
   type RuntimeTool,
   type ToolResult,
   type ToolResultContent,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 import {
   classifyDesktopPtcTruncation,
   projectDesktopPtcToolResult,
   PTC_CHILD_FULL_OUTPUT_MAX_BYTES,
-  readPtcMavisChildTarget,
+  readPtcAlranChildTarget,
   type DesktopPtcTruncationVerdict,
   type MultimodalAttachmentCapabilities,
-} from '@mavis/agent-tools';
+} from '@alran/agent-tools';
 import { Type, type Static } from '@sinclair/typebox';
 
 import type { LocalRuntimeTurnToolContext } from '../../execution/contracts.js';
@@ -53,7 +53,7 @@ import {
 import {
   browserRunCodeParagraph,
   computerUseRunCodeParagraph,
-  mavisRunCodeParagraph,
+  alranRunCodeParagraph,
   renderPtcToolSdk,
 } from './tool-sdk.js';
 
@@ -157,12 +157,12 @@ export function createPtcRunCodeTool(
         runCode: tool,
       }),
   });
-  // The original mavis is resolvable by the executor (it runs every mavis_*
+  // The original alran is resolvable by the executor (it runs every alran_*
   // call) but is no guest function and no SDK entry: guests see callableTools.
-  const mavisTargets = [
-    ...new Set(childTools.flatMap((child) => readPtcMavisChildTarget(child)?.tool ?? [])),
+  const alranTargets = [
+    ...new Set(childTools.flatMap((child) => readPtcAlranChildTarget(child)?.tool ?? [])),
   ].filter((target) => !callableTools.some((child) => child.def.name === target.def.name));
-  return registerPtcChildTools(tool, [...callableTools, ...mavisTargets], trustedNativeTools);
+  return registerPtcChildTools(tool, [...callableTools, ...alranTargets], trustedNativeTools);
 }
 
 /** Native tools whose `data` shape the SDK can promise; a same-name MCP tool gets none. */
@@ -258,19 +258,19 @@ async function executeRunCode(
       };
     },
     execute: async (call) => {
-      // A mavis_* call runs as the mavis call it stands for, so validation,
-      // permission rules, Plugin hooks, history and display see tool `mavis`
-      // with its command, exactly as a PTC-off mavis call.
+      // A alran_* call runs as the alran call it stands for, so validation,
+      // permission rules, Plugin hooks, history and display see tool `alran`
+      // with its command, exactly as a PTC-off alran call.
       const listed = childTools.find((tool) => tool.def.name === call.name);
-      const mavis = listed ? readPtcMavisChildTarget(listed) : undefined;
-      const evidenceSource = readPtcToolEvidenceSource(options.runCode, mavis?.tool ?? listed);
+      const alran = listed ? readPtcAlranChildTarget(listed) : undefined;
+      const evidenceSource = readPtcToolEvidenceSource(options.runCode, alran?.tool ?? listed);
       const outcome = await timing.run(call.requestId, () =>
         executor.execute({
           parentToolCallId,
           parentDescription: input.description,
           toolCallId: childToolCallIds.get(call.requestId) ?? crypto.randomUUID(),
-          toolName: mavis ? mavis.tool.def.name : call.name,
-          args: mavis ? { command: mavis.command, args: call.args } : call.args,
+          toolName: alran ? alran.tool.def.name : call.name,
+          args: alran ? { command: alran.command, args: call.args } : call.args,
           signal: call.signal,
           ...(evidenceSource ? { evidenceSource } : {}),
         }),
@@ -798,7 +798,7 @@ function runCodeDescription(
     ...batchExampleParagraph(childTools),
     ...browserRunCodeParagraph(childTools),
     ...computerUseRunCodeParagraph(childTools),
-    ...mavisRunCodeParagraph(childTools),
+    ...alranRunCodeParagraph(childTools),
     'Failure example: const rs = await Promise.all(paths.map((path) => tools.read({ path }))); return { ok: rs.filter((r) => !r.isError).map((r) => r.output), failed: rs.filter((r) => r.isError).map((r) => r.error) };',
     // In real computer use the model awaited setTimeout to wait for a window (guest_error),
     // and on 10-22 busy-waited on Date.now() until the child call limit ran out; the word

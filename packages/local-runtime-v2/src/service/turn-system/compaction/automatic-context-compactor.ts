@@ -7,8 +7,8 @@ import {
   listRequestImages,
   type PiBeforeLlmCallHook,
   type PiTurnRunnerLogger,
-} from '@mavis/agent-core/pi-turn-runner';
-import { resolveCompactionTokenBudget, withoutThinking } from '@mavis/context-manager';
+} from '@alran/agent-core/pi-turn-runner';
+import { resolveCompactionTokenBudget, withoutThinking } from '@alran/context-manager';
 
 import type {
   AutomaticContextCompactionInput,

@@ -1,4 +1,4 @@
-import { getConfig } from '@mavis/config';
+import { getConfig } from '@alran/config';
 
 import { mkdir } from 'node:fs/promises';
 

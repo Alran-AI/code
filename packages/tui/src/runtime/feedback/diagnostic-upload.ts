@@ -4,11 +4,11 @@ import { join } from 'node:path';
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
 import JSZip from 'jszip';
-import type { SessionReportManifest } from '@mavis/local-runtime-v2/session-system';
+import type { SessionReportManifest } from '@alran/local-runtime-v2/session-system';
 
 import { summarizeDiagnosticText } from './diagnostic-summary.js';
 
@@ -17,7 +17,7 @@ const MAX_FILES = 64;
 const MAX_BYTES = 16 * 1024 * 1024;
 const MAX_BYTES_PER_FILE = 2 * 1024 * 1024;
 
-const LOG_UPLOAD_API_BASE: Readonly<Record<MavisRegion, Readonly<Record<MavisBuildEnv, string>>>> =
+const LOG_UPLOAD_API_BASE: Readonly<Record<AlranRegion, Readonly<Record<AlranBuildEnv, string>>>> =
   {
     cn: {
       dev: 'https://matrix-test.example.invalid',
@@ -44,8 +44,8 @@ export interface TuiFeedbackDiagnosticOptions {
   readonly appVersion: string;
   readonly fetchImpl?: typeof fetch;
   readonly nowMs?: () => number;
-  readonly region?: () => MavisRegion;
-  readonly buildEnv?: () => MavisBuildEnv;
+  readonly region?: () => AlranRegion;
+  readonly buildEnv?: () => AlranBuildEnv;
   readonly flushLogs?: () => Promise<void>;
   readonly collectSessionReport?: (sessionId: string) => Promise<SessionReportManifest>;
 }

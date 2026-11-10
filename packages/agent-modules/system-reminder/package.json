@@ -1,7 +1,7 @@
 {
-  "name": "@mavis/system-reminder",
+  "name": "@alran/system-reminder",
   "version": "0.2.1",
-  "description": "Framework-agnostic system-reminder assembly for Mavis agents; never imports runtime packages.",
+  "description": "Framework-agnostic system-reminder assembly for Alran agents; never imports runtime packages.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {
@@ -11,11 +11,11 @@
     }
   },
   "devDependencies": {
-    "@mavis/config": "workspace:^",
+    "@alran/config": "workspace:^",
     "@types/node": "^20",
     "typescript": "^5",
     "vitest": "^2",
-    "@mavis/shared": "workspace:^"
+    "@alran/shared": "workspace:^"
   },
   "private": true,
   "license": "MIT"

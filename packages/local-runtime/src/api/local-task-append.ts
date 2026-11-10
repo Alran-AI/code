@@ -5,7 +5,7 @@ import type {
   LocalTaskAppendAdapter,
   LocalTaskAppendInput,
   LocalTaskAppendResult,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 import {
   ConversationTurnRejectedError,
   isRuntimeConversationShutdownError,
@@ -14,7 +14,7 @@ import {
   type ConversationSteerInput,
   type ConversationSteerResult,
   type RuntimeConversation,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import {
   createBackgroundTaskId,

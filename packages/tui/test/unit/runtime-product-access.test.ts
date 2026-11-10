@@ -2,7 +2,7 @@ import {
   requireTuiAgentAccess,
   requireTuiAccountLogin,
 } from "../../src/application/login-gate.js";
-import type { CliService } from "@mavis/local-runtime-v2/cli-service";
+import type { CliService } from "@alran/local-runtime-v2/cli-service";
 import { describe, expect, it, vi } from "vitest";
 
 import { TuiRuntimeAdapter } from "../../src/runtime/adapter.js";
@@ -212,7 +212,7 @@ describe("TuiRuntimeAdapter product access", () => {
     });
     expect(cliService.watchSessionUsageCommits).toHaveBeenCalledWith(signal);
     await expect(
-      adapter.requestCompaction("session-1", "mavis", "keep decisions"),
+      adapter.requestCompaction("session-1", "alran", "keep decisions"),
     ).resolves.toMatchObject({
       success: true,
       sessionId: "session-1",
@@ -220,7 +220,7 @@ describe("TuiRuntimeAdapter product access", () => {
       tokensAfter: 40,
     });
     expect(cliService.requestCompaction).toHaveBeenCalledWith({
-      name: "mavis",
+      name: "alran",
       id: "session-1",
       reason: "ui_request",
       customInstructions: "keep decisions",
@@ -260,7 +260,7 @@ describe("TuiRuntimeAdapter product access", () => {
         {
           requestId: "permission-1",
           sessionId: "session-1",
-          agentName: "mavis",
+          agentName: "alran",
           toolName: "bash",
           ruleContents: ["git status"],
           reason: "needs approval",
@@ -358,7 +358,7 @@ describe("TuiRuntimeAdapter product access", () => {
         contextLimit: 400_000,
       },
     ]);
-    await expect(adapter.listSkills("mavis")).resolves.toEqual({
+    await expect(adapter.listSkills("alran")).resolves.toEqual({
       skills: [{ name: "review", enabled: true }],
       hasMore: false,
     });
@@ -651,14 +651,14 @@ describe("TuiRuntimeAdapter product access", () => {
       workspaceDir: "/default-workspace",
     });
     await adapter.listSkills("reviewer", undefined, "/session-workspace");
-    await adapter.listSkills("mavis");
+    await adapter.listSkills("alran");
     expect(cliService.listRuntimeSkills).toHaveBeenNthCalledWith(1, {
       agentName: "reviewer",
       workspaceDir: "/session-workspace",
       includePluginSkills: true,
     });
     expect(cliService.listRuntimeSkills).toHaveBeenNthCalledWith(2, {
-      agentName: "mavis",
+      agentName: "alran",
       workspaceDir: "/default-workspace",
       includePluginSkills: true,
     });
@@ -677,10 +677,10 @@ describe("TuiRuntimeAdapter product access", () => {
     );
     const adapter = new TuiRuntimeAdapter(cliService);
 
-    const result = await adapter.listSkills("mavis");
+    const result = await adapter.listSkills("alran");
 
     expect(cliService.listRuntimeSkills).toHaveBeenCalledWith({
-      agentName: "mavis",
+      agentName: "alran",
       includePluginSkills: true,
     });
     expect(result.skills).toHaveLength(2);
@@ -737,7 +737,7 @@ function cliServiceFixture(): CliService {
     getSession: vi.fn(async () => ({
       session: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         status: { statusType: 1 },
         model: {
           providerId: "alran",

@@ -1,5 +1,5 @@
-import type { TurnAssemblyCtx } from '@mavis/agent-runtime';
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { TurnAssemblyCtx } from '@alran/agent-runtime';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 
 import type { SessionRecord } from '../../../session-system/index.js';
 import { createSecretFreeTurnAssemblyContext } from '../assembly-context.js';

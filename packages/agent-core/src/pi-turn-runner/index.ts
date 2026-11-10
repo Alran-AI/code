@@ -1,6 +1,6 @@
 /**
- * `@mavis/agent-core/pi-turn-runner` — assemble pi-coding-agent for a
- * Mavis session and bridge its event stream into canonical
+ * `@alran/agent-core/pi-turn-runner` — assemble pi-coding-agent for a
+ * Alran session and bridge its event stream into canonical
  * `RuntimeEvent`s.
  *
  * This module is the "injection + assembly" layer. It does not implement
@@ -91,7 +91,7 @@ export type {
 export {
   isLLMImageLimitMessage,
   isLLMRequestTooLargeMessage,
-} from '@mavis/shared/llm-error-classifier';
+} from '@alran/shared/llm-error-classifier';
 export { toPiUserMessage } from './agent.js';
 export { PTC_BATCH_WALL_CLOCK_MS } from './ptc-tool-executor.js';
 export {

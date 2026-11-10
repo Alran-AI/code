@@ -1,5 +1,5 @@
-import { Role } from '@mavis/agent-core/protocol';
-import type { GlobalEventInput } from '@mavis/shared/global-events';
+import { Role } from '@alran/agent-core/protocol';
+import type { GlobalEventInput } from '@alran/shared/global-events';
 
 import type { UserMessageTurnDelivery } from '../conversation/index.js';
 import type { SessionSystemOwner } from '../../service/session-system/index.js';

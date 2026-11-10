@@ -1,10 +1,10 @@
-import type { IAgentConfig } from '@mavis/protocol';
+import type { IAgentConfig } from '@alran/protocol';
 import {
   managedBackendRoutingHeaders,
   type ManagedBackendRoutingContext,
-} from '@mavis/agent-tools/desktop';
-import type { MavisBuildEnv } from '@mavis/config';
-import type { LLMModelConfig } from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-tools/desktop';
+import type { AlranBuildEnv } from '@alran/config';
+import type { LLMModelConfig } from '@alran/agent-core/pi-turn-runner';
 
 import type { LocalRuntimeAuthContext } from '../contracts.js';
 
@@ -19,9 +19,9 @@ export function buildLocalProviderHeaders(input: {
 }): Record<string, string> {
   const headers: Record<string, string> = {
     ...(input.headers ?? {}),
-    'X-Mavis-Session-Id': input.sessionId,
-    'X-Mavis-Agent-Id': input.agentId,
-    'X-Mavis-Timezone-Offset': String(new Date().getTimezoneOffset() * -60),
+    'X-Alran-Session-Id': input.sessionId,
+    'X-Alran-Agent-Id': input.agentId,
+    'X-Alran-Timezone-Offset': String(new Date().getTimezoneOffset() * -60),
   };
   if (input.managedProvider) {
     for (const key of Object.keys(headers)) {
@@ -33,8 +33,8 @@ export function buildLocalProviderHeaders(input: {
   return headers;
 }
 
-function currentBuildEnv(): MavisBuildEnv | undefined {
-  const value = process.env.MAVIS_BUILD_ENV;
+function currentBuildEnv(): AlranBuildEnv | undefined {
+  const value = process.env.ALRAN_BUILD_ENV;
   return value === 'dev' || value === 'test' || value === 'staging' || value === 'prod'
     ? value
     : undefined;

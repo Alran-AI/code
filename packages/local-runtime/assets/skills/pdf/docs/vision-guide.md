@@ -37,7 +37,7 @@ Run from the `pdf` skill root (where `scripts/` lives) so the `scripts` package 
 | `--input <path>`         | Path to the PDF (required)                                                                                                                                                                                                                                         | —        |
 | `--pages <spec>`         | Page range: `1-20` / `1,3,5` / `1-3,7,10-15` / `all`. Out-of-range pages are silently dropped with a stderr warning — e.g. `--pages 1-50` on a 26-page PDF runs on 1-26 and warns about 27-50. The script aborts only if **every** requested page is past the end. | `all`    |
 | `--json`                 | Emit structured JSON instead of Markdown                                                                                                                                                                                                                           | Markdown |
-| `--max-stdout-bytes <n>` | Spill outputs larger than `n` bytes to `~/.cache/mavis/pdf-out/<hash>.{md,json}` and return only a preview + path. `0` disables spilling and writes the full output to stdout.                                                                                     | `2048`   |
+| `--max-stdout-bytes <n>` | Spill outputs larger than `n` bytes to `~/.cache/alran/pdf-out/<hash>.{md,json}` and return only a preview + path. `0` disables spilling and writes the full output to stdout.                                                                                     | `2048`   |
 
 ## Mode-specific arguments
 
@@ -62,7 +62,7 @@ Default prompt (in Chinese, baked into the script):
 3. Multi-page chunks are stitched vertically with PIL (no page cap; only bytes).
 4. A single page that already exceeds the limit is re-rendered at 100 DPI.
 5. Each chunk produces one native `images_understand` call
-   (`POST http://127.0.0.1:5321/mavis/api/matrix/tool/call`); results are concatenated.
+   (`POST http://127.0.0.1:5321/alran/api/matrix/tool/call`); results are concatenated.
 6. The envelope `{code, results: [{description, ...}]}` is unwrapped to the description text
    automatically.
 
@@ -87,7 +87,7 @@ batch.
 | --------------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | `502 Bad Gateway` / `413 payload too large`               | Upstream nginx rejected the stitched image       | Add `--max-bytes 2000000` (or 1500000), shrink `--pages`, drop to `--dpi 100`                                           |
 | `gemini analysis failed` / `unexpected end of JSON input` | Transient upstream LLM hiccup                    | Retry the same command unchanged                                                                                        |
-| `Cannot connect to local runtime at port 5321`            | Local runtime is down or the port could not be discovered | Restart the Alran Code app; if the runtime is up, pass the port explicitly via `__MAVIS_RUNTIME_PORT` |
+| `Cannot connect to local runtime at port 5321`            | Local runtime is down or the port could not be discovered | Restart the Alran Code app; if the runtime is up, pass the port explicitly via `__ALRAN_RUNTIME_PORT` |
 | `auth failed` / `401`                                     | Matrix backend token expired or environment mismatch | Verify the managed login token matches the managed Matrix host, or set `MATRIX_TOKEN` for a custom `MATRIX_BASE_URL`     |
 
 The script also prints a one-line stderr hint on 502 / 413 so the model does not need to consult
@@ -100,7 +100,7 @@ pip3 install --user pdf2image pillow
 brew install poppler        # pdftoppm (pdf2image backend) + pdfinfo
 ```
 
-Runtime side: managed Matrix hosts use the Mavis login token. For a custom `MATRIX_BASE_URL`, set
+Runtime side: managed Matrix hosts use the Alran login token. For a custom `MATRIX_BASE_URL`, set
 `MATRIX_TOKEN` in the runtime environment, then restart the Alran Code app so local-runtime picks it up.
 
 ## Output spill (preventing context blow-up)
@@ -108,18 +108,18 @@ Runtime side: managed Matrix hosts use the Mavis login token. For a custom `MATR
 **Default:** when the output exceeds 2 KB, the script does NOT print the full text to stdout.
 Instead it:
 
-1. Writes the full content to `~/.cache/mavis/pdf-out/<sha256-prefix>.{md,json}` (named by content
+1. Writes the full content to `~/.cache/alran/pdf-out/<sha256-prefix>.{md,json}` (named by content
    hash so identical outputs reuse the same file).
 2. Returns the first 2 KB as a preview plus the absolute path on stdout.
 3. Lets the model decide what to do next:
-   - Read the whole file: `cat ~/.cache/mavis/pdf-out/abc...md`
-   - Search for something specific: `grep -i "keyword" ~/.cache/mavis/pdf-out/abc...md`
+   - Read the whole file: `cat ~/.cache/alran/pdf-out/abc...md`
+   - Search for something specific: `grep -i "keyword" ~/.cache/alran/pdf-out/abc...md`
    - Re-extract a narrower range: `python3 -m scripts.read_pdf_vision --input <file> --pages 14-18`
 
 **Markdown mode** prepends the preview with:
 
 ```markdown
-<!-- mavis-pdf: output truncated, full text spilled to disk -->
+<!-- alran-pdf: output truncated, full text spilled to disk -->
 
 > Full output: 12,345 bytes -> /Users/.../<hash>.md Showing first 2,048 bytes below. Read the file
 > with `cat` / `grep`, or re-run with narrower `--pages`.

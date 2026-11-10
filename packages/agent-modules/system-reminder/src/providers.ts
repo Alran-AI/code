@@ -209,7 +209,7 @@ export const peersUpdateProvider: ReminderProviderFn = (input) => {
  * Inject <active-plan-reminder> for orchestrators who own one or more active
  * team plans. Worker sessions and sessions with no active plans are skipped.
  * Reminds the orchestrator to keep new requirement changes inside the
- * existing plan via `mavis team plan pause` + `decision` rather than
+ * existing plan via `alran team plan pause` + `decision` rather than
  * spawning standalone sessions.
  */
 export const activePlanReminderProvider: ReminderProviderFn = (input) => {
@@ -233,7 +233,7 @@ export const activePlanReminderProvider: ReminderProviderFn = (input) => {
  * is rendered. The full skill-evolution channel rules live in the
  * `skill-evolution` skill; this block carries only the trigger checklist
  * + skill names so agents in long sessions stop silently defaulting to
- * `mavis memory append`.
+ * `alran memory append`.
  */
 export const memorySkillReminderProvider: ReminderProviderFn = (input) => {
   if (!input.env) return undefined;
@@ -348,7 +348,7 @@ export const memoryTopicsProvider: ReminderProviderFn = (input) => {
 
 /**
  * Inject <cli-sunset-memory-notice> when the host flagged stored memory files
- * as predating the mavis CLI removal. First turn only — the host re-evaluates
+ * as predating the alran CLI removal. First turn only — the host re-evaluates
  * per session (and after compaction resets turnCount), so eligibility stays
  * fresh without provider-side state.
  */
@@ -385,7 +385,7 @@ export function createBranchNotificationProvider(
     const lines = input.branchNotifications.map(
       (n) =>
         `- "${n.title ?? '(untitled)'}" (${n.branchSessionId}) finished at ${formatLocalDateTime(n.finishedAt)} without sending a report.` +
-        ` Use \`mavis session messages ${n.branchSessionId}\` to check its results.`,
+        ` Use \`alran session messages ${n.branchSessionId}\` to check its results.`,
     );
     return (
       `<branch-finish-alert>\n` +
@@ -591,7 +591,7 @@ export function _resetAsyncAuditStateForTests(): void {
  * - Silent when the host has no Cron capability (`cronEnabled === false`)
  */
 export const asyncAuditProvider: ReminderProviderFn = (input) => {
-  if (input.mavisEnabled === false) return undefined;
+  if (input.alranEnabled === false) return undefined;
   // The block's external follow-up path depends on Cron. Hosts without Cron
   // (embedded CLI) would otherwise be told every session to call a command
   // that fails closed with CRON_UNSUPPORTED_HOST.

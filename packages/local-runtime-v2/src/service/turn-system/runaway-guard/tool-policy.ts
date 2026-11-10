@@ -1,5 +1,5 @@
-import { readPtcExecutionDetails } from '@mavis/agent-core/tools';
-import type { RunawayGuardToolPolicy } from '@mavis/agent-extension';
+import { readPtcExecutionDetails } from '@alran/agent-core/tools';
+import type { RunawayGuardToolPolicy } from '@alran/agent-extension';
 
 type RunawayGuardToolStep = Parameters<NonNullable<RunawayGuardToolPolicy['projectProgress']>>[0];
 type RunawayGuardToolResult = RunawayGuardToolStep['result'];

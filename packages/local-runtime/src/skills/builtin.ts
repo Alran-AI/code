@@ -1,7 +1,7 @@
 import { access, readdir, readFile, stat } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getRuntimeRegion } from '@mavis/config';
+import { getRuntimeRegion } from '@alran/config';
 import yaml from 'js-yaml';
 import { renderLocalSkillsCatalog } from './catalog.js';
 
@@ -11,7 +11,7 @@ const BUILTIN_SOURCE_TYPE = 1;
 const BUILTIN_GLOBAL_SOURCE_KIND = 'builtin-global';
 const BUILTIN_AGENT_SOURCE_KIND = 'builtin-agent';
 const LEGACY_PRIMARY_AGENT_NAME = 'main';
-const PRIMARY_AGENT_NAME = 'mavis';
+const PRIMARY_AGENT_NAME = 'alran';
 const CN_DISABLED_BUILTIN_SKILLS: ReadonlySet<string> = new Set(['x-link-reader']);
 
 export function isLocalBuiltinSkillEnabled(name: string): boolean {
@@ -385,18 +385,18 @@ async function resolveBuiltinAgentsDir(): Promise<string | undefined> {
 export function getBuiltinSkillsDirCandidates(): string[] {
   const here = dirname(fileURLToPath(import.meta.url));
   return dedupePaths([
-    process.env.MAVIS_BUILTIN_SKILLS_DIR,
+    process.env.ALRAN_BUILTIN_SKILLS_DIR,
     resolve(here, '../../assets/skills'),
     resolve(here, 'assets/skills'),
     resolve(process.cwd(), 'packages/local-runtime/assets/skills'),
-    resolve(process.cwd(), 'node_modules/@mavis/local-runtime/assets/skills'),
+    resolve(process.cwd(), 'node_modules/@alran/local-runtime/assets/skills'),
   ]);
 }
 
 export function getBuiltinAgentsDirCandidates(): string[] {
   const here = dirname(fileURLToPath(import.meta.url));
   return dedupePaths([
-    process.env.MAVIS_BUILTIN_AGENTS_DIR,
+    process.env.ALRAN_BUILTIN_AGENTS_DIR,
     resolve(here, '../../assets/agents'),
     resolve(here, 'assets/agents'),
     resolve(here, '../../../local-runtime-v2/assets/agents'),

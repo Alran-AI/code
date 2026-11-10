@@ -5,8 +5,8 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { sql } from 'drizzle-orm';
-import { RUNTIME_EVENT_SCHEMA, RuntimeEventType } from '@mavis/agent-core/protocol';
-import { RespDataType, type AgentMessage } from '@mavis/agent-core/protocol/agent-message';
+import { RUNTIME_EVENT_SCHEMA, RuntimeEventType } from '@alran/agent-core/protocol';
+import { RespDataType, type AgentMessage } from '@alran/agent-core/protocol/agent-message';
 import { afterEach, expect, it, vi } from 'vitest';
 import {
   DatabaseClient,

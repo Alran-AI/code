@@ -422,7 +422,7 @@ function filenameForMediaType(mediaType: string): string {
   if (subtype === 'jpeg') extension = 'jpg';
   if (subtype === 'quicktime') extension = 'mov';
   if (subtype === 'x-msvideo') extension = 'avi';
-  return `mavis-media.${extension}`;
+  return `alran-media.${extension}`;
 }
 
 function hashMediaIdentity(target: MediaTarget): string {

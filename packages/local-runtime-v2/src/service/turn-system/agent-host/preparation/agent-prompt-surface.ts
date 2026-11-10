@@ -3,7 +3,7 @@ import {
   type AgentMentionSurface,
   type AgentReferenceErrorCode,
   type AgentReferenceResolution,
-} from '@mavis/shared/agent-mention';
+} from '@alran/shared/agent-mention';
 
 const TASK_CHILD_PURPOSE_PREFIXES = [
   'local-task:',
@@ -96,7 +96,7 @@ function resolveAgentMentionSurface(
   if (facts.surface === 'task-child') return 'task-child';
   return facts.surface === 'interactive' &&
     facts.trusted_builtin === true &&
-    facts.canonical_view_name === 'mavis'
+    facts.canonical_view_name === 'alran'
     ? 'main'
     : 'direct-subagent';
 }

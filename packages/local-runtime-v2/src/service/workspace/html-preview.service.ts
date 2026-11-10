@@ -16,7 +16,7 @@ import {
 
 const HTML_PREVIEW_LEASE_TTL_MS = 30 * 60 * 1_000;
 const HTML_PREVIEW_LEASE_LIMIT = 128;
-const HTML_PREVIEW_ROUTE = '/mavis/api/file/html-preview';
+const HTML_PREVIEW_ROUTE = '/alran/api/file/html-preview';
 export const HTML_PREVIEW_BRIDGE_SCRIPT_MAX_BYTES = 256 * 1024;
 
 interface HtmlPreviewLease {

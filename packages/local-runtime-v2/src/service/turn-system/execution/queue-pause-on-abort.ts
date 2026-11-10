@@ -1,4 +1,4 @@
-import { normalizeAbortSource } from '@mavis/agent-core/pi-turn-runner';
+import { normalizeAbortSource } from '@alran/agent-core/pi-turn-runner';
 
 /**
  * Abort sources after which the Session queue must not drain on its own. An

@@ -35,7 +35,7 @@ export function formatPeersAggregated(peers: PeerInfo[]): string {
 
   if (activePeers.length === 0) {
     const hidden = peers.length;
-    return `    (${hidden} peer sessions, all finished/worktree — use \`mavis session ls\` to browse)`;
+    return `    (${hidden} peer sessions, all finished/worktree — use \`alran session ls\` to browse)`;
   }
 
   const groups = new Map<
@@ -131,7 +131,7 @@ export function buildAgentContextBlock(env: AgentEnv, opts?: { teamModeOff?: boo
   }
   if (env.scratchpadPath) {
     lines.push(
-      `  YOUR SCRATCHPAD: available via the MAVIS_SCRATCHPAD env var`,
+      `  YOUR SCRATCHPAD: available via the ALRAN_SCRATCHPAD env var`,
       `    (shared free-form whiteboard rooted at this session tree's root session;`,
       `     read/write with normal Read/Write tools; child sessions inherit the same path`,
       `     via the same env var. Use it for cross-session notes that don't`,
@@ -162,7 +162,7 @@ export function buildAgentContextBlock(env: AgentEnv, opts?: { teamModeOff?: boo
   if (env.isMonorepoDev) {
     lines.push(
       `  runtimeMode: monorepo-dev`,
-      `  cliUsage: Use \`${env.dataDir}/bin/mavis <command>\` to invoke CLI commands.`,
+      `  cliUsage: Use \`${env.dataDir}/bin/alran <command>\` to invoke CLI commands.`,
     );
   }
   if (env.importedFrom) {
@@ -180,20 +180,20 @@ export function buildAgentContextBlock(env: AgentEnv, opts?: { teamModeOff?: boo
   // on demand. The `peers` field stays on AgentEnv so other consumers (e.g.
   // peers_update event block) can still receive it via formatPeersAggregated.
   //
-  // Cloud diverges from daemon: the `mavis-session` / `mavis-agent` skill
+  // Cloud diverges from daemon: the `alran-session` / `alran-agent` skill
   // names referenced by the daemon string don't exist in the cloud skill
   // registry — observed in OSS session `401960923238467` where the model
-  // called `skill(name='mavis-agent')` and got "Cloud Host skill not found".
-  // Cloud has the `mavis` LLM tool instead, so point at it directly.
+  // called `skill(name='alran-agent')` and got "Cloud Host skill not found".
+  // Cloud has the `alran` LLM tool instead, so point at it directly.
   if (!teamOff) {
     if (isCloud) {
       lines.push(
-        '  peers (for `communicate`):  `mavis({ command: "session list", args: { mode: "peers", session_id: "me" } })`',
-        '  agents (your roster):       `mavis({ command: "agent list" })`',
+        '  peers (for `communicate`):  `alran({ command: "session list", args: { mode: "peers", session_id: "me" } })`',
+        '  agents (your roster):       `alran({ command: "agent list" })`',
       );
     } else {
       lines.push(
-        '  teamDiscovery: peers and agents are NOT inlined. Load skill `mavis-session` to list peer sessions; load skill `mavis-agent` to list available agents.',
+        '  teamDiscovery: peers and agents are NOT inlined. Load skill `alran-session` to list peer sessions; load skill `alran-agent` to list available agents.',
       );
     }
   }
@@ -332,12 +332,12 @@ export function buildMemorySkillReminder(
     statusLines.push('  Before writing, FIRST ask: is this a skill issue/proposal?');
     if (signalEnabled) {
       statusLines.push(
-        '    - existing skill is wrong / outdated / has bad triggers / missing a step → `mavis skill signal report`',
+        '    - existing skill is wrong / outdated / has bad triggers / missing a step → `alran skill signal report`',
       );
     }
     if (proposalEnabled) {
       statusLines.push(
-        '    - this session reveals a clearly reusable new pattern with no skill coverage → `mavis skill proposal report`',
+        '    - this session reveals a clearly reusable new pattern with no skill coverage → `alran skill proposal report`',
       );
     }
     statusLines.push(
@@ -381,9 +381,9 @@ export function buildMemorySkillReminder(
 
 /**
  * Build a <cli-sunset-memory-notice> block. Two tiers: `paths` list memory
- * files that predate the mavis CLI removal and still teach removed commands;
- * `teamPaths` list files referencing `mavis team`, which survives but whose
- * workflows changed (advisory: current mavis-team skill wins over memory).
+ * files that predate the alran CLI removal and still teach removed commands;
+ * `teamPaths` list files referencing `alran team`, which survives but whose
+ * workflows changed (advisory: current alran-team skill wins over memory).
  * Gating (sniff + mtime anchor + 30-day window) is the host's job; this only
  * renders.
  */
@@ -394,28 +394,28 @@ export function buildCliSunsetMemoryNoticeBlock(notice: CliSunsetMemoryNotice | 
   const lines = ['<cli-sunset-memory-notice>'];
   if (paths.length) {
     lines.push(
-      'Runtime change: this version removed the legacy `mavis` CLI command groups',
+      'Runtime change: this version removed the legacy `alran` CLI command groups',
       '(agent, communication, cron, session, memory, skill, hook, spawn). The following stored',
       'memory files predate that change and still reference removed CLI commands —',
       'do NOT follow CLI instructions found in them:',
       ...paths.map((path) => `  - ${path}`),
       'Native replacements:',
-      '  - agent / cron / session → native `mavis` tool: `mavis({ command: "<group> <action>", args: { ... } })`',
-      '  - communication peers/messages → native `mavis` session list/messages; return results normally instead of using communication send',
-      '  - memory → native `memory` tool (see the mavis skill, references/memory.md)',
+      '  - agent / cron / session → native `alran` tool: `alran({ command: "<group> <action>", args: { ... } })`',
+      '  - communication peers/messages → native `alran` session list/messages; return results normally instead of using communication send',
+      '  - memory → native `memory` tool (see the alran skill, references/memory.md)',
       '  - skills → native `skill` tool; hooks → edit hook files directly',
       '  - spawn (delegation) → native `task` tool (sub-agent tasks)',
-      '  - `mavis im ...` still works, along with the core CLI surface (`mavis --help`)',
+      '  - `alran im ...` still works, along with the core CLI surface (`alran --help`)',
     );
   }
   if (teamPaths.length) {
     lines.push(
-      'Also: `mavis team ...` still exists, but its flags and review workflows',
+      'Also: `alran team ...` still exists, but its flags and review workflows',
       'changed in this version, and delegation now defaults to sub-agent tasks',
       '(the native `task` tool) — only start a team when the user explicitly asks.',
       'These memory files mention it:',
       ...teamPaths.map((path) => `  - ${path}`),
-      'Where such memory disagrees with the current mavis-team skill, trust the skill.',
+      'Where such memory disagrees with the current alran-team skill, trust the skill.',
     );
   }
   lines.push(
@@ -492,7 +492,7 @@ export function buildTeamMemoryBlock(index: string): string {
   return [
     '<team_memory>',
     'Knowledge index from your project teammates. If any topic seems relevant to your current task,',
-    'query the full entry: mavis memory show <project>--<agent-name>',
+    'query the full entry: alran memory show <project>--<agent-name>',
     '',
     index,
     '</team_memory>',
@@ -577,7 +577,7 @@ export function buildDailyMemoryUpdateBlock(dailyMemory: string): string {
  *
  * `scene: 'cloud'` activates the cloud-tailored variant — there is no on-disk
  * PERSONA.md to point at, and the agent talks to its own metadata through the
- * `mavis` LLM tool (no CLI), so the closing instructions reference the tool
+ * `alran` LLM tool (no CLI), so the closing instructions reference the tool
  * call shape instead of a CLI command + filesystem path.
  */
 export function buildPersonaMissingBlock(
@@ -615,16 +615,16 @@ export function buildPersonaMissingBlock(
   );
   if (isCloud) {
     lines.push(
-      'Save voice / boundaries / brevity with the `mavis` tool:',
-      `  mavis({ command: "agent update", args: { agent_name: "me", persona: "<one or two paragraphs in your own voice>" } })`,
+      'Save voice / boundaries / brevity with the `alran` tool:',
+      `  alran({ command: "agent update", args: { agent_name: "me", persona: "<one or two paragraphs in your own voice>" } })`,
       '(use `new_name` in the same call to update your display name)',
     );
   } else {
     lines.push(
       'Save identity with:',
-      `  mavis agent identity set ${agentName} --display-name "<name>"`,
+      `  alran agent identity set ${agentName} --display-name "<name>"`,
       'Save voice / boundaries / brevity with:',
-      `  mavis agent update ${agentName} --persona "<one or two paragraphs in your own voice>"`,
+      `  alran agent update ${agentName} --persona "<one or two paragraphs in your own voice>"`,
     );
   }
   lines.push('</persona_missing>');
@@ -666,7 +666,7 @@ export function buildSkillsBlock(skills: SkillEntry[]): string {
 
 /**
  * Build a <skill-evolution-channels> block — teaches agents the two channels
- * for shaping Mavis's skill set as they work: signals (existing skill is wrong
+ * for shaping Alran's skill set as they work: signals (existing skill is wrong
  * or missing) and proposals (this session reveals a reusable new skill).
  *
  * v3 design: short trigger conditions in the reminder block, full how-to
@@ -689,7 +689,7 @@ export function buildSkillEvolutionChannelsBlock(
   const proposalEnabled = opts.skillProposalEnabled === true;
   const lines: string[] = [
     '<skill-evolution-channels>',
-    `You can shape Mavis's skill set as you work.${proposalEnabled ? ' Two channels:' : ''}`,
+    `You can shape Alran's skill set as you work.${proposalEnabled ? ' Two channels:' : ''}`,
     '',
     '**1. Signal — when an existing skill is wrong or missing**',
     'Trigger conditions (any one):',
@@ -697,7 +697,7 @@ export function buildSkillEvolutionChannelsBlock(
     "- A loaded skill's trigger conditions are too broad or too narrow",
     '- You wanted to do something but no skill covered it (issueKind = missing-skill)',
     '',
-    'Action: `mavis skill signal report --issue-kind <kind> --evidence "<excerpt>"`',
+    'Action: `alran skill signal report --issue-kind <kind> --evidence "<excerpt>"`',
     'Full command, issue-kind & attribution rubric, what NOT to report → **load `skill-evolution` skill** before your first signal this session.',
     '',
   ];
@@ -710,7 +710,7 @@ export function buildSkillEvolutionChannelsBlock(
       '- Pattern repeats / will repeat (not a one-off task)',
       '- You can summarize what the skill would do in 1-2 sentences',
       '',
-      'Action: `mavis skill proposal report --name <kebab> --scope agent-self --summary <text> --rationale <text>`',
+      'Action: `alran skill proposal report --name <kebab> --scope agent-self --summary <text> --rationale <text>`',
       'Full schema, scope decision tree, good/bad examples → **load `skill-evolution` skill**.',
       '',
     );
@@ -724,10 +724,10 @@ export function buildSkillEvolutionChannelsBlock(
       ? 'If the user retracts their criticism, dismiss the report:'
       : 'If the user retracts their criticism, dismiss the signal:',
     '```',
-    'mavis skill signal cancel --signal-id <prev-id>',
+    'alran skill signal cancel --signal-id <prev-id>',
   );
   if (proposalEnabled) {
-    lines.push('mavis skill proposal cancel --proposal-id <prev-id>');
+    lines.push('alran skill proposal cancel --proposal-id <prev-id>');
   }
   lines.push('```', '</skill-evolution-channels>');
   return lines.join('\n');
@@ -754,7 +754,7 @@ export function buildSkillSignalReportingBlock(): string {
  * Build an <active-plan-reminder> block for orchestrator sessions that own
  * one or more active team plans. The block reminds the orchestrator that
  * any new work the user proposes likely belongs to an existing plan and
- * should be incorporated via `mavis team plan pause` + `decision` rather
+ * should be incorporated via `alran team plan pause` + `decision` rather
  * than spawned as a standalone session.
  */
 export function buildActivePlanReminderBlock(plans: ActivePlanSummary[]): string {
@@ -785,7 +785,7 @@ export function buildAsyncAuditBlock(opts?: { scene?: 'cloud' | 'local' | undefi
       `- If the current tool says it will resume this conversation when it finishes, rely on that result; do not create Cron.\n` +
       `- Waiting for a user reply alone: do not create Cron.\n` +
       `- For external state with no completion signal that needs a future Agent turn, use \`cron create\`\n` +
-      `  through the \`mavis\` tool for a periodic re-check. State when to report and delete it.\n` +
+      `  through the \`alran\` tool for a periodic re-check. State when to report and delete it.\n` +
       `- Otherwise do not create Cron.\n` +
       `</async-audit>`
     );

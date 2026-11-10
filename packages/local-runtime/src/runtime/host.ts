@@ -1,13 +1,13 @@
 import { logger } from "../common/logger.js";
 import type { LocalEventWriter } from "../events/sink.js";
-import { PiTurnRunner } from "@mavis/agent-core/pi-turn-runner";
-import { RuntimeEventStatus, RuntimeEventType } from "@mavis/protocol";
+import { PiTurnRunner } from "@alran/agent-core/pi-turn-runner";
+import { RuntimeEventStatus, RuntimeEventType } from "@alran/protocol";
 import {
   buildAbortedTerminalStatusEvent,
   buildCompletedTerminalStatusEvent,
-} from "@mavis/agent-core/event-bridge";
-import { getRuntimeBuildEnv } from "@mavis/config";
-import { BpeTokenEstimator } from "@mavis/context-manager";
+} from "@alran/agent-core/event-bridge";
+import { getRuntimeBuildEnv } from "@alran/config";
+import { BpeTokenEstimator } from "@alran/context-manager";
 
 import {
   createContentSafetyChecker,

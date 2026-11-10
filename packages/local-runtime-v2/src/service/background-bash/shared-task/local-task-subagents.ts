@@ -1,4 +1,4 @@
-import type { LocalPluginAgentRoster } from '@mavis/agent-tools/desktop';
+import type { LocalPluginAgentRoster } from '@alran/agent-tools/desktop';
 import {
   resolveTaskTarget,
   type AgentReferenceResolver,

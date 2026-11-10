@@ -100,7 +100,7 @@ async function fixture(rows: readonly CanonicalHistoryEnvelope[], archived: bool
   const dataDir = await mkdtemp(join(tmpdir(), 'btw-settled-'));
   const source: SessionRecord = {
     sessionId: 'source',
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: dataDir,
     runtime: 'pi-agent',
     sessionType: 'root',

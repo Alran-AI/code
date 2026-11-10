@@ -104,7 +104,7 @@ Alran Code 保留自己的模型标识——它们决定思考模式、effort �
 | `Alran-M3.1-Flash` | `ottili/werk-1.1` | 智能 / 编码（默认） |
 | `Alran-M3` | `ottili/werk-1.1-pro` | 高阶 |
 
-请求按发起请求的 Key 在 Ottili 平台计费与计量。从本仓库构建的版本与已发布的 npm CLI `@ottili/alran-code@0.6.9` 均默认将用户数据保存在 `~/.alran`（选择 profile 时为 `~/.alran-<profile>`）。`ALRAN_DATA_DIR` 或 `MAVIS_DATA_DIR` 可以覆盖数据目录。安装脚本使用的 `~/.alran-code` 安装目录与数据目录的选择是两回事。查找或删除配置和会话前，请参阅[账号与数据](docs/installation.md#accounts-and-data)。
+请求按发起请求的 Key 在 Ottili 平台计费与计量。从本仓库构建的版本与已发布的 npm CLI `@ottili/alran-code@0.6.9` 均默认将用户数据保存在 `~/.alran`（选择 profile 时为 `~/.alran-<profile>`）。`ALRAN_DATA_DIR` 或 `ALRAN_DATA_DIR` 可以覆盖数据目录。安装脚本使用的 `~/.alran-code` 安装目录与数据目录的选择是两回事。查找或删除配置和会话前，请参阅[账号与数据](docs/installation.md#accounts-and-data)。
 
 <details>
 <summary>使用自己的 API Key（BYOK）</summary>
@@ -260,7 +260,7 @@ rm -rf -- "$HOME/.alran"
 Remove-Item -LiteralPath "$env:USERPROFILE\.alran" -Recurse -Force
 ```
 
-profile 使用 `~/.alran-<profile>`；`ALRAN_DATA_DIR` 或 `MAVIS_DATA_DIR` 可以指定其他位置。只删除确定不再需要的具体目录，不要使用通配符批量删除。如果不再需要自行添加的 Alran 环境变量，也请从 shell 配置或用户环境变量设置中移除对应赋值。
+profile 使用 `~/.alran-<profile>`；`ALRAN_DATA_DIR` 或 `ALRAN_DATA_DIR` 可以指定其他位置。只删除确定不再需要的具体目录，不要使用通配符批量删除。如果不再需要自行添加的 Alran 环境变量，也请从 shell 配置或用户环境变量设置中移除对应赋值。
 
 ## 可以做什么
 

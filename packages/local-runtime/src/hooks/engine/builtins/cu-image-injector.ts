@@ -1,7 +1,7 @@
 /**
  * Built-in PostToolUse hook: Computer Use (CU) image injector.
  *
- * When an agent invokes a CU MCP tool via bash (`mavis mcp call cu ...`),
+ * When an agent invokes a CU MCP tool via bash (`alran mcp call cu ...`),
  * the CLI saves any returned image data to a temp file and outputs a marker
  * line: `[image saved: /path/to/file.jpg (image/jpeg)]`. This hook detects
  * that marker, reads the file, compresses it for model consumption, and
@@ -13,8 +13,8 @@
  * tool result that reaches the LLM is just text.
  *
  * Flow:
- *   Agent calls bash("mavis mcp call cu desktop_screenshot")
- *     → CLI saves image to /tmp/mavis-mcp-images/mcp-image-*.jpg
+ *   Agent calls bash("alran mcp call cu desktop_screenshot")
+ *     → CLI saves image to /tmp/alran-mcp-images/mcp-image-*.jpg
  *     → CLI outputs "[image saved: /path (mime)]"
  *     → This hook fires on the Bash PostToolUse
  *     → Reads temp file, compresses via buildCompressedModelImageFromFile
@@ -45,14 +45,14 @@ const IMAGE_SAVED_PATTERN = /\[image saved: (.+?) \(([^)]+)\)\]/g;
  * Detect whether a tool call is a CU MCP invocation via bash.
  *
  * Recognised shapes:
- *   - bash/shell command containing `mavis mcp call cu`
+ *   - bash/shell command containing `alran mcp call cu`
  */
 export function isCuToolInvocation(toolName: string, toolArgs: unknown): boolean {
   const lower = toolName.toLowerCase();
   if (lower !== 'bash' && lower !== 'shell') return false;
   if (!toolArgs || typeof toolArgs !== 'object') return false;
   const cmd = (toolArgs as Record<string, unknown>).command;
-  return typeof cmd === 'string' && /\bmavis\s+mcp\s+call\s+cu\b/u.test(cmd);
+  return typeof cmd === 'string' && /\balran\s+mcp\s+call\s+cu\b/u.test(cmd);
 }
 
 interface StructuredToolResult {

@@ -3,11 +3,11 @@ import { dirname, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
-import { resolveAgentCapabilities } from "@mavis/config";
+import { resolveAgentCapabilities } from "@alran/config";
 import type {
   PromptReadSnapshot,
   PromptSnapshotSource,
-} from "@mavis/agent-runtime";
+} from "@alran/agent-runtime";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -211,14 +211,14 @@ describe("BuiltinAgentCatalog", () => {
 });
 
 describe("BuiltinAgentCatalog recoverable deletion guidance", () => {
-  it("teaches Mavis to use the runtime-owned recoverable deletion path", async () => {
+  it("teaches Alran to use the runtime-owned recoverable deletion path", async () => {
     const assetsDir = resolve(
       dirname(fileURLToPath(import.meta.url)),
       "../../../../assets/agents",
     );
     const catalog = new BuiltinAgentCatalog({ assetsDir });
     const common = {
-      agentName: "mavis",
+      agentName: "alran",
       surface: "interactive" as const,
       locale: "en-US",
       promptChannel: "online" as const,
@@ -233,9 +233,9 @@ describe("BuiltinAgentCatalog recoverable deletion guidance", () => {
 
       expect(rendered.corePrompt).toContain("## Recoverable Deletion");
       expect(rendered.corePrompt).toContain("activeDataDir");
-      expect(rendered.corePrompt).toContain("/bin/mavis-trash");
+      expect(rendered.corePrompt).toContain("/bin/alran-trash");
       expect(rendered.corePrompt).toMatch(
-        /never guess it or use\s+bare `mavis-trash`/u,
+        /never guess it or use\s+bare `alran-trash`/u,
       );
       expect(rendered.corePrompt).toMatch(
         /never fall back to permanent\s+deletion/u,
@@ -261,7 +261,7 @@ describe("BuiltinAgentCatalog Explore composition", () => {
       readFile(join(assetsDir, "explore", "system-prompt.md.hbs"), "utf8"),
       readFile(join(assetsDir, "_v2", "explore.md.hbs"), "utf8"),
       readFile(
-        join(assetsDir, "mavis", "features", "delegation.md.hbs"),
+        join(assetsDir, "alran", "features", "delegation.md.hbs"),
         "utf8",
       ),
     ]);
@@ -296,7 +296,7 @@ describe("BuiltinAgentCatalog composition", () => {
     const catalog = new BuiltinAgentCatalog({ assetsDir });
 
     const rendered = await catalog.render({
-      agentName: "mavis",
+      agentName: "alran",
       surface: "interactive",
       promptMode: "work",
       appMode: "work",
@@ -330,24 +330,24 @@ describe("BuiltinAgentCatalog composition", () => {
     expect(rendered.corePrompt).not.toContain("Do not emit favicon");
     expect(rendered.corePrompt).not.toContain("## Tool source citations");
   });
-  it("avoids duplicating the shared Mavis mode layer while retaining Windows and worker bases", async () => {
+  it("avoids duplicating the shared Alran mode layer while retaining Windows and worker bases", async () => {
     const root = await mkdtemp(
       join(tmpdir(), "local-runtime-v2-agent-shared-base-"),
     );
     fixtureDirectories.push(root);
-    await mkdir(join(root, "mavis", "modes", "coding", "online"), {
+    await mkdir(join(root, "alran", "modes", "coding", "online"), {
       recursive: true,
     });
     await mkdir(join(root, "worker"), { recursive: true });
     await mkdir(join(root, "_default"), { recursive: true });
-    await writeFile(join(root, "builtin-agents.json"), '["mavis", "worker"]');
+    await writeFile(join(root, "builtin-agents.json"), '["alran", "worker"]');
     await writeFile(
-      join(root, "mavis", "modes", "coding", "online", "SYSTEM.md.hbs"),
-      "## Harness\nMavis system",
+      join(root, "alran", "modes", "coding", "online", "SYSTEM.md.hbs"),
+      "## Harness\nAlran system",
     );
     await writeFile(
-      join(root, "mavis", "modes", "coding", "online", "PERSONA.md"),
-      "Mavis persona",
+      join(root, "alran", "modes", "coding", "online", "PERSONA.md"),
+      "Alran persona",
     );
     await writeFile(join(root, "worker", "PERSONA.md"), "Worker persona");
     await writeFile(join(root, "worker", "system-prompt.md"), "Worker system");
@@ -377,13 +377,13 @@ describe("BuiltinAgentCatalog composition", () => {
       promptChannel: "online" as const,
       capabilities: resolveAgentCapabilities({
         tools: ["bash"],
-        features: { mavis: false, delegation: false, webSearch: false },
+        features: { alran: false, delegation: false, webSearch: false },
       }),
     };
 
-    const mavis = await catalog.render({ ...common, agentName: "mavis" });
-    expect(mavis.corePrompt).toBe("## Harness\nMavis system\n\nwindows base");
-    expect(mavis.corePrompt.match(/^## Harness$/gmu)).toHaveLength(1);
+    const alran = await catalog.render({ ...common, agentName: "alran" });
+    expect(alran.corePrompt).toBe("## Harness\nAlran system\n\nwindows base");
+    expect(alran.corePrompt.match(/^## Harness$/gmu)).toHaveLength(1);
     await expect(
       catalog.render({ ...common, agentName: "worker" }),
     ).resolves.toMatchObject({
@@ -464,11 +464,11 @@ describe("BuiltinAgentCatalog localized assets", () => {
     );
     await writeFile(
       join(root, "explore", "system-prompt.md.hbs"),
-      "System {{features.mavis}}",
+      "System {{features.alran}}",
     );
     await writeFile(
       join(root, "explore", "agent.md"),
-      "---\nfeatures:\n  mavis: true\n  delegation: true\n  webSearch: false\n---\n",
+      "---\nfeatures:\n  alran: true\n  delegation: true\n  webSearch: false\n---\n",
     );
     await writeFile(
       join(root, "explore", "features", "delegation.md.hbs"),
@@ -497,7 +497,7 @@ describe("BuiltinAgentCatalog localized assets", () => {
 
     const catalog = new BuiltinAgentCatalog({ assetsDir: root });
     await expect(catalog.resolveAssetsDir()).resolves.toBe(root);
-    expect(canonicalBuiltinName(" MAIN ")).toBe("mavis");
+    expect(canonicalBuiltinName(" MAIN ")).toBe("alran");
     expect(legacyNamesFor("explore")).toEqual([]);
     await expect(catalog.hasBuiltin("EXPLORE")).resolves.toBe(true);
     // A detached historic built-in is no longer an alias of a canonical role.
@@ -663,21 +663,21 @@ describe("BuiltinAgentCatalog validation and fallback rendering", () => {
       join(tmpdir(), "local-runtime-v2-agent-assets-primary-"),
     );
     fixtureDirectories.push(root);
-    await mkdir(join(root, "mavis", "modes", "coding", "online"), {
+    await mkdir(join(root, "alran", "modes", "coding", "online"), {
       recursive: true,
     });
     await mkdir(join(root, "_default"), { recursive: true });
-    await writeFile(join(root, "builtin-agents.json"), '["mavis"]');
+    await writeFile(join(root, "builtin-agents.json"), '["alran"]');
     await writeFile(
-      join(root, "mavis", "modes", "coding", "online", "SYSTEM.md.hbs"),
+      join(root, "alran", "modes", "coding", "online", "SYSTEM.md.hbs"),
       "online",
     );
     await writeFile(
-      join(root, "mavis", "modes", "coding", "online", "PERSONA.md"),
-      "Mavis",
+      join(root, "alran", "modes", "coding", "online", "PERSONA.md"),
+      "Alran",
     );
     await writeFile(
-      join(root, "mavis", "modes", "coding", "online", "PERSONA-zh.md"),
+      join(root, "alran", "modes", "coding", "online", "PERSONA-zh.md"),
       "马维斯",
     );
     await writeFile(
@@ -689,30 +689,30 @@ describe("BuiltinAgentCatalog validation and fallback rendering", () => {
 
     await expect(
       catalog.render({
-        agentName: "mavis",
+        agentName: "alran",
         surface: "interactive",
         appMode: "coding",
         locale: "zh-CN",
         promptChannel: "internal",
         capabilities: resolveAgentCapabilities({
           tools: [],
-          features: { mavis: false, delegation: false, webSearch: false },
+          features: { alran: false, delegation: false, webSearch: false },
         }),
       }),
-    ).resolves.toMatchObject({ corePrompt: "online", persona: "Mavis" });
+    ).resolves.toMatchObject({ corePrompt: "online", persona: "Alran" });
 
     const resolved = resolveCanonicalCapabilities(
       {
         persona: { enabled: true },
         tools: ["read", "write"] as never,
-        features: { mavis: true, delegation: true, webSearch: true },
+        features: { alran: true, delegation: true, webSearch: true },
       },
       { persona: { enabled: false }, features: { delegation: false } },
     );
     expect(resolved).toMatchObject({
       persona: { enabled: false },
       tools: ["read", "write"],
-      features: { mavis: true, delegation: false, webSearch: true },
+      features: { alran: true, delegation: false, webSearch: true },
     });
     expect(
       resolveCanonicalCapabilities(undefined, { tools: ["read"] as never })
@@ -724,7 +724,7 @@ describe("BuiltinAgentCatalog validation and fallback rendering", () => {
     ).toEqual(["read"]);
     expect(canonicalBuiltinName("unknown")).toBe("unknown");
     expect(canonicalBuiltinName("general")).toBe("general");
-    expect(legacyNamesFor("mavis")).toEqual(["main"]);
+    expect(legacyNamesFor("alran")).toEqual(["main"]);
     expect(legacyNamesFor("unknown")).toEqual([]);
   });
 
@@ -754,15 +754,15 @@ describe("BuiltinAgentCatalog TodoWrite lifecycle guidance", () => {
       memoryEnabled: false,
       cronEnabled: false,
     };
-    const [mavis, work, worker, withoutTodoWrite] = await Promise.all([
+    const [alran, work, worker, withoutTodoWrite] = await Promise.all([
       catalog.render({
         ...common,
-        agentName: "mavis",
+        agentName: "alran",
         capabilities: resolveAgentCapabilities(),
       }),
       catalog.render({
         ...common,
-        agentName: "mavis",
+        agentName: "alran",
         appMode: "work",
         promptMode: "work",
         capabilities: resolveAgentCapabilities(),
@@ -774,12 +774,12 @@ describe("BuiltinAgentCatalog TodoWrite lifecycle guidance", () => {
       }),
       catalog.render({
         ...common,
-        agentName: "mavis",
+        agentName: "alran",
         capabilities: resolveAgentCapabilities({ tools: ["read"] }),
       }),
     ]);
 
-    for (const rendered of [mavis, work, worker, withoutTodoWrite]) {
+    for (const rendered of [alran, work, worker, withoutTodoWrite]) {
       expect(rendered.corePrompt).not.toContain("Task Management");
       expect(rendered.corePrompt).not.toContain(
         "When tracking work with TodoWrite",
@@ -793,7 +793,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
   it("ships the response style contract in coding and work online prompts", async () => {
     const catalog = new BuiltinAgentCatalog();
     const common = {
-      agentName: "mavis",
+      agentName: "alran",
       surface: "interactive" as const,
       locale: "en-US",
       promptChannel: "online" as const,
@@ -825,10 +825,10 @@ describe("BuiltinAgentCatalog session surfaces", () => {
   it("uses the complete coding template for CLI while preserving capability gates", async () => {
     const catalog = new BuiltinAgentCatalog();
     const capabilities = resolveAgentCapabilities({
-      features: { mavis: true, delegation: true, webSearch: true },
+      features: { alran: true, delegation: true, webSearch: true },
     });
     const common = {
-      agentName: "mavis",
+      agentName: "alran",
       appMode: "coding" as const,
       promptMode: "coding" as const,
       promptChannel: "online" as const,
@@ -848,7 +848,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
           surface: "cli",
           locale: "en",
           capabilities: resolveAgentCapabilities({
-            features: { mavis: true, delegation: false, webSearch: true },
+            features: { alran: true, delegation: false, webSearch: true },
           }),
         }),
       ]);
@@ -866,7 +866,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     expect(cliZh.corePrompt).toContain(
       "You help users with software engineering tasks.",
     );
-    expect(cliZh.corePrompt).not.toContain("You are Mavis");
+    expect(cliZh.corePrompt).not.toContain("You are Alran");
     expect(cliZh.corePrompt).not.toContain("Alran As a Jarvis");
     expect(cli.corePrompt).not.toContain("# Work Rules");
     expect(cli.corePrompt).toContain("# Communication & Delivery");
@@ -881,14 +881,14 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     async (appMode) => {
       const catalog = new BuiltinAgentCatalog();
       const rendered = await catalog.render({
-        agentName: "mavis",
+        agentName: "alran",
         surface: "interactive",
         appMode,
         promptMode: appMode,
         locale: "en",
         promptChannel: "online",
         capabilities: resolveAgentCapabilities({
-          features: { mavis: true, delegation: true, webSearch: true },
+          features: { alran: true, delegation: true, webSearch: true },
         }),
         memoryEnabled: false,
         cronEnabled: true,
@@ -960,7 +960,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     ).resolves.toBe("Custom child override\n\nDefault child contract");
   });
 
-  it("keeps legacy role names out of model-visible Mavis onboarding assets", async () => {
+  it("keeps legacy role names out of model-visible Alran onboarding assets", async () => {
     const catalog = new BuiltinAgentCatalog();
     const root = await catalog.resolveAssetsDir();
     expect(root).toBe(
@@ -970,7 +970,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
       ),
     );
     const systemPrompt = await readFile(
-      join(root, "mavis", "system-prompt.md.hbs"),
+      join(root, "alran", "system-prompt.md.hbs"),
       "utf8",
     );
     expect(systemPrompt).not.toMatch(
@@ -978,11 +978,11 @@ describe("BuiltinAgentCatalog session surfaces", () => {
     );
   });
 
-  it("keeps product knowledge in the Mavis Skill catalog instead of duplicating it in mode prompts", async () => {
+  it("keeps product knowledge in the Alran Skill catalog instead of duplicating it in mode prompts", async () => {
     const catalog = new BuiltinAgentCatalog();
     const root = await catalog.resolveAssetsDir();
     const common = {
-      agentName: "mavis",
+      agentName: "alran",
       surface: "interactive" as const,
       locale: "en-US",
       promptChannel: "online" as const,
@@ -992,7 +992,7 @@ describe("BuiltinAgentCatalog session surfaces", () => {
       catalog.render({ ...common, appMode: "coding", promptMode: "coding" }),
       catalog.render({ ...common, appMode: "work", promptMode: "work" }),
       readFile(
-        join(root, "mavis", "skills", "alran-code-product", "SKILL.md"),
+        join(root, "alran", "skills", "alran-code-product", "SKILL.md"),
         "utf8",
       ),
     ]);
@@ -1057,7 +1057,7 @@ describe("BuiltinAgentCatalog Desktop V2 prompt profile", () => {
       const reader = promptReader({ a: files("a"), b: files("b") });
       const catalog = new BuiltinAgentCatalog({ promptFileReader: reader });
       const input = {
-        agentName: "mavis",
+        agentName: "alran",
         surface: "interactive" as const,
         promptProfile: "desktop" as const,
         appMode,
@@ -1102,7 +1102,7 @@ describe("BuiltinAgentCatalog TUI prompt profile", () => {
       const reader = promptReader({ desktop: {} });
       const catalog = new BuiltinAgentCatalog({ promptFileReader: reader });
       const input = {
-        agentName: "mavis",
+        agentName: "alran",
         surface: "cli" as const,
         promptProfile: "tui" as const,
         appMode,
@@ -1134,14 +1134,14 @@ describe("BuiltinAgentCatalog TUI prompt profile", () => {
     fixtureDirectories.push(root);
     await mkdir(join(root, "_v2", "tui"), { recursive: true });
     await mkdir(join(root, "_default"), { recursive: true });
-    await writeFile(join(root, "builtin-agents.json"), '["mavis"]');
+    await writeFile(join(root, "builtin-agents.json"), '["alran"]');
     await writeFile(
       join(root, "_default", "prompt-session-branch.md.hbs"),
       "Desktop child",
     );
     const catalog = new BuiltinAgentCatalog({ assetsDir: root });
     const input = {
-      agentName: "mavis",
+      agentName: "alran",
       surface: "cli" as const,
       promptProfile: "tui" as const,
       appMode: "coding" as const,
@@ -1197,9 +1197,9 @@ describe("BuiltinAgentCatalog persona assets", () => {
   it("keeps identity and Core Judgment in the complete coding template", async () => {
     const catalog = new BuiltinAgentCatalog();
     const root = await catalog.resolveAssetsDir();
-    const persona = await readFile(join(root, "mavis", "PERSONA.md"), "utf8");
+    const persona = await readFile(join(root, "alran", "PERSONA.md"), "utf8");
     const { corePrompt } = await catalog.render({
-      agentName: "mavis",
+      agentName: "alran",
       surface: "interactive",
       appMode: "coding",
       promptMode: "coding",
@@ -1217,9 +1217,9 @@ describe("BuiltinAgentCatalog persona assets", () => {
     expect(corePrompt).toContain(
       "Report results faithfully: say what succeeded, what failed, what was skipped, and what remains unverified.",
     );
-    expect(persona).toContain("display_name: Mavis");
+    expect(persona).toContain("display_name: Alran");
     expect(persona).toContain("Alran Code");
-    expect(persona).not.toContain("You are Mavis");
+    expect(persona).not.toContain("You are Alran");
     expect(persona).not.toContain("Core Judgment");
     expect(persona).not.toContain("customer service");
     expect(persona).not.toContain("Warm But Not Soft");
@@ -1235,7 +1235,7 @@ describe("BuiltinAgentCatalog citation surfaces", () => {
     async (memoryEnabled) => {
       const catalog = new BuiltinAgentCatalog();
       const common = {
-        agentName: "mavis",
+        agentName: "alran",
         surface: "interactive" as const,
         locale: "zh-CN",
         promptChannel: "online" as const,
@@ -1372,7 +1372,7 @@ describe("shipped canonical SubAgent definitions", () => {
 
 describe("BuiltinAgentCatalog prompt modes", () => {
   const common = {
-    agentName: "mavis",
+    agentName: "alran",
     surface: "cli" as const,
     promptProfile: "tui" as const,
     appMode: "coding" as const,
@@ -1481,7 +1481,7 @@ describe("BuiltinAgentCatalog prompt modes", () => {
       recursive: true,
     });
     const catalog = new BuiltinAgentCatalog({ assetsDir: root });
-    await rm(join(root, "mavis/features"), { recursive: true });
+    await rm(join(root, "alran/features"), { recursive: true });
     const input = {
       ...common,
       promptMode: "work" as const,
@@ -1505,7 +1505,7 @@ describe('BuiltinAgentCatalog PTC section', () => {
     'search the workspace with `grep` or `glob` first',
   ];
   const tui = {
-    agentName: 'mavis', surface: 'cli' as const, promptProfile: 'tui' as const,
+    agentName: 'alran', surface: 'cli' as const, promptProfile: 'tui' as const,
     appMode: 'coding' as const, locale: 'en', promptChannel: 'online' as const,
     capabilities: resolveAgentCapabilities(),
   };
@@ -1571,7 +1571,7 @@ describe('BuiltinAgentCatalog PTC section', () => {
   it('fails loudly when the bundled section is missing', async () => {
     const root = await mkdtemp(join(tmpdir(), 'local-runtime-v2-agent-ptc-missing-'));
     fixtureDirectories.push(root);
-    await writeFile(join(root, 'builtin-agents.json'), '["mavis"]');
+    await writeFile(join(root, 'builtin-agents.json'), '["alran"]');
     await expect(new BuiltinAgentCatalog({ assetsDir: root }).renderPtcSection(tui)).rejects.toThrow(
       '_v2/PTC_TOOL_CALLS.md.hbs',
     );
@@ -1644,8 +1644,8 @@ describe('BuiltinAgentCatalog PTC section', () => {
 describe('Bash prompt contract across product surfaces', () => {
   it.each([
     { agentName: 'worker', surface: 'task-child', promptProfile: undefined },
-    { agentName: 'mavis', surface: 'interactive', promptProfile: 'desktop' },
-    { agentName: 'mavis', surface: 'cli', promptProfile: 'tui' },
+    { agentName: 'alran', surface: 'interactive', promptProfile: 'desktop' },
+    { agentName: 'alran', surface: 'cli', promptProfile: 'tui' },
     { agentName: 'worker', surface: 'task-child', promptProfile: 'tui' },
   ] as const)(
     'renders capability-neutral base guidance for $agentName / $surface / $promptProfile',

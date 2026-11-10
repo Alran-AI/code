@@ -74,7 +74,7 @@ const V2_LAYOUT_MIGRATION_RECEIPT_BRAND = Symbol('v2-layout-migration-receipt-br
  * boundary. Its value is still validated with the private migration brand.
  */
 const V2_LAYOUT_MIGRATION_RECEIPT_CARRIER = Symbol.for(
-  'mavis.local-runtime.v2-layout-migration-receipt',
+  'alran.local-runtime.v2-layout-migration-receipt',
 );
 
 export function ensureCurrentLocalRuntimeDataMigratedToV2(

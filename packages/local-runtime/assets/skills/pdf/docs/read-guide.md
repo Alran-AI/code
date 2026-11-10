@@ -204,7 +204,7 @@ The script wraps:
 - `pdf2image` rendering of selected pages
 - stitch-and-grow chunking under a byte ceiling (~3 MB; the upstream Matrix vision API rejects images near
   5 MB)
-- HTTP POST to `http://127.0.0.1:5321/mavis/api/matrix/tool/call` per chunk
+- HTTP POST to `http://127.0.0.1:5321/alran/api/matrix/tool/call` per chunk
 - envelope unwrap from `{code, results: [{description, ...}]}`
 
 ```bash
@@ -350,7 +350,7 @@ brew install poppler                            # pdftoppm + pdftotext + pdfimag
 ```
 
 `read_pdf_vision.py` additionally requires local-runtime to be running with authenticated native
-Matrix tools. Managed Matrix hosts use the Mavis login token; custom `MATRIX_BASE_URL` hosts
+Matrix tools. Managed Matrix hosts use the Alran login token; custom `MATRIX_BASE_URL` hosts
 require `MATRIX_TOKEN` in the runtime environment.
 Details: [`vision-guide.md`](vision-guide.md).
 

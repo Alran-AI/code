@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
 export type AlranChatType = 'chat' | 'agent_team' | 'claw' | 'hermes' | 'IM';
 export type AlranLoginSource =
@@ -82,8 +82,8 @@ export interface AlranBusinessTelemetry {
 }
 
 export interface CreateAlranBusinessTelemetryOptions {
-  readonly region: MavisRegion;
-  readonly buildEnv: MavisBuildEnv;
+  readonly region: AlranRegion;
+  readonly buildEnv: AlranBuildEnv;
   readonly version: string;
   readonly fetch?: typeof fetch;
   readonly now?: () => number;
@@ -266,8 +266,8 @@ function selectEventProperties(item: AlranBusinessEvent): Record<string, string 
 }
 
 export function resolveAlranBusinessTelemetryEndpoint(
-  region: MavisRegion,
-  buildEnv: MavisBuildEnv,
+  region: AlranRegion,
+  buildEnv: AlranBuildEnv,
 ): string {
   if (region === 'en') {
     return buildEnv === 'prod'

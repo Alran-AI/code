@@ -3,11 +3,11 @@ import {
   splitMarkdownProtectedSegments,
   type DeliverAssetItem,
   type DeliverAssetsSegment,
-} from '@mavis/shared/asset-markup';
+} from '@alran/shared/asset-markup';
 import { sanitizeTerminalText } from '../tui/rendering/terminal-text.js';
 
 const RICH_CONTENT_RE =
-  /<(?:deliver[-_]assets|media|publish[_-]artifact|preview_card|genui-|mavis-widget|mavis-thinking|mavis-progress|think|final|permission-(?:ask|response)|questionnaire-(?:ask|response))\b|^\s*preview_cards?:\s*$/imu;
+  /<(?:deliver[-_]assets|media|publish[_-]artifact|preview_card|genui-|alran-widget|alran-thinking|alran-progress|think|final|permission-(?:ask|response)|questionnaire-(?:ask|response))\b|^\s*preview_cards?:\s*$/imu;
 
 export interface TerminalDeliveredAsset {
   readonly path: string;
@@ -67,9 +67,9 @@ export function projectAssistantContentForTerminal(rawContent: string): Terminal
 
 function simplifyUnprotectedContent(content: string, assets: DeliverAssetItem[]): string {
   let output = content;
-  output = stripPairedBlocks(output, 'mavis-thinking');
+  output = stripPairedBlocks(output, 'alran-thinking');
   output = stripPairedBlocks(output, 'think');
-  output = unwrapPairedBlocks(output, 'mavis-progress');
+  output = unwrapPairedBlocks(output, 'alran-progress');
   output = stripPairedBlocks(output, 'permission-ask');
   output = stripPairedBlocks(output, 'permission-response');
   output = stripPairedBlocks(output, 'questionnaire-ask');
@@ -116,17 +116,17 @@ function unwrapPairedBlocks(content: string, tagName: string): string {
 }
 
 function simplifyWidgets(content: string): string {
-  const completeWidgetRe = /<mavis-widget\b([^>]*)>([\s\S]*?)<\/mavis-widget\s*>/giu;
+  const completeWidgetRe = /<alran-widget\b([^>]*)>([\s\S]*?)<\/alran-widget\s*>/giu;
   let output = content.replace(completeWidgetRe, (_match, rawAttributes: string, body: string) => {
-    const fallback = /<mavis-fallback\b[^>]*>([\s\S]*?)<\/mavis-fallback\s*>/iu.exec(body)?.[1];
+    const fallback = /<alran-fallback\b[^>]*>([\s\S]*?)<\/alran-fallback\s*>/iu.exec(body)?.[1];
     if (fallback?.trim()) return fallback.trim();
     return formatWidgetFallback(parseAttributes(rawAttributes));
   });
 
-  output = output.replace(/<mavis-widget\b([^>]*)>[\s\S]*$/iu, (_match, rawAttributes: string) =>
+  output = output.replace(/<alran-widget\b([^>]*)>[\s\S]*$/iu, (_match, rawAttributes: string) =>
     formatWidgetFallback(parseAttributes(rawAttributes)),
   );
-  return output.replace(/<mavis-widget\b[^>]*$/iu, 'Interactive content is loading…');
+  return output.replace(/<alran-widget\b[^>]*$/iu, 'Interactive content is loading…');
 }
 
 function formatWidgetFallback(attributes: Readonly<Record<string, string>>): string {

@@ -1,11 +1,11 @@
 import type { StreamFn } from '@earendil-works/pi-agent-core';
 import { createAssistantMessageEventStream, type AssistantMessage } from '@earendil-works/pi-ai';
-import { isRequestMediaRejection } from '@mavis/context-manager';
+import { isRequestMediaRejection } from '@alran/context-manager';
 import {
   isLLMDeterministicRequestRejection,
   LLM_ERROR_CODES,
   normalizeLLMError,
-} from '@mavis/shared/llm-error-classifier';
+} from '@alran/shared/llm-error-classifier';
 import { describe, expect, it } from 'vitest';
 
 import { withByokErrorAttribution } from './byok-error-attribution.js';

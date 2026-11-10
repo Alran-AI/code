@@ -6,8 +6,8 @@ import type {
   ModelContextAssemblyCtx,
   PromptSnapshotSource as RuntimePromptSnapshotSource,
   TurnAssemblyCtx,
-} from '@mavis/agent-runtime';
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-runtime';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 
 import type { SessionRecord, SessionSystemReadCapability } from '../../session-system/index.js';
 import type {

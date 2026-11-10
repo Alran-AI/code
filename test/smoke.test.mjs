@@ -42,7 +42,7 @@ function fixture(t, environment = process.env) {
     env: {
       ...withoutProxyEnvironment(environment),
       ALRAN_DATA_DIR: dataDir,
-      MAVIS_DATA_DIR: dataDir,
+      ALRAN_DATA_DIR: dataDir,
       ALRAN_TEST_NETWORK_AUDIT: audit,
       ALRAN_TEST_MANAGED_OFFLINE: "1",
       ALRAN_TEST_PROCESS_PROBE: "1",
@@ -76,10 +76,10 @@ test("CLI defaults to the shared user config without migrating the old source di
   const oldContents = "telemetry:\n  enabled: false\n";
   writeFileSync(oldConfig, oldContents, { mode: 0o600 });
   for (const name of Object.keys(options.env)) {
-    if (name.startsWith("__MAVIS_RUNTIME")) delete options.env[name];
+    if (name.startsWith("__ALRAN_RUNTIME")) delete options.env[name];
   }
   delete options.env.ALRAN_DATA_DIR;
-  delete options.env.MAVIS_DATA_DIR;
+  delete options.env.ALRAN_DATA_DIR;
   Object.assign(options.env, {
     HOME: home,
     USERPROFILE: home,
@@ -340,7 +340,7 @@ test("provider add rejects invalid token limits without saving a provider", asyn
       const dataDir = path.join(options.cwd, "data");
       mkdirSync(dataDir);
       options.env.ALRAN_DATA_DIR = dataDir;
-      options.env.MAVIS_DATA_DIR = dataDir;
+      options.env.ALRAN_DATA_DIR = dataDir;
       const configPath = path.join(dataDir, "config.yaml");
       if (seeded) writeFileSync(configPath, "logLevel: info\ndefaultModel: alran/Alran-M3\n", { mode: 0o600 });
       for (const flag of ["--context-limit", "--output-limit"]) {

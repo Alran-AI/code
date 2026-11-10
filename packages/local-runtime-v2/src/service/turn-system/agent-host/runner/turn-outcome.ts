@@ -3,8 +3,8 @@ import {
   RespDataType,
   Role,
   ToolCallStatus,
-} from '@mavis/agent-core/protocol/agent-message';
-import { RuntimeEventStatus, RuntimeEventType, type IRuntimeEvent } from '@mavis/protocol';
+} from '@alran/agent-core/protocol/agent-message';
+import { RuntimeEventStatus, RuntimeEventType, type IRuntimeEvent } from '@alran/protocol';
 
 import type { LocalRuntimeTurnRuntimeOutcome } from '../execution/executor.js';
 

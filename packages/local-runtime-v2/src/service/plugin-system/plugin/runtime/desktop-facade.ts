@@ -21,7 +21,7 @@ import {
   type PreviewGithubPluginResult,
   type SkillInfo,
   type SkillHubItem,
-} from '@mavis/protocol/local';
+} from '@alran/protocol/local';
 
 import type {
   LocalPluginMutationResult,
@@ -718,7 +718,7 @@ function declaredTransport(configJson: string): string {
 }
 
 function localIconUrl(iconPath: string): string {
-  return `/mavis/api/file/preview?path=${encodeURIComponent(iconPath)}`;
+  return `/alran/api/file/preview?path=${encodeURIComponent(iconPath)}`;
 }
 
 function optionalPluginIcon(

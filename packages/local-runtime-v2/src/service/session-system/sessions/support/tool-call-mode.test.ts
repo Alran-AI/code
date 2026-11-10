@@ -10,7 +10,7 @@ import {
 function session(overrides: Partial<SessionRecord> = {}): SessionRecord {
   return {
     sessionId: 'session-1',
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: '/workspace',
     runtime: 'pi-agent',
     sessionType: 'branch',

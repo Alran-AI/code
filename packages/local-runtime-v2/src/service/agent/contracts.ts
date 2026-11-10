@@ -4,8 +4,8 @@ import type {
   AgentBuiltinToolId,
   AgentCapabilityConfig,
   ResolvedAgentCapabilities,
-} from '@mavis/config';
-import type { PromptReadScope } from '@mavis/agent-runtime';
+} from '@alran/config';
+import type { PromptReadScope } from '@alran/agent-runtime';
 
 import type {
   AgentConfigError,
@@ -35,7 +35,7 @@ export type AgentNameResolutionSource =
   | 'canonical_name'
   | 'explicit_agent';
 export type AgentNameCompatIntent = 'read' | 'write' | 'exact' | 'execution';
-export type AgentNameCompatCanonicalClass = 'explore' | 'worker' | 'verifier' | 'mavis' | 'other';
+export type AgentNameCompatCanonicalClass = 'explore' | 'worker' | 'verifier' | 'alran' | 'other';
 export type AgentNameCompatMemberCountBucket = '1' | '2' | '3+';
 export type AgentNameCompatErrorCode =
   | 'UNKNOWN_AGENT_NAME'
@@ -182,7 +182,7 @@ export interface AgentConfiguredDefinition {
   readonly disallowedTools?: readonly string[];
   readonly mcpServers?: readonly string[];
   readonly skills?: readonly string[];
-  readonly mavis?: {
+  readonly alran?: {
     readonly displayName?: string;
     readonly avatar?: string;
     readonly contextWindow?: number;
@@ -495,7 +495,7 @@ export interface AgentCapabilityCeiling {
   readonly builtinTools?: readonly AgentBuiltinMcpToolId[];
   readonly skills?: readonly AgentBuiltinSkillId[];
   readonly features: Readonly<{
-    mavis: boolean;
+    alran: boolean;
     delegation: boolean;
     webSearch: boolean;
   }>;

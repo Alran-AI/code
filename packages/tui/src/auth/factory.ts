@@ -1,8 +1,8 @@
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 import {
   resolveAlranOAuthEndpointConfig,
   type AlranOAuthEndpointEnvironment,
-} from '@mavis/oauth-core';
+} from '@alran/oauth-core';
 
 import { createAlranSharedAuthSession } from '../runtime/auth-session.js';
 import { AlranAuthApplication, type AlranAuthApplicationOptions } from './application.js';
@@ -11,8 +11,8 @@ import { writeTuiRegionPreference } from './region-preference.js';
 
 export interface CreateDefaultAlranAuthApplicationOptions {
   dataDir: string;
-  region?: MavisRegion;
-  buildEnv?: MavisBuildEnv;
+  region?: AlranRegion;
+  buildEnv?: AlranBuildEnv;
   oauthEndpointEnvironment?: AlranOAuthEndpointEnvironment;
   createSharedSession?: typeof createAlranSharedAuthSession;
   telemetry?: AlranAuthApplicationOptions['telemetry'];
@@ -38,7 +38,7 @@ export function createDefaultAlranAuthApplication(
     ...(options.telemetrySource ? { telemetrySource: options.telemetrySource } : {}),
     writeRegionPreference: options.writeRegionPreference ?? writeTuiRegionPreference,
   } satisfies Omit<AlranAuthApplicationOptions, 'sharedAuthCore'>;
-  const createSharedAuthCore = (requestedRegion: MavisRegion) =>
+  const createSharedAuthCore = (requestedRegion: AlranRegion) =>
     (options.createSharedSession ?? createAlranSharedAuthSession)({
       dataDir: options.dataDir,
       region: requestedRegion,

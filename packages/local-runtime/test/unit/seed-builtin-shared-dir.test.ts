@@ -26,7 +26,7 @@ describe('seedBuiltinSkills on a shared dest dir', () => {
   it('refreshes owned skills without deleting foreign skills or files', () => {
     const src = tmp();
     const dest = join(tmp(), '.builtin-skills');
-    skill(dest, 'mavis', 'desktop');
+    skill(dest, 'alran', 'desktop');
     skill(dest, 'create-agent', 'desktop');
     writeFileSync(join(dest, 'agent.md'), 'user');
     skill(dest, 'cli-skill', 'stale');
@@ -39,7 +39,7 @@ describe('seedBuiltinSkills on a shared dest dir', () => {
     seedBuiltinSkills({ builtinSkillsDir: dest, sourceDirs: [src] });
     expect(readFileSync(join(dest, 'cli-skill', 'SKILL.md'), 'utf8')).toContain('v2');
 
-    expect(existsSync(join(dest, 'mavis', 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(dest, 'alran', 'SKILL.md'))).toBe(true);
     expect(existsSync(join(dest, 'create-agent', 'SKILL.md'))).toBe(true);
     expect(readFileSync(join(dest, 'agent.md'), 'utf8')).toBe('user');
   });
@@ -50,12 +50,12 @@ describe('seedBuiltinSkills on a shared dest dir', () => {
       const src = tmp();
       const dest = join(tmp(), '.builtin-skills');
       skill(src, 'cli-skill', 'v1');
-      skill(dest, 'mavis', 'desktop');
+      skill(dest, 'alran', 'desktop');
       skill(dest, 'cli-skill', 'old');
       chmodSync(dest, 0o555);
       expect(() => seedBuiltinSkills({ builtinSkillsDir: dest, sourceDirs: [src] })).not.toThrow();
       chmodSync(dest, 0o755);
-      expect(existsSync(join(dest, 'mavis', 'SKILL.md'))).toBe(true);
+      expect(existsSync(join(dest, 'alran', 'SKILL.md'))).toBe(true);
     },
   );
 });

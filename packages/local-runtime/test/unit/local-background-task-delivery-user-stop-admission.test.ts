@@ -2,7 +2,7 @@ import {
   ConversationTurnRejectedError,
   type RuntimeConversation,
   type ConversationSteerInput,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { LocalTaskRunnerHostWithSessionLookup } from '../../src/api/local-task-host.js';

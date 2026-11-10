@@ -1,7 +1,7 @@
 import type {
   LLMModelConfig,
   PiBeforeLlmCallHookInput,
-} from "@mavis/agent-core/pi-turn-runner";
+} from "@alran/agent-core/pi-turn-runner";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AgentEventContext } from "../events/contracts.js";

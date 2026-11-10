@@ -1,9 +1,9 @@
-import type { ChannelPlatform, InboundContext } from '@mavis/shared';
+import type { ChannelPlatform, InboundContext } from '@alran/shared';
 import {
   formatCronRunTitle,
   MEMORY_CLEANUP_CRON_NAME,
   parseCronSessionPurpose,
-} from '@mavis/shared/cron-purpose';
+} from '@alran/shared/cron-purpose';
 import {
   logger,
   backgroundCtx,

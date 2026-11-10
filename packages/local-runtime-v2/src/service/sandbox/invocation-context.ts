@@ -150,7 +150,7 @@ interface ResolvedGitMetadata {
 }
 
 /**
- * Platform recoverable-delete destinations, mirroring the `mavis-trash` script
+ * Platform recoverable-delete destinations, mirroring the `alran-trash` script
  * exactly (see `packages/local-runtime/src/infra/trash-script.ts`):
  * macOS moves into `~/.Trash`, POSIX/XDG into `$XDG_DATA_HOME/Trash` with
  * `$HOME/.local/share` as the spec default.

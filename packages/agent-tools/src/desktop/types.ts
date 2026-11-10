@@ -1,14 +1,14 @@
-import type { RuntimeTool, ToolExecutionContext, ToolResult } from '@mavis/agent-core/tools';
-import type { PiEventWriter, TurnEventReporter } from '@mavis/agent-core/pi-turn-runner';
+import type { RuntimeTool, ToolExecutionContext, ToolResult } from '@alran/agent-core/tools';
+import type { PiEventWriter, TurnEventReporter } from '@alran/agent-core/pi-turn-runner';
 import type {
   BackgroundTask,
   BackgroundTaskStatus,
   TaskOutputReadOptions,
   TaskOutputReadResult,
   TaskQuery,
-} from '@mavis/background-task';
-import type { IAgentConfig } from '@mavis/protocol';
-import type { AskUserToolInput } from '@mavis/shared/questionnaire';
+} from '@alran/background-task';
+import type { IAgentConfig } from '@alran/protocol';
+import type { AskUserToolInput } from '@alran/shared/questionnaire';
 import type { BashOperations } from '@earendil-works/pi-coding-agent';
 import type { TSchema } from '@sinclair/typebox';
 
@@ -20,7 +20,7 @@ import type {
   LocalTodoWriteToolInput,
   LocalWebFetchToolInput,
   LocalMemoryToolInput,
-  LocalMavisToolInput,
+  LocalAlranToolInput,
   LocalCodeReviewToolInput,
 } from './builtin-defs.js';
 import type { WebSearchInput } from '../shared/web-search.js';
@@ -584,7 +584,7 @@ export interface LocalMemoryAdapter {
   }>;
 }
 
-export interface LocalMavisAgentDetail {
+export interface LocalAlranAgentDetail {
   name?: string;
   displayName?: string;
   agentRole?: string;
@@ -601,11 +601,11 @@ export interface LocalMavisAgentDetail {
   systemPrompt?: string;
 }
 
-export interface LocalMavisAgentReadScope {
+export interface LocalAlranAgentReadScope {
   canonicalName: string;
 }
 
-export interface LocalMavisAgentAdapter {
+export interface LocalAlranAgentAdapter {
   listAgents(
     req: {
       limit?: number;
@@ -615,7 +615,7 @@ export interface LocalMavisAgentAdapter {
       excludePrimary?: boolean;
     },
     signal?: AbortSignal,
-  ): Promise<{ agents?: LocalMavisAgentDetail[]; baseResp?: Record<string, unknown> }>;
+  ): Promise<{ agents?: LocalAlranAgentDetail[]; baseResp?: Record<string, unknown> }>;
   createAgent(
     req: {
       name?: string;
@@ -631,7 +631,7 @@ export interface LocalMavisAgentAdapter {
   getAgent(
     req: { name: string; include?: string },
     signal?: AbortSignal,
-  ): Promise<{ agent?: LocalMavisAgentDetail; baseResp?: Record<string, unknown> }>;
+  ): Promise<{ agent?: LocalAlranAgentDetail; baseResp?: Record<string, unknown> }>;
   updateAgent(
     req: {
       name: string;
@@ -644,7 +644,7 @@ export interface LocalMavisAgentAdapter {
     signal?: AbortSignal,
   ): Promise<{
     success?: boolean;
-    agent?: LocalMavisAgentDetail;
+    agent?: LocalAlranAgentDetail;
     baseResp?: Record<string, unknown>;
   }>;
   deleteAgent(
@@ -654,16 +654,16 @@ export interface LocalMavisAgentAdapter {
   resolveAgentReadScope(
     requestedName: string,
     signal?: AbortSignal,
-  ): Promise<LocalMavisAgentReadScope>;
+  ): Promise<LocalAlranAgentReadScope>;
   resolveAgentWriteTarget(requestedName: string, signal?: AbortSignal): Promise<string>;
   requireExactAgentKey(requestedName: string, signal?: AbortSignal): Promise<string>;
 }
 
-export type LocalMavisMcpTransport = 'stdio' | 'http' | 'streamable-http' | 'sse';
+export type LocalAlranMcpTransport = 'stdio' | 'http' | 'streamable-http' | 'sse';
 
-export interface LocalMavisMcpCreateRequest {
+export interface LocalAlranMcpCreateRequest {
   name: string;
-  transport: LocalMavisMcpTransport;
+  transport: LocalAlranMcpTransport;
   command?: string;
   url?: string;
   args?: string[];
@@ -674,9 +674,9 @@ export interface LocalMavisMcpCreateRequest {
   enabled?: boolean;
 }
 
-export interface LocalMavisMcpUpdateRequest {
+export interface LocalAlranMcpUpdateRequest {
   name: string;
-  transport?: LocalMavisMcpTransport;
+  transport?: LocalAlranMcpTransport;
   command?: string;
   url?: string;
   args?: string[];
@@ -688,29 +688,29 @@ export interface LocalMavisMcpUpdateRequest {
 }
 
 /**
- * MCP settings seam for the model-visible `mavis` tool. Implementations own
+ * MCP settings seam for the model-visible `alran` tool. Implementations own
  * persistence and redaction; model-visible return values must never contain
  * environment-variable or header values.
  */
-export interface LocalMavisMcpAdapter {
+export interface LocalAlranMcpAdapter {
   listServers(req: { search?: string }, signal?: AbortSignal): Promise<{ servers: unknown[] }>;
   getServer(req: { name: string }, signal?: AbortSignal): Promise<{ server?: unknown }>;
-  createServer(req: LocalMavisMcpCreateRequest, signal?: AbortSignal): Promise<{ server: unknown }>;
-  updateServer(req: LocalMavisMcpUpdateRequest, signal?: AbortSignal): Promise<{ server: unknown }>;
+  createServer(req: LocalAlranMcpCreateRequest, signal?: AbortSignal): Promise<{ server: unknown }>;
+  updateServer(req: LocalAlranMcpUpdateRequest, signal?: AbortSignal): Promise<{ server: unknown }>;
   deleteServer(req: { name: string }, signal?: AbortSignal): Promise<{ success: boolean }>;
 }
 
-export type LocalMavisCommandInput = LocalMavisToolInput;
+export type LocalAlranCommandInput = LocalAlranToolInput;
 
-export type LocalMavisCronSessionTarget =
+export type LocalAlranCronSessionTarget =
   | { readonly mode: 'new' }
   | { readonly mode: 'sessionId'; readonly sessionId: string };
 
-export type LocalMavisCronCreationSessionTarget =
+export type LocalAlranCronCreationSessionTarget =
   | { readonly mode: 'new' }
   | { readonly mode: 'sessionId'; readonly sessionId?: string };
 
-export interface LocalMavisCronTask {
+export interface LocalAlranCronTask {
   cronId?: string;
   cronName?: string;
   agentName?: string;
@@ -720,7 +720,7 @@ export interface LocalMavisCronTask {
   timezone?: string;
   enabled?: boolean;
   prompt?: string;
-  session?: LocalMavisCronSessionTarget;
+  session?: LocalAlranCronSessionTarget;
   activeHours?: { start?: string; end?: string };
   status?: string;
   lastRun?: number | string;
@@ -735,7 +735,7 @@ export interface LocalMavisCronTask {
  * One execution record for a Cron Definition. `cron sessions` retains the existing tool name for
  * compatibility but actually reads Cron v2 `ListCronRuns`.
  */
-export interface LocalMavisCronRun {
+export interface LocalAlranCronRun {
   runId: string;
   sessionId?: string;
   createdAt: number;
@@ -753,7 +753,7 @@ export interface LocalMavisCronRun {
  * It has no stable Run identity; omit `runId` and `triggerSource` rather than presenting a legacy
  * Session as a Cron v2 Run.
  */
-export interface LocalMavisCronLegacySession {
+export interface LocalAlranCronLegacySession {
   runId?: never;
   triggerSource?: never;
   sessionId?: string;
@@ -762,28 +762,28 @@ export interface LocalMavisCronLegacySession {
   status?: string;
 }
 
-export type LocalMavisCronHistoryItem = LocalMavisCronRun | LocalMavisCronLegacySession;
+export type LocalAlranCronHistoryItem = LocalAlranCronRun | LocalAlranCronLegacySession;
 
-export type LocalMavisModelResolution =
+export type LocalAlranModelResolution =
   | { readonly kind: 'resolved'; readonly model: string }
   | { readonly kind: 'ambiguous'; readonly candidates: readonly string[] }
   | { readonly kind: 'not_found' };
 
-export interface LocalMavisCronAdapter {
+export interface LocalAlranCronAdapter {
   resolveModel?(
     req: { model: string; sessionId?: string },
     signal?: AbortSignal,
-  ): Promise<LocalMavisModelResolution>;
+  ): Promise<LocalAlranModelResolution>;
   listCrons(
     req: { agentName?: string; cursor?: string; limit?: number },
     signal?: AbortSignal,
   ): Promise<{
-    tasks: LocalMavisCronTask[];
+    tasks: LocalAlranCronTask[];
     count?: number;
     hasMore?: boolean;
     nextCursor?: string;
   }>;
-  getCron(req: { cronId: string }, signal?: AbortSignal): Promise<{ task?: LocalMavisCronTask }>;
+  getCron(req: { cronId: string }, signal?: AbortSignal): Promise<{ task?: LocalAlranCronTask }>;
   createCron(
     req: {
       agentName: string;
@@ -792,13 +792,13 @@ export interface LocalMavisCronAdapter {
       prompt: string;
       timezone?: string;
       activeHours?: { start?: string; end?: string };
-      session: LocalMavisCronCreationSessionTarget;
+      session: LocalAlranCronCreationSessionTarget;
       enabled?: boolean;
       project?: string;
       model?: string;
     },
     signal?: AbortSignal,
-  ): Promise<{ task?: LocalMavisCronTask }>;
+  ): Promise<{ task?: LocalAlranCronTask }>;
   createSelfReminder(
     req: {
       agentName: string;
@@ -817,7 +817,7 @@ export interface LocalMavisCronAdapter {
     cronName?: string;
     schedule?: string;
     sessionId?: string;
-    task?: LocalMavisCronTask;
+    task?: LocalAlranCronTask;
   }>;
 
   createOnceCron(
@@ -828,7 +828,7 @@ export interface LocalMavisCronAdapter {
       at?: string | number;
       prompt: string;
       timezone?: string;
-      session: LocalMavisCronCreationSessionTarget;
+      session: LocalAlranCronCreationSessionTarget;
       project?: string;
       model?: string;
     },
@@ -838,7 +838,7 @@ export interface LocalMavisCronAdapter {
     cronName?: string;
     runAtMs?: number;
     sessionId?: string;
-    task?: LocalMavisCronTask;
+    task?: LocalAlranCronTask;
   }>;
   updateCron(
     req: {
@@ -847,11 +847,11 @@ export interface LocalMavisCronAdapter {
       prompt?: string;
       timezone?: string;
       activeHours?: { start?: string; end?: string };
-      session?: LocalMavisCronSessionTarget;
+      session?: LocalAlranCronSessionTarget;
       enabled?: boolean;
     },
     signal?: AbortSignal,
-  ): Promise<{ task?: LocalMavisCronTask }>;
+  ): Promise<{ task?: LocalAlranCronTask }>;
   deleteCron(req: { cronId: string }, signal?: AbortSignal): Promise<{ success?: boolean }>;
   triggerCron(
     req: { cronId: string },
@@ -862,8 +862,8 @@ export interface LocalMavisCronAdapter {
     sessionId?: string;
     triggeredAt?: string;
     createdAt?: number;
-    status?: LocalMavisCronRun['status'];
-    triggerSource?: LocalMavisCronRun['triggerSource'];
+    status?: LocalAlranCronRun['status'];
+    triggerSource?: LocalAlranCronRun['triggerSource'];
     errorCode?: string;
     reason?: string;
   }>;
@@ -871,14 +871,14 @@ export interface LocalMavisCronAdapter {
     req: { cronId: string; cursor?: string; limit?: number },
     signal?: AbortSignal,
   ): Promise<{
-    sessions: LocalMavisCronHistoryItem[];
+    sessions: LocalAlranCronHistoryItem[];
     total?: number;
     hasMore?: boolean;
     nextCursor?: string;
   }>;
 }
 
-export interface LocalMavisSessionInfo {
+export interface LocalAlranSessionInfo {
   sessionId?: string;
   agentName?: string;
   sessionType?: number | string;
@@ -896,7 +896,7 @@ export interface LocalMavisSessionInfo {
   lastActiveAt?: number | string;
 }
 
-export interface LocalMavisSessionAdapter {
+export interface LocalAlranSessionAdapter {
   listSessions(
     req: {
       agentName?: string;
@@ -906,15 +906,15 @@ export interface LocalMavisSessionAdapter {
       limit?: number;
     },
     signal?: AbortSignal,
-  ): Promise<{ sessions?: LocalMavisSessionInfo[]; hasMore?: boolean; nextCursor?: string }>;
+  ): Promise<{ sessions?: LocalAlranSessionInfo[]; hasMore?: boolean; nextCursor?: string }>;
   getSession(
     req: { sessionId: string; source?: 'local' | 'cloud' },
     signal?: AbortSignal,
-  ): Promise<{ session?: LocalMavisSessionInfo }>;
+  ): Promise<{ session?: LocalAlranSessionInfo }>;
   updateSession(
     req: { sessionId: string; title?: string; archived?: boolean },
     signal?: AbortSignal,
-  ): Promise<{ session?: LocalMavisSessionInfo; success?: boolean }>;
+  ): Promise<{ session?: LocalAlranSessionInfo; success?: boolean }>;
   deleteSession(req: { sessionId: string }, signal?: AbortSignal): Promise<{ success?: boolean }>;
   listMessages(
     req: { sessionId: string; limit?: number; before?: string; source?: 'local' | 'cloud' },

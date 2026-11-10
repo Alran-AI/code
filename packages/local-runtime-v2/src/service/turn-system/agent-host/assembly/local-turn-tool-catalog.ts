@@ -1,14 +1,14 @@
-import type { RuntimeTool, RuntimeToolSource } from '@mavis/agent-core/tools';
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { RuntimeTool, RuntimeToolSource } from '@alran/agent-core/tools';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 import {
   createLocalBashToolDefinition,
   resolveLocalBashShell,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 import {
   filterCanonicalNativeToolCeiling,
   createMcpInvokeTool,
   createToolSearchTool,
-  createPtcMavisTools,
+  createPtcAlranTools,
   getMcpInvokeRegistries,
   getSuppressedToolNamesForModelCapabilities,
   isCanonicalBuiltinTurn,
@@ -18,13 +18,13 @@ import {
   withLocalBrowserObserve,
   type McpDisclosureOptions,
   type McpToolEntry,
-} from '@mavis/agent-tools';
+} from '@alran/agent-tools';
 import {
   AGENT_BUILTIN_MCP_TOOL_IDS,
   AGENT_BUILTIN_TOOL_IDS,
   isPtcTurnEnabled as isSharedPtcTurnEnabled,
-} from '@mavis/config';
-import type { IModelCapabilities } from '@mavis/protocol';
+} from '@alran/config';
+import type { IModelCapabilities } from '@alran/protocol';
 import type { AgentHostTurnCapabilityView } from './turn-capability-lifecycle.js';
 import type { HostCapabilityResolver } from './host-capability/contracts.js';
 import { getBrowserHostBinding } from './host-capability/browser.js';
@@ -490,7 +490,7 @@ function buildPtcCatalog(
     onDemand.tools.filter(isPtcChildTool),
     trustedNativeTools,
   );
-  const { childTools, directTools } = withPtcMavisTools(
+  const { childTools, directTools } = withPtcAlranTools(
     observable.childTools,
     onDemand.tools.filter(isPtcDirectTool),
     observable.trustedNativeTools,
@@ -526,28 +526,28 @@ function buildPtcCatalog(
 }
 
 /**
- * The Desktop mavis tool on a PTC Turn: run_code lists one mavis_* tool per
- * orchestrable command (createPtcMavisTools) in place of one mavis child, so a
- * program reads each command's own arguments, and the top-level mavis keeps
+ * The Desktop alran tool on a PTC Turn: run_code lists one alran_* tool per
+ * orchestrable command (createPtcAlranTools) in place of one alran child, so a
+ * program reads each command's own arguments, and the top-level alran keeps
  * only agent create, session send and their help. Without this the same
- * mavis was listed in both places with every command, and a call in the wrong
+ * alran was listed in both places with every command, and a call in the wrong
  * place was refused only after the model had made it. run_code still runs
- * each call as mavis({ command, args }), so permission rules and Plugin hooks
- * keep matching tool `mavis`. Only the trusted native mavis is split; a Turn
+ * each call as alran({ command, args }), so permission rules and Plugin hooks
+ * keep matching tool `alran`. Only the trusted native alran is split; a Turn
  * without it (TUI, PTC off) keeps its catalog byte for byte.
  */
-function withPtcMavisTools(
+function withPtcAlranTools(
   childTools: readonly RuntimeTool[],
   directTools: readonly RuntimeTool[],
   trustedNativeTools: readonly RuntimeTool[],
 ): { readonly childTools: readonly RuntimeTool[]; readonly directTools: readonly RuntimeTool[] } {
   const trusted = new Set(trustedNativeTools);
-  const mavis = directTools.find((tool) => tool.def.name === 'mavis' && trusted.has(tool));
-  if (!mavis || !childTools.includes(mavis)) return { childTools, directTools };
-  const split = createPtcMavisTools(mavis);
+  const alran = directTools.find((tool) => tool.def.name === 'alran' && trusted.has(tool));
+  if (!alran || !childTools.includes(alran)) return { childTools, directTools };
+  const split = createPtcAlranTools(alran);
   return {
-    childTools: childTools.flatMap((tool) => (tool === mavis ? split.children : [tool])),
-    directTools: directTools.map((tool) => (tool === mavis ? split.direct : tool)),
+    childTools: childTools.flatMap((tool) => (tool === alran ? split.children : [tool])),
+    directTools: directTools.map((tool) => (tool === alran ? split.direct : tool)),
   };
 }
 
@@ -865,7 +865,7 @@ function isProfileToolAllowed(
   if (profile.surface === 'task-child' && TASK_CHILD_BLOCKED_TOOL_NAMES.has(tool.def.name)) {
     return false;
   }
-  if (isBuiltinSubagentTaskChild(profile) && tool.def.name === 'mavis') return false;
+  if (isBuiltinSubagentTaskChild(profile) && tool.def.name === 'alran') return false;
   return isProfileCapabilityEnabled(profile.capabilityCeiling, tool.def.name, source);
 }
 
@@ -878,7 +878,7 @@ function isAuthoritativeMainProfile(profile: LocalTurnAgentProfileFacts | undefi
   return (
     (profile?.surface === 'interactive' || profile?.surface === 'cli') &&
     profile.trustedBuiltin === true &&
-    profile.canonicalRole === 'mavis'
+    profile.canonicalRole === 'alran'
   );
 }
 
@@ -1014,10 +1014,10 @@ function filterExtensionSkills(
 }
 
 /**
- * SessionSend is a sub-command of the composite `mavis` Tool, so it cannot be
+ * SessionSend is a sub-command of the composite `alran` Tool, so it cannot be
  * removed from the catalog on its own. A builtin SubAgent running as a task
- * child therefore loses the whole `mavis` Tool. The Agent profile resolver
- * already forces `features.mavis` off for this surface; repeating the rule on
+ * child therefore loses the whole `alran` Tool. The Agent profile resolver
+ * already forces `features.alran` off for this surface; repeating the rule on
  * the final catalog keeps it fail closed if raw sources or assembly order ever
  * change. Custom Agents and direct/root builtin Sessions are untouched.
  */
@@ -1072,7 +1072,7 @@ function isProfileCapabilityEnabled(
 }
 
 function isFeatureEnabled(ceiling: LocalAgentCapabilityCeiling, toolName: string): boolean {
-  if (toolName === 'mavis') return ceiling.features.mavis;
+  if (toolName === 'alran') return ceiling.features.alran;
   if (DELEGATION_TOOL_NAMES.has(toolName)) return ceiling.features.delegation;
   if (toolName === 'web_search') return ceiling.features.webSearch;
   return true;
@@ -1083,35 +1083,35 @@ export function resolveLocalMcpDisclosureOptions(
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): McpDisclosureOptions {
   return {
-    enabled: resolveOption(env.MAVIS_MCP_TOOL_SEARCH_ENABLED, raw?.enabled, true, parseBoolean),
-    modelWhitelist: resolveModelWhitelist(env.MAVIS_MCP_TOOL_SEARCH_WHITELIST, raw),
+    enabled: resolveOption(env.ALRAN_MCP_TOOL_SEARCH_ENABLED, raw?.enabled, true, parseBoolean),
+    modelWhitelist: resolveModelWhitelist(env.ALRAN_MCP_TOOL_SEARCH_WHITELIST, raw),
     thresholdPct: resolveOption(
-      env.MAVIS_MCP_TOOL_SEARCH_THRESHOLD_PCT,
+      env.ALRAN_MCP_TOOL_SEARCH_THRESHOLD_PCT,
       raw?.thresholdPct,
       0.15,
       parseNumber,
     ),
     minDeferCount: resolveOption(
-      env.MAVIS_MCP_TOOL_SEARCH_MIN_DEFER_COUNT,
+      env.ALRAN_MCP_TOOL_SEARCH_MIN_DEFER_COUNT,
       raw?.minDeferCount,
       1,
       parseNumber,
     ),
     topKDefault: resolveOption(
-      env.MAVIS_MCP_TOOL_SEARCH_TOP_K_DEFAULT,
+      env.ALRAN_MCP_TOOL_SEARCH_TOP_K_DEFAULT,
       raw?.topKDefault,
       5,
       parseNumber,
     ),
-    topKMax: resolveOption(env.MAVIS_MCP_TOOL_SEARCH_TOP_K_MAX, raw?.topKMax, 20, parseNumber),
+    topKMax: resolveOption(env.ALRAN_MCP_TOOL_SEARCH_TOP_K_MAX, raw?.topKMax, 20, parseNumber),
     systemHint: resolveOption(
-      env.MAVIS_MCP_TOOL_SEARCH_SYSTEM_HINT,
+      env.ALRAN_MCP_TOOL_SEARCH_SYSTEM_HINT,
       raw?.systemHint,
       true,
       parseBoolean,
     ),
     maxSchemaTextLen: resolveOption(
-      env.MAVIS_MCP_TOOL_SEARCH_MAX_SCHEMA_TEXT_LEN,
+      env.ALRAN_MCP_TOOL_SEARCH_MAX_SCHEMA_TEXT_LEN,
       raw?.maxSchemaTextLen,
       4_096,
       parseNumber,

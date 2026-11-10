@@ -136,7 +136,7 @@ export class DatabaseClient {
 
 /** Resolve the native SQLite constructor for target and read-only source connections. */
 export function loadSqlite3Constructor(overrideModulePath?: string): BetterSqlite3Constructor {
-  const overridePath = overrideModulePath?.trim() || process.env.MAVIS_SQLITE3_MODULE_PATH?.trim();
+  const overridePath = overrideModulePath?.trim() || process.env.ALRAN_SQLITE3_MODULE_PATH?.trim();
   const require = createRequire(import.meta.url);
   if (overridePath) {
     const loaded: unknown = createRequire(join(overridePath, 'package.json'))('better-sqlite3');

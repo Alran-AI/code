@@ -1,4 +1,4 @@
-import type { ModelConfig } from '@mavis/config';
+import type { ModelConfig } from '@alran/config';
 
 export const ALRAN_PROVIDER_API_FORMATS = [
   'anthropic-messages',

@@ -79,7 +79,7 @@ Codex 客户端协议，与 Alran Code 产品版本独立；模型 ID 和思考�
 编辑历史，也按本地配置保留。合并在配置事务内读取最新值，覆盖刷新期间的用户改动被禁止。
 
 首次 OAuth 完成后自动获取模型列表；后续在模型设置中点击“获取模型列表”主动更新。
-打开设置时的 GET OAuth 状态请求只读取状态，POST `/mavis/api/provider-auth/openai-codex/models`
+打开设置时的 GET OAuth 状态请求只读取状态，POST `/alran/api/provider-auth/openai-codex/models`
 执行模型发现；无定时刷新或时间节流，并发发现请求共享执行。按钮获取期间显示加载状态，失败后可立即重试。
 已有 provider 配置作为最后成功的持久结果：刷新失败保留配置，首次发现失败保留登录凭据供连接入口重试。
 远端超时、错误响应或空清单不会用静态列表替换已有配置。

@@ -21,7 +21,7 @@ const REVIEWER = [
   'tools: [read, grep]',
   'mcpServers: [docs]',
   'skills: [research, standalone-notes]',
-  'x-mavis:',
+  'x-alran:',
   '  displayName: Code Reviewer',
   '  contextWindow: 64000',
   '---',
@@ -80,7 +80,7 @@ describe('Alran Plugin Agents', () => {
             'name: Different',
             'description: Reviews',
             'hooks: {}',
-            'x-mavis:',
+            'x-alran:',
             '  avatar: avatar.png',
             '---',
             'Body',
@@ -98,7 +98,7 @@ describe('Alran Plugin Agents', () => {
       {
         code: 'AGENT_FIELD_IGNORED',
         capability: 'AGENT',
-        name: 'agents/reviewer.md#x-mavis.avatar',
+        name: 'agents/reviewer.md#x-alran.avatar',
       },
     ]);
   });

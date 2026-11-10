@@ -1,4 +1,4 @@
-import { translateRuntimeText } from '@mavis/shared/runtime-i18n';
+import { translateRuntimeText } from '@alran/shared/runtime-i18n';
 
 export function alranPrefixActivationScheduledMessage(
   _environment: NodeJS.ProcessEnv = process.env,

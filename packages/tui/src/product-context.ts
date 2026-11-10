@@ -1,4 +1,4 @@
-export const ALRAN_CODE_DEFAULT_AGENT_NAME = 'mavis';
+export const ALRAN_CODE_DEFAULT_AGENT_NAME = 'alran';
 
 export interface TuiProductContext {
   surface: 'cli' | 'tui' | 'headless';

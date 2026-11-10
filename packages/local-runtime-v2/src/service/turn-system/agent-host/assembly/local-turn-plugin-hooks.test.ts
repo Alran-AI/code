@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
 import {
   createLocalPluginHookEventReporter,
   emitLocalPluginHookWarnings,

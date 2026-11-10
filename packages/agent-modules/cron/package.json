@@ -1,7 +1,7 @@
 {
-  "name": "@mavis/cron",
+  "name": "@alran/cron",
   "version": "0.2.1",
-  "description": "Cron task scheduling/execution capability for Mavis agent runtimes. Depends only on @mavis/agent-core primitives; never imports runtime packages.",
+  "description": "Cron task scheduling/execution capability for Alran agent runtimes. Depends only on @alran/agent-core primitives; never imports runtime packages.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {
@@ -11,8 +11,8 @@
     }
   },
   "dependencies": {
-    "@mavis/agent-core": "workspace:^",
-    "@mavis/shared": "workspace:^"
+    "@alran/agent-core": "workspace:^",
+    "@alran/shared": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20",

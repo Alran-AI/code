@@ -98,7 +98,7 @@ async function capture(
       turnId,
       resourceAgentName: profile.resourceReadRef,
       ...(builtinCapabilities ? { builtinCapabilities } : {}),
-      toolsDisabled: process.env.MAVIS_LOCAL_RUNTIME_DISABLE_TOOLS === '1',
+      toolsDisabled: process.env.ALRAN_LOCAL_RUNTIME_DISABLE_TOOLS === '1',
       cuModeActive: input.product.turnRuntimeFacts.snapshot().cuModeActive,
       ...(lease.capabilities ? { desktopCapabilities: lease.capabilities } : {}),
     });

@@ -115,7 +115,7 @@ async function resolveDeletedOwnerFallback(
     return undefined;
   }
   // Resolve through the existing primary-family chain instead of reading a fixed
-  // row: it keeps the legacy alias compatibility (`main` -> `mavis`) and the
+  // row: it keeps the legacy alias compatibility (`main` -> `alran`) and the
   // PRIMARY_AGENT_IDENTITY_CONFLICT fail-closed check, which a hardcoded lookup
   // would bypass.
   const fallbackOwnerName = await resolveExecutionOwnerName(

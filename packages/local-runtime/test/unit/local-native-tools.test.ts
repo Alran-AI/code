@@ -4,14 +4,14 @@ import { delimiter, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it, vi } from 'vitest';
-import { resolveAgentCapabilities } from '@mavis/config';
-import type { IRuntimeEvent } from '@mavis/protocol';
+import { resolveAgentCapabilities } from '@alran/config';
+import type { IRuntimeEvent } from '@alran/protocol';
 
 import {
   buildLocalNativeRuntimeTools,
   buildLocalTurnToolSources,
 } from '../../src/api/local-native-tools.js';
-import { withoutLocalMavisCronGuidance } from '../../src/api/local-mavis-cron-guidance.js';
+import { withoutLocalAlranCronGuidance } from '../../src/api/local-alran-cron-guidance.js';
 import { LocalEventSink } from '../../src/events/sink.js';
 import { LocalMcpService } from '../../../local-runtime-v2/src/service/mcp/index.js';
 import { LocalMemoryFacade } from '../../src/memory/local-memory-facade.js';
@@ -28,7 +28,7 @@ describe('local native turn tools', () => {
     const tools = buildLocalNativeRuntimeTools({
       dataDir,
       workspaceRoot: dataDir,
-      agentName: 'mavis',
+      agentName: 'alran',
       configGetter,
       sandboxOperationsFactory: {
         create: () => ({
@@ -65,7 +65,7 @@ describe('local native turn tools', () => {
   it('exposes native web_search only when the local product owner gate is enabled', () => {
     const base = {
       workspaceRoot: '/workspace',
-      agentName: 'mavis',
+      agentName: 'alran',
       webSearchAdapter: { search: vi.fn() },
     };
 
@@ -80,7 +80,7 @@ describe('local native turn tools', () => {
   });
 
   it('executes native search through the authenticated gateway without a Matrix MCP server', async () => {
-    vi.stubEnv('MAVIS_BUILD_ENV', 'test');
+    vi.stubEnv('ALRAN_BUILD_ENV', 'test');
     const dataDir = await mkdtemp(join(tmpdir(), 'native-search-'));
     const mcpService = new LocalMcpService(() => dataDir);
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
@@ -96,7 +96,7 @@ describe('local native turn tools', () => {
     const input = {
       dataDir,
       workspaceRoot: dataDir,
-      agentName: 'mavis',
+      agentName: 'alran',
       sessionId: 'search-session',
       toolsDisabled: false,
       nativeWebSearchEnabled: true,
@@ -124,7 +124,7 @@ describe('local native turn tools', () => {
         mcp: { isError: false },
       });
       const [url, request] = fetchImpl.mock.calls[0]!;
-      expect(String(url)).toMatch(/\/mavis\/api\/v1\/mcp\/web_search$/);
+      expect(String(url)).toMatch(/\/alran\/api\/v1\/mcp\/web_search$/);
       expect(new Headers(request?.headers).get('authorization')).toBe('Bearer test-search-token');
       expect(new Headers(request?.headers).get('bedrock-lane')).toBe('search-lane');
       expect(JSON.parse(request!.body as string)).toEqual({ query: 'Alran' });
@@ -138,7 +138,7 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('omits Memory from Custom and factless tool catalogs while retaining full Mavis Memory', async () => {
+  it('omits Memory from Custom and factless tool catalogs while retaining full Alran Memory', async () => {
     const dataDir = await mkdtemp(join(tmpdir(), 'local-native-memory-scope-'));
     try {
       const facade = new LocalMemoryFacade({
@@ -155,7 +155,7 @@ describe('local native turn tools', () => {
       const factlessTools = buildLocalNativeRuntimeTools({
         dataDir,
         workspaceRoot: dataDir,
-        agentName: 'mavis',
+        agentName: 'alran',
         memoryFacade: facade,
       });
       expect(customTools.map((tool) => tool.def.name)).not.toContain('memory');
@@ -165,19 +165,19 @@ describe('local native turn tools', () => {
       const primaryMemory = buildLocalNativeRuntimeTools({
         dataDir,
         workspaceRoot: dataDir,
-        agentName: 'mavis',
+        agentName: 'alran',
         memoryFacade: facade,
         memoryAgentScopeEnabled: true,
-        memoryReadAgentNames: ['mavis', 'main'],
+        memoryReadAgentNames: ['alran', 'main'],
       }).find((tool) => tool.def.name === 'memory');
       if (!primaryMemory) throw new Error('primary memory tool not found');
       const primaryResult = await primaryMemory.impl.execute(
-        { sessionId: 'ses_mavis', turnId: 'turn_mavis', agentName: 'mavis' },
+        { sessionId: 'ses_alran', turnId: 'turn_alran', agentName: 'alran' },
         { target: 'main', operation: 'append', content: 'PRIMARY_SENTINEL' },
       );
       expect(primaryResult.details).toMatchObject({ ok: true });
       const userResult = await primaryMemory.impl.execute(
-        { sessionId: 'ses_mavis', turnId: 'turn_mavis', agentName: 'mavis' },
+        { sessionId: 'ses_alran', turnId: 'turn_alran', agentName: 'alran' },
         {
           target: 'user',
           operation: 'append',
@@ -186,7 +186,7 @@ describe('local native turn tools', () => {
         },
       );
       expect(userResult.details).toMatchObject({ ok: true });
-      await expect(facade.getAgentMemory('mavis')).resolves.toMatchObject({
+      await expect(facade.getAgentMemory('alran')).resolves.toMatchObject({
         content: expect.stringContaining('PRIMARY_SENTINEL'),
       });
       await expect(facade.getUserMemory()).resolves.toMatchObject({
@@ -197,19 +197,19 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('removes Cron from the Mavis Tool contract when the Cron adapter is absent', () => {
+  it('removes Cron from the Alran Tool contract when the Cron adapter is absent', () => {
     const base = {
       workspaceRoot: '/workspace',
-      agentName: 'mavis',
-      mavisAgentAdapter: {} as never,
+      agentName: 'alran',
+      alranAgentAdapter: {} as never,
     };
     const withoutCron = buildLocalNativeRuntimeTools(base).find(
-      (tool) => tool.def.name === 'mavis',
+      (tool) => tool.def.name === 'alran',
     );
     const withCron = buildLocalNativeRuntimeTools({
       ...base,
-      mavisCronAdapter: {} as never,
-    }).find((tool) => tool.def.name === 'mavis');
+      alranCronAdapter: {} as never,
+    }).find((tool) => tool.def.name === 'alran');
 
     expect(withoutCron?.def.description).toContain('agent — local desktop agent roster');
     expect(withoutCron?.def.description).toContain('session — local desktop conversations');
@@ -220,25 +220,25 @@ describe('local native turn tools', () => {
     expect(withCron?.def.description).toContain('cron — local desktop scheduled tasks');
   });
 
-  it('strips Cron-only args from the model-visible Mavis schema when Cron is absent', () => {
+  it('strips Cron-only args from the model-visible Alran schema when Cron is absent', () => {
     // Description-only stripping still leaked the capability: `cron_id`,
     // `schedule`, `every` and friends stayed in the args schema, which is
     // enough for a model to infer Cron exists and call into an error.
     const base = {
       workspaceRoot: '/workspace',
-      agentName: 'mavis',
-      mavisAgentAdapter: {} as never,
+      agentName: 'alran',
+      alranAgentAdapter: {} as never,
     };
     const argsOf = (tool: { def: { schema: unknown } } | undefined) =>
       (tool?.def.schema as { properties: { args: { properties: Record<string, unknown> } } })
         .properties.args.properties;
 
     const withoutCron = argsOf(
-      buildLocalNativeRuntimeTools(base).find((tool) => tool.def.name === 'mavis'),
+      buildLocalNativeRuntimeTools(base).find((tool) => tool.def.name === 'alran'),
     );
     const withCron = argsOf(
-      buildLocalNativeRuntimeTools({ ...base, mavisCronAdapter: {} as never }).find(
-        (tool) => tool.def.name === 'mavis',
+      buildLocalNativeRuntimeTools({ ...base, alranCronAdapter: {} as never }).find(
+        (tool) => tool.def.name === 'alran',
       ),
     );
 
@@ -283,23 +283,23 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('derives the Cron-less Mavis contract without mutating the frozen definition', () => {
-    // `LocalMavisToolDef` is contract-frozen by a snapshot test; stripping must
+  it('derives the Cron-less Alran contract without mutating the frozen definition', () => {
+    // `LocalAlranToolDef` is contract-frozen by a snapshot test; stripping must
     // copy rather than edit it in place, or the desktop host loses Cron too.
     const base = {
       workspaceRoot: '/workspace',
-      agentName: 'mavis',
-      mavisAgentAdapter: {} as never,
+      agentName: 'alran',
+      alranAgentAdapter: {} as never,
     };
     const withoutCron = buildLocalNativeRuntimeTools(base).find(
-      (tool) => tool.def.name === 'mavis',
+      (tool) => tool.def.name === 'alran',
     );
-    if (!withoutCron) throw new Error('mavis tool not found');
-    expect(withoutLocalMavisCronGuidance(withoutCron).def).toEqual(withoutCron.def);
+    if (!withoutCron) throw new Error('alran tool not found');
+    expect(withoutLocalAlranCronGuidance(withoutCron).def).toEqual(withoutCron.def);
     const stillHasCron = buildLocalNativeRuntimeTools({
       ...base,
-      mavisCronAdapter: {} as never,
-    }).find((tool) => tool.def.name === 'mavis');
+      alranCronAdapter: {} as never,
+    }).find((tool) => tool.def.name === 'alran');
 
     expect(stillHasCron?.def.description).toContain('cron — local desktop scheduled tasks');
     const schema = stillHasCron?.def.schema as {
@@ -316,7 +316,7 @@ describe('local native turn tools', () => {
     const appendMemory = vi.fn();
     const memory = buildLocalNativeRuntimeTools({
       workspaceRoot: '/workspace',
-      agentName: 'mavis',
+      agentName: 'alran',
       memoryFacade: { getUserMemory, appendMemory } as never,
       memoryEnabled: true,
       memoryReadEnabled: true,
@@ -344,7 +344,7 @@ describe('local native turn tools', () => {
       'search',
     ]);
 
-    const context = { sessionId: 'read-only-memory', turnId: 'turn-1', agentName: 'mavis' };
+    const context = { sessionId: 'read-only-memory', turnId: 'turn-1', agentName: 'alran' };
     const read = await memory!.impl.execute(context, { target: 'user', operation: 'read' });
     const write = await memory!.impl.execute(context, {
       target: 'main',
@@ -367,7 +367,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'capability-session',
@@ -376,11 +376,11 @@ describe('local native turn tools', () => {
         emitBusEvent: () => {},
         builtinCapabilities: resolveAgentCapabilities({
           tools: ['read', 'task_query', 'task_output', 'task_stop'],
-          features: { mavis: false, delegation: false },
+          features: { alran: false, delegation: false },
         }),
         taskAdapter: {} as never,
         taskControlAdapter: {} as never,
-        mavisAgentAdapter: {} as never,
+        alranAgentAdapter: {} as never,
       });
 
       const names = tools.map((tool) => tool.def.name);
@@ -395,7 +395,7 @@ describe('local native turn tools', () => {
         'glob',
         'todowrite',
         'web_fetch',
-        'mavis',
+        'alran',
         'website_deploy',
         'workspace_semantic_search',
         'task',
@@ -408,22 +408,22 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('removes Mavis-only guidance from task schema when Mavis is not available', async () => {
+  it('removes Alran-only guidance from task schema when Alran is not available', async () => {
     const dataDir = await mkdtemp(join(tmpdir(), 'local-native-capability-tools-'));
     try {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
-        sessionId: 'task-without-mavis-session',
+        sessionId: 'task-without-alran-session',
         mcpService: new LocalMcpService(() => dataDir),
         threadGoal: { runtimeToolsFor: () => [] } as never,
         emitBusEvent: () => {},
         builtinCapabilities: resolveAgentCapabilities({
           tools: ['read'],
-          features: { mavis: false, delegation: true },
+          features: { alran: false, delegation: true },
         }),
         taskAdapter: {} as never,
       });
@@ -445,7 +445,7 @@ describe('local native turn tools', () => {
       expect(schema.properties.agent_name.description).toContain(
         'ordinary custom names use their raw stable name',
       );
-      expect(schema.properties.agent_name.description).not.toMatch(/\bmavis\b/i);
+      expect(schema.properties.agent_name.description).not.toMatch(/\balran\b/i);
     } finally {
       await rm(dataDir, { recursive: true, force: true });
     }
@@ -457,7 +457,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'delegation-enabled',
@@ -466,7 +466,7 @@ describe('local native turn tools', () => {
         emitBusEvent: () => {},
         builtinCapabilities: resolveAgentCapabilities({
           tools: ['bash', 'task_query', 'task_output', 'task_stop'],
-          features: { mavis: false, delegation: true },
+          features: { alran: false, delegation: true },
         }),
         taskAdapter: {} as never,
         taskControlAdapter: {} as never,
@@ -493,7 +493,7 @@ describe('local native turn tools', () => {
       const sources = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         sessionId: 'hosted-session',
         mcpService: new LocalMcpService(() => dataDir),
@@ -507,7 +507,7 @@ describe('local native turn tools', () => {
         {
           sessionId: 'hosted-session',
           turnId: 'hosted-turn',
-          agentName: 'mavis',
+          agentName: 'alran',
           eventWriter: {
             pushRuntime: async () => undefined,
             appendEvents: async () => {
@@ -554,7 +554,7 @@ describe('local native turn tools', () => {
       const sources = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         sessionId: 'hosted-session',
         mcpService: new LocalMcpService(() => dataDir),
@@ -568,7 +568,7 @@ describe('local native turn tools', () => {
         {
           sessionId: 'hosted-session',
           turnId: 'hosted-turn',
-          agentName: 'mavis',
+          agentName: 'alran',
         },
         { todos: [{ content: 'keep working', status: 'in_progress' }] },
       );
@@ -598,7 +598,7 @@ describe('local native turn tools', () => {
       const sources = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         sessionId: 'hosted-session',
         mcpService: new LocalMcpService(() => dataDir),
@@ -612,7 +612,7 @@ describe('local native turn tools', () => {
         {
           sessionId: 'hosted-session',
           turnId: 'hosted-turn',
-          agentName: 'mavis',
+          agentName: 'alran',
           reporter: {
             nextEventId: () => 'evt_hosted-turn_todo_updated_1',
             nextRuntimeSeq: () => 1,
@@ -644,7 +644,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'task-session',
@@ -681,7 +681,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'todo-default-session',
@@ -705,7 +705,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'todo-gated-session',
@@ -735,7 +735,7 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'web-fetch-session',
@@ -748,7 +748,7 @@ describe('local native turn tools', () => {
       const webFetch = tools.find((tool) => tool.def.name === 'web_fetch');
       expect(webFetch).toBeDefined();
       const result = await webFetch!.impl.execute(
-        { sessionId: 'web-fetch-session', turnId: 'turn-web-fetch', agentName: 'mavis' },
+        { sessionId: 'web-fetch-session', turnId: 'turn-web-fetch', agentName: 'alran' },
         { url: 'https://example.test/page' },
       );
 
@@ -760,7 +760,7 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('wires the local mavis tool to agent, cron, session, and MCP adapters', async () => {
+  it('wires the local alran tool to agent, cron, session, and MCP adapters', async () => {
     const dataDir = await mkdtemp(join(tmpdir(), 'local-native-tools-'));
     const cronCalls: unknown[] = [];
     const cronSessionCalls: unknown[] = [];
@@ -770,21 +770,21 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'session-current',
         mcpService: new LocalMcpService(() => dataDir),
         threadGoal: { runtimeToolsFor: () => [] } as never,
         emitBusEvent: (type, payload) => busEvents.push({ type, payload }),
-        mavisAgentAdapter: {
+        alranAgentAdapter: {
           listAgents: async () => ({ agents: [] }),
           createAgent: async () => ({ name: 'created' }),
           getAgent: async (req) => ({ agent: { name: req.name, displayName: req.name } }),
           updateAgent: async (req) => ({ success: true, agent: { name: req.name } }),
           deleteAgent: async () => ({ success: true }),
         },
-        mavisCronAdapter: {
+        alranCronAdapter: {
           listCrons: async (req) => {
             cronCalls.push(req);
             return { tasks: [{ cronId: 'cron-1', agentName: req.agentName }] };
@@ -803,10 +803,10 @@ describe('local native turn tools', () => {
             };
           },
         },
-        mavisSessionAdapter: {
+        alranSessionAdapter: {
           listSessions: async () => ({ sessions: [] }),
           getSession: async (req) => ({
-            session: { sessionId: req.sessionId, agentName: 'mavis' },
+            session: { sessionId: req.sessionId, agentName: 'alran' },
           }),
           updateSession: async (req) => ({ success: true, session: { sessionId: req.sessionId } }),
           deleteSession: async () => ({ success: true }),
@@ -817,22 +817,22 @@ describe('local native turn tools', () => {
         },
       });
 
-      const mavis = tools.find((tool) => tool.def.name === 'mavis');
-      expect(mavis).toBeDefined();
+      const alran = tools.find((tool) => tool.def.name === 'alran');
+      expect(alran).toBeDefined();
 
-      const cronResult = await mavis!.impl.execute(
-        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'mavis' },
+      const cronResult = await alran!.impl.execute(
+        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'alran' },
         { command: 'cron list', args: { agent_name: 'me', limit: 1 } },
       );
       expect(JSON.parse(cronResult.text)).toMatchObject({
         ok: true,
         command: 'cron list',
-        response: { tasks: [{ cronId: 'cron-1', agentName: 'mavis' }] },
+        response: { tasks: [{ cronId: 'cron-1', agentName: 'alran' }] },
       });
-      expect(cronCalls).toEqual([{ agentName: 'mavis', limit: 1 }]);
+      expect(cronCalls).toEqual([{ agentName: 'alran', limit: 1 }]);
 
-      const cronSessionsResult = await mavis!.impl.execute(
-        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'mavis' },
+      const cronSessionsResult = await alran!.impl.execute(
+        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'alran' },
         {
           command: 'cron sessions',
           args: { cron_id: 'cron-1', cursor: 'sess-0', limit: 1 },
@@ -849,8 +849,8 @@ describe('local native turn tools', () => {
       });
       expect(cronSessionCalls).toEqual([{ cronId: 'cron-1', cursor: 'sess-0', limit: 1 }]);
 
-      const sessionResult = await mavis!.impl.execute(
-        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'mavis' },
+      const sessionResult = await alran!.impl.execute(
+        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'alran' },
         { command: 'session messages', args: { session_id: 'me' } },
       );
       expect(JSON.parse(sessionResult.text)).toMatchObject({
@@ -860,8 +860,8 @@ describe('local native turn tools', () => {
       });
       expect(sessionCalls).toEqual([{ sessionId: 'session-current' }]);
 
-      const mcpResult = await mavis!.impl.execute(
-        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'mavis' },
+      const mcpResult = await alran!.impl.execute(
+        { sessionId: 'session-current', turnId: 'turn-1', agentName: 'alran' },
         {
           command: 'mcp create',
           args: { name: 'docs', transport: 'stdio', command: 'npx', enabled: false },
@@ -897,7 +897,7 @@ describe('local native turn tools', () => {
       const commonInput = {
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'disabled-skill-session',
@@ -910,7 +910,7 @@ describe('local native turn tools', () => {
       const context = {
         sessionId: 'disabled-skill-session',
         turnId: 'turn-skill',
-        agentName: 'mavis',
+        agentName: 'alran',
       };
 
       const available = await unrestrictedSkill!.impl.execute(context, { name: 'lark-tools' });
@@ -995,7 +995,7 @@ describe('local native turn tools', () => {
       const { nativeTools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'frozen-skill-session',
@@ -1008,7 +1008,7 @@ describe('local native turn tools', () => {
       const skill = nativeTools.find((tool) => tool.def.name === 'skill');
 
       const blocked = await skill!.impl.execute(
-        { sessionId: 'frozen-skill-session', turnId: 'turn-2', agentName: 'mavis' },
+        { sessionId: 'frozen-skill-session', turnId: 'turn-2', agentName: 'alran' },
         { name: 'lark-tools' },
       );
 
@@ -1030,7 +1030,7 @@ describe('local native turn tools', () => {
       const commonInput = {
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'plugin-skill-session',
@@ -1061,7 +1061,7 @@ describe('local native turn tools', () => {
       });
       const blockedSkill = blockedTools.find((tool) => tool.def.name === 'skill');
       const blocked = await blockedSkill!.impl.execute(
-        { sessionId: 'plugin-skill-session', turnId: 'turn-1', agentName: 'mavis' },
+        { sessionId: 'plugin-skill-session', turnId: 'turn-1', agentName: 'alran' },
         { name: 'notes:plugin-notes' },
       );
       expect(blocked.text).toBe('Local skill not found: notes:plugin-notes');
@@ -1074,7 +1074,7 @@ describe('local native turn tools', () => {
       const skill = tools.find((tool) => tool.def.name === 'skill');
 
       const loaded = await skill!.impl.execute(
-        { sessionId: 'plugin-skill-session', turnId: 'turn-1', agentName: 'mavis' },
+        { sessionId: 'plugin-skill-session', turnId: 'turn-1', agentName: 'alran' },
         { name: 'notes:plugin-notes' },
       );
       expect(loaded.text).toContain('# Captured Plugin notes body');
@@ -1107,7 +1107,7 @@ describe('local native turn tools', () => {
       const commonInput = {
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'cu-skill-session',
@@ -1121,7 +1121,7 @@ describe('local native turn tools', () => {
       });
       const inactiveSkill = inactiveTools.find((tool) => tool.def.name === 'skill');
       const blocked = await inactiveSkill!.impl.execute(
-        { sessionId: 'cu-skill-session', turnId: 'turn-skill-off', agentName: 'mavis' },
+        { sessionId: 'cu-skill-session', turnId: 'turn-skill-off', agentName: 'alran' },
         { name: 'cu-desktop' },
       );
       expect(blocked.text).toBe('Local skill not found: cu-desktop');
@@ -1132,7 +1132,7 @@ describe('local native turn tools', () => {
       });
       const activeSkill = activeTools.find((tool) => tool.def.name === 'skill');
       const loaded = await activeSkill!.impl.execute(
-        { sessionId: 'cu-skill-session', turnId: 'turn-skill-on', agentName: 'mavis' },
+        { sessionId: 'cu-skill-session', turnId: 'turn-skill-on', agentName: 'alran' },
         { name: 'cu-desktop' },
       );
       expect(loaded.text).toContain('# Computer Use — Desktop Operation Guide');
@@ -1158,15 +1158,15 @@ describe('local native turn tools', () => {
           {
             id: 'agent-owned-skill-test',
             kind: 'builtin',
-            scope: 'mavis',
-            rootPath: join(packageRoot, '../local-runtime-v2/assets/agents/mavis/skills'),
+            scope: 'alran',
+            rootPath: join(packageRoot, '../local-runtime-v2/assets/agents/alran/skills'),
           },
         ],
       });
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
         sessionId: 'owned-skill-session',
@@ -1176,7 +1176,7 @@ describe('local native turn tools', () => {
         builtinCapabilities: resolveAgentCapabilities({
           tools: ['read', 'write'],
           skills: ['visual-page'],
-          features: { mavis: false, delegation: false },
+          features: { alran: false, delegation: false },
         }),
         memoryEnabled: false,
       });
@@ -1184,10 +1184,10 @@ describe('local native turn tools', () => {
       const context = {
         sessionId: 'owned-skill-session',
         turnId: 'owned-skill-turn',
-        agentName: 'mavis',
+        agentName: 'alran',
       };
 
-      for (const name of ['mavis', 'create-agent', 'mavis-team']) {
+      for (const name of ['alran', 'create-agent', 'alran-team']) {
         const blocked = await skill!.impl.execute(context, { name });
         expect(blocked.text).toBe(`Local skill not found: ${name}`);
       }
@@ -1198,8 +1198,8 @@ describe('local native turn tools', () => {
     }
   });
 
-  it('keeps Mavis-owned skill reads when the Mavis feature owner is selected', async () => {
-    const dataDir = await mkdtemp(join(tmpdir(), 'local-native-mavis-skills-'));
+  it('keeps Alran-owned skill reads when the Alran feature owner is selected', async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), 'local-native-alran-skills-'));
     try {
       initSkillService({
         configGetter: () => ({
@@ -1208,7 +1208,7 @@ describe('local native turn tools', () => {
         }),
         skillRegistryRoots: [
           {
-            id: 'builtin-mavis-skill-test',
+            id: 'builtin-alran-skill-test',
             kind: 'builtin',
             rootPath: await createSyntheticSkills(dataDir),
           },
@@ -1217,29 +1217,29 @@ describe('local native turn tools', () => {
       const { nativeTools: tools } = await buildLocalTurnToolSources({
         toolsDisabled: false,
         workspaceRoot: process.cwd(),
-        agentName: 'mavis',
+        agentName: 'alran',
         dataDir,
         eventWriter: new LocalEventSink(),
-        sessionId: 'mavis-skill-session',
+        sessionId: 'alran-skill-session',
         mcpService: new LocalMcpService(() => dataDir),
         threadGoal: { runtimeToolsFor: () => [] } as never,
         emitBusEvent: () => {},
         builtinCapabilities: resolveAgentCapabilities({
           tools: [],
           skills: [],
-          features: { mavis: true, delegation: false },
+          features: { alran: true, delegation: false },
         }),
         memoryEnabled: false,
       });
       const skill = tools.find((tool) => tool.def.name === 'skill');
       const context = {
-        sessionId: 'mavis-skill-session',
-        turnId: 'mavis-skill-turn',
-        agentName: 'mavis',
+        sessionId: 'alran-skill-session',
+        turnId: 'alran-skill-turn',
+        agentName: 'alran',
       };
 
-      const mavis = await skill!.impl.execute(context, { name: 'mavis' });
-      expect(mavis.text).toContain('# Mavis');
+      const alran = await skill!.impl.execute(context, { name: 'alran' });
+      expect(alran.text).toContain('# Alran');
       const createAgent = await skill!.impl.execute(context, { name: 'create-agent' });
       expect(createAgent.text).toContain('# Create Agent');
       expect(createAgent.text).toContain(
@@ -1268,7 +1268,7 @@ describe('local native turn tools', () => {
         const { nativeTools } = await buildLocalTurnToolSources({
           toolsDisabled: false,
           workspaceRoot: process.cwd(),
-          agentName: 'mavis',
+          agentName: 'alran',
           dataDir,
           eventWriter: new LocalEventSink(),
           sessionId,
@@ -1278,7 +1278,7 @@ describe('local native turn tools', () => {
           builtinCapabilities: resolveAgentCapabilities({
             tools: ['read', 'write', 'edit', 'bash'],
             skills: [],
-            features: { mavis: false, delegation: false, webSearch: false },
+            features: { alran: false, delegation: false, webSearch: false },
           }),
           ...(miniappAvailable ? { miniappAvailable: true } : {}),
           memoryEnabled: false,
@@ -1291,7 +1291,7 @@ describe('local native turn tools', () => {
         {
           sessionId: available.sessionId,
           turnId: 'miniapp-skill-available-turn',
-          agentName: 'mavis',
+          agentName: 'alran',
         },
         { name: 'miniapp-creator' },
       );
@@ -1302,7 +1302,7 @@ describe('local native turn tools', () => {
         {
           sessionId: unavailable.sessionId,
           turnId: 'miniapp-skill-unavailable-turn',
-          agentName: 'mavis',
+          agentName: 'alran',
         },
         { name: 'miniapp-creator' },
       );
@@ -1317,7 +1317,7 @@ describe('local native turn tools', () => {
 // are deliberately absent from the standalone distribution.
 async function createSyntheticSkills(dataDir: string): Promise<string> {
   const root = join(dataDir, 'fixture-skills');
-  for (const [name, title] of [['mavis', 'Mavis'], ['create-agent', 'Create Agent'], ['miniapp-creator', 'Mini App Creator']]) {
+  for (const [name, title] of [['alran', 'Alran'], ['create-agent', 'Create Agent'], ['miniapp-creator', 'Mini App Creator']]) {
     const dir = join(root, name!);
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, 'SKILL.md'), `---\nname: ${name}\ndescription: Synthetic test skill.\n---\n# ${title}\nOnly proceed after the user explicitly asks for or approves creating an agent.\n`);

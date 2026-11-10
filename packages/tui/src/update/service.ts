@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import { homedir } from 'node:os';
 import path from 'node:path';
 import spawn from 'cross-spawn';
-import { retryWindowsFileSystemOperation } from '@mavis/shared';
+import { retryWindowsFileSystemOperation } from '@alran/shared';
 import { resolveAlranNpmDistribution } from './install-source.js';
 import { readAlranBinEntry, resolveAlranPrefixPackageRoot } from './prefix-update.js';
 import {

@@ -2,12 +2,12 @@ import {
   readPtcChildExecutionDetails,
   readPtcExecutionDetails,
   type PtcExecutionDetails,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 import {
   sanitizePtcChildExecutionDetailsForSafety,
   sanitizePtcExecutionDetailsForSafety,
-} from '@mavis/agent-tools/desktop';
-import { logger } from '@mavis/shared/local-runtime-logging';
+} from '@alran/agent-tools/desktop';
+import { logger } from '@alran/shared/local-runtime-logging';
 import type { CanonicalHistoryEnvelope } from '../../sessions/representation/canonical-history-contract.js';
 import type { DisplayMessageRecord, MessageRepository } from '../repo/contract.js';
 import type { SessionStreamWriter } from '../../stream/session-frame.js';

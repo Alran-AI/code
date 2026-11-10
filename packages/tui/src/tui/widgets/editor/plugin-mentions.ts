@@ -2,7 +2,7 @@ import {
   parsePluginMentions,
   serializePluginMention,
   type PluginMention,
-} from '@mavis/shared/plugin-mention';
+} from '@alran/shared/plugin-mention';
 
 export type EditorPluginMention = PluginMention;
 

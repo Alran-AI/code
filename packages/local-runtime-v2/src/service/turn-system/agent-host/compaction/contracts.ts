@@ -3,8 +3,8 @@ import type {
   PiAgentMessage,
   PiBeforeLlmCallHookInput,
   LLMRequestSettledEvent,
-} from '@mavis/agent-core/pi-turn-runner';
-import type { ContextUsagePromptRange, ContextUsageSnapshot } from '@mavis/agent-core/protocol';
+} from '@alran/agent-core/pi-turn-runner';
+import type { ContextUsagePromptRange, ContextUsageSnapshot } from '@alran/agent-core/protocol';
 
 import type { AgentEventContext } from '../events/contracts.js';
 import type { CanonicalHistoryMessages } from '../history/contracts.js';

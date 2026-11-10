@@ -1,6 +1,6 @@
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
 export interface CliAuthScope {
-  readonly region: MavisRegion;
-  readonly buildEnv: MavisBuildEnv;
+  readonly region: AlranRegion;
+  readonly buildEnv: AlranBuildEnv;
 }

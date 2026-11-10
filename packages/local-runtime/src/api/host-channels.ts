@@ -75,7 +75,7 @@ import type {
 } from "./host-channel-pending.js";
 import { imLogger, imLogger as logger } from "../common/im-logger.js";
 import type { ModuleMetricsReporter } from "../common/metrics.js";
-import type { RuntimeConversationChannelView } from "@mavis/conversation-contract";
+import type { RuntimeConversationChannelView } from "@alran/conversation-contract";
 import { LocalAgentContractError } from "../agent/contract.js";
 import { migrateRootlessChannelState } from "../channels/rootless-startup-migration.js";
 import type { LocalSessionRecord } from "../sessions/controller.js";
@@ -143,7 +143,7 @@ const ACCESS_CONTROL_DENY_REPLY_EN = [
 
 function resolveAccessControlDenyLocale(): "zh" | "en" {
   const locale = (
-    process.env.NEXT_PUBLIC_LOCALE ?? process.env.MAVIS_ELECTRON_LOCALE
+    process.env.NEXT_PUBLIC_LOCALE ?? process.env.ALRAN_ELECTRON_LOCALE
   )
     ?.trim()
     .toLowerCase();
@@ -218,7 +218,7 @@ export function createChannelBridgeInfra(input: {
   /**
    * Optional Access Control store. When provided, the bridge runs
    * the AC pipeline before the legacy dedup + owner gate. The CRUD
-   * routes under `/mavis/api/channel-bridge/access-control/*` also
+   * routes under `/alran/api/channel-bridge/access-control/*` also
    * reach this store through `infra.accessControlStore`.
    */
   accessControlStore?: LocalAccessControlStore;
@@ -375,7 +375,7 @@ export function wireChannelSubsystem(input: {
   submitQuestionnaireReply?: (input: {
     agentName: string;
     requestId: string;
-    reply: import("@mavis/shared/questionnaire").AskQuestionnaireReplyPayload;
+    reply: import("@alran/shared/questionnaire").AskQuestionnaireReplyPayload;
   }) => Promise<QuestionnaireReplyOutcome | void>;
   /**
    * Optional permission reply applier. Wired by the host to
@@ -1732,7 +1732,7 @@ export function createChannelApis(input: {
   // agent whose credential is disabled (or whose family lost the winner).
   // NOTE: eager `void startFeishuWs()` used to sit here as the primary boot
   // path, hardcoded to `input.agentName` (usually the default agent — e.g.
-  // `mavis`). It was made redundant once `restartInboundLoops()` below
+  // `alran`). It was made redundant once `restartInboundLoops()` below
   // was introduced: restore now enumerates every persisted binding and
   // dispatches `startFeishuWs(record.agentName)` per record — including
   // agents whose name differs from `input.agentName` (e.g. a user with

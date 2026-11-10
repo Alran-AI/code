@@ -17,7 +17,7 @@ import {
   formatSideConversationLabel,
   type TuiSideConversationPresentation,
 } from '../../commands/side-session.js';
-import { LIGHTWEIGHT_SESSION_PURPOSE } from '@mavis/protocol/local';
+import { LIGHTWEIGHT_SESSION_PURPOSE } from '@alran/protocol/local';
 
 export interface ResolveTuiVisiblePresentationInput {
   readonly snapshot: TuiChatSnapshot;

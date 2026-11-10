@@ -1,4 +1,4 @@
-import { currentBetaResolutionContext, resolveBetaFeature } from '@mavis/config';
+import { currentBetaResolutionContext, resolveBetaFeature } from '@alran/config';
 
 import type { LocalRuntimeConfig } from '../../service/model-system/index.js';
 import type { SessionToolCallModePolicy } from '../../service/session-system/index.js';

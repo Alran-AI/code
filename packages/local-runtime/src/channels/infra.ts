@@ -56,7 +56,7 @@ import { reportChannelResourceAmbiguity } from './channel-resource-ambiguity.js'
 import type { CompactionOutcome } from '../api/routes/compaction.js';
 import { imLogger as logger } from '../common/im-logger.js';
 import type { ModuleMetricsReporter } from '../common/metrics.js';
-import { channelRoutingModeForStrategy, type ChannelRoutingMode } from '@mavis/shared';
+import { channelRoutingModeForStrategy, type ChannelRoutingMode } from '@alran/shared';
 import { mutateDurableYaml, readYamlDocument } from './durable-yaml.js';
 import {
   defaultChannelMessageFilter,
@@ -857,7 +857,7 @@ export interface LocalChannelBridgeInfraOptions {
    * runs the policy gates before the legacy dedup + owner-gate path
    * and short-circuits on deny with `accessDeniedReason:
    * access-control:<reason>`. Also used by the CRUD routes under
-   * `/mavis/api/channel-bridge/access-control/*`.
+   * `/alran/api/channel-bridge/access-control/*`.
    *
    * Source of truth: knowledge/proposals/dev-im-access-control-yaml-migration.md
    * §"Integration points" 1-4.
@@ -905,7 +905,7 @@ export class LocalChannelBridgeInfra {
   readonly rootlessEnabled: boolean;
   /**
    * Optional Access Control store. Exposed as a public field so the
-   * `/mavis/api/channel-bridge/access-control/*` CRUD routes (and the
+   * `/alran/api/channel-bridge/access-control/*` CRUD routes (and the
    * bind-restore flow's `ensureDefaultPolicy` call) can reach the same
    * store that `handleInbound` evaluates against.
    */
@@ -2124,8 +2124,8 @@ async function resolveChannelReadAgent(
   } catch (err) {
     const primaryConflict = normalizePrimaryAgentResolutionConflict(err, {
       platform,
-      canonicalAgentName: 'mavis',
-      agentNames: ['mavis', 'main'],
+      canonicalAgentName: 'alran',
+      agentNames: ['alran', 'main'],
     });
     if (primaryConflict) throw primaryConflict;
     throw err;
@@ -2153,8 +2153,8 @@ async function resolveChannelWriteAgent(
   } catch (err) {
     const primaryConflict = normalizePrimaryAgentResolutionConflict(err, {
       platform,
-      canonicalAgentName: 'mavis',
-      agentNames: ['mavis', 'main'],
+      canonicalAgentName: 'alran',
+      agentNames: ['alran', 'main'],
     });
     if (primaryConflict) throw primaryConflict;
     throw err;

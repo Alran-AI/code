@@ -16,38 +16,38 @@
  * Runtime-injected env vars that must NOT leak into repo/worktree daemon children.
  * These describe "who the parent runtime is", not "what the child should be".
  *
- * `MAVIS_ACCESS_TOKEN` is included as a defensive fallback: the supported entry
- * point for the user identity token is `__MAVIS_PARENT_ACCESS_TOKEN`
+ * `ALRAN_ACCESS_TOKEN` is included as a defensive fallback: the supported entry
+ * point for the user identity token is `__ALRAN_PARENT_ACCESS_TOKEN`
  * (see {@link PARENT_HINT_KEYS}). Stripping the unprefixed name here ensures
  * stale env vars from older Electron builds, manual exports, or grandchild
  * inheritance never silently take effect inside a fresh daemon.
  */
 export const MANAGED_RUNTIME_KEYS = [
-  'MAVIS_ACCESS_TOKEN',
-  'MAVIS_REGION',
-  'MAVIS_BUILD_ENV',
-  '__MAVIS_DISABLE_SAFETY',
-  'MAVIS_SQLITE3_MODULE_PATH',
+  'ALRAN_ACCESS_TOKEN',
+  'ALRAN_REGION',
+  'ALRAN_BUILD_ENV',
+  '__ALRAN_DISABLE_SAFETY',
+  'ALRAN_SQLITE3_MODULE_PATH',
   'ELECTRON_RUN_AS_NODE',
 ] as const;
 
 /** Legacy runtime identity vars. Daemon identity now travels via args/files. */
 export const LEGACY_RUNTIME_ENV_KEYS = [
-  '__MAVIS_RUNTIME_PORT',
-  '__MAVIS_RUNTIME_DATA_DIR',
-  '__MAVIS_RUNTIME_PROFILE',
-  '__MAVIS_RUNTIME_DISABLE_GIT_AUTO_CONFIG',
-  '__MAVIS_RUNTIME_SKIP_PID_PORT',
-  '__MAVIS_RUNTIME_MANAGED',
-  '__MAVIS_RUNTIME_AGENT_NAME',
-  '__MAVIS_RUNTIME_SESSION_ID',
-  '__MAVIS_RUNTIME_DAEMON_URL',
-  'MAVIS_PORT',
+  '__ALRAN_RUNTIME_PORT',
+  '__ALRAN_RUNTIME_DATA_DIR',
+  '__ALRAN_RUNTIME_PROFILE',
+  '__ALRAN_RUNTIME_DISABLE_GIT_AUTO_CONFIG',
+  '__ALRAN_RUNTIME_SKIP_PID_PORT',
+  '__ALRAN_RUNTIME_MANAGED',
+  '__ALRAN_RUNTIME_AGENT_NAME',
+  '__ALRAN_RUNTIME_SESSION_ID',
+  '__ALRAN_RUNTIME_DAEMON_URL',
+  'ALRAN_PORT',
   'ALRAN_DATA_DIR',
-  'MAVIS_DATA_DIR',
-  'MAVIS_PROFILE',
-  'MAVIS_SKIP_PID_PORT',
-  'MAVIS_MANAGED_RUNTIME',
+  'ALRAN_DATA_DIR',
+  'ALRAN_PROFILE',
+  'ALRAN_SKIP_PID_PORT',
+  'ALRAN_MANAGED_RUNTIME',
   'AGENTARCHON_PORT',
   'AGENTARCHON_DATA_DIR',
   'AGENTARCHON_PROFILE',
@@ -58,17 +58,17 @@ export const RUNTIME_IDENTITY_KEYS = LEGACY_RUNTIME_ENV_KEYS;
 
 /** Parent → direct-child hints. Strip before spawning a new daemon. */
 export const PARENT_HINT_KEYS = [
-  '__MAVIS_PARENT_DAEMON_URL',
-  '__MAVIS_PARENT_DATA_DIR',
-  '__MAVIS_PARENT_SESSION_ID',
-  '__MAVIS_PARENT_AGENT_NAME',
-  '__MAVIS_PARENT_MANAGED',
-  '__MAVIS_PARENT_ACCESS_TOKEN',
-  '__MAVIS_PARENT_REAL_USER_ID',
-  '__MAVIS_PARENT_USER_EMAIL',
-  '__MAVIS_PARENT_USER_NAME',
-  '__MAVIS_PARENT_SUB_USER_NAME',
-  '__MAVIS_PARENT_AUTH_SECRET',
+  '__ALRAN_PARENT_DAEMON_URL',
+  '__ALRAN_PARENT_DATA_DIR',
+  '__ALRAN_PARENT_SESSION_ID',
+  '__ALRAN_PARENT_AGENT_NAME',
+  '__ALRAN_PARENT_MANAGED',
+  '__ALRAN_PARENT_ACCESS_TOKEN',
+  '__ALRAN_PARENT_REAL_USER_ID',
+  '__ALRAN_PARENT_USER_EMAIL',
+  '__ALRAN_PARENT_USER_NAME',
+  '__ALRAN_PARENT_SUB_USER_NAME',
+  '__ALRAN_PARENT_AUTH_SECRET',
 ] as const;
 
 /**
@@ -100,13 +100,13 @@ function stripRuntimeBoundaryKeys(env: NodeJS.ProcessEnv, mode: BuildChildEnvMod
     // plain objects cannot bypass the same boundary with differently-cased keys.
     const normalizedKey = key.toUpperCase();
     if (
-      normalizedKey.startsWith('__MAVIS_RUNTIME_') ||
-      normalizedKey.startsWith('__MAVIS_PARENT_') ||
-      normalizedKey.startsWith('__MAVIS_ORIGIN_XDG_') ||
+      normalizedKey.startsWith('__ALRAN_RUNTIME_') ||
+      normalizedKey.startsWith('__ALRAN_PARENT_') ||
+      normalizedKey.startsWith('__ALRAN_ORIGIN_XDG_') ||
       normalizedKey.startsWith('AGENTARCHON_') ||
       normalizedKey.startsWith('AGENT_ARCHON_') ||
-      normalizedKey === 'MAVIS_AGENT' ||
-      normalizedKey === 'MAVIS_SESSION' ||
+      normalizedKey === 'ALRAN_AGENT' ||
+      normalizedKey === 'ALRAN_SESSION' ||
       RUNTIME_BOUNDARY_KEY_NAMES.has(normalizedKey) ||
       (mode === 'agent-runtime' && AGENT_RUNTIME_BOUNDARY_KEY_NAMES.has(normalizedKey))
     ) {
@@ -170,12 +170,12 @@ export function stripRuntimeBoundaryKeysFrom(
 export function findLegacyRuntimeEnvKeys(env: NodeJS.ProcessEnv = process.env): string[] {
   return Object.keys(env).filter(
     (key) =>
-      key.startsWith('__MAVIS_RUNTIME_') ||
-      key === 'MAVIS_PORT' ||
+      key.startsWith('__ALRAN_RUNTIME_') ||
+      key === 'ALRAN_PORT' ||
       key === 'ALRAN_DATA_DIR' ||
-      key === 'MAVIS_DATA_DIR' ||
-      key === 'MAVIS_PROFILE' ||
-      key === 'MAVIS_SKIP_PID_PORT' ||
-      key === 'MAVIS_MANAGED_RUNTIME',
+      key === 'ALRAN_DATA_DIR' ||
+      key === 'ALRAN_PROFILE' ||
+      key === 'ALRAN_SKIP_PID_PORT' ||
+      key === 'ALRAN_MANAGED_RUNTIME',
   );
 }

@@ -5,8 +5,8 @@ import path from 'node:path';
 import {
   sanitizeBashSubprocessEnv,
   type BashEnvPolicySource,
-} from '@mavis/agent-core/bash-subprocess-env';
-import type { ToolResult } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/bash-subprocess-env';
+import type { ToolResult } from '@alran/agent-core/tools';
 
 import { LocalBashToolDef, type LocalBashToolInput } from './builtin-defs.js';
 
@@ -55,15 +55,15 @@ export async function executeLocalHostTrashIfRequested(input: {
   const runtime = input.runtime;
   const execution = runtime?.readExecution(input.toolInput);
   if (!execution) {
-    // `mavis-trash --` is an internal sentinel. Never pass it to an ordinary
+    // `alran-trash --` is an internal sentinel. Never pass it to an ordinary
     // shell when the host cannot recover its literal target metadata.
-    if (input.toolInput.command !== 'mavis-trash --') return undefined;
+    if (input.toolInput.command !== 'alran-trash --') return undefined;
     return unavailableTrashError(runtime?.platform);
   }
   if (!runtime) return unavailableTrashError(undefined);
 
   // POSIX recoverable deletion runs INSIDE the sandbox through the `rm` shim,
-  // so the host never executes mavis-trash there. Only Windows — which has no
+  // so the host never executes alran-trash there. Only Windows — which has no
   // sandbox and no PATH-based shim (`rm` is a PowerShell alias) — needs a
   // host-side launcher.
   if (runtime.platform !== 'win32') return unavailableTrashError(runtime.platform);
@@ -73,7 +73,7 @@ export async function executeLocalHostTrashIfRequested(input: {
   if (!isAvailableWindowsTrashRuntime(runtime)) {
     return windowsTrashError('windows_trash_unavailable', 'Windows trash runtime is unavailable.');
   }
-  if (input.toolInput.command !== 'mavis-trash --' || input.toolInput.run_in_background === true) {
+  if (input.toolInput.command !== 'alran-trash --' || input.toolInput.run_in_background === true) {
     return windowsTrashError(
       'windows_trash_input_rejected',
       'Windows trash execution rejected an invalid effective input.',
@@ -160,7 +160,7 @@ function isAvailableWindowsTrashRuntime(
   return (
     typeof runtime.scriptPath === 'string' &&
     path.isAbsolute(runtime.scriptPath) &&
-    path.basename(runtime.scriptPath).toLowerCase() === 'mavis-trash.js'
+    path.basename(runtime.scriptPath).toLowerCase() === 'alran-trash.js'
   );
 }
 

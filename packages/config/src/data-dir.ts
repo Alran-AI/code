@@ -293,6 +293,14 @@ function resolveDataDirPair(
   const newState = pathState(newDir);
   const legacyState = pathState(legacyDir);
 
+  // The primary and legacy basenames must differ. If they ever collide
+  // (misconfigured basenames), creating a compat link would self-reference and
+  // produce a symlink loop, so bail out to the primary dir directly.
+  if (newDir === legacyDir) {
+    ensurePrimaryDir(newDir, logger);
+    return newDir;
+  }
+
   if (newState.kind === 'inaccessible') {
     logger.warn(`Primary data dir ${newDir} is inaccessible; not treating it as missing`);
     return newDir;

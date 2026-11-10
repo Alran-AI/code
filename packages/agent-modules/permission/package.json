@@ -1,7 +1,7 @@
 {
-  "name": "@mavis/permission",
+  "name": "@alran/permission",
   "version": "0.2.1",
-  "description": "Tool-call permission decision engine for Mavis agents; host integration is injected and the package never imports runtime packages.",
+  "description": "Tool-call permission decision engine for Alran agents; host integration is injected and the package never imports runtime packages.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {
@@ -11,7 +11,7 @@
     }
   },
   "dependencies": {
-    "@mavis/agent-core": "workspace:^"
+    "@alran/agent-core": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "^20",

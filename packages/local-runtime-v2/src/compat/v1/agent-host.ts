@@ -2,12 +2,12 @@ import {
   RuntimeEventStatus,
   RuntimeEventType,
   type RuntimeEvent,
-} from "@mavis/agent-core/protocol";
-import { createHookExtension, type AgentExtension } from "@mavis/agent-runtime";
+} from "@alran/agent-core/protocol";
+import { createHookExtension, type AgentExtension } from "@alran/agent-runtime";
 import type {
   CreatedLocalRuntimeHost,
   LocalRuntimeApiHost,
-} from "@mavis/local-runtime";
+} from "@alran/local-runtime";
 
 import { summarizeCommittedPiGoalUsage } from "../../service/session-system/index.js";
 import type {

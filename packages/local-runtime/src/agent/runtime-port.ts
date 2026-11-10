@@ -9,9 +9,9 @@ import type {
   ListAgentsResult as ListAgentsResult,
   UpdateAgentInput as UpdateAgentInput,
   UpdateAgentResult as UpdateAgentResult,
-} from "@mavis/protocol/local";
-import type { AgentReferenceResolver } from "@mavis/shared";
-import type { LocalMavisAgentAdapter } from "@mavis/agent-tools/desktop";
+} from "@alran/protocol/local";
+import type { AgentReferenceResolver } from "@alran/shared";
+import type { LocalAlranAgentAdapter } from "@alran/agent-tools/desktop";
 
 export function isAgentNotFoundError(error: unknown): boolean {
   const candidate = Object(error) as { status?: unknown; code?: unknown };
@@ -234,9 +234,9 @@ export function createDeferredLocalAgentRuntimePort(
 }
 
 /** Adapt the neutral runtime port to the desktop tool's signal-tolerant shape. */
-export function createLocalMavisAgentAdapter(
+export function createLocalAlranAgentAdapter(
   port: LocalAgentRuntimePort,
-): LocalMavisAgentAdapter {
+): LocalAlranAgentAdapter {
   return {
     listAgents: (request) => port.listAgents(request),
     createAgent: (request) => port.createAgent(request),

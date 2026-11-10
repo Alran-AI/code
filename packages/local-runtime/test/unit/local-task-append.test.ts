@@ -10,7 +10,7 @@ import {
   type ConversationSteerInput,
   type ConversationSteerResult,
   type ConversationTurnResult,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {

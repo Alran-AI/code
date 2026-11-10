@@ -5,8 +5,8 @@ import {
   isAgentBuiltinToolEnabled,
   type AgentBuiltinToolId,
   type ResolvedAgentCapabilities,
-} from '@mavis/config';
-import { roleDirectoryText } from '@mavis/agent-tools/desktop/subagent-roles';
+} from '@alran/config';
+import { roleDirectoryText } from '@alran/agent-tools/desktop/subagent-roles';
 
 import type { BuiltinRenderInput } from './definitions.js';
 
@@ -26,15 +26,15 @@ export function createBuiltinPromptContext(
   const skills = Object.fromEntries(
     (capabilities.skills ?? []).map((skill) => [skill, true]),
   ) as Record<string, boolean>;
-  skills.mavis = capabilities.features.mavis;
+  skills.alran = capabilities.features.alran;
   return {
     tools,
     persona: capabilities.persona,
     profile: { tui: input.promptProfile === 'tui' },
     features: capabilities.features,
     skills,
-    memory: { enabled: input.memoryEnabled ?? capabilities.features.mavis },
-    cron: { enabled: input.cronEnabled ?? capabilities.features.mavis },
+    memory: { enabled: input.memoryEnabled ?? capabilities.features.alran },
+    cron: { enabled: input.cronEnabled ?? capabilities.features.alran },
     surface: {
       interactive: input.surface !== 'task-child',
       taskChild: input.surface === 'task-child',

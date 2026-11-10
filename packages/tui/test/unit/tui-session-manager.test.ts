@@ -97,7 +97,7 @@ describe('TuiSessionManager', () => {
     const fork: TuiSession = {
       ...child,
       sessionId: 'session-fork',
-      agentName: 'mavis',
+      agentName: 'alran',
       sessionKind: 'conversation-rewind',
       visibility: 'hidden',
       purpose: 'conversation-rewind',

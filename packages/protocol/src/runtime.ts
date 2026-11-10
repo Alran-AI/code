@@ -3,7 +3,7 @@
 export const RUNTIME_EVENT_SCHEMA = "archon.runtime.event.v1" as const;
 
 export const CRON_REQUEST_SOURCE_HEADER =
-  "X-Mavis-Cron-Request-Source" as const;
+  "X-Alran-Cron-Request-Source" as const;
 
 export enum InstalledPluginSource {
   OFFICIAL = 1,
@@ -81,7 +81,7 @@ export enum MemoryScope {
 
 export enum HostToolCapability {
   SHELL = 1,
-  MAVIS_BASE = 2,
+  ALRAN_BASE = 2,
   FILE = 3,
   MEMORY = 4,
   WEB = 5,

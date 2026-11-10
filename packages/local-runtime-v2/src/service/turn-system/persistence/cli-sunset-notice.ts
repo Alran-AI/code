@@ -5,8 +5,8 @@ const FIRST_BOOT_KEY = 'cliSunsetNotice.firstBootAt';
 const FIRST_FIRED_KEY = 'cliSunsetNotice.firstFiredAt';
 const NOTICE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 const REMOVED_CLI_PATTERN =
-  /\bmavis\s+(?:agent|communication|cron|session|memory|skill|hook|spawn)\b/;
-const TEAM_CLI_PATTERN = /\bmavis\s+team\b/;
+  /\balran\s+(?:agent|communication|cron|session|memory|skill|hook|spawn)\b/;
+const TEAM_CLI_PATTERN = /\balran\s+team\b/;
 
 export interface CliSunsetCandidateFile {
   readonly path: string;

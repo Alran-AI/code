@@ -94,12 +94,12 @@ Use `append` only to add **new** entries. To **modify, correct, or remove** an e
 
 **Language: write memory entries in the user's language** (Chinese / English / etc.). Mixing languages across entries makes the file harder to scan and grep. Code identifiers, paths, and CLI commands stay in their native form regardless of the surrounding natural language.
 
-Memory is a hint, not live state — verify before acting on it. For the full discipline (what NOT to save, Type tag, topic files, cleanup, drift rules), load the `mavis` skill and read `references/memory.md`.
+Memory is a hint, not live state — verify before acting on it. For the full discipline (what NOT to save, Type tag, topic files, cleanup, drift rules), load the `alran` skill and read `references/memory.md`.
 
 # Recoverable Deletion
 
-- Read the exact `activeDataDir` from the current `<runtime-data-context>`; never guess it or use bare `mavis-trash`.
-- macOS/Linux: `"<activeDataDir>/bin/mavis-trash" -- "<target1>" "<target2>"`.
+- Read the exact `activeDataDir` from the current `<runtime-data-context>`; never guess it or use bare `alran-trash`.
+- macOS/Linux: `"<activeDataDir>/bin/alran-trash" -- "<target1>" "<target2>"`.
 - Windows: use one top-level `rm -- "<target1>" "<target2>"`; the runtime routes it through its trusted launcher. If recoverable deletion fails, report it and never fall back to permanent deletion.
 
 # Output Conventions

@@ -1,5 +1,5 @@
-import type { ProgrammaticToolResult, ToolResult } from '@mavis/agent-core/tools';
-import { describeMcpCallError } from '@mavis/mcp';
+import type { ProgrammaticToolResult, ToolResult } from '@alran/agent-core/tools';
+import { describeMcpCallError } from '@alran/mcp';
 import type { LocalMcpCallResult } from '../contracts.js';
 import { readRecord } from '../runtime/config.js';
 
@@ -8,7 +8,7 @@ import { readRecord } from '../runtime/config.js';
  * Kept under a non-enumerable symbol so `details.mcp`, history, logs and
  * persistence see the unchanged result; only programmatic callers read it.
  */
-const LOCAL_MCP_CALL_ERROR_RAW = Symbol('mavis.localMcp.callErrorRaw');
+const LOCAL_MCP_CALL_ERROR_RAW = Symbol('alran.localMcp.callErrorRaw');
 
 /** Returns `result` with the described error attached; the visible fields are untouched. */
 function withLocalMcpCallErrorRaw(result: LocalMcpCallResult, error: unknown): LocalMcpCallResult {

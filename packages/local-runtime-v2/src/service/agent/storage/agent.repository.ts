@@ -32,7 +32,7 @@ import { AgentServiceError } from '../errors.js';
 import {
   AgentConfigError,
   type CanonicalAgentConfig,
-  type CanonicalAgentMavisConfig,
+  type CanonicalAgentAlranConfig,
 } from './canonical-agent-config.js';
 import { LEGACY_PRIMARY_AGENT_NAME, PRIMARY_AGENT_NAME, isReservedName } from '../domain/names.js';
 import { isPrimaryFamilyName } from '../domain/primary-identity.js';
@@ -335,8 +335,8 @@ export class DrizzleAgentRepository implements AgentStorePort {
     if (builtin) return this.files.getConfig(name);
     const config = await this.readCanonicalCustomConfigIfPresent(name);
     if (config) {
-      return config.xMavis?.defaultWorkspaceDir
-        ? { defaultWorkspaceDir: config.xMavis.defaultWorkspaceDir }
+      return config.xAlran?.defaultWorkspaceDir
+        ? { defaultWorkspaceDir: config.xAlran.defaultWorkspaceDir }
         : {};
     }
     return null;
@@ -360,9 +360,9 @@ export class DrizzleAgentRepository implements AgentStorePort {
     const config = await this.readCanonicalCustomConfigIfPresent(name);
     if (config) {
       return {
-        ...(config.xMavis?.displayName ? { displayName: config.xMavis.displayName } : {}),
+        ...(config.xAlran?.displayName ? { displayName: config.xAlran.displayName } : {}),
         description: config.description,
-        ...(config.xMavis?.avatar ? { avatar: config.xMavis.avatar } : {}),
+        ...(config.xAlran?.avatar ? { avatar: config.xAlran.avatar } : {}),
       };
     }
     return null;
@@ -678,7 +678,7 @@ export class DrizzleAgentRepository implements AgentStorePort {
     canonical: CanonicalAgentConfig | undefined,
     allowLegacyIdentityRecovery: boolean,
   ) {
-    if (trimmedValue(canonical?.xMavis?.displayName)) {
+    if (trimmedValue(canonical?.xAlran?.displayName)) {
       return { identitySource: 'none' as const, displayName: undefined };
     }
     return this.readDisplayNameRecovery(name, allowLegacyIdentityRecovery);
@@ -777,7 +777,7 @@ export class DrizzleAgentRepository implements AgentStorePort {
     name: string,
     legacy: LegacyMaterializationInput,
   ): Promise<void> {
-    const xMavis = await this.materializedMavisConfig(name, legacy);
+    const xAlran = await this.materializedAlranConfig(name, legacy);
     const description = legacy.identity?.description?.trim() || legacy.displayName || name;
     // Initial conversion keeps the legacy prompt when present; otherwise it
     // recovers the description. Startup also fills an empty canonical body.
@@ -791,28 +791,28 @@ export class DrizzleAgentRepository implements AgentStorePort {
       {
         name,
         description,
-        ...(xMavis ? { xMavis } : {}),
+        ...(xAlran ? { xAlran } : {}),
         systemPrompt: mergedPrompt || descriptionFallback,
       },
       true,
     );
   }
 
-  private async materializedMavisConfig(
+  private async materializedAlranConfig(
     name: string,
     legacy: LegacyMaterializationInput,
-  ): Promise<CanonicalAgentMavisConfig | undefined> {
+  ): Promise<CanonicalAgentAlranConfig | undefined> {
     const workspace = legacy.config?.defaultWorkspaceDir?.trim();
     const avatar = legacy.identity?.avatar?.trim();
     const canonicalAvatar = avatar
       ? await this.files.materializeLegacyAvatar(name, avatar)
       : undefined;
-    const xMavis = {
+    const xAlran = {
       ...(legacy.displayName ? { displayName: legacy.displayName } : {}),
       ...(canonicalAvatar ? { avatar: canonicalAvatar } : {}),
       ...(workspace && isAbsolute(workspace) ? { defaultWorkspaceDir: workspace } : {}),
     };
-    return Object.keys(xMavis).length > 0 ? xMavis : undefined;
+    return Object.keys(xAlran).length > 0 ? xAlran : undefined;
   }
 
   private hasLegacyRowProvenance(name: string): boolean {

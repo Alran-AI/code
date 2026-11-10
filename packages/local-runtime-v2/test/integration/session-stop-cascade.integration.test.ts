@@ -14,12 +14,12 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { getConfigPath } from '@mavis/config';
-import { logger } from '@mavis/shared/local-runtime-logging/logger';
+import { getConfigPath } from '@alran/config';
+import { logger } from '@alran/shared/local-runtime-logging/logger';
 import {
   type CreatedLocalRuntimeHost,
   type LocalRuntimeConfig,
-} from '@mavis/local-runtime';
+} from '@alran/local-runtime';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { closeLocalRuntimeDb } from '../../../local-runtime/src/persistence/db.js';
@@ -70,8 +70,8 @@ const harness = vi.hoisted(() => ({
   injectedMessages: [] as { turnId: string; content: string }[],
 }));
 
-vi.mock('@mavis/agent-core/pi-turn-runner', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@mavis/agent-core/pi-turn-runner')>();
+vi.mock('@alran/agent-core/pi-turn-runner', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@alran/agent-core/pi-turn-runner')>();
   return {
     ...actual,
     PiTurnRunner: class {
@@ -252,7 +252,7 @@ describe('session stop cascade over the production V2 host', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -355,7 +355,7 @@ describe('session stop cascade boundary', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -448,7 +448,7 @@ describe('session stop cascade boundary after release', () => {
       );
       try {
         const owner = await conversation.lifecycle.createSession({
-          agentName: 'mavis',
+          agentName: 'alran',
           workspaceDir: join(dataDir, 'workspace'),
           sessionType: 'root',
         });
@@ -545,7 +545,7 @@ describe('session stop cascade identity at arrival', () => {
       ];
       try {
         const owner = await conversation.lifecycle.createSession({
-          agentName: 'mavis',
+          agentName: 'alran',
           workspaceDir: join(dataDir, 'workspace'),
           sessionType: 'root',
         });
@@ -631,7 +631,7 @@ describe('session stop cascade final delivery admission: target suppression', ()
       ];
       try {
         const owner = await conversation.lifecycle.createSession({
-          agentName: 'mavis',
+          agentName: 'alran',
           workspaceDir: join(dataDir, 'workspace'),
           sessionType: 'root',
         });
@@ -745,7 +745,7 @@ describe('session stop cascade final delivery admission: open window', () => {
       ];
       try {
         const owner = await conversation.lifecycle.createSession({
-          agentName: 'mavis',
+          agentName: 'alran',
           workspaceDir: join(dataDir, 'workspace'),
           sessionType: 'root',
         });
@@ -843,7 +843,7 @@ describe('session stop cascade identity', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -907,7 +907,7 @@ describe('session stop cascade must not change unrelated behaviour', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -959,7 +959,7 @@ describe('session stop cascade must not change unrelated behaviour', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1033,7 +1033,7 @@ describe('session stop cascade scope', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1092,7 +1092,7 @@ describe('session stop cascade scope', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1155,7 +1155,7 @@ describe('session stop cascade switches: defaults', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1229,7 +1229,7 @@ describe('session stop cascade switches: subagents only', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1303,7 +1303,7 @@ describe('session stop cascade switches: both off', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1365,7 +1365,7 @@ describe('session stop cascade switches: fresh read', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });
@@ -1439,7 +1439,7 @@ describe('session stop cascade switches: foreground subagent', () => {
       ];
 
       const owner = await conversation.lifecycle.createSession({
-        agentName: 'mavis',
+        agentName: 'alran',
         workspaceDir: join(dataDir, 'workspace'),
         sessionType: 'root',
       });

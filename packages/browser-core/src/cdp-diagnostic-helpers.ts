@@ -21,11 +21,11 @@ const MAX_NETWORK_TEXT_CHARS = 1_024;
 export const browserInputDiagnosticLogger = {
   info(fields: Record<string, unknown>): void {
     // eslint-disable-next-line no-console -- opt-in local browser diagnostics
-    if (process.env.MAVIS_BROWSER_DEBUG === '1') console.info(fields);
+    if (process.env.ALRAN_BROWSER_DEBUG === '1') console.info(fields);
   },
   warn(fields: Record<string, unknown>): void {
     // eslint-disable-next-line no-console -- opt-in local browser diagnostics
-    if (process.env.MAVIS_BROWSER_DEBUG === '1') console.warn(fields);
+    if (process.env.ALRAN_BROWSER_DEBUG === '1') console.warn(fields);
   },
 };
 

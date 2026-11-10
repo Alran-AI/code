@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import * as os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readWindowsTrashExecution } from '@mavis/permission';
+import { readWindowsTrashExecution } from '@alran/permission';
 import type { LocalRuntimeConfig } from '../../src/config/types.js';
 import { LocalPermissionFacade } from '../../src/permissions/facade.js';
 import { LocalPermissionRuleStore } from '../../src/permissions/rules.js';
@@ -42,8 +42,8 @@ function fixture(
   if (options.seedTrash) {
     const binDir = path.join(dataDir, 'bin');
     mkdirSync(binDir, { recursive: true });
-    writeFileSync(path.join(binDir, 'mavis-trash.js'), TRASH_SCRIPT_WIN_CONTENT);
-    writeFileSync(path.join(binDir, 'mavis-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT);
+    writeFileSync(path.join(binDir, 'alran-trash.js'), TRASH_SCRIPT_WIN_CONTENT);
+    writeFileSync(path.join(binDir, 'alran-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT);
   }
   const config = {
     dataDir,
@@ -65,14 +65,14 @@ function fixture(
     skipWindowsHardSafetyChecks: enabled,
   });
   const approval = new LocalPermissionApprovalService({
-    agentName: 'mavis',
+    agentName: 'alran',
     nowMs: Date.now,
     permissionRules: rules,
     publishGlobalEvent: () => {},
   });
   const begin = vi.spyOn(approval, 'begin');
   const ctx: LocalPermissionRouteContext = {
-    agentName: 'mavis',
+    agentName: 'alran',
     configGetter: () => config,
     nowMs: Date.now,
     permissionRules: rules,
@@ -85,7 +85,7 @@ function fixture(
     const call = { assistantMessage: {}, toolCall: { name: tool }, args, context: {} };
     const blocked = await beforeLocalToolCall(
       ctx,
-      { sessionId: 'opt-out-test', agentName: 'mavis' } as LocalSessionRecord,
+      { sessionId: 'opt-out-test', agentName: 'alran' } as LocalSessionRecord,
       'turn-test',
       call as never,
     );
@@ -145,12 +145,12 @@ describe('Windows hard-safety opt-out', () => {
       expect(await pending).toBeUndefined();
       expect(f.execute).toHaveBeenCalledOnce();
       const executed = f.execute.mock.calls[0][0];
-      expect(executed).toMatchObject({ command: 'mavis-trash --', run_in_background: false });
+      expect(executed).toMatchObject({ command: 'alran-trash --', run_in_background: false });
       expect(readWindowsTrashExecution(executed)?.targets).toEqual([
         String.raw`C:\workspace\old.txt`,
       ]);
       expect(JSON.parse(JSON.stringify(executed))).toEqual({
-        command: 'mavis-trash --',
+        command: 'alran-trash --',
         run_in_background: false,
       });
     },
@@ -193,7 +193,7 @@ describe('Windows hard-safety opt-out', () => {
         expect(f.execute).toHaveBeenCalledOnce();
         const executed = f.execute.mock.calls[0][0] as Record<string, unknown>;
         expect(executed.command).not.toBe(command);
-        expect(executed.command).toBe('mavis-trash --');
+        expect(executed.command).toBe('alran-trash --');
         expect(readWindowsTrashExecution(executed)?.targets).toEqual([
           String.raw`C:\workspace\temporary`,
         ]);
@@ -209,7 +209,7 @@ describe('Windows hard-safety opt-out', () => {
         const f = fixture(enabled, mode, 'win32', { nativeDelete: true });
         const result = await f.facade.checkPermission({
           toolName: 'write',
-          agentName: 'mavis',
+          agentName: 'alran',
           input: { file_path: String.raw`C:\Windows\Temp\example.txt`, content: 'example' },
         });
         expect(result.behavior === 'deny', result.reason).toBe(!enabled);
@@ -295,7 +295,7 @@ describe('Windows hard-safety opt-out', () => {
         });
         const blocked = await f.dispatch('bash', { command });
         expect(blocked).toMatchObject({ block: true });
-        expect(blocked?.reason).toMatch(/mavis-trash.*unavailable/i);
+        expect(blocked?.reason).toMatch(/alran-trash.*unavailable/i);
         expect(f.execute).not.toHaveBeenCalled();
         expect(f.begin).not.toHaveBeenCalled();
       }
@@ -303,8 +303,8 @@ describe('Windows hard-safety opt-out', () => {
   });
 
   it.each([
-    String.raw`mavis-trash -rf C:\workspace\temporary`,
-    String.raw`C:\untrusted\mavis-trash.cmd -rf C:\workspace\temporary`,
+    String.raw`alran-trash -rf C:\workspace\temporary`,
+    String.raw`C:\untrusted\alran-trash.cmd -rf C:\workspace\temporary`,
     String.raw`Write-Output start; Remove-Item -Recurse -Force C:\workspace\temporary`,
   ])('does not execute an untrusted launcher or an unsupported delete: %s', async (command) => {
     for (const enabled of [false, true]) {

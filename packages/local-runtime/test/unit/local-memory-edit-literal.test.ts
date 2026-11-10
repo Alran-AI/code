@@ -40,13 +40,13 @@ describe('literal memory edit replacement text', () => {
         config: () => ({ dataDir, enabled: true }),
         nowMs: () => 1_700_000_000_000,
       });
-      await facade.writeMemory('mavis', 'BEFORE TOKEN AFTER');
+      await facade.writeMemory('alran', 'BEFORE TOKEN AFTER');
 
-      await expect(facade.editMemory('mavis', 'TOKEN', '$&', false)).resolves.toEqual({
+      await expect(facade.editMemory('alran', 'TOKEN', '$&', false)).resolves.toEqual({
         replacements: 1,
         result: expect.objectContaining({ content: 'BEFORE $& AFTER' }),
       });
-      await expect(facade.getAgentMemory('mavis')).resolves.toMatchObject({
+      await expect(facade.getAgentMemory('alran')).resolves.toMatchObject({
         content: 'BEFORE $& AFTER',
       });
     } finally {

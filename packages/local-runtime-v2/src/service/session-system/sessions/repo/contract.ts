@@ -1,5 +1,5 @@
 import type { AppDb } from '../../../../infra/db/client.js';
-import type { ConversationModelThinkingSelection } from '@mavis/conversation-contract';
+import type { ConversationModelThinkingSelection } from '@alran/conversation-contract';
 import type {
   SessionAgentDefinition,
   FrozenAgentExecutionDefinition,

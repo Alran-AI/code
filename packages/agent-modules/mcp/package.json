@@ -1,7 +1,7 @@
 {
-  "name": "@mavis/mcp",
+  "name": "@alran/mcp",
   "version": "0.2.1",
-  "description": "Shared MCP runtime substrate for Mavis agent runtimes. Uses the MCP SDK and host-local naming storage; never imports runtime packages.",
+  "description": "Shared MCP runtime substrate for Alran agent runtimes. Uses the MCP SDK and host-local naming storage; never imports runtime packages.",
   "type": "module",
   "types": "./src/index.ts",
   "exports": {

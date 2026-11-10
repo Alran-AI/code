@@ -37,7 +37,7 @@ export type ChannelAccessOwnerDecision = 'allow' | 'deny';
  * owner record. Feishu and WeChat inbound events arrive through the Electron
  * imGateway, which hardcodes `clientName = `${DEFAULT_AGENT}:${platform}`` (see
  * `apps/electron/main/modules/imGateway/im-runtime-bridge.ts:238`, with
- * `DEFAULT_AGENT = 'mavis'` at line 58). That is the source of truth for this
+ * `DEFAULT_AGENT = 'alran'` at line 58). That is the source of truth for this
  * convention.
  *
  * The daemon's own `*ClientId(agentName)` helpers (`feishuClientId` etc.) use a
@@ -53,7 +53,7 @@ export function imGatewayInboundClientName(
   agentName: string,
   platform: 'feishu' | 'telegram' | 'wechat',
 ): string {
-  return `${agentName.trim() || 'mavis'}:${platform}`;
+  return `${agentName.trim() || 'alran'}:${platform}`;
 }
 
 /**
@@ -61,7 +61,7 @@ export function imGatewayInboundClientName(
  * imGateway inbound key (`${agentName}:${platform}`), so an unbind frees up the
  * owner regardless of which path (daemon-local or imGateway-fronted) bootstrapped
  * it. The two keys are de-duplicated, so platforms whose `*ClientId` already
- * equals the imGateway shape (e.g. Telegram → `telegram:mavis`) only issue a
+ * equals the imGateway shape (e.g. Telegram → `telegram:alran`) only issue a
  * single `clear`.
  *
  * Best-effort: `clear` returns `false` for a missing record and never throws, so

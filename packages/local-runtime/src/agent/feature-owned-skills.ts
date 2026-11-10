@@ -3,8 +3,8 @@ import {
   isAgentBuiltinToolEnabled,
   type AgentBuiltinSkillId,
   type ResolvedAgentCapabilities,
-} from '@mavis/config';
-import { isCanonicalSubagentRole } from '@mavis/agent-tools/desktop/subagent-roles';
+} from '@alran/config';
+import { isCanonicalSubagentRole } from '@alran/agent-tools/desktop/subagent-roles';
 
 import { CU_DESKTOP_SKILL_NAME } from '../cu/gate.js';
 
@@ -24,8 +24,8 @@ export function resolveFeatureAwareBuiltinSkillNames(
     configuredSkills.filter((skillName) => isStandaloneSkillUsable(skillName, capabilities)),
   );
 
-  if (capabilities.features.mavis) {
-    selected.add('mavis');
+  if (capabilities.features.alran) {
+    selected.add('alran');
     selected.add('create-agent');
     selected.add('alran-code-product');
   }
@@ -78,7 +78,7 @@ function isStandaloneSkillUsable(
     case 'lark-tools':
     case 'llm-call':
     case 'alran-tools-master':
-    case 'mavis-doctor':
+    case 'alran-doctor':
       return isAgentBuiltinToolEnabled(capabilities, 'bash');
     case 'skill-refiner':
       return hasTools(capabilities, ['read', 'edit']);

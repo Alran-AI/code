@@ -1,4 +1,4 @@
-import type { ToolResult } from '@mavis/agent-core/tools';
+import type { ToolResult } from '@alran/agent-core/tools';
 
 export const DEFAULT_FOREGROUND_BASH_TIMEOUT_SECONDS = 120;
 export const MAX_FOREGROUND_BASH_TIMEOUT_SECONDS = 300;

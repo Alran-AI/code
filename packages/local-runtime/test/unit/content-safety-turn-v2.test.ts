@@ -1,6 +1,6 @@
 import { LocalOutputSafetyEventWriter } from '../../src/runtime/output-safety-writer.js';
-import { RuntimeEventType, type IRuntimeEvent } from '@mavis/protocol';
-import { RespDataType } from '@mavis/agent-core/protocol/agent-message';
+import { RuntimeEventType, type IRuntimeEvent } from '@alran/protocol';
+import { RespDataType } from '@alran/agent-core/protocol/agent-message';
 import { describe, expect, it, vi } from 'vitest';
 import { createContentSafetyChecker, SAFETY_SCENE } from '../../src/content-safety/api.js';
 
@@ -87,7 +87,7 @@ describe('production turn safety routing', () => {
       }
       expect(fetchImpl).toHaveBeenCalledOnce();
       expect(fetchImpl.mock.calls.at(-1)?.[0]).toMatch(
-        /\/mavis\/api\/v2\/content\?require_auth=true$/,
+        /\/alran\/api\/v2\/content\?require_auth=true$/,
       );
       expect(JSON.parse(String(fetchImpl.mock.calls.at(-1)?.[1]?.body))).toEqual({
         content_text: 'draft',
@@ -103,7 +103,7 @@ describe('production turn safety routing', () => {
     const legacyDeps = { region: deps.region, buildEnv: deps.buildEnv };
     const checker = createContentSafetyChecker({ ...legacyDeps, fetchImpl });
     expect(await checker('text', SAFETY_SCENE.UserInput)).toMatchObject({ pass: true });
-    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/mavis\/api\/v1\/content$/);
+    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/alran\/api\/v1\/content$/);
     expect(JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body))).toEqual({
       content_text: 'text',
       scene: 300,
@@ -203,7 +203,7 @@ describe('production turn safety routing', () => {
       errorKind: 'rejected',
       guide_prompt: 'MODEL_ONLY',
     });
-    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/mavis\/api\/v2\/content\?require_auth=true$/);
+    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/alran\/api\/v2\/content\?require_auth=true$/);
     expect(JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body))).toEqual({
       content_text: 'text',
       scene: wireScene,
@@ -218,7 +218,7 @@ describe('production turn safety routing', () => {
       await createContentSafetyChecker({ ...deps, fetchImpl })('text', SAFETY_SCENE.ConfigField),
     ).toMatchObject({ pass: true });
     expect(fetchImpl).toHaveBeenCalledOnce();
-    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/mavis\/api\/v1\/content$/);
+    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/alran\/api\/v1\/content$/);
   });
 
   it('sends a streaming output window directly to V2 as an assistant reply', async () => {
@@ -236,7 +236,7 @@ describe('production turn safety routing', () => {
       errorKind: 'rejected',
     });
     expect(fetchImpl).toHaveBeenCalledOnce();
-    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/mavis\/api\/v2\/content\?require_auth=true$/);
+    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/alran\/api\/v2\/content\?require_auth=true$/);
     expect(JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body))).toEqual({
       content_text: 'draft',
       scene: 11,
@@ -384,7 +384,7 @@ describe('production turn safety routing', () => {
       ),
     ).toEqual({ pass: false, errorKind: 'rejected' });
     expect(fetchImpl).toHaveBeenCalledOnce();
-    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/mavis\/api\/v1\/content$/);
+    expect(fetchImpl.mock.calls[0]?.[0]).toMatch(/\/alran\/api\/v1\/content$/);
     expect(JSON.parse(String(fetchImpl.mock.calls[0]?.[1]?.body))).toEqual({
       content_text: 'thinking',
       scene: 3,

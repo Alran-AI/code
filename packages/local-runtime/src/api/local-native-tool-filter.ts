@@ -1,9 +1,9 @@
-import { agentNameDescription, type LocalRuntimeTool } from '@mavis/agent-tools/desktop';
+import { agentNameDescription, type LocalRuntimeTool } from '@alran/agent-tools/desktop';
 import {
   AGENT_BUILTIN_TOOL_IDS,
   isAgentBuiltinToolEnabled,
   type ResolvedAgentCapabilities,
-} from '@mavis/config';
+} from '@alran/config';
 
 export function filterLocalBuiltinCapabilityTools(
   tools: LocalRuntimeTool[],
@@ -12,16 +12,16 @@ export function filterLocalBuiltinCapabilityTools(
   const configurableToolNames = new Set<string>(AGENT_BUILTIN_TOOL_IDS);
   const capabilityFiltered = tools.filter(
     (tool) =>
-      (tool.def.name !== 'mavis' || capabilities.features.mavis) &&
+      (tool.def.name !== 'alran' || capabilities.features.alran) &&
       (!configurableToolNames.has(tool.def.name) ||
         isAgentBuiltinToolEnabled(
           capabilities,
           tool.def.name as (typeof AGENT_BUILTIN_TOOL_IDS)[number],
         )),
   );
-  return capabilities.features.mavis
+  return capabilities.features.alran
     ? capabilityFiltered
-    : capabilityFiltered.map(withoutMavisTaskAgentNameDescription);
+    : capabilityFiltered.map(withoutAlranTaskAgentNameDescription);
 }
 
 export function normalizedSkillName(name: string): string {
@@ -44,7 +44,7 @@ export function isDesktopExtensionSkillSelected(
   return includes(allowedSkillNames) && includes(selected);
 }
 
-function withoutMavisTaskAgentNameDescription(tool: LocalRuntimeTool): LocalRuntimeTool {
+function withoutAlranTaskAgentNameDescription(tool: LocalRuntimeTool): LocalRuntimeTool {
   if (tool.def.name !== 'task') return tool;
   const schema = tool.def.schema as {
     properties?: Record<string, { description?: string }>;
@@ -61,7 +61,7 @@ function withoutMavisTaskAgentNameDescription(tool: LocalRuntimeTool): LocalRunt
           ...schema.properties,
           agent_name: {
             ...agentName,
-            description: agentNameDescription({ includeMavis: false }),
+            description: agentNameDescription({ includeAlran: false }),
           },
         },
       },

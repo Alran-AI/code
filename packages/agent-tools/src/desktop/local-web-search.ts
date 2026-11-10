@@ -3,7 +3,7 @@ import {
   type ToolImpl,
   type ToolResult,
   withProgrammaticResult,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 import { WebSearchToolDef, type WebSearchInput } from '../shared/web-search.js';
 import type { LocalRuntimeToolContext, LocalWebSearchAdapter } from './types.js';

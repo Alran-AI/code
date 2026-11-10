@@ -47,8 +47,8 @@ export type ResolveOwnerSenderId = (
  * `<dataDir>/access-control.yaml`.
  *
  * Each entry is keyed by `${platform}:${clientName}` (e.g.
- * `telegram:telegram:mavis`, `feishu:mavis:feishu`,
- * `wechat:wechat:mavis`) so a single agent keeps three independent
+ * `telegram:telegram:alran`, `feishu:alran:feishu`,
+ * `wechat:wechat:alran`) so a single agent keeps three independent
  * policies — one per platform — and unrelated agents do not collide.
  *
  * The policy drives three independent gates, evaluated top-to-bottom by

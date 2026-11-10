@@ -1,7 +1,7 @@
 import type {
   ConversationAttachment,
   ConversationMessageInput,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 interface AttachmentRegistrationReceipt {
   readonly assetId: string;

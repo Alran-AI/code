@@ -1,5 +1,5 @@
-import { bindTool, type ToolImpl, type ToolResult } from '@mavis/agent-core/tools';
-import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@mavis/shared/memory-limits';
+import { bindTool, type ToolImpl, type ToolResult } from '@alran/agent-core/tools';
+import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@alran/shared/memory-limits';
 
 import { LocalMemoryToolDef, type LocalMemoryToolInput } from './builtin-defs.js';
 import {

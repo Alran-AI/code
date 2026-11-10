@@ -1,4 +1,4 @@
-import { CONVERSATION_STOP_CONFIG_DEFAULTS, type ConversationStopConfigRead } from '@mavis/config';
+import { CONVERSATION_STOP_CONFIG_DEFAULTS, type ConversationStopConfigRead } from '@alran/config';
 
 import type { TuiConversationPort, TuiDelegationPort } from '../../../runtime/port.js';
 import { isTuiDelegatedSession } from '../../../runtime/delegation.js';

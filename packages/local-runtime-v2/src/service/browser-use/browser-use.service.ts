@@ -1,10 +1,10 @@
-import type { RuntimeTool, ToolResult } from '@mavis/agent-core/tools';
+import type { RuntimeTool, ToolResult } from '@alran/agent-core/tools';
 import {
   buildLocalBrowserRuntimeTools,
   CONTROL_IN_APP_BROWSER_SKILL_NAME,
   type LocalBrowserAdapter,
   type LocalBrowserSkillSessionStore,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import type {
   BrowserUseService,

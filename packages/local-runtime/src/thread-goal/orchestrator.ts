@@ -49,7 +49,7 @@ import {
   renderContinuationPrompt,
   type ThreadGoalState,
   type ThreadGoalStore,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 /**
  * Per-turn outcome returned from `runOneTurn`. The orchestrator only

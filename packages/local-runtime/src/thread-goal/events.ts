@@ -15,7 +15,7 @@ import type {
   ThreadGoalStatus,
   ThreadGoalStatusReason,
   ThreadGoalFailureClass,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 import { logger } from '../common/logger.js';
 

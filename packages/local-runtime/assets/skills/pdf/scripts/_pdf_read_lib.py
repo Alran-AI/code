@@ -109,11 +109,11 @@ def format_pages(pages: list[int]) -> str:
 
 
 def cache_dir() -> Path:
-    """Return ~/.cache/mavis/pdf-out/ — the spill destination for outputs
+    """Return ~/.cache/alran/pdf-out/ — the spill destination for outputs
     larger than --max-stdout-bytes (default 2 KB). Lives under $HOME so it
     survives across runs and stays on the user's data partition.
     """
-    return Path.home() / ".cache" / "mavis" / "pdf-out"
+    return Path.home() / ".cache" / "alran" / "pdf-out"
 
 
 def hash_content(content: str) -> str:
@@ -121,7 +121,7 @@ def hash_content(content: str) -> str:
 
 
 def maybe_spill_to_file(content: str, ext: str, max_stdout_bytes: int) -> str:
-    """If content > threshold, spill to ~/.cache/mavis/pdf-out/<hash>.<ext>
+    """If content > threshold, spill to ~/.cache/alran/pdf-out/<hash>.<ext>
     and return a wrapper (markdown banner or JSON envelope) with preview.
     """
     total_bytes = len(content.encode("utf-8"))
@@ -156,7 +156,7 @@ def maybe_spill_to_file(content: str, ext: str, max_stdout_bytes: int) -> str:
     # markdown
     return "\n".join(
         [
-            "<!-- mavis-pdf: output truncated, full text spilled to disk -->",
+            "<!-- alran-pdf: output truncated, full text spilled to disk -->",
             f"> ⚠ Full output: **{total_bytes:,} bytes** → `{target}`",
             f"> Showing first **{preview_bytes:,} bytes** below.",
             "> Read the file with `cat` / `grep`, or re-run with narrower `--pages`.",
@@ -187,7 +187,7 @@ def add_common_args(p: argparse.ArgumentParser) -> None:
         default=DEFAULT_MAX_STDOUT_BYTES,
         help=(
             f"If output exceeds this many bytes, spill the full text to "
-            f"~/.cache/mavis/pdf-out/<hash>.{{md,json}} and only print a "
+            f"~/.cache/alran/pdf-out/<hash>.{{md,json}} and only print a "
             f"preview + path to stdout. Set 0 to disable. "
             f"(default {DEFAULT_MAX_STDOUT_BYTES})"
         ),

@@ -1,14 +1,14 @@
 /* eslint-disable no-useless-escape */
 /**
- * mavis-trash — shell script that moves files to system trash instead of deleting.
+ * alran-trash — shell script that moves files to system trash instead of deleting.
  *
- * Seeded into `<dataDir>/bin/mavis-trash` on daemon startup.
+ * Seeded into `<dataDir>/bin/alran-trash` on daemon startup.
  * Used by the permission pipeline to rewrite `rm` commands.
  */
 
 export const TRASH_SCRIPT_CONTENT = `#!/usr/bin/env bash
-# mavis-trash — move files to system trash instead of deleting.
-# Usage: mavis-trash [-r] [-f] [-rf] [--force] [--no-preserve|--no-preserve-root] [--] file1 file2 ...
+# alran-trash — move files to system trash instead of deleting.
+# Usage: alran-trash [-r] [-f] [-rf] [--force] [--no-preserve|--no-preserve-root] [--] file1 file2 ...
 # -r/-R are ignored (trash is always recursive). -f/--force skips missing
 # targets like rm, but never unlocks protected paths. Everything after -- is
 # treated as a target, never as an option.
@@ -16,11 +16,11 @@ export const TRASH_SCRIPT_CONTENT = `#!/usr/bin/env bash
 set -euo pipefail
 
 report_no_files_moved() {
-  echo "mavis-trash: no files were moved" >&2
+  echo "alran-trash: no files were moved" >&2
 }
 
 argument_error() {
-  echo "mavis-trash: $1" >&2
+  echo "alran-trash: $1" >&2
   report_no_files_moved
   exit 64
 }
@@ -39,7 +39,7 @@ if [ -n "\${HOME:-}" ] && [ -d "$HOME" ]; then
 fi
 
 # rm-compatible calls receive argv after the caller shell has expanded it.
-# Direct mavis-trash keeps its existing recursive, verbose interface.
+# Direct alran-trash keeps its existing recursive, verbose interface.
 rm_compatible=false
 recursive=true
 interactive=false
@@ -197,34 +197,34 @@ report_protected_paths() {
   local i
   if [ "$count" -eq 1 ]; then
     if [ "\${protected_modes[0]}" = "root" ]; then
-      echo "mavis-trash: refusing to trash root directory '/'" >&2
+      echo "alran-trash: refusing to trash root directory '/'" >&2
       report_no_files_moved
       echo >&2
       echo "To proceed intentionally, run:" >&2
-      echo "  mavis-trash --no-preserve-root -- /" >&2
+      echo "  alran-trash --no-preserve-root -- /" >&2
       return
     fi
 
-    echo "mavis-trash: refusing to trash protected path '\${protected_paths[0]}'" >&2
-    echo "mavis-trash: '\${protected_paths[0]}' is the \${protected_reasons[0]}" >&2
+    echo "alran-trash: refusing to trash protected path '\${protected_paths[0]}'" >&2
+    echo "alran-trash: '\${protected_paths[0]}' is the \${protected_reasons[0]}" >&2
     report_no_files_moved
     echo >&2
     if [ "\${protected_modes[0]}" = "ancestor" ]; then
       echo "Trashing this directory would also remove the protected directory inside it." >&2
       echo "cd out of it first, then retry:" >&2
-      printf '  cd / && mavis-trash -- ' >&2
+      printf '  cd / && alran-trash -- ' >&2
       shell_quote "\${protected_paths[0]}" >&2
       echo >&2
       return
     fi
     echo "Trash this protected directory separately with:" >&2
-    printf '  mavis-trash --no-preserve -- ' >&2
+    printf '  alran-trash --no-preserve -- ' >&2
     shell_quote "\${protected_paths[0]}" >&2
     echo >&2
     return
   fi
 
-  echo "mavis-trash: refusing to trash protected paths:" >&2
+  echo "alran-trash: refusing to trash protected paths:" >&2
   for ((i = 0; i < count; i++)); do
     printf '  %s  (%s)\\n' "\${protected_paths[$i]}" "\${protected_reasons[$i]}" >&2
   done
@@ -233,13 +233,13 @@ report_protected_paths() {
   echo "Trash each protected directory separately:" >&2
   for ((i = 0; i < count; i++)); do
     if [ "\${protected_modes[$i]}" = "root" ]; then
-      echo "  mavis-trash --no-preserve-root -- /" >&2
+      echo "  alran-trash --no-preserve-root -- /" >&2
     elif [ "\${protected_modes[$i]}" = "ancestor" ]; then
-      printf '  cd / && mavis-trash -- ' >&2
+      printf '  cd / && alran-trash -- ' >&2
       shell_quote "\${protected_paths[$i]}" >&2
       echo >&2
     else
-      printf '  mavis-trash --no-preserve -- ' >&2
+      printf '  alran-trash --no-preserve -- ' >&2
       shell_quote "\${protected_paths[$i]}" >&2
       echo >&2
     fi
@@ -260,7 +260,7 @@ preflight_failed=0
 for target in "\${args[@]}"; do
   if [ -z "$target" ]; then
     if $force; then continue; fi
-    echo "mavis-trash: '': No such file or directory" >&2
+    echo "alran-trash: '': No such file or directory" >&2
     preflight_failed=1
     continue
   fi
@@ -269,7 +269,7 @@ for target in "\${args[@]}"; do
     if $force; then
       continue
     fi
-    echo "mavis-trash: '$target': cannot resolve parent directory (does the path exist? is a shell variable like ~ or \\$HOME unexpanded?)" >&2
+    echo "alran-trash: '$target': cannot resolve parent directory (does the path exist? is a shell variable like ~ or \\$HOME unexpanded?)" >&2
     preflight_failed=1
     continue
   fi
@@ -278,14 +278,14 @@ for target in "\${args[@]}"; do
     if $force; then
       continue
     fi
-    echo "mavis-trash: '$absolute_path': No such file or directory" >&2
+    echo "alran-trash: '$absolute_path': No such file or directory" >&2
     preflight_failed=1
     continue
   fi
 
   normalized_path="$(normalize_path "$absolute_path")" || true
   if [ -z "$normalized_path" ]; then
-    echo "mavis-trash: '$absolute_path': cannot resolve path" >&2
+    echo "alran-trash: '$absolute_path': cannot resolve path" >&2
     preflight_failed=1
     continue
   fi
@@ -296,7 +296,7 @@ for target in "\${args[@]}"; do
   fi
 
   if $rm_compatible && ! $recursive && $is_directory && [ ! -L "$absolute_path" ]; then
-    echo "mavis-trash: '$target': is a directory (rm requires -r)" >&2
+    echo "alran-trash: '$target': is a directory (rm requires -r)" >&2
     preflight_failed=1
     continue
   fi
@@ -325,11 +325,11 @@ if $no_preserve; then
     argument_error "--no-preserve accepts exactly one directory"
   fi
   if [ "\${normalized_paths[0]}" = "/" ]; then
-    echo "mavis-trash: --no-preserve does not permit root directory '/'" >&2
+    echo "alran-trash: --no-preserve does not permit root directory '/'" >&2
     report_no_files_moved
     echo >&2
     echo "To proceed intentionally, run:" >&2
-    echo "  mavis-trash --no-preserve-root -- /" >&2
+    echo "  alran-trash --no-preserve-root -- /" >&2
     exit 64
   fi
   if [ "\${normalized_paths[0]}" != "$START_CWD" ] && { [ -z "$START_HOME" ] || [ "\${normalized_paths[0]}" != "$START_HOME" ]; }; then
@@ -368,7 +368,7 @@ trash_file() {
   # by design. Only absence is ignored; backend move errors still fail.
   if [ ! -e "$file" ] && [ ! -L "$file" ]; then
     if $force; then return 0; fi
-    echo "mavis-trash: '$file': No such file or directory" >&2
+    echo "alran-trash: '$file': No such file or directory" >&2
     return 1
   fi
 
@@ -377,7 +377,7 @@ trash_file() {
       # The sandbox must move the item in its own restricted process. Neither
       # native recycling API may be used to delegate an unlink outside it.
       local mode="trash"
-      if [ -n "\${MAVIS_TRASH_FORCE_MV:-}" ]; then mode="move"; fi
+      if [ -n "\${ALRAN_TRASH_FORCE_MV:-}" ]; then mode="move"; fi
       if osascript -l JavaScript -e '
 function moveWithoutOverwrite(source, trashDir) {
   ObjC.import("Foundation");
@@ -437,9 +437,9 @@ function run(argv) {
         return 0
       fi
       if [ "$mode" = "move" ]; then
-        echo "mavis-trash: failed to move '$file' to the trash within the sandbox; no unsafe fallback was attempted" >&2
+        echo "alran-trash: failed to move '$file' to the trash within the sandbox; no unsafe fallback was attempted" >&2
       else
-        echo "mavis-trash: failed to trash '$file'" >&2
+        echo "alran-trash: failed to trash '$file'" >&2
       fi
       return 1
       ;;
@@ -447,7 +447,7 @@ function run(argv) {
       # Linux: try gio trash first. Skipped inside the sandbox for the same
       # reason as Finder on macOS — it hands the unlink to a desktop service
       # running outside the cage.
-      if [ -z "\${MAVIS_TRASH_FORCE_MV:-}" ] && command -v gio >/dev/null 2>&1; then
+      if [ -z "\${ALRAN_TRASH_FORCE_MV:-}" ] && command -v gio >/dev/null 2>&1; then
         if gio trash "$file" 2>/dev/null; then
           return 0
         fi
@@ -471,15 +471,15 @@ Path=$file
 DeletionDate=$(date +%Y-%m-%dT%H:%M:%S)
 TRASHINFO
       mv "$file" "$dest" 2>/dev/null && return 0
-      if [ -n "\${MAVIS_TRASH_FORCE_MV:-}" ]; then
-        echo "mavis-trash: '$file': the sandbox denied moving this file to the trash (deleting this path is not allowed in the current sandbox mode)" >&2
+      if [ -n "\${ALRAN_TRASH_FORCE_MV:-}" ]; then
+        echo "alran-trash: '$file': the sandbox denied moving this file to the trash (deleting this path is not allowed in the current sandbox mode)" >&2
       else
-        echo "mavis-trash: failed to trash '$file'" >&2
+        echo "alran-trash: failed to trash '$file'" >&2
       fi
       return 1
       ;;
     *)
-      echo "mavis-trash: unsupported OS: $(uname -s)" >&2
+      echo "alran-trash: unsupported OS: $(uname -s)" >&2
       return 1
       ;;
   esac
@@ -496,7 +496,7 @@ for ((i = 0; i < \${#execution_paths[@]}; i++)); do
     case "$reply" in [yY]|[yY][eE][sS]) ;; *) continue ;; esac
   fi
   if trash_file "\${execution_paths[$i]}"; then
-    if $verbose; then echo "mavis-trash: moved to trash: '\${original_paths[$i]}'"; fi
+    if $verbose; then echo "alran-trash: moved to trash: '\${original_paths[$i]}'"; fi
   else
     exit_code=1
   fi

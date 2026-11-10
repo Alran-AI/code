@@ -84,7 +84,7 @@ export async function migrateRootlessChannelState(input: {
       );
     }
     return {
-      // Normalize a trusted primary-family alias (`main` → `mavis`) while
+      // Normalize a trusted primary-family alias (`main` → `alran`) while
       // leaving the immutable Session snapshot untouched.
       exactOwnerName: current.exactOwnerName,
       ownerKind: current.ownerKind,

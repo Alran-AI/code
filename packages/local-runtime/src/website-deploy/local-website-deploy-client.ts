@@ -13,8 +13,8 @@
  *   privately as the original ZIP, never entering stage/CDN.
  *
  * Routing: Obtain temporary upload objects through managed Matrix Gateway
- * `/mavis/api/v1/mcp/get_upload_url`; publish through Drive website
- * `/mavis/api/v1/drive/websites/publish_archive`. Gateway authenticates the Bearer access token,
+ * `/alran/api/v1/mcp/get_upload_url`; publish through Drive website
+ * `/alran/api/v1/drive/websites/publish_archive`. Gateway authenticates the Bearer access token,
  * injects BaseReq, and forwards to archon-server PublishWebsiteArchive.
  *
  * Identity: Gateway injects userId/BizLine from the managed access token; local sends only
@@ -28,7 +28,7 @@
 import { lstat, realpath } from 'node:fs/promises';
 import { basename } from 'node:path';
 
-import type { LocalWebsiteDeployAdapter } from '@mavis/agent-tools/desktop';
+import type { LocalWebsiteDeployAdapter } from '@alran/agent-tools/desktop';
 
 import { logger } from '../common/logger.js';
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
@@ -47,9 +47,9 @@ import { materializeWebsiteCover } from './cover-materializer.js';
 import { deployFailure, ensureNotAborted, runDeployStage } from './deploy-failure.js';
 
 /** Drive website publication endpoint: archive oss_key → unpack + publish. */
-const PUBLISH_ARCHIVE_PATH = '/mavis/api/v1/drive/websites/publish_archive';
+const PUBLISH_ARCHIVE_PATH = '/alran/api/v1/drive/websites/publish_archive';
 /** Drive website update endpoint: retain the existing node and URL while replacing both archives' contents. */
-const UPDATE_ARCHIVE_PATH = '/mavis/api/v1/drive/websites/update_archive';
+const UPDATE_ARCHIVE_PATH = '/alran/api/v1/drive/websites/update_archive';
 // Mirrors IDL WebsiteManagementCode_CONTENT_REJECTED; non-zero base_resp always wins.
 const CONTENT_REJECTED_CODE = 10;
 const CONTENT_REJECTED_MESSAGE = '网站正文未通过审核，未发布';

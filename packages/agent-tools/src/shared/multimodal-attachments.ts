@@ -12,7 +12,7 @@ import {
   encodeRequestImageDetails,
   type EncodedRequestImageDetails,
   type RequestImageEncoding,
-} from '@mavis/context-manager';
+} from '@alran/context-manager';
 
 /** Hosts that may not depend on context-manager pass the image encoding through this name. */
 export type AttachmentImageEncoding = RequestImageEncoding;

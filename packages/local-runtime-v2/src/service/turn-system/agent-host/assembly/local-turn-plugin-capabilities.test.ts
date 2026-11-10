@@ -1,11 +1,11 @@
 import { buildLocalTurnToolCatalog } from './local-turn-tool-catalog.js';
 import { Type } from '@sinclair/typebox';
 import { describe, expect, it, vi } from 'vitest';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 import {
   detectPluginReferencesForMessages,
   buildPluginReferenceReminder,
-} from '@mavis/system-reminder';
+} from '@alran/system-reminder';
 import {
   mergeAgentHostTurnCapabilities,
   renderPluginAgentRoster,

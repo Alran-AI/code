@@ -50,18 +50,18 @@ export function toConfiguredModelSelection(config: CanonicalAgentConfig): Pick<
   return {
     ...(config.model ? { model: config.model } : {}),
     ...(config.effort ? { effort: config.effort } : {}),
-    ...(config.xMavis?.contextWindow === undefined
+    ...(config.xAlran?.contextWindow === undefined
       ? {}
-      : { contextWindow: config.xMavis.contextWindow }),
-    ...(config.xMavis?.maxOutputTokens === undefined
+      : { contextWindow: config.xAlran.contextWindow }),
+    ...(config.xAlran?.maxOutputTokens === undefined
       ? {}
-      : { maxOutputTokens: config.xMavis.maxOutputTokens }),
+      : { maxOutputTokens: config.xAlran.maxOutputTokens }),
   };
 }
 
 /** Projects a parsed canonical config without reinterpreting its raw document. */
 export function toConfiguredDefinition(config: CanonicalAgentConfig): AgentConfiguredDefinition {
-  const mavis = config.xMavis;
+  const alran = config.xAlran;
   return {
     name: config.name,
     description: config.description,
@@ -73,21 +73,21 @@ export function toConfiguredDefinition(config: CanonicalAgentConfig): AgentConfi
       : { disallowedTools: [...config.disallowedTools] }),
     ...(config.mcpServers === undefined ? {} : { mcpServers: [...config.mcpServers] }),
     ...(config.skills === undefined ? {} : { skills: [...config.skills] }),
-    ...(mavis === undefined ? {} : { mavis: toConfiguredMavis(mavis) }),
+    ...(alran === undefined ? {} : { alran: toConfiguredAlran(alran) }),
     systemPrompt: config.systemPrompt,
   };
 }
 
-function toConfiguredMavis(
-  mavis: NonNullable<CanonicalAgentConfig['xMavis']>,
-): NonNullable<AgentConfiguredDefinition['mavis']> {
+function toConfiguredAlran(
+  alran: NonNullable<CanonicalAgentConfig['xAlran']>,
+): NonNullable<AgentConfiguredDefinition['alran']> {
   return {
-    ...(mavis.displayName ? { displayName: mavis.displayName } : {}),
-    ...(mavis.avatar ? { avatar: mavis.avatar } : {}),
-    ...(mavis.contextWindow === undefined ? {} : { contextWindow: mavis.contextWindow }),
-    ...(mavis.maxOutputTokens === undefined ? {} : { maxOutputTokens: mavis.maxOutputTokens }),
-    ...(mavis.defaultWorkspaceDir ? { defaultWorkspaceDir: mavis.defaultWorkspaceDir } : {}),
-    ...(mavis.extensionSkills === undefined ? {} : { extensionSkills: [...mavis.extensionSkills] }),
+    ...(alran.displayName ? { displayName: alran.displayName } : {}),
+    ...(alran.avatar ? { avatar: alran.avatar } : {}),
+    ...(alran.contextWindow === undefined ? {} : { contextWindow: alran.contextWindow }),
+    ...(alran.maxOutputTokens === undefined ? {} : { maxOutputTokens: alran.maxOutputTokens }),
+    ...(alran.defaultWorkspaceDir ? { defaultWorkspaceDir: alran.defaultWorkspaceDir } : {}),
+    ...(alran.extensionSkills === undefined ? {} : { extensionSkills: [...alran.extensionSkills] }),
   };
 }
 
@@ -113,9 +113,9 @@ function toEffectiveConfig(
     ...(config.tools === undefined ? {} : { tools: [...config.tools] }),
     ...(config.mcpServers === undefined ? {} : { mcpServers: [...config.mcpServers] }),
     ...(config.skills === undefined ? {} : { skills: [...config.skills] }),
-    ...(config.xMavis?.extensionSkills === undefined
+    ...(config.xAlran?.extensionSkills === undefined
       ? {}
-      : { extensionSkills: [...config.xMavis.extensionSkills] }),
+      : { extensionSkills: [...config.xAlran.extensionSkills] }),
   };
 }
 

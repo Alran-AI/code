@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { isDefaultAgentAvatarMarker } from '@mavis/shared/agent-avatar';
+import { isDefaultAgentAvatarMarker } from '@alran/shared/agent-avatar';
 import {
   BoundedInternalTurnPromptReadRegistry,
   isPromptSnapshotInvalidError,
   type InternalTurnPromptReadRegistry,
   type PromptReadScope,
   type PromptSnapshotSource,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import type {
   NativeSessionAgentDirectory,
   RootAgentPort,
@@ -504,7 +504,7 @@ function initialDefinitionReviewFields(
   input: AgentCreateInput,
   definition: AgentConfiguredDefinition,
 ): ReadonlyArray<string | null | undefined> {
-  const mavis = definition.mavis;
+  const alran = definition.alran;
   return [
     input.name ?? definition.name,
     definition.description,
@@ -514,10 +514,10 @@ function initialDefinitionReviewFields(
     ...(definition.disallowedTools ?? []),
     ...(definition.mcpServers ?? []),
     ...(definition.skills ?? []),
-    mavis?.displayName ?? input.displayName,
-    ...reviewableAvatar(mavis?.avatar ?? input.avatar),
-    mavis?.defaultWorkspaceDir ?? input.defaultWorkspaceDir,
-    ...(mavis?.extensionSkills ?? []),
+    alran?.displayName ?? input.displayName,
+    ...reviewableAvatar(alran?.avatar ?? input.avatar),
+    alran?.defaultWorkspaceDir ?? input.defaultWorkspaceDir,
+    ...(alran?.extensionSkills ?? []),
     definition.systemPrompt,
   ];
 }

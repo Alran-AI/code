@@ -1,7 +1,7 @@
-import { readConversationStopConfig, type ConversationStopConfigRead } from '@mavis/config';
+import { readConversationStopConfig, type ConversationStopConfigRead } from '@alran/config';
 
-import type { BackgroundTaskHost } from '@mavis/agent-tools/desktop';
-import { logger } from '@mavis/shared/local-runtime-logging/logger';
+import type { BackgroundTaskHost } from '@alran/agent-tools/desktop';
+import { logger } from '@alran/shared/local-runtime-logging/logger';
 import { settleInBackground } from '../../service/plugin-system/index.js';
 import {
   isCascadeDisabledByPolicy,

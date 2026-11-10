@@ -1,11 +1,11 @@
-import { getRuntimePresetKey, resolveModelAvailability } from '@mavis/config';
+import { getRuntimePresetKey, resolveModelAvailability } from '@alran/config';
 import {
   hasConversationTaskModelSelection,
   type ConversationModelThinkingSelection,
   type ConversationModelSelection,
   type ConversationPluginAgentDefinition,
   type ConversationTaskModelSelection,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 import {
   bindPluginAgentMcpSelectors,
   pluginAgentSource,
@@ -431,7 +431,7 @@ function profileRequest(
     options.capabilityProfile === 'cli'
       ? {
           ...configuredCapabilities,
-          features: { ...configuredCapabilities?.features, mavis: false },
+          features: { ...configuredCapabilities?.features, alran: false },
         }
       : configuredCapabilities;
   return {

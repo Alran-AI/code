@@ -1,6 +1,6 @@
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
-const WEB_ORIGINS: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const WEB_ORIGINS: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
@@ -16,8 +16,8 @@ const WEB_ORIGINS: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
 };
 
 export function buildAlranLogoutUrl(scope: {
-  readonly region: MavisRegion;
-  readonly buildEnv: MavisBuildEnv;
+  readonly region: AlranRegion;
+  readonly buildEnv: AlranBuildEnv;
 }): string {
   const origin = WEB_ORIGINS[scope.region][scope.buildEnv];
   return `${origin}/auth/logout?logout_redirect_uri=${encodeURIComponent(origin)}`;

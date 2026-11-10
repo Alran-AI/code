@@ -1,11 +1,11 @@
-import type { MavisRegion } from '@mavis/config';
+import type { AlranRegion } from '@alran/config';
 import {
   clearStoredPlatformSession,
   platformEnvironmentOrder,
   resolveDataDir,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
-} from '@mavis/config';
+} from '@alran/config';
 
 import { randomBytes } from 'node:crypto';
 
@@ -28,7 +28,9 @@ import {
   ALRAN_KEYCLOAK_CLIENT_ID,
   ALRAN_KEYCLOAK_SCOPES,
   ALRAN_PLATFORM_BASE_URLS,
+  parsePlatformOidcCallbackUri,
   resolvePlatformBaseUrl,
+  resolvePlatformOidcCallbackUri,
   AuthStateStore,
   type AuthBuildEnv,
   type AuthRegion,
@@ -38,11 +40,11 @@ import {
   CREDENTIAL_SCHEMA_VERSION,
   PlatformApiClient,
   platformIdempotencyKey,
-} from '@mavis/oauth-core';
+} from '@alran/oauth-core';
 
 export interface RunTuiAuthCommandOptions
   extends Omit<OttiliApiKeyLoginOptions, 'openBrowser' | 'openExternalTarget'> {
-  readonly region?: MavisRegion;
+  readonly region?: AlranRegion;
   readonly lane?: string;
   readonly openBrowser?: boolean;
   readonly openExternalTarget?: TuiExternalTargetOpener;
@@ -76,11 +78,13 @@ function defaultPlatformEnvironment(): 'dev' | 'prod' {
  * callback server hosts `/login` and `/callback` to complete the flow.
  *
  * With the `platform` provider, an OpenID Connect flow through the Ottili
- * Platform (Keycloak) is started. A local callback server hosts `/login` and
- * `/callback`; the callback redeems the one-time handoff code against the
- * Platform's `/__dev/oidc/redeem` for a Platform session. The Platform session
- * id and company id are stored locally and every subsequent Platform API call
- * carries `x-ottili-session` and `x-ottili-company`.
+ * Platform (Keycloak) is started. A local callback server listens on the
+ * registered callback URI (by default `http://127.0.0.1:18370/callback`,
+ * overridable with `ALRAN_OIDC_CALLBACK_URI`); the callback redeems the
+ * one-time handoff code against the Platform's `/v2/auth/sessions/handoff` for
+ * a Platform session. The Platform session id and company id are stored locally
+ * and every subsequent Platform API call carries `x-ottili-session` and
+ * `x-ottili-company`.
  */
 export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promise<string> {
   const writeError = options.writeError ?? ((value: string) => process.stderr.write(value));
@@ -133,7 +137,7 @@ export async function runTuiLogout(options: RunTuiAuthCommandOptions = {}): Prom
 }
 
 interface LoginWithKeycloakOptions {
-  readonly region?: MavisRegion;
+  readonly region?: AlranRegion;
   readonly openBrowser?: boolean;
   readonly openExternalTarget?: TuiExternalTargetOpener;
   readonly writeError?: (value: string) => void;
@@ -255,13 +259,19 @@ async function loginWithPlatformOidc(options: LoginWithPlatformOidcOptions): Pro
   const { mkdir } = await import('node:fs/promises');
   await mkdir(platformAuthDir, { recursive: true });
 
+  // The Platform only accepts a `return_to` whose origin and path are
+  // registered in `OTTILI_OIDC_CALLBACK_URIS`, and an ephemeral port cannot be
+  // registered. Bind the stable loopback URI instead; a deployment that
+  // registered a different one sets ALRAN_OIDC_CALLBACK_URI.
+  const callbackUri = resolvePlatformOidcCallbackUri(options.platformEnv);
+  const callback = parsePlatformOidcCallbackUri(callbackUri);
+
   let server: CallbackServer | undefined;
   try {
     const state = randomBytes(16).toString('base64url');
     server = new CallbackServer({
-      port: 0,
-      host: '127.0.0.1',
-      baseUrl: 'http://127.0.0.1',
+      baseUrl: callback.origin,
+      callbackUri: callback.uri,
       platformOidc: {
         platformBaseUrl,
       },
@@ -274,8 +284,18 @@ async function loginWithPlatformOidc(options: LoginWithPlatformOidcOptions): Pro
       },
     });
 
-    // Start the server first so we know the port for the redirect URI.
-    await server.start();
+    // Start the server first so a port conflict fails before the browser opens.
+    try {
+      await server.start();
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EADDRINUSE') {
+        throw new Error(
+          `Cannot listen on ${callback.uri}: the port is already in use. ` +
+            'Close the other login, or set ALRAN_OIDC_CALLBACK_URI to a URI registered on the Platform.',
+        );
+      }
+      throw error;
+    }
     const serverPort = server.port;
     if (serverPort === null) {
       throw new Error('Callback server failed to start.');
@@ -405,7 +425,7 @@ async function readPlatformSession(authDir: string): Promise<StoredPlatformSessi
   }
 }
 
-function formatRegion(region: MavisRegion): string {
+function formatRegion(region: AlranRegion): string {
   return region === 'cn' ? 'Alran China' : 'Alran Global';
 }
 

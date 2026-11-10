@@ -4,8 +4,8 @@ import path from 'node:path';
 import { TextDecoder } from 'node:util';
 
 import { structuredPatch } from 'diff';
-import type { FileChangeObservation } from '@mavis/agent-tools/desktop';
-import { BRAND } from '@mavis/config';
+import type { FileChangeObservation } from '@alran/agent-tools/desktop';
+import { BRAND } from '@alran/config';
 import type {
   HookRegistration,
   PostToolUseInput,

@@ -1,8 +1,8 @@
-import { deriveMediaKind, inferAssetMimeType } from "@mavis/shared";
+import { deriveMediaKind, inferAssetMimeType } from "@alran/shared";
 import {
   getCloudDriveNodeId,
   isCommitIdTransportId,
-} from "@mavis/shared/asset-markup";
+} from "@alran/shared/asset-markup";
 import {
   DriveNodeSource,
   DriveNodeType,
@@ -30,7 +30,7 @@ import {
   type SessionTokenUsageSummaryView,
   type SessionTokenUsageRowView,
   type SessionToolCallView,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import {
   MessageQueryServiceError,

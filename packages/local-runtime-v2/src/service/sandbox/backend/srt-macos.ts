@@ -151,7 +151,7 @@ export function createSrtMacosBackend(
         return {
           command,
           observation,
-          // Recoverable deletion must stay INSIDE the cage. `mavis-trash`
+          // Recoverable deletion must stay INSIDE the cage. `alran-trash`
           // otherwise prefers the desktop trash service (Finder via Apple
           // Events, `gio trash` on Linux), which performs the unlink in a
           // separate unsandboxed process — the kernel would never evaluate
@@ -164,7 +164,7 @@ export function createSrtMacosBackend(
           env: {
             GIT_TEMPLATE_DIR: gitTemplateDir,
             ...input.baseEnv,
-            MAVIS_TRASH_FORCE_MV: '1',
+            ALRAN_TRASH_FORCE_MV: '1',
           },
           handle: { backendId: 'srt-macos', invocationId: input.commandId },
         };

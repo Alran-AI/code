@@ -28,7 +28,7 @@ function execute(command: string, rewrite: boolean) {
     for (const file of ['old', 'a.tmp', 'b.tmp', '2>&1', '-f', '--', 'keep']) {
       writeFileSync(join(work, file), 'fixture');
     }
-    writeFileSync(join(dataDir, 'bin', 'mavis-trash'), TRASH_SCRIPT_CONTENT, { mode: 0o755 });
+    writeFileSync(join(dataDir, 'bin', 'alran-trash'), TRASH_SCRIPT_CONTENT, { mode: 0o755 });
     let effectiveCommand = command;
     if (rewrite) {
       const context = createToolPermissionContext({
@@ -60,7 +60,7 @@ function execute(command: string, rewrite: boolean) {
         ...process.env,
         HOME: home,
         XDG_DATA_HOME: join(home, '.local/share'),
-        MAVIS_TRASH_FORCE_MV: '1',
+        ALRAN_TRASH_FORCE_MV: '1',
         TARGET: './old',
       },
     });

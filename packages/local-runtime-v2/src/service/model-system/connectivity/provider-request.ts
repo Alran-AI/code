@@ -1,4 +1,4 @@
-import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@mavis/shared';
+import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@alran/shared';
 
 import type { ModelProviderApi } from '../identity.js';
 

@@ -377,7 +377,7 @@ export function parseRmCommand(
       // shellTokenize follows POSIX escape rules and therefore turns
       // `C:\Users\me` into `C:Usersme`. Windows PowerShell/CMD treat those
       // backslashes as path separators, so preserve the raw token for a
-      // drive/UNC-shaped target before building the mavis-trash rewrite.
+      // drive/UNC-shaped target before building the alran-trash rewrite.
       if (
         /^(?:[A-Za-z]:[\\/]|\\\\(?:\?\\)?)/.test(rawToken) ||
         (platform === 'win32' && rawToken.includes('\\'))
@@ -489,7 +489,7 @@ export function resolveRmTargetPath(
 }
 
 /**
- * Build a mavis-trash command that replaces an `rm` invocation.
+ * Build a alran-trash command that replaces an `rm` invocation.
  *
  * Accepts either a bare `string[]` of targets (legacy signature; each
  * target is treated as UNQUOTED and eligible for HOME expansion — this
@@ -790,7 +790,7 @@ export interface BashEvaluationResult {
  *     6.5 source-local-allow  → allow when target literal path is in
  *                                temp / workspace / writtenFiles
  *     7. SOFT pre-scan        → ask (default) / undecided (auto → LLM)
- *     8. rm rewrite           → allow (rewrites to mavis-trash even with
+ *     8. rm rewrite           → allow (rewrites to alran-trash even with
  *                                $() / backticks / brace expansion — trash
  *                                is recoverable, nothing is destroyed)
  *     9. fast-allow first word → allow
@@ -1301,7 +1301,7 @@ function evaluateSingleSubcommand(
   // Common layer passed → bypass mode allows. Per the design, bypass does
   // NOT apply the HARD sensitive-read gate (user accepts the risk).
   //
-  // EXCEPT: rm → mavis-trash rewrite (step 8 below) is a transformation,
+  // EXCEPT: rm → alran-trash rewrite (step 8 below) is a transformation,
   // not a confirmation gate. bypass relaxes confirmation, NOT
   // recoverability — without this short-circuit, plain `rm -rf <path>`
   // under bypass routes to real disk deletion instead of the recoverable
@@ -1332,7 +1332,7 @@ function evaluateSingleSubcommand(
     // not have a shell-parser-level quote-aware analyser (MR #4001
     // trap). In bypass, "auto-run without asking" applied to a possibly-
     // destructive command is exactly the risk profile the user does NOT
-    // want; deny with a hint that mavis-trash is the recoverable path.
+    // want; deny with a hint that alran-trash is the recoverable path.
     //
     // Scan BOTH the raw command AND every unwrapped candidate produced
     // by `unwrapCommandWrappers` (codex CR: EncodedCommand payloads only
@@ -1356,7 +1356,7 @@ function evaluateSingleSubcommand(
           type: 'safetyCheck',
           description:
             'bypass mode does not auto-run delete-like commands. ' +
-            'Use `mavis-trash <path>` for recoverable removal, or drop bypass for this call.',
+            'Use `alran-trash <path>` for recoverable removal, or drop bypass for this call.',
           category: 'bypassDeleteSniff',
         },
       });

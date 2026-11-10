@@ -4,15 +4,15 @@ import {
   buildAgentContextBlock,
   buildSlimAgentContextBlock,
   type AgentEnv,
-} from '@mavis/system-reminder';
+} from '@alran/system-reminder';
 
 import { formatReminderDate } from '../../src/api/host-memory.js';
 
 const env: AgentEnv = {
   environmentInSystemPrompt: true,
   workspaceDir: '/w',
-  agentConfigDir: '/d/agents/mavis',
-  agentName: 'mavis',
+  agentConfigDir: '/d/agents/alran',
+  agentName: 'alran',
   agentRole: 'orchestrator',
   sessionId: 'sess-123',
   platform: 'linux',

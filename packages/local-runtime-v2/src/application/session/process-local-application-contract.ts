@@ -1,13 +1,13 @@
 import type {
   GlobalEvent,
   GlobalThreadGoal,
-} from "@mavis/shared/global-events";
-import type { ThreadGoalAttachment, ThreadGoalPatchInput } from "@mavis/goal";
+} from "@alran/shared/global-events";
+import type { ThreadGoalAttachment, ThreadGoalPatchInput } from "@alran/goal";
 import type {
   AskQuestionnaireReplyAnswer,
   AskQuestionnaireRequest,
-} from "@mavis/shared/questionnaire";
-import type { LocalSkillService } from "@mavis/local-runtime";
+} from "@alran/shared/questionnaire";
+import type { LocalSkillService } from "@alran/local-runtime";
 import type { LocalMcpPublicFacade } from "../../service/mcp/index.js";
 import type {
   ListInstalledPluginsInput as ListInstalledPluginsReq,
@@ -18,8 +18,8 @@ import type {
   ListRuntimeSkillsResult as ListRuntimeSkillsResp,
   MutatePluginInput as MutatePluginReq,
   MutatePluginResult as MutatePluginResp,
-} from "@mavis/protocol/local";
-import type { MiniAppSurfaceSummary } from "@mavis/shared/miniapp-surface";
+} from "@alran/protocol/local";
+import type { MiniAppSurfaceSummary } from "@alran/shared/miniapp-surface";
 import type { SessionReportManifest } from "../../service/session-system/index.js";
 import type {
   ByokProviderPresetView,

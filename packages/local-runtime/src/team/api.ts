@@ -923,8 +923,8 @@ function readCallerSession(request: Request, url: URL): string | undefined {
   return (
     url.searchParams.get('from_session') ??
     url.searchParams.get('fromSession') ??
-    request.headers.get('X-Mavis-Session') ??
-    request.headers.get('x-mavis-session') ??
+    request.headers.get('X-Alran-Session') ??
+    request.headers.get('x-alran-session') ??
     undefined
   );
 }

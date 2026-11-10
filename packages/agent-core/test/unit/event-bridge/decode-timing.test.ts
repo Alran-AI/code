@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AgentEvent } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage } from "@earendil-works/pi-ai";
 import { EventBridge } from "../../../src/event-bridge/bridge.js";
-import type { RuntimeEvent } from "@mavis/protocol";
+import type { RuntimeEvent } from "@alran/protocol";
 
 function assistant(
   content: AssistantMessage["content"] = [],

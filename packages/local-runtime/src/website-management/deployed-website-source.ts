@@ -340,9 +340,9 @@ function readUncompressedSize(entry: JSZip.JSZipObject): number {
 
 async function ensureExtractionRoot(workspaceDir: string): Promise<string> {
   const workspace = await realpath(resolve(workspaceDir));
-  const mavisRoot = join(workspace, '.mavis');
-  await ensureDirectory(mavisRoot);
-  const extractionRoot = join(mavisRoot, DEPLOYED_WEBSITE_SOURCE_ROOT);
+  const alranRoot = join(workspace, '.alran');
+  await ensureDirectory(alranRoot);
+  const extractionRoot = join(alranRoot, DEPLOYED_WEBSITE_SOURCE_ROOT);
   await ensureDirectory(extractionRoot);
   return extractionRoot;
 }

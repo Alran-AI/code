@@ -1,4 +1,4 @@
-import { readConversationStopConfig } from '@mavis/config';
+import { readConversationStopConfig } from '@alran/config';
 
 import { disposeComponents } from './rendering/component.js';
 import {

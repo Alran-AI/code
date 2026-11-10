@@ -17,7 +17,7 @@ describe('prompt suggestion opt-in', () => {
   });
   it('does not resolve the build default while parsing', () => {
     // The effective default needs the remote policy, which parsing cannot see.
-    vi.stubEnv('__MAVIS_BUILD_INTERNAL', 'true');
+    vi.stubEnv('__ALRAN_BUILD_INTERNAL', 'true');
     expect(resolveConfigFromRaw({}, '/tmp/suggestion-config').promptSuggestion.enabled).toBeUndefined();
   });
   it('keeps rollout policy out of the local config', () => {
@@ -42,9 +42,9 @@ describe('prompt suggestion effective opt-in', () => {
   });
   it('treats every build the same', () => {
     // No build, account or model is special-cased: only the remote switch differs.
-    vi.stubEnv('__MAVIS_BUILD_INTERNAL', 'true');
+    vi.stubEnv('__ALRAN_BUILD_INTERNAL', 'true');
     expect(resolvePromptSuggestionEnabled(undefined, { defaultEnabled: false })).toBe(false);
-    vi.stubEnv('__MAVIS_BUILD_INTERNAL', '');
+    vi.stubEnv('__ALRAN_BUILD_INTERNAL', '');
     expect(resolvePromptSuggestionEnabled(undefined, undefined)).toBe(true);
   });
   it('fills the effective value into the config every reader sees', () => {

@@ -1,10 +1,10 @@
-import { buildPluginId } from '@mavis/shared/plugin-mention';
+import { buildPluginId } from '@alran/shared/plugin-mention';
 import type {
   CliService,
   InstalledPluginSummary,
   InstalledPluginSource,
   PluginMarketplaceSummary,
-} from '@mavis/local-runtime-v2/cli-service';
+} from '@alran/local-runtime-v2/cli-service';
 
 import type {
   AlranPluginMarketplace,

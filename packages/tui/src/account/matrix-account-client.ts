@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 
-import type { LocalRuntimeAuthContextSnapshot, MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { LocalRuntimeAuthContextSnapshot, AlranBuildEnv, AlranRegion } from '@alran/config';
 
 import type { TuiTokenPlanQuota, TuiTokenPlanSummary } from '../runtime/port.js';
 
-const MATRIX_ORIGINS: Readonly<Record<MavisRegion, Record<MavisBuildEnv, string>>> = {
+const MATRIX_ORIGINS: Readonly<Record<AlranRegion, Record<AlranBuildEnv, string>>> = {
   cn: {
     prod: 'https://api.ottili.one',
     staging: 'https://matrix-pre.example.invalid',
@@ -39,7 +39,7 @@ const NEED_LOGIN_ERROR_CODE = 1_000_048;
 // Changing either value requires a coordinated server-side rollout, so treat them as
 // wire-protocol constants.
 
-const OPEN_PLATFORM_ORIGINS: Readonly<Record<MavisRegion, Record<MavisBuildEnv, string>>> = {
+const OPEN_PLATFORM_ORIGINS: Readonly<Record<AlranRegion, Record<AlranBuildEnv, string>>> = {
   cn: {
     prod: 'https://api.ottili.one',
     staging: 'https://open-platform-for-online-test.example.invalid',
@@ -74,8 +74,8 @@ export interface TuiTokenPlanAccountStatusOptions {
 export interface TuiMatrixAccountClientOptions {
   readonly authContextGetter: () => TuiAccountIdentity | undefined;
   readonly routingContextGetter?: () => { readonly bedrockLane?: string } | undefined;
-  readonly region: MavisRegion;
-  readonly buildEnv: MavisBuildEnv;
+  readonly region: AlranRegion;
+  readonly buildEnv: AlranBuildEnv;
   readonly fetchImpl?: typeof fetch;
   readonly timeoutMs?: number;
   readonly membershipCacheTtlMs?: number;

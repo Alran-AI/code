@@ -2,8 +2,8 @@
  * Cloud permission classifier — endpoint resolution + gating.
  *
  * The desktop permission model step (Stage-2 LLM decision) runs server-side through the managed
- * `/mavis` namespace: `POST /mavis/api/v1/permission/check`, sharing the managed gateway with
- * content safety at `/mavis/api/v1/content`. This module only handles:
+ * `/alran` namespace: `POST /alran/api/v1/permission/check`, sharing the managed gateway with
+ * content safety at `/alran/api/v1/content`. This module only handles:
  * - {@link getPermissionCheckApiUrl}: Resolve the endpoint URL by region × buildEnv for actual
  *   requests by `HttpCloudGatewayClient`.
  * - {@link shouldUseCloudClassify}: Decide whether the current runtime uses cloud classification.
@@ -15,15 +15,15 @@ import {
   getRuntimeRegion,
   getRuntimeBuildEnv,
   isManagedRuntime,
-  type MavisRegion,
-  type MavisBuildEnv,
+  type AlranRegion,
+  type AlranBuildEnv,
 } from '../host-utils.js';
 
 /**
  * Base URL for permission/check, routed by region × buildEnv. Uses the same managed gateway hosts
- * as SAFETY_API_BASE in safety-client.ts (same `/mavis` origin).
+ * as SAFETY_API_BASE in safety-client.ts (same `/alran` origin).
  */
-const PERMISSION_API_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const PERMISSION_API_BASE: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
@@ -48,7 +48,7 @@ export function getPermissionCheckApiUrl(): string {
       `No permission/check API base configured for region=${region} buildEnv=${buildEnv}`,
     );
   }
-  return `${baseUrl}/mavis/api/v1/permission/check`;
+  return `${baseUrl}/alran/api/v1/permission/check`;
 }
 
 /**

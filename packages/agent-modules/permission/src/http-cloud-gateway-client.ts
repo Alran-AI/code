@@ -2,7 +2,7 @@
  * HttpCloudGatewayClient — production cloud-gateway implementation.
  *
  * Wire-aligned to the existing managed endpoint
- *   POST {region-routed-host}/mavis/api/v1/permission/check
+ *   POST {region-routed-host}/alran/api/v1/permission/check
  * which `cloud-classify-client.ts` already targets. The cloud side is
  * intentionally untouched — this client re-uses the exact same
  * request/response format and host routing, returning verdicts in the

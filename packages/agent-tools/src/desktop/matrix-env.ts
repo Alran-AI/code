@@ -46,8 +46,8 @@ export function getDesktopMatrixEndpoint(
 }
 
 export function getManagedDesktopMatrixBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
-  return MANAGED_MATRIX_BASE_URLS[normalizeRegion(env.MAVIS_REGION)][
-    normalizeBuildEnv(env.MAVIS_BUILD_ENV)
+  return MANAGED_MATRIX_BASE_URLS[normalizeRegion(env.ALRAN_REGION)][
+    normalizeBuildEnv(env.ALRAN_BUILD_ENV)
   ];
 }
 

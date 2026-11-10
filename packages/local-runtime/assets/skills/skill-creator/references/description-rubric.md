@@ -1,6 +1,6 @@
 # Description Rubric — 写好 description 的 4 要素
 
-> `description` 是 LLM 决定打不打开 skill 的唯一依据。写不好 → 该用没用（漏触发），或不该用却用了（误触发）。本文档列 4 要素 + 用 Mavis 现有 skill 做正反例。
+> `description` 是 LLM 决定打不打开 skill 的唯一依据。写不好 → 该用没用（漏触发），或不该用却用了（误触发）。本文档列 4 要素 + 用 Alran 现有 skill 做正反例。
 
 ## 4 要素
 
@@ -77,7 +77,7 @@ description: Use this skill to handle PDF files.
 **正确**：`Use this skill when X. Triggers on phrases like Y / Z` → 明确召回意图
 **过度**：`MUST always use this skill for any X-related task` → 把模型限死，反而过拟合
 
-参考 mavis 现有 skill 的 description（如 `lark-tools`）的写法：
+参考 alran 现有 skill 的 description（如 `lark-tools`）的写法：
 > Use this skill **whenever** the user mentions anything related to Feishu or Lark, including but not limited to: ...
 
 `whenever` + `including but not limited to` 是适度 pushy 的范例：扩大召回 + 留扩展空间。

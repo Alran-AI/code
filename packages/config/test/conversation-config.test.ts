@@ -21,7 +21,7 @@ const DEFAULT_SOURCES = { stopSubAgent: 'default', stopAsyncBash: 'default' } as
 const FAILED_SOURCES = { stopSubAgent: 'read_failed', stopAsyncBash: 'read_failed' } as const;
 
 async function tempDir(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), 'mavis-conversation-config-'));
+  const root = await mkdtemp(join(tmpdir(), 'alran-conversation-config-'));
   roots.push(root);
   return root;
 }

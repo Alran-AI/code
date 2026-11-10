@@ -779,7 +779,7 @@ function resolveOptions(options: NodeRuntimeOptions): ResolvedOptions {
     spawn: nodeSpawn,
     connectPort: connectMiniAppPort,
     createTerminator: createDirectNodeRootTerminator,
-    createRuntimeDir: () => mkdtemp(path.join(os.tmpdir(), 'mavis-miniapp-')),
+    createRuntimeDir: () => mkdtemp(path.join(os.tmpdir(), 'alran-miniapp-')),
     lstatPath: lstat,
     removeRuntimeDir: async (directory: string) => {
       await rm(directory, { recursive: true, force: true });

@@ -1,9 +1,9 @@
 /**
  * Local-runtime cron glue — the host-side wiring that adapts the
- * `@mavis/cron` orchestration core onto local-runtime's SQLite store,
+ * `@alran/cron` orchestration core onto local-runtime's SQLite store,
  * croner scheduler, agent spawner, and channel delivery stack.
  *
- * `@mavis/cron` owns the orchestration (registry / executor / busy-queue);
+ * `@alran/cron` owns the orchestration (registry / executor / busy-queue);
  * this folder only injects the host ports it declares.
  */
 

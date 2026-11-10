@@ -1,8 +1,8 @@
-import type { MetricsClient } from '@mavis/shared/local-runtime-logging/metrics';
-import type { ObservabilityLogger } from '@mavis/shared/local-runtime-diagnostics';
+import type { MetricsClient } from '@alran/shared/local-runtime-logging/metrics';
+import type { ObservabilityLogger } from '@alran/shared/local-runtime-diagnostics';
 import { createMcpRuntimeLogger } from './logging.js';
-import { McpConnectionPool } from '@mavis/mcp/runtime/connection-pool';
-import type { McpRuntimeLogger } from '@mavis/mcp/runtime/types';
+import { McpConnectionPool } from '@alran/mcp/runtime/connection-pool';
+import type { McpRuntimeLogger } from '@alran/mcp/runtime/types';
 import type {
   McpRuntimeCapability,
   McpSettingsService,

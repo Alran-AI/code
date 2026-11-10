@@ -1,4 +1,4 @@
-import type { VerificationHostContext } from '@mavis/goal';
+import type { VerificationHostContext } from '@alran/goal';
 
 /**
  * The per-turn contract the Goal verifier child runs under.

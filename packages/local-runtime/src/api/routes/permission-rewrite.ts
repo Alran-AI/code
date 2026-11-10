@@ -1,13 +1,13 @@
 import type { BeforeToolCallContext } from '@earendil-works/pi-agent-core';
-import { withPermissionExecutionPlan } from '@mavis/agent-tools/desktop';
-import type { ExecutionPlan } from '@mavis/permission';
+import { withPermissionExecutionPlan } from '@alran/agent-tools/desktop';
+import type { ExecutionPlan } from '@alran/permission';
 
 /**
  * Apply a complete effective-input snapshot onto the live `toolContext.args`
  * object so the executor sees the decision-time safe form.
  *
  * The permission facade records a checker rewrite such as
- * `rm <path>` → `mavis-trash <path>` in `ExecutionPlan.effectiveInput`.
+ * `rm <path>` → `alran-trash <path>` in `ExecutionPlan.effectiveInput`.
  * The pi-agent-core `beforeToolCallHook` contract has no explicit rewrite
  * channel — the runner just forwards the same `toolContext.args` reference to
  * the tool executor — so this helper mutates that object in place instead of

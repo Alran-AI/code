@@ -308,7 +308,7 @@ function validateTransformConsistency(
         : undefined;
     if (
       transforms.length !== 1 ||
-      !shellTransform.launcher.endsWith('/mavis-trash') ||
+      !shellTransform.launcher.endsWith('/alran-trash') ||
       !marker ||
       marker.launcher !== shellTransform.launcher ||
       !expected ||
@@ -343,7 +343,7 @@ function validateTransformConsistency(
   );
   const executedTargets = readRecoverableDeleteTargets(effectiveInput);
   if (!executedTargets) {
-    throw new TypeError('Recoverable-delete execution plan must execute mavis-trash.');
+    throw new TypeError('Recoverable-delete execution plan must execute alran-trash.');
   }
   if (!changed) {
     throw new TypeError('Permission execution plan declares a transform for unchanged input.');
@@ -389,7 +389,7 @@ function readRecoverableDeleteTargets(
   const targets = splitCommand(command).flatMap((segment) => {
     const tokens = shellTokenize(segment);
     const executable = readExecutableBasename(segment, tokens[0]);
-    if (executable !== 'mavis-trash' && executable !== 'mavis-trash.cmd') return [];
+    if (executable !== 'alran-trash' && executable !== 'alran-trash.cmd') return [];
     const executableToken = shellTokenizeWithMetadata(segment)[0];
     return executableToken ? parseRmTargets(`rm ${segment.slice(executableToken.end)}`) : [];
   });

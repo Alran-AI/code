@@ -28,7 +28,7 @@ export function omitManagedSourceCitationInstructions(prompt: string): string {
   return prompt
     .replace(
       /^#{2,4} MCP\/App citation examples\r?\n\r?\n```\r?\n[\s\S]*?^```\r?\n\s*/gm,
-      (section) => (section.includes('#mavis-source=') ? '' : section),
+      (section) => (section.includes('#alran-source=') ? '' : section),
     )
     .replace(
       /^#{2,4} Citations\r?\n(?:[ \t]*\r?\n)*Cite every used result where it supports the answer\.[\s\S]*?^Do not cite unused calls or unsupported claims, invent metadata, output bare parenthesized links, or add trailing source\/reference lists\.\r?\n*/gm,

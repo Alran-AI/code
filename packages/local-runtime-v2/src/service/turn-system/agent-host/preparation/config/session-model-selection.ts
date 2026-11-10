@@ -21,7 +21,7 @@ import {
   type ModelCallRoute,
   type ModelAvailabilityErrorCode,
   type ModelSelectionSource,
-} from '@mavis/config';
+} from '@alran/config';
 
 import type { SessionModelSnapshot, SessionRecord } from '../../../../session-system/index.js';
 import {

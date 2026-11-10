@@ -1,4 +1,4 @@
-import type { RespData } from '@mavis/agent-core/protocol/agent-message';
+import type { RespData } from '@alran/agent-core/protocol/agent-message';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 

@@ -1,14 +1,14 @@
 import {
   classifySafetyTransportError,
   isSafetyCheckV2Record,
-} from "@mavis/shared/safety-check-v2";
+} from "@alran/shared/safety-check-v2";
 import { createSafetyFailureReporter } from "./diagnostics.js";
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from "@mavis/config";
+  type AlranBuildEnv,
+  type AlranRegion,
+} from "@alran/config";
 
 import { callTurnSafetyApi } from "./turn-api.js";
 import { resolveSafetyApiBase } from "./api-base.js";
@@ -83,7 +83,7 @@ export const SAFETY_SCENE = {
   // flow into the `<agent-context>` block / skill roster / session list that
   // peer-agent LLMs read, so they are a cross-agent prompt-injection vector and
   // are gated at the owning Agent runtime service boundary and skill surfaces.
-  // Reuses IDL `MavisSafetyScene` 205
+  // Reuses IDL `AlranSafetyScene` 205
   // rather than fanning out a per-field scene.
   ConfigField: 205,
   UserInput: 300,
@@ -108,8 +108,8 @@ export async function callSafetyApi(input: {
   authContext?: LocalRuntimeAuthContext;
   routingContext?: LocalRuntimeRoutingContext;
   fetchImpl: typeof fetch;
-  region?: () => MavisRegion;
-  buildEnv?: () => MavisBuildEnv;
+  region?: () => AlranRegion;
+  buildEnv?: () => AlranBuildEnv;
   /** Loopback-only endpoint used by deterministic external tests in test builds. */
   testBaseURL?: string;
 }): Promise<SafetyCheckResult> {
@@ -123,13 +123,13 @@ export async function callSafetyApi(input: {
   )
     ? "?require_auth=true"
     : "";
-  const url = `${resolveSafetyApiBase(region(), resolvedBuildEnv, input.testBaseURL)}/mavis/api/v1/content${authQuery}`;
+  const url = `${resolveSafetyApiBase(region(), resolvedBuildEnv, input.testBaseURL)}/alran/api/v1/content${authQuery}`;
   // Shared OAuth resource requests authenticate with the standard Bearer
   // scheme, matching the managed model and File API paths. Omit the header
   // entirely when there is no token so an anonymous request stays explicit.
   const accessToken =
     input.authContext?.accessToken?.trim() ||
-    process.env.MAVIS_ACCESS_TOKEN?.trim();
+    process.env.ALRAN_ACCESS_TOKEN?.trim();
   const reportFailure = createSafetyFailureReporter(url, "v1", input.scene);
   let response: Response;
   try {
@@ -304,8 +304,8 @@ export function createContentSafetyChecker(deps: {
   ) => void | Promise<void>;
   routingContextGetter?: () => LocalRuntimeRoutingContext | undefined;
   fetchImpl?: typeof fetch;
-  region?: () => MavisRegion;
-  buildEnv?: () => MavisBuildEnv;
+  region?: () => AlranRegion;
+  buildEnv?: () => AlranBuildEnv;
   testBaseURLGetter?: () => string | undefined;
 }): ContentSafetyChecker {
   const callApi = deps.apiVersion === "v2" ? callTurnSafetyApi : callSafetyApi;
@@ -314,7 +314,7 @@ export function createContentSafetyChecker(deps: {
       const authContext = deps.authContextGetter?.();
       const rejectedToken =
         authContext?.accessToken?.trim() ||
-        process.env.MAVIS_ACCESS_TOKEN?.trim();
+        process.env.ALRAN_ACCESS_TOKEN?.trim();
       const request = {
         content,
         scene,
@@ -340,7 +340,7 @@ export function createContentSafetyChecker(deps: {
         const freshAuth = deps.authContextGetter?.();
         const freshToken =
           freshAuth?.accessToken?.trim() ||
-          process.env.MAVIS_ACCESS_TOKEN?.trim();
+          process.env.ALRAN_ACCESS_TOKEN?.trim();
         if (!freshToken || freshToken === rejectedToken) return result;
         // A failed V2 output stream retries as its V2 full-reply scene after auth refresh.
         const retryScene =

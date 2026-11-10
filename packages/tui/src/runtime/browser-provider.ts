@@ -1,5 +1,5 @@
-import type { LocalBrowserAdapter } from '@mavis/agent-tools/desktop';
-import type { BrowserConfig, Config } from '@mavis/config';
+import type { LocalBrowserAdapter } from '@alran/agent-tools/desktop';
+import type { BrowserConfig, Config } from '@alran/config';
 import {
   disposeHeadlessSessionStorage,
   HeadlessChromeBrowserProvider,

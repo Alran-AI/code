@@ -1,7 +1,7 @@
 import type {
   AttachmentInput,
   ModelSelectionInput,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 import type {
   QueueItem,
   QueueUpdateInput,

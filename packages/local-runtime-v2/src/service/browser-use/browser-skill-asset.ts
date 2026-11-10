@@ -3,7 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import yaml from 'yaml';
-import { CONTROL_IN_APP_BROWSER_SKILL_NAME } from '@mavis/agent-tools/desktop';
+import { CONTROL_IN_APP_BROWSER_SKILL_NAME } from '@alran/agent-tools/desktop';
 
 import type { BrowserUseBuiltinSkillDescriptor } from './contracts.js';
 
@@ -35,7 +35,7 @@ function loadBrowserUseBuiltinSkillAsset(): BrowserUseBuiltinSkillDescriptor {
 }
 
 function resolveBrowserUseSkillAssetPath(): string {
-  const relative = join('mavis', 'skills', CONTROL_IN_APP_BROWSER_SKILL_NAME, 'SKILL.md');
+  const relative = join('alran', 'skills', CONTROL_IN_APP_BROWSER_SKILL_NAME, 'SKILL.md');
   const here = dirname(fileURLToPath(import.meta.url));
   const candidates = [
     resolve(here, '../../../assets/agents', relative),

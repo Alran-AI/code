@@ -3,10 +3,10 @@ import type {
   PiBeforeToolCallHook,
   PiHistoryChangedHookInput,
   TurnEventReporter,
-} from '@mavis/agent-core/pi-turn-runner';
-import type { RuntimeEvent } from '@mavis/agent-core/protocol';
-import type { AssemblyResult, TurnAssemblyCtx } from '@mavis/agent-runtime';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/pi-turn-runner';
+import type { RuntimeEvent } from '@alran/agent-core/protocol';
+import type { AssemblyResult, TurnAssemblyCtx } from '@alran/agent-runtime';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 import type { SessionRecord, UserMessageId } from '../../../session-system/index.js';
 import type {
   CanonicalHistoryChange,
@@ -24,7 +24,7 @@ import type {
 } from '../preparation/contracts.js';
 import type { AgentHostPluginHookHandler } from '../plugin-hook-contracts.js';
 import type { AgentHostTurnCapabilityView } from '../assembly/turn-capability-lifecycle.js';
-import type { PluginHookEventInput } from '@mavis/plugin-hooks';
+import type { PluginHookEventInput } from '@alran/plugin-hooks';
 
 type BeforeToolCallContext = Parameters<PiBeforeToolCallHook>[0];
 

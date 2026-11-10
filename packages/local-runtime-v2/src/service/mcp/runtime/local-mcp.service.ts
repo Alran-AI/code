@@ -1,11 +1,11 @@
 import { ProjectMcpRuntime } from '../project-mcp.service.js';
 import { SessionMcpServers } from './session-servers.js';
 import { projectNativeTools, reserveConfiguredServerNames } from './native-tool-projection.js';
-import { McpNameRegistry } from '@mavis/mcp';
-import type { RuntimeTool, ToolResult } from '@mavis/agent-core/tools';
+import { McpNameRegistry } from '@alran/mcp';
+import type { RuntimeTool, ToolResult } from '@alran/agent-core/tools';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { LocalMavisMcpServiceAdapter } from '../tools/local-mavis-adapter.js';
+import { LocalAlranMcpServiceAdapter } from '../tools/local-alran-adapter.js';
 import { mapMcpContent, normalizeCallResult } from '../tools/result-mapping.js';
 import { localMcpCallFailureResult, withMcpProgrammatic } from '../tools/programmatic-result.js';
 import { listMcpRuntimeToolEntriesForTurn } from '../tools/runtime-tools.js';
@@ -28,9 +28,9 @@ import {
   withConfiguredConnectionTimeout,
 } from './settings-config.js';
 
-import type { McpServerLookup } from '@mavis/mcp/runtime/connection-pool';
-import type { McpConnectionTokenOverrides, ResolvedMcpServer } from '@mavis/mcp/runtime/types';
-import { MCP_DEFAULTS } from '@mavis/mcp/runtime/types';
+import type { McpServerLookup } from '@alran/mcp/runtime/connection-pool';
+import type { McpConnectionTokenOverrides, ResolvedMcpServer } from '@alran/mcp/runtime/types';
+import { MCP_DEFAULTS } from '@alran/mcp/runtime/types';
 import {
   buildBuiltinMatrixServerConfig,
   buildBuiltinMatrixTokenOverrides,
@@ -137,11 +137,11 @@ export class LocalMcpService {
     return readConfiguredMcpServerNames(this.dataDir());
   }
 
-  createMavisAdapter(
+  createAlranAdapter(
     emit: (type: string, payload: Record<string, unknown>) => void,
-  ): LocalMavisMcpServiceAdapter {
+  ): LocalAlranMcpServiceAdapter {
     this.assertOpen();
-    return new LocalMavisMcpServiceAdapter(this, emit);
+    return new LocalAlranMcpServiceAdapter(this, emit);
   }
 
   listToolEntriesForTurn(

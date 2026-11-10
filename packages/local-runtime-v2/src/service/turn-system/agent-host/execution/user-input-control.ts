@@ -3,8 +3,8 @@ import {
   type RunTurnInput,
   type SteeringPollContext,
   type UserMessageInput,
-} from '@mavis/agent-core/pi-turn-runner';
-import type { ToolExecutionContext } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/pi-turn-runner';
+import type { ToolExecutionContext } from '@alran/agent-core/tools';
 import {
   emitLocalPluginHookWarnings,
   localPluginHookCoordinator as pluginHookCoordinator,

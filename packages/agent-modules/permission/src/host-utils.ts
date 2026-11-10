@@ -177,8 +177,8 @@ export function formatLocalDateTime(ts: number | Date): string {
   return _datetimeHelpers.formatLocalDateTime(ts);
 }
 
-export type MavisRegion = 'cn' | 'en';
-export type MavisBuildEnv = 'test' | 'prod' | 'dev' | 'staging';
+export type AlranRegion = 'cn' | 'en';
+export type AlranBuildEnv = 'test' | 'prod' | 'dev' | 'staging';
 
 export interface PermissionCoreSkillEvolveProposalConfig {
   enabled: boolean;
@@ -209,7 +209,7 @@ export interface PermissionCoreConfig {
  * Config view the permission subsystem reads from the host's runtime config.
  *
  * agent-core stays pure: it declares exactly the fields permission code needs
- * rather than importing the full `@mavis/config` Config (which would violate
+ * rather than importing the full `@alran/config` Config (which would violate
  * the agent-core package boundary — agent-core may only depend on protocol /
  * shared). The host (local-runtime / daemon) supplies a config object that
  * structurally satisfies this view; `getRuntimeConfig()` is typed as the narrow
@@ -239,15 +239,15 @@ export function getPermissionConfig(): PermissionRuntimeConfig {
 
 export interface PermissionRuntimeConfigProvider {
   getConfig(): PermissionRuntimeConfig;
-  getRuntimeRegion(): MavisRegion;
-  getRuntimeBuildEnv(): MavisBuildEnv;
+  getRuntimeRegion(): AlranRegion;
+  getRuntimeBuildEnv(): AlranBuildEnv;
   isManagedRuntime(): boolean;
 }
 
 const fallbackRuntimeConfigProvider: PermissionRuntimeConfigProvider = {
   getConfig: () => {
     throw new Error(
-      '[@mavis/permission] No runtimeConfigProvider registered. Hosts must call ' +
+      '[@alran/permission] No runtimeConfigProvider registered. Hosts must call ' +
         'configurePermissionHost({ runtimeConfigProvider }) before permission checks run.',
     );
   },
@@ -262,11 +262,11 @@ export function getRuntimeConfig(): PermissionRuntimeConfig {
   return _runtimeConfigProvider.getConfig();
 }
 
-export function getRuntimeRegion(): MavisRegion {
+export function getRuntimeRegion(): AlranRegion {
   return _runtimeConfigProvider.getRuntimeRegion();
 }
 
-export function getRuntimeBuildEnv(): MavisBuildEnv {
+export function getRuntimeBuildEnv(): AlranBuildEnv {
   return _runtimeConfigProvider.getRuntimeBuildEnv();
 }
 

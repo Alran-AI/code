@@ -7,7 +7,7 @@
  *     `evaluateBashStatic` / `decideUnknownToolPathCapabilities` primitives —
  *     see `permission/tools/`)
  *   - `HttpCloudGatewayClient` hitting the
- *     `POST /mavis/api/v1/permission/check` endpoint (the cloud side is a
+ *     `POST /alran/api/v1/permission/check` endpoint (the cloud side is a
  *     gemini-flash gateway that owns the classifier prompt)
  *   - `renderConversationContext` for the cloud gateway's
  *     `conversation_context` payload
@@ -33,16 +33,16 @@
 import path from 'node:path';
 import { readFileSync, statSync } from 'node:fs';
 
-import type { Config, MavisRegion, MavisBuildEnv } from '@mavis/config';
-import { getConfig, getRuntimeRegion, getRuntimeBuildEnv } from '@mavis/config';
+import type { Config, AlranRegion, AlranBuildEnv } from '@alran/config';
+import { getConfig, getRuntimeRegion, getRuntimeBuildEnv } from '@alran/config';
 import {
   configurePermissionHost,
   AUTO_CLASSIFIER_TIMEOUT_MS_DEFAULT,
   type PermissionHostUtils,
   type ShellFamily,
-} from '@mavis/permission';
-import type { AgentMessageProtocol } from '@mavis/agent-core/protocol/agent-message';
-import type { RuntimeConversation } from '@mavis/conversation-contract';
+} from '@alran/permission';
+import type { AgentMessageProtocol } from '@alran/agent-core/protocol/agent-message';
+import type { RuntimeConversation } from '@alran/conversation-contract';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
@@ -252,11 +252,11 @@ function toRuntimeConfig(local: LocalRuntimeConfig): Config {
   } as unknown as Config;
 }
 
-function resolveRegion(_deps: LocalPermissionServiceDeps): MavisRegion {
+function resolveRegion(_deps: LocalPermissionServiceDeps): AlranRegion {
   return getRuntimeRegion();
 }
 
-function resolveBuildEnv(_deps: LocalPermissionServiceDeps): MavisBuildEnv {
+function resolveBuildEnv(_deps: LocalPermissionServiceDeps): AlranBuildEnv {
   return getRuntimeBuildEnv();
 }
 

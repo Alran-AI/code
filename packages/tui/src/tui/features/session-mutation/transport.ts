@@ -1,5 +1,5 @@
 const HIDDEN_CONTEXT_BLOCK_RE =
-  /<(user-provided-context|mavis-chat-context|html-selection-context|deployed-website-context)\b[^>]*>[\s\S]*?<\/\1>/gu;
+  /<(user-provided-context|alran-chat-context|html-selection-context|deployed-website-context)\b[^>]*>[\s\S]*?<\/\1>/gu;
 const DEPLOYED_WEBSITE_CONTEXT_RE =
   /<deployed-website-context\b[^>]*>[\s\S]*?<\/deployed-website-context>/gu;
 

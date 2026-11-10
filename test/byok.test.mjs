@@ -181,7 +181,7 @@ test(
     const baseUrl = `http://127.0.0.1:${server.address().port}/v1`;
     const env = {
       ALRAN_DATA_DIR: dataDir,
-      MAVIS_DATA_DIR: dataDir,
+      ALRAN_DATA_DIR: dataDir,
       ALRAN_PROVIDER_API_KEY: "fixture-only-key",
       ALRAN_TEST_ALLOWED_ORIGIN: new URL(baseUrl).origin,
       ALRAN_TEST_NETWORK_AUDIT: networkAudit,
@@ -308,7 +308,7 @@ test(
       assert.equal(requests[beforeRequests].body.model, "fixture-model");
       assert.match(
         readFileSync(managedAudit, "utf8").slice(beforeManaged),
-        /https:\/\/models\.dev\/api\.json|\/mavis\/api\/v1\/models-dev\/catalog/,
+        /https:\/\/models\.dev\/api\.json|\/alran\/api\/v1\/models-dev\/catalog/,
       );
       assert.equal(existsSync(networkAudit), false, "No outbound network attempt is allowed");
       for (const [name, value] of Object.entries(proxies)) assert.equal(environment[name], value);
@@ -745,7 +745,7 @@ test(
           XDG_CONFIG_HOME: path.join(homeDir, "config"),
           XDG_DATA_HOME: path.join(homeDir, "data"),
           ALRAN_DATA_DIR: dataDir,
-          MAVIS_DATA_DIR: dataDir,
+          ALRAN_DATA_DIR: dataDir,
           ALRAN_TEST_ALLOWED_ORIGIN: origin,
           ALRAN_TEST_NETWORK_AUDIT: networkAudit,
           ALRAN_TEST_MANAGED_OFFLINE: "1",
@@ -977,7 +977,7 @@ function cancellationTest(cancellation) {
           XDG_CONFIG_HOME: path.join(homeDir, "config"),
           XDG_DATA_HOME: path.join(homeDir, "data"),
           ALRAN_DATA_DIR: dataDir,
-          MAVIS_DATA_DIR: dataDir,
+          ALRAN_DATA_DIR: dataDir,
           ALRAN_TEST_ALLOWED_ORIGIN: origin,
           ALRAN_TEST_NETWORK_AUDIT: networkAudit,
           ALRAN_TEST_MANAGED_OFFLINE: "1",

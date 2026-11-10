@@ -1,22 +1,22 @@
-import { createMiniAppControlExtension } from "@mavis/agent-extension";
+import { createMiniAppControlExtension } from "@alran/agent-extension";
 import type {
   AgentExtension,
   InternalTurnPromptReadRegistry,
-} from "@mavis/agent-runtime";
+} from "@alran/agent-runtime";
 import type {
   PromptSuggestionRemotePolicy,
   RunawayGuardOverride,
-} from "@mavis/config";
+} from "@alran/config";
 import {
   getRuntimeRegion,
   isLocalSourceProvenanceEnabled,
-} from "@mavis/config";
-import type { RuntimeConversation } from "@mavis/conversation-contract";
+} from "@alran/config";
+import type { RuntimeConversation } from "@alran/conversation-contract";
 import type {
   GlobalEvent,
   GlobalEventInput,
-} from "@mavis/shared/global-events";
-import { isOrdinaryQuestionnaireResponseOrigin } from "@mavis/shared/questionnaire";
+} from "@alran/shared/global-events";
+import { isOrdinaryQuestionnaireResponseOrigin } from "@alran/shared/questionnaire";
 import { createGoalBudgetSummaryExtension } from "./application/agent/goal-budget-summary-reminder.js";
 import { createGoalFinalReply } from "./application/agent/goal-final-reply.js";
 import {

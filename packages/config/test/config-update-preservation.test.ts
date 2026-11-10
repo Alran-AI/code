@@ -77,7 +77,7 @@ beforeEach(() => {
   fs.mkdirSync(dataDir);
   vi.spyOn(os, "homedir").mockReturnValue(root);
   vi.stubEnv("ALRAN_DATA_DIR", dataDir);
-  vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "0");
+  vi.stubEnv("__ALRAN_RUNTIME_MANAGED", "0");
   resetConfig();
   setLegacyByokProviderMigrationEnabled(false);
   setManagedPresetBaseUrlSyncEnabled(false);

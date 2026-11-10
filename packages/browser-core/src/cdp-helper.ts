@@ -1440,7 +1440,7 @@ export class CDPHelper {
     signal?: AbortSignal,
     timeoutMs = DEFAULT_CDP_TIMEOUT_MS,
   ): Promise<() => Promise<boolean>> {
-    const probeKey = `__mavisDragProbe_${Date.now()}_${this.dragProbeSequence++}`;
+    const probeKey = `__alranDragProbe_${Date.now()}_${this.dragProbeSequence++}`;
     const serializedKey = JSON.stringify(probeKey);
     const setupScript = `(() => {
       const key = ${serializedKey};

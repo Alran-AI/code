@@ -51,7 +51,7 @@ export interface TelegramAdapterRouteDispatcher {
    * agent that never bound successfully can never register, and can never bind.
    */
   ensureAdapter?: (agentName: string) => LocalChannelPlatformAdapter | undefined;
-  /** Default agent name when the request body omits one. Defaults to `mavis`. */
+  /** Default agent name when the request body omits one. Defaults to `alran`. */
   defaultAgentName?: string;
   /** Shared write-target seam for the external bind request. */
   resolveAgentWriteTarget?: (requestedName: string) => Promise<string>;
@@ -80,7 +80,7 @@ export async function dispatchTelegramAdapterRoute(input: {
   dispatcher?: TelegramAdapterRouteDispatcher;
 }): Promise<Response | undefined> {
   const { method, path, request, registry, dispatcher } = input;
-  const defaultAgentName = dispatcher?.defaultAgentName ?? 'mavis';
+  const defaultAgentName = dispatcher?.defaultAgentName ?? 'alran';
 
   if (method === 'POST' && path === 'telegram/bind') {
     const body = await readJsonBody(request);
@@ -129,8 +129,8 @@ export async function dispatchTelegramAdapterRoute(input: {
       } else {
         const primaryConflict = normalizePrimaryAgentResolutionConflict(err, {
           platform: 'telegram',
-          canonicalAgentName: 'mavis',
-          agentNames: ['mavis', 'main'],
+          canonicalAgentName: 'alran',
+          agentNames: ['alran', 'main'],
         });
         if (primaryConflict) throw primaryConflict;
         throw err;

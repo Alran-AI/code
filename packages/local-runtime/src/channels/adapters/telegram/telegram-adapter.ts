@@ -8,7 +8,7 @@
  * Multi-instance: registry can hold several adapters keyed by `clientName`.
  */
 
-import type { OutboundMediaRef } from '@mavis/shared';
+import type { OutboundMediaRef } from '@alran/shared';
 
 import { readFirstString } from '../../../api/http-helpers.js';
 
@@ -60,7 +60,7 @@ export interface TelegramPlatformAdapterOptions {
   store: LocalTelegramChannelStore;
   /**
    * Default agent name. Used when an inbound/status call carries no agent
-   * id (CLI / sandbox tests typically omit it). Defaults to `mavis`.
+   * id (CLI / sandbox tests typically omit it). Defaults to `alran`.
    */
   defaultAgentName?: string;
   /** Override the adapter's stable `clientName`. */
@@ -145,7 +145,7 @@ export class TelegramPlatformAdapter implements LocalChannelPlatformAdapter {
   private readonly typingTimers = new Map<string, ReturnType<typeof setInterval>>();
 
   constructor(private readonly options: TelegramPlatformAdapterOptions) {
-    this.defaultAgentName = options.defaultAgentName ?? 'mavis';
+    this.defaultAgentName = options.defaultAgentName ?? 'alran';
     this.clientName = options.clientName ?? telegramClientId(this.defaultAgentName);
     this.senderFactory = options.senderFactory ?? ((botToken) => new TelegramSender(botToken));
     this.downloaderFactory =

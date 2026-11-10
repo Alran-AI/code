@@ -113,7 +113,7 @@ describe('Session-owned readable path boundaries', () => {
     workingDirectory: path.join(realDataDir, 'workspace'),
     dataDir: realDataDir,
     homeDir: path.join(realDataDir, 'home'),
-    agentName: 'mavis',
+    agentName: 'alran',
     sessionOwnedReadablePaths: [realToolOutputs],
     ...overrides,
   });
@@ -316,7 +316,7 @@ describe('runtime-handed paths under the private data directory', () => {
       workingDirectory: paths.workspace,
       dataDir: paths.data,
       homeDir: root,
-      agentName: 'mavis',
+      agentName: 'alran',
       ...overrides,
     };
   }
@@ -416,12 +416,12 @@ describe('runtime-handed paths under the private data directory', () => {
 
   it("does not treat a sibling profile's MEMORY.md as this data directory's whitelist", () => {
     const paths = layout();
-    const sibling = path.join(root, '.alran-dev', 'agents', 'mavis', 'MEMORY.md');
+    const sibling = path.join(root, '.alran-dev', 'agents', 'alran', 'MEMORY.md');
     writeFixture(sibling);
     const context = contextFor(paths, { workingDirectory: path.join(root, 'project') });
 
     expect(decideIn(sibling, 'write', context)).not.toBe('allow:internalWhitelist');
-    expect(decideIn(path.join(paths.data, 'agents', 'mavis', 'MEMORY.md'), 'write', context)).toBe(
+    expect(decideIn(path.join(paths.data, 'agents', 'alran', 'MEMORY.md'), 'write', context)).toBe(
       'allow:internalWhitelist',
     );
   });

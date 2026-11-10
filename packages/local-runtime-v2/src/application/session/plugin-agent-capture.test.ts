@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
 
-import { defineRuntimeTool } from '@mavis/agent-core/tools';
-import type { McpToolEntry } from '@mavis/agent-tools';
-import type { ConversationPluginAgentDefinition } from '@mavis/conversation-contract';
+import { defineRuntimeTool } from '@alran/agent-core/tools';
+import type { McpToolEntry } from '@alran/agent-tools';
+import type { ConversationPluginAgentDefinition } from '@alran/conversation-contract';
 import { Type } from '@sinclair/typebox';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -460,7 +460,7 @@ function profile(
     configSelection: { ...definition.capabilities },
     capabilityCeiling: {
       personaEnabled: true,
-      features: { mavis: true, delegation: false, webSearch: true },
+      features: { alran: true, delegation: false, webSearch: true },
     },
     provenance: { source: 'custom', assetAgentName: exactOwnerName, locale: 'en-US' },
   };
@@ -480,7 +480,7 @@ function taskSession(): SessionRecord {
 function session(overrides: Partial<SessionRecord> = {}): SessionRecord {
   return {
     sessionId: 'parent-session',
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: '/workspace/parent',
     runtime: 'pi-agent',
     sessionType: 'root',

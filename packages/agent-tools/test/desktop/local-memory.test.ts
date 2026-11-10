@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { LocalMemoryTool } from '../../src/desktop/local-memory.js';
-import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@mavis/shared/memory-limits';
+import { MEMORY_TOOL_OUTPUT_MAX_BYTES } from '@alran/shared/memory-limits';
 import type { LocalRuntimeToolContext } from '../../src/desktop/types.js';
 
 const context: LocalRuntimeToolContext = {
   sessionId: 'memory-session',
   turnId: 'turn',
   toolCallId: 'call',
-  agentName: 'mavis',
+  agentName: 'alran',
 };
 
 describe('LocalMemoryTool output limit', () => {

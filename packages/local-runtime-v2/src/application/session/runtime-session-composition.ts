@@ -1,6 +1,6 @@
-import { isLocalSourceProvenanceEnabled } from '@mavis/config';
-import type { InternalTurnPromptReadRegistry } from '@mavis/agent-runtime';
-import type { GlobalEventInput } from '@mavis/shared/global-events';
+import { isLocalSourceProvenanceEnabled } from '@alran/config';
+import type { InternalTurnPromptReadRegistry } from '@alran/agent-runtime';
+import type { GlobalEventInput } from '@alran/shared/global-events';
 
 import type { V1SessionCompatibility } from '../../compat/v1/session.js';
 import { AgentServiceError, type LocalAgentService } from '../../service/agent/index.js';

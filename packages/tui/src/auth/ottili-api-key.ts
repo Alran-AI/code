@@ -11,7 +11,7 @@ import {
   OTTILI_API_KEY_PREFIX,
   resolveOttiliApiKeyConsoleUrl,
   updateLocalByokConfig,
-} from '@mavis/config';
+} from '@alran/config';
 
 import { createTuiExternalTargetOpener, type TuiExternalTargetOpener } from '../host/open-external.js';
 

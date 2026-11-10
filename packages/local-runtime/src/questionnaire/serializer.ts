@@ -3,8 +3,8 @@ import type {
   AskQuestionnaireReplyAnswer,
   AskQuestionnaireReplyPayload,
   AskQuestionnaireRequest,
-} from '@mavis/shared/questionnaire';
-import { translateRuntimeText } from '@mavis/shared/runtime-i18n';
+} from '@alran/shared/questionnaire';
+import { translateRuntimeText } from '@alran/shared/runtime-i18n';
 
 export function serializeQuestionnaireAsk(request: AskQuestionnaireRequest): string {
   const lines = [

@@ -3,14 +3,14 @@ import {
   type LLMModelConfig,
   type PiAfterLlmCallHookInput,
   type PiLlmCallPreparedHookInput,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import type { AssistantMessage, Context, SimpleStreamOptions } from '@earendil-works/pi-ai';
 import { buildRecentConversationPrompt, latestUserText } from './recent-context.js';
 import type {
   GlobalEventInput,
   PromptSuggestionAttempt,
   PromptSuggestionUnavailableReason,
-} from '@mavis/shared/global-events';
+} from '@alran/shared/global-events';
 import {
   evaluatePromptSuggestionPolicy,
   PROMPT_SUGGESTION_VERSION,

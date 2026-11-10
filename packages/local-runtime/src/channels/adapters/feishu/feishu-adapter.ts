@@ -235,7 +235,7 @@ export interface FeishuPlatformAdapterOptions {
   /** Fired after `sendMessage` delivered a Card 2.0 form questionnaire. */
   onQuestionnaireRendered?: (input: {
     chatId: string;
-    request: import('@mavis/shared/questionnaire').AskQuestionnaireRequest;
+    request: import('@alran/shared/questionnaire').AskQuestionnaireRequest;
     messageId: string;
   }) => void;
   /**
@@ -303,7 +303,7 @@ export class FeishuPlatformAdapter implements LocalChannelPlatformAdapter {
     options: FeishuPlatformAdapterOptions = {},
   ) {
     this.store = input.store;
-    this.agentName = input.agentName.trim() || 'mavis';
+    this.agentName = input.agentName.trim() || 'alran';
     this.defaultAgentName = options.defaultAgentName ?? this.agentName;
     this.clientName = options.clientName ?? feishuClientId(this.agentName);
     this.senderOptions = options.senderOptions ?? {};

@@ -69,7 +69,7 @@ async function bindFeishuConnect(input: BindRouteInput): Promise<Response> {
   if (link instanceof Response) return link;
   const agentName = link
     ? link.agentName
-    : await resolveWriteAgent(input.infra, readFeishuAgentName(body, 'mavis'), 'feishu');
+    : await resolveWriteAgent(input.infra, readFeishuAgentName(body, 'alran'), 'feishu');
   const compensate = link
     ? await captureConnectionBindingCompensation(input.feishu, link)
     : undefined;
@@ -135,7 +135,7 @@ async function bindFeishu(input: BindRouteInput): Promise<Response> {
   if (link instanceof Response) return link;
   const agentName = link
     ? link.agentName
-    : await resolveWriteAgent(input.infra, readFeishuAgentName(body, 'mavis'), 'feishu');
+    : await resolveWriteAgent(input.infra, readFeishuAgentName(body, 'alran'), 'feishu');
   const compensate = link
     ? await captureConnectionBindingCompensation(input.feishu, link)
     : undefined;
@@ -188,7 +188,7 @@ async function unbindFeishu(input: BindRouteInput): Promise<Response> {
   await deleteAgentPlatformChannelBindings(
     input.infra,
     'feishu',
-    readFeishuAgentName(body, 'mavis'),
+    readFeishuAgentName(body, 'alran'),
   );
   return input.feishu.unbind(requestForUnbind);
 }
@@ -277,7 +277,7 @@ async function bindWeChatStatus(input: BindRouteInput): Promise<Response | undef
 }
 
 function readAgentName(body: Record<string, unknown>): string {
-  return readFirstString(body, ['agentName', 'agentId', 'agent', 'agent_name']) ?? 'mavis';
+  return readFirstString(body, ['agentName', 'agentId', 'agent', 'agent_name']) ?? 'alran';
 }
 
 async function resolveWriteAgent(
@@ -300,8 +300,8 @@ async function resolveWriteAgent(
     }
     const primaryConflict = normalizePrimaryAgentResolutionConflict(err, {
       platform,
-      canonicalAgentName: 'mavis',
-      agentNames: ['mavis', 'main'],
+      canonicalAgentName: 'alran',
+      agentNames: ['alran', 'main'],
     });
     if (primaryConflict) throw primaryConflict;
     throw err;
@@ -318,9 +318,9 @@ function resolveDisconnectAgentName(body: Record<string, unknown>): string {
   const explicit = readFirstString(body, ['agentName', 'agentId', 'agent', 'agent_name']);
   if (explicit) return explicit;
   const raw = readFirstString(body, ['name', 'clientId', 'client_id']);
-  if (!raw) return 'mavis';
+  if (!raw) return 'alran';
   const stripped = stripPlatformPrefix(raw).trim();
-  return !stripped || isPlatformLiteral(stripped) ? 'mavis' : stripped;
+  return !stripped || isPlatformLiteral(stripped) ? 'alran' : stripped;
 }
 
 function stripPlatformPrefix(value: string): string {

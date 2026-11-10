@@ -6,7 +6,7 @@ import {
   resolveStoredPlatformSession,
   updateLocalByokConfig,
   updateLocalModelSelection,
-} from '@mavis/config';
+} from '@alran/config';
 
 import { LocalModelCache } from './catalog/model-cache.js';
 import { ProviderPresetCatalog } from './catalog/provider-presets/provider-presets.service.js';
@@ -62,7 +62,7 @@ export function initializeModelSystem(options: InitializeModelSystemOptions): Mo
   const providerPresets = new ProviderPresetCatalog({
     dataDir: options.config.read().dataDir,
     previewSecret: process.env.PREVIEW_SECRET,
-    lane: process.env.MAVIS_PLUGIN_CLOUD_LANE,
+    lane: process.env.ALRAN_PLUGIN_CLOUD_LANE,
   });
   const resolver = new LocalModelResolver({
     // `alran login` stores a Platform session; the Platform gateway accepts it

@@ -8,20 +8,20 @@ import {
   type PiTurnRunnerOptions,
   type PiTurnRunnerLogger,
   type RunTurnInput,
-} from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-core/pi-turn-runner';
 import {
   buildCompletedTerminalStatusEvent,
   buildAbortedTerminalStatusEvent,
-} from '@mavis/agent-core/event-bridge';
-import { getRuntimeBuildEnv } from '@mavis/config';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import { RespDataType } from '@mavis/agent-core/protocol/agent-message';
+} from '@alran/agent-core/event-bridge';
+import { getRuntimeBuildEnv } from '@alran/config';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import { RespDataType } from '@alran/agent-core/protocol/agent-message';
 import {
   RUNTIME_EVENT_SCHEMA,
   RuntimeEventStatus,
   RuntimeEventType,
-} from '@mavis/protocol';
-import type { MetricsClient } from '@mavis/shared/metrics-proxy';
+} from '@alran/protocol';
+import type { MetricsClient } from '@alran/shared/metrics-proxy';
 
 import {
   isInputSafetyDecisionFor,

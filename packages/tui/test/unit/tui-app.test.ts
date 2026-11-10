@@ -31,7 +31,7 @@ import {
   normalizeTuiRuntimeEvent,
   type RawTuiRuntimeEvent,
 } from "../../src/runtime/event-normalizer.js";
-import type { SendMessageReq } from "@mavis/local-runtime-v2/cli-service";
+import type { SendMessageReq } from "@alran/local-runtime-v2/cli-service";
 import type { TuiObservability } from "../../src/observability/local-observability.js";
 import type { AlranAuthProgress } from "../../src/auth/application.js";
 import { formatTuiShortcut } from "../../src/tui/shell/shortcut-labels.js";
@@ -49,15 +49,15 @@ import type {
 import { VirtualTerminalScreen } from "../helpers/virtual-terminal.js";
 import { VirtualTerminal } from "../pi-084-upstream/virtual-terminal.js";
 import { TuiFailure } from "../../src/failure.js";
-import { LIGHTWEIGHT_SESSION_PURPOSE } from "@mavis/protocol/local";
+import { LIGHTWEIGHT_SESSION_PURPOSE } from "@alran/protocol/local";
 import { TuiClipboardImageError } from "../../src/host/clipboard-image.js";
-import { readConversationStopConfig } from "@mavis/config";
+import { readConversationStopConfig } from "@alran/config";
 
 // Keep every case off the developer's real config: the cases below were written
 // for Esc also stopping delegated agents and background bash, so that stays the
 // default, and a case that needs the shipped default says so.
-vi.mock("@mavis/config", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@mavis/config")>()),
+vi.mock("@alran/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@alran/config")>()),
   readConversationStopConfig: vi.fn(() => ({
     stopSubAgent: true,
     stopAsyncBash: true,
@@ -4896,7 +4896,7 @@ describe("createTuiApp", () => {
       source: "runtime",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         request: planEntryEventRequest("plan-entry-agent-tool"),
       },
     });
@@ -4920,7 +4920,7 @@ describe("createTuiApp", () => {
     panel?.handleInput?.("\r");
     await vi.waitFor(() =>
       expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-        "mavis",
+        "alran",
         "plan-entry-agent-tool",
         [
           {
@@ -5036,7 +5036,7 @@ describe("createTuiApp", () => {
         source: "runtime",
         payload: {
           sessionId: "session-1",
-          agentName: "mavis",
+          agentName: "alran",
           request: planReviewEventRequest("plan-review-mode-guard"),
         },
       }),
@@ -5073,7 +5073,7 @@ describe("createTuiApp", () => {
     app.interaction.current()?.handleInput?.("\u001b");
     await vi.waitFor(() =>
       expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-        "mavis",
+        "alran",
         "plan-review-mode-guard",
         [expect.objectContaining({ skipped: true })],
       ),
@@ -5133,7 +5133,7 @@ describe("createTuiApp", () => {
           source: "runtime",
           payload: {
             sessionId: "session-1",
-            agentName: "mavis",
+            agentName: "alran",
             request: {
               ...planReviewEventRequest("plan-review-feedback-revised"),
               modePayload: {
@@ -5178,7 +5178,7 @@ describe("createTuiApp", () => {
         source: "runtime",
         payload: {
           sessionId: "session-1",
-          agentName: "mavis",
+          agentName: "alran",
           request: planReviewEventRequest("plan-review-feedback-live"),
         },
       }),
@@ -5310,7 +5310,7 @@ describe("createTuiApp", () => {
     await app.submit("/plan view");
 
     expect(runtime.getLatestPlanReview).toHaveBeenCalledWith(
-      "mavis",
+      "alran",
       "session-1",
     );
     const rendered = app.interaction.current()?.render?.(100).join("\n") ?? "";
@@ -5468,7 +5468,7 @@ describe("createTuiApp", () => {
       .map((cell) => cell.content)
       .join("\n");
     expect(runtime.getRuntimeDiagnostics).toHaveBeenCalledTimes(1);
-    expect(runtime.listSkills).toHaveBeenCalledWith("mavis", "docs");
+    expect(runtime.listSkills).toHaveBeenCalledWith("alran", "docs");
     expect(runtime.listMcpServers).toHaveBeenCalledWith("browser", "session-1");
     expect(runtime.listPendingPermissions).toHaveBeenCalled();
     expect(doctorOutput).toContain("Configuration check");
@@ -6536,7 +6536,7 @@ describe("createTuiApp", () => {
     });
     expect(runtime.requestCompaction).toHaveBeenCalledWith(
       "session-1",
-      "mavis",
+      "alran",
       "keep test evidence",
     );
     expect(runtime.sendMessage).not.toHaveBeenCalled();
@@ -8225,9 +8225,9 @@ describe("createTuiApp", () => {
     const terminal = new FakeTerminal();
     const runtime = createRuntime();
     const transportContent = [
-      "<mavis-chat-context>",
+      "<alran-chat-context>",
       "Referenced context",
-      "</mavis-chat-context>",
+      "</alran-chat-context>",
       "",
       "Original visible prompt",
     ].join("\n");
@@ -8295,7 +8295,7 @@ describe("createTuiApp", () => {
         "/help should remain message text [File #1] ",
       ),
     );
-    expect(app.editor.getExpandedText()).not.toContain("mavis-chat-context");
+    expect(app.editor.getExpandedText()).not.toContain("alran-chat-context");
     expect(runtime.sendMessage).toHaveBeenCalledTimes(sendCountBeforeEdit);
 
     let releaseAdmission!: () => void;
@@ -8336,9 +8336,9 @@ describe("createTuiApp", () => {
     expect(vi.mocked(runtime.sendMessage).mock.calls.at(-1)?.[0]).toMatchObject(
       {
         content: [
-          "<mavis-chat-context>",
+          "<alran-chat-context>",
           "Referenced context",
-          "</mavis-chat-context>",
+          "</alran-chat-context>",
           "",
           "/help should remain message text",
         ].join("\n"),
@@ -8369,7 +8369,7 @@ describe("createTuiApp", () => {
         .filter((cell) => cell.kind === "user")
         .map((cell) => cell.content)
         .join("\n"),
-    ).not.toContain("mavis-chat-context");
+    ).not.toContain("alran-chat-context");
     await app.stop();
   });
 
@@ -9738,7 +9738,7 @@ describe("createTuiApp", () => {
       {
         requestId: "permission-1",
         sessionId: "session-existing",
-        agentName: "mavis",
+        agentName: "alran",
         toolName: "bash",
         reason: "Run tests",
       },
@@ -9832,7 +9832,7 @@ describe("createTuiApp", () => {
       {
         requestId: "permission-1",
         sessionId: "session-existing",
-        agentName: "mavis",
+        agentName: "alran",
         toolName: "bash",
         reason: "Run tests",
         allowAlwaysSupported: true,
@@ -9890,12 +9890,12 @@ describe("createTuiApp", () => {
     await app.submit("/status");
 
     expect(runtime.replyPermission).toHaveBeenCalledWith(
-      "mavis",
+      "alran",
       "permission-1",
       "allowOnce",
     );
     expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-      "mavis",
+      "alran",
       "question-1",
       [
         {
@@ -9938,7 +9938,7 @@ describe("createTuiApp", () => {
     const firstPermission = {
       requestId: "permission-first",
       sessionId: "session-race",
-      agentName: "mavis",
+      agentName: "alran",
       toolName: "bash",
       reason: "First request",
       allowAlwaysSupported: true,
@@ -9946,7 +9946,7 @@ describe("createTuiApp", () => {
     const secondPermission = {
       requestId: "permission-second",
       sessionId: "session-race",
-      agentName: "mavis",
+      agentName: "alran",
       toolName: "write_file",
       reason: "Newer request",
       allowAlwaysSupported: false,
@@ -10023,7 +10023,7 @@ describe("createTuiApp", () => {
     const permission = {
       requestId: "permission-stale",
       sessionId: "session-permission-stale",
-      agentName: "mavis",
+      agentName: "alran",
       toolName: "bash",
       reason: "Run tests",
       allowAlwaysSupported: true,
@@ -10106,7 +10106,7 @@ describe("createTuiApp", () => {
 
     await app.submit("/q1 1");
     expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-      "mavis",
+      "alran",
       "question-options-only",
       [
         {
@@ -10185,7 +10185,7 @@ describe("createTuiApp", () => {
 
     await vi.waitFor(() => {
       expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-        "mavis",
+        "alran",
         "question-multi-step",
         [
           {
@@ -10296,7 +10296,7 @@ describe("createTuiApp", () => {
     terminal.input?.("2");
     await vi.waitFor(() =>
       expect(runtime.replyQuestionnaire).toHaveBeenCalledWith(
-        "mavis",
+        "alran",
         "question-review",
         [
           {
@@ -10577,7 +10577,7 @@ describe("createTuiApp", () => {
 
       await vi.waitFor(() =>
         expect(runtime.dismissQuestionnaire).toHaveBeenCalledWith(
-          "mavis",
+          "alran",
           "question-escape-dismiss",
         ),
       );
@@ -10621,7 +10621,7 @@ describe("createTuiApp", () => {
       {
         requestId: "permission-pending",
         sessionId: "session-pending",
-        agentName: "mavis",
+        agentName: "alran",
         toolName: "bash",
         toolInput: "pnpm test",
         ruleContents: ["Bash(pnpm test:*)"],
@@ -10645,7 +10645,7 @@ describe("createTuiApp", () => {
     terminal.input?.("\r");
     await vi.waitFor(() =>
       expect(runtime.replyPermission).toHaveBeenCalledWith(
-        "mavis",
+        "alran",
         "permission-pending",
         "deny",
       ),
@@ -10675,7 +10675,7 @@ describe("createTuiApp", () => {
       {
         requestId: "permission-render",
         sessionId: "session-permission-render",
-        agentName: "mavis",
+        agentName: "alran",
         toolName: "bash",
         toolInput: "pnpm test",
         reason: "Run focused tests",
@@ -10706,7 +10706,7 @@ describe("createTuiApp", () => {
     await vi.waitFor(() => expect(app.interaction.isActive()).toBe(false));
     await vi.waitFor(() => expect(terminal.writes.length).toBeGreaterThan(0));
     expect(runtime.replyPermission).toHaveBeenCalledWith(
-      "mavis",
+      "alran",
       "permission-render",
       "allowOnce",
     );
@@ -10733,7 +10733,7 @@ describe("createTuiApp", () => {
       {
         requestId: "permission-draft-blocked",
         sessionId: "session-draft-blocked",
-        agentName: "mavis",
+        agentName: "alran",
         toolName: "bash",
         allowAlwaysSupported: true,
       },
@@ -10897,7 +10897,7 @@ describe("createTuiApp", () => {
           payload: {
             requestId: "permission-live",
             sessionId: "session-1",
-            agentName: "mavis",
+            agentName: "alran",
             toolName: "bash",
             toolDescription: "Run a shell command",
             reason: "Run checks",
@@ -10966,7 +10966,7 @@ describe("createTuiApp", () => {
           payload: {
             requestId: "permission-other-session",
             sessionId: "session-other",
-            agentName: "mavis",
+            agentName: "alran",
             toolName: "bash",
           },
         });
@@ -10976,7 +10976,7 @@ describe("createTuiApp", () => {
           source: "runtime",
           payload: {
             sessionId: "session-other",
-            agentName: "mavis",
+            agentName: "alran",
             request: {
               id: "question-other-session",
               steps: [
@@ -14105,7 +14105,7 @@ describe("createTuiApp", () => {
             {
               requestId: "permission-blocked",
               sessionId: firstSession.sessionId,
-              agentName: "mavis",
+              agentName: "alran",
               toolName: "bash",
               reason: "Run checks",
               allowAlwaysSupported: true,

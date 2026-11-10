@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 
 /**
  * Prompt-prefix fingerprints of PTC-mode Session Turns, for logs only.

@@ -1,17 +1,17 @@
-import type { PromptSuggestionRemotePolicy, RunawayGuardOverride } from '@mavis/config';
+import type { PromptSuggestionRemotePolicy, RunawayGuardOverride } from '@alran/config';
 import type {
   CreateLocalRuntimeHostOptions as V1CreateLocalRuntimeHostOptions,
   CreatedLocalRuntimeHost as V1CreatedLocalRuntimeHost,
   LocalRuntimeProductHostOptions as V1LocalRuntimeProductHostOptions,
-} from '@mavis/local-runtime';
-import type { LocalBrowserAdapter, LocalBrowserToolExposure } from '@mavis/agent-tools/desktop';
+} from '@alran/local-runtime';
+import type { LocalBrowserAdapter, LocalBrowserToolExposure } from '@alran/agent-tools/desktop';
 import type {
   MiniAppPresenter,
   LocalRuntimeApplication,
   LocalRuntimePendingPermission,
 } from '../application/session/process-local-application-contract.js';
 
-export type { LocalRuntimeAuthContext, LocalRuntimeConfig } from '@mavis/local-runtime';
+export type { LocalRuntimeAuthContext, LocalRuntimeConfig } from '@alran/local-runtime';
 
 /** Process-local DTO; runtime.ts checks compatibility with the DB-owned observation. */
 type DatabaseMigrationObservation = {

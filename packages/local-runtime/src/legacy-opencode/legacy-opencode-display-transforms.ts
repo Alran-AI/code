@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 
-import { type AgentMessage } from '@mavis/agent-core/protocol/agent-message';
-import { sanitizeWireToolCallResultData } from '@mavis/agent-core/event-bridge';
+import { type AgentMessage } from '@alran/agent-core/protocol/agent-message';
+import { sanitizeWireToolCallResultData } from '@alran/agent-core/event-bridge';
 
 /**
  * Pure display-message transform helpers shared by the legacy OpenCode

@@ -3,7 +3,7 @@ import {
   type ToolImpl,
   type ToolResult,
   withProgrammaticResult,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 import { LocalWebFetchToolDef, type LocalWebFetchToolInput } from './builtin-defs.js';
 import { isPtcChildCall } from './output-limit.js';

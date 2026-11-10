@@ -1,4 +1,4 @@
-const LOGIN_RESTART_ENVIRONMENT_KEY = '__MAVIS_TUI_LOGIN_RESTART';
+const LOGIN_RESTART_ENVIRONMENT_KEY = '__ALRAN_TUI_LOGIN_RESTART';
 
 export function markLoginRestartHandoff(environment: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return { ...environment, [LOGIN_RESTART_ENVIRONMENT_KEY]: '1' };

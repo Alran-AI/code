@@ -5,7 +5,7 @@ import {
   type ModelAvailabilityConfigView,
   type PartialGoalConfig,
   type GoalVerificationEvidenceMode,
-} from '@mavis/config';
+} from '@alran/config';
 import {
   digestThreadGoalObjective,
   type GoalTurnBinding,
@@ -13,7 +13,7 @@ import {
   type ThreadGoalBudgetLimits,
   type ThreadGoalState,
   type ThreadGoalWaitReason,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 import { firstGoalBlocker } from './blockers.js';
 
@@ -176,7 +176,7 @@ export function firstExhaustedThreadGoalBudget(
 
 export function isThreadGoalEnabled(configGetter?: () => ThreadGoalGateConfig): boolean {
   return resolveBetaFeature('threadGoal', configGetter?.().beta?.threadGoal, {
-    internalBuild: process.env.__MAVIS_BUILD_INTERNAL === 'true',
+    internalBuild: process.env.__ALRAN_BUILD_INTERNAL === 'true',
   });
 }
 

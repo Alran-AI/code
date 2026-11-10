@@ -68,6 +68,19 @@ describe("Alran /status account presentation", () => {
     expect(output).toContain("Account: dev@example.com");
   });
 
+  it("treats a stored Platform session as a signed-in managed account", () => {
+    const account = normalizeAccountStatus({
+      provider: { id: "alran", authMode: "managed-login" },
+      auth: { tokenPresent: false, platformSessionPresent: true },
+      modelSource: "token-plan",
+      warnings: [],
+    });
+
+    expect(account.status).toBe("ready");
+    expect(account.platformSessionPresent).toBe(true);
+    expect(formatTuiAccountStatus(account)).not.toContain("Sign in with /login");
+  });
+
   it("rounds partial minutes down instead of overstating the time left", () => {
     vi.useFakeTimers({ now: nowMs });
 

@@ -2,11 +2,11 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import yaml from 'js-yaml';
 
-import type { OutboundMediaRef } from '@mavis/shared';
+import type { OutboundMediaRef } from '@alran/shared';
 import {
   type ConversationCommittedMessage,
   type RuntimeConversationChannelView,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import type {
   LocalChannelBridgeInfra,
@@ -208,7 +208,7 @@ export class LocalMultiChannelClientRegistry {
 
   /**
    * Register a real SDK-bound client under its exact platform client id (for
-   * example `telegram:mavis`). The registry intentionally has no platform or
+   * example `telegram:alran`). The registry intentionally has no platform or
    * default fallback: an absent exact edge is a delivery failure, never a fake
    * local success.
    */
@@ -323,7 +323,7 @@ export interface LocalChannelRunnerOptions {
    */
   questionnaireReplyHandler?: (input: {
     ctx: LocalChannelContext;
-    reply: import('@mavis/shared/questionnaire').AskQuestionnaireReplyPayload;
+    reply: import('@alran/shared/questionnaire').AskQuestionnaireReplyPayload;
   }) => Promise<QuestionnaireReplyOutcome | void>;
   /**
    * Optional permission reply resolver. When set, `dispatchInbound` asks
@@ -1072,7 +1072,7 @@ function daemonClientIdForCtx(ctx: LocalChannelContext): string | undefined {
   const agentRaw = ctx.clientName.endsWith(suffix)
     ? ctx.clientName.slice(0, -suffix.length)
     : ctx.clientName;
-  const agent = agentRaw.trim() || 'mavis';
+  const agent = agentRaw.trim() || 'alran';
   switch (platform) {
     case 'feishu':
       return agent; // feishuClientId(agent) === agent

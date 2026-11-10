@@ -25,7 +25,7 @@ const darwinScript = TRASH_SCRIPT_CONTENT.match(/osascript -l JavaScript -e '([\
 it.skipIf(process.platform === 'win32')(
   'passes paths and sandbox mode as data and preserves files on failure',
   () => {
-    const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'mavis-quiet-trash-')));
+    const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'alran-quiet-trash-')));
     const bin = path.join(root, 'bin');
     const home = path.join(root, 'home');
     const log = path.join(root, 'calls');
@@ -45,7 +45,7 @@ it.skipIf(process.platform === 'win32')(
         ].join('\n'),
         { mode: 0o755 },
       );
-      const script = path.join(bin, 'mavis-trash');
+      const script = path.join(bin, 'alran-trash');
       writeFileSync(script, TRASH_SCRIPT_CONTENT, { mode: 0o755 });
       const targets = ['中文 " $() `literal`\nfile', 'second', 'sandbox', 'denied'].map((name) =>
         path.join(root, name),
@@ -57,7 +57,7 @@ it.skipIf(process.platform === 'win32')(
         PATH: `${bin}:/usr/bin:/bin`,
         TRASH_TEST_LOG: log,
         TRASH_TEST_FAIL: '0',
-        MAVIS_TRASH_FORCE_MV: '',
+        ALRAN_TRASH_FORCE_MV: '',
       };
       const native = spawnSync(script, ['--', ...targets.slice(0, 2)], {
         cwd: root,
@@ -67,7 +67,7 @@ it.skipIf(process.platform === 'win32')(
       expect(native.status, native.stderr).toBe(0);
       const sandbox = spawnSync(script, ['--', targets[2]!], {
         cwd: root,
-        env: { ...env, MAVIS_TRASH_FORCE_MV: '1' },
+        env: { ...env, ALRAN_TRASH_FORCE_MV: '1' },
         encoding: 'utf8',
       });
       expect(sandbox.status, sandbox.stderr).toBe(0);
@@ -182,12 +182,12 @@ it('uses exclusive moves in the sandbox, retries only collisions, and never call
 it.skipIf(process.platform !== 'darwin')(
   'preserves concurrent same-name files, directories and dangling symlinks with the real macOS move API',
   async () => {
-    const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'mavis-exclusive-trash-')));
+    const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'alran-exclusive-trash-')));
     const home = path.join(root, 'home');
     const trash = path.join(home, '.Trash');
     try {
       mkdirSync(trash, { recursive: true });
-      const script = path.join(root, 'mavis-trash');
+      const script = path.join(root, 'alran-trash');
       writeFileSync(script, TRASH_SCRIPT_CONTENT, { mode: 0o755 });
       // An existing dangling symlink must count as a conflict, too.
       symlinkSync('/nonexistent-original-trash-target', path.join(trash, 'same'));
@@ -210,7 +210,7 @@ it.skipIf(process.platform !== 'darwin')(
             new Promise<void>((resolve, reject) => {
               const child = spawn(script, ['--', source], {
                 cwd: root,
-                env: { ...process.env, HOME: home, MAVIS_TRASH_FORCE_MV: '1' },
+                env: { ...process.env, HOME: home, ALRAN_TRASH_FORCE_MV: '1' },
                 stdio: ['ignore', 'ignore', 'pipe'],
                 timeout: 10_000,
               });
@@ -247,8 +247,8 @@ it.skipIf(process.platform !== 'darwin')(
 // The Linux backend is unchanged by the macOS migration.
 it('keeps the guarded Linux gio path and direct-move fallback', () => {
   const linux = TRASH_SCRIPT_CONTENT.split('    Linux)')[1]!;
-  expect(linux).toContain('MAVIS_TRASH_FORCE_MV');
-  expect(linux.indexOf('MAVIS_TRASH_FORCE_MV')).toBeLessThan(linux.indexOf('if gio trash'));
+  expect(linux).toContain('ALRAN_TRASH_FORCE_MV');
+  expect(linux.indexOf('ALRAN_TRASH_FORCE_MV')).toBeLessThan(linux.indexOf('if gio trash'));
   expect(linux).toContain('mv "$file" "$dest"');
   expect(linux).toContain('the sandbox denied moving this file to the trash');
 });

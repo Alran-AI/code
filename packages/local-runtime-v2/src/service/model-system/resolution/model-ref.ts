@@ -1,13 +1,13 @@
 import { isDefaultThinkingModelId, type Api, type ThinkingLevelMap } from '@earendil-works/pi-ai';
 import type { ThinkingLevel as PiThinkingLevel } from '@earendil-works/pi-agent-core';
-import { normalizeMaxImagesPerRequest } from '@mavis/agent-core/pi-turn-runner';
+import { normalizeMaxImagesPerRequest } from '@alran/agent-core/pi-turn-runner';
 import {
   ThinkingLevel,
   ThinkingMode,
   type IModelCapabilities,
   type IModelRef,
-} from '@mavis/protocol';
-import type { ConversationModelThinkingSelection } from '@mavis/conversation-contract';
+} from '@alran/protocol';
+import type { ConversationModelThinkingSelection } from '@alran/conversation-contract';
 
 import {
   LocalModelProviderError,

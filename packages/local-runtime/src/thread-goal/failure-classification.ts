@@ -1,7 +1,7 @@
-import { ProtocolErrorCode } from '@mavis/protocol';
-import { LLM_ERROR_CODES } from '@mavis/shared/llm-error-classifier';
+import { ProtocolErrorCode } from '@alran/protocol';
+import { LLM_ERROR_CODES } from '@alran/shared/llm-error-classifier';
 
-import type { ThreadGoalFailureClass } from '@mavis/goal';
+import type { ThreadGoalFailureClass } from '@alran/goal';
 
 export interface ThreadGoalFailureInput {
   readonly code?: number | string;

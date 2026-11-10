@@ -1,4 +1,4 @@
-import { getRuntimeBuildEnv, isInternalBuild } from '@mavis/config';
+import { getRuntimeBuildEnv, isInternalBuild } from '@alran/config';
 
 import {
   createLlmCaptureRecorder,
@@ -33,7 +33,7 @@ export function composeLlmContextInspector(
   options: ComposeInspectorOptions,
 ): Promise<ComposedInspector> | undefined {
   const forceCaptureEnabled =
-    options.runtimeOwnerKind === 'tui' && process.env.MAVIS_TUI_LLM_CONTEXT_INSPECTOR === '1';
+    options.runtimeOwnerKind === 'tui' && process.env.ALRAN_TUI_LLM_CONTEXT_INSPECTOR === '1';
   if (options.runtimeOwnerKind !== 'electron' && !forceCaptureEnabled) return undefined;
   const buildVariant = options.buildVariantOverride ?? resolveBuildVariant();
   if (buildVariant === 'unavailable' && !forceCaptureEnabled) return undefined;

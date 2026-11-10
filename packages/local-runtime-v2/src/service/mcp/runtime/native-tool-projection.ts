@@ -1,4 +1,4 @@
-import { configuredMcpNameKey, type McpNameRegistry } from '@mavis/mcp';
+import { configuredMcpNameKey, type McpNameRegistry } from '@alran/mcp';
 import type {
   LocalMcpNativeToolInfo,
   LocalMcpServerConfig,

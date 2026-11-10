@@ -2,7 +2,7 @@ import {
   resolveAgentCapabilities,
   type AgentCapabilityConfig,
   type ResolvedAgentCapabilities,
-} from '@mavis/config';
+} from '@alran/config';
 
 import type {
   AgentAppMode,
@@ -11,7 +11,7 @@ import type {
   AgentPromptMode,
   AgentPromptSurface,
 } from '../contracts.js';
-import type { PromptReadScope } from '@mavis/agent-runtime';
+import type { PromptReadScope } from '@alran/agent-runtime';
 import type { PromptReadContext } from '../../prompt-config/index.js';
 
 export type BuiltinPromptReadScope = PromptReadContext | PromptReadScope;
@@ -69,7 +69,7 @@ export interface BuiltinSurfaceRenderInput {
   readonly ptc?: BuiltinPtcRender;
 }
 
-export const PRIMARY_AGENT_NAME = 'mavis';
+export const PRIMARY_AGENT_NAME = 'alran';
 const LEGACY_PRIMARY_AGENT_NAME = 'main';
 export const BUILTIN_ROSTER_FILE = 'builtin-agents.json';
 export const FEATURE_FILES = {
@@ -151,7 +151,7 @@ export function resolveCanonicalCapabilities(
     builtinTools: intersect(base.builtinTools, override.builtinTools),
     skills: intersect(base.skills, override.skills),
     features: {
-      mavis: base.features.mavis && override.features?.mavis !== false,
+      alran: base.features.alran && override.features?.alran !== false,
       delegation: base.features.delegation && override.features?.delegation !== false,
       webSearch: base.features.webSearch && override.features?.webSearch !== false,
     },

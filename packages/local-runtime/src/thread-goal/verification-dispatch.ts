@@ -11,8 +11,8 @@ import {
   type VerificationAttempt,
   type VerifierPort,
   verificationModeForRoute,
-} from '@mavis/goal';
-import { resolveModelCallRoute } from '@mavis/config';
+} from '@alran/goal';
+import { resolveModelCallRoute } from '@alran/config';
 
 import { parseSourceQualifiedModelKey } from '../config/model-key.js';
 import { loadUserImages } from '../messages/input.js';

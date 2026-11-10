@@ -25,7 +25,7 @@ try {
   mkdirSync(home);
   const env = {
     ...process.env, HOME: home, USERPROFILE: home,
-    ALRAN_DATA_DIR: path.join(home, 'data'), MAVIS_DATA_DIR: path.join(home, 'data'),
+    ALRAN_DATA_DIR: path.join(home, 'data'), ALRAN_DATA_DIR: path.join(home, 'data'),
     ALRAN_DISABLE_TELEMETRY: '1',
   };
   for (const name of Object.keys(env)) {

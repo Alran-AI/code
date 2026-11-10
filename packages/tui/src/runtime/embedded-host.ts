@@ -1,11 +1,11 @@
-import { createLocalRuntimeHostV2, getDefaultLocalRuntimeConfig } from '@mavis/local-runtime-v2';
+import { createLocalRuntimeHostV2, getDefaultLocalRuntimeConfig } from '@alran/local-runtime-v2';
 import type {
   CreateLocalRuntimeHostOptions,
   CreatedLocalRuntimeHost,
-} from '@mavis/local-runtime-v2/process-local';
-import type { CliService } from '@mavis/local-runtime-v2/cli-service';
+} from '@alran/local-runtime-v2/process-local';
+import type { CliService } from '@alran/local-runtime-v2/cli-service';
 import { resolveTuiReviewPromptDir } from './review-assets.js';
-import type { ProductBuildIdentity } from '@mavis/shared/product-build-identity';
+import type { ProductBuildIdentity } from '@alran/shared/product-build-identity';
 import { resolveAlranBuildIdentity } from '../auth/environment.js';
 
 export type EmbeddedRuntimeHostOptions = Omit<
@@ -68,7 +68,7 @@ export async function createEmbeddedRuntimeHost(
   options: EmbeddedRuntimeHostOptions,
   factory: EmbeddedRuntimeHostFactory = createLocalRuntimeHostV2,
 ): Promise<EmbeddedRuntimeHost> {
-  if (process.env.MAVIS_LOCAL_RUNTIME_V2_FORCE_LEGACY === '1') {
+  if (process.env.ALRAN_LOCAL_RUNTIME_V2_FORCE_LEGACY === '1') {
     throw new Error(
       'Alran Code embedded Runtime requires the local-runtime-v2 front door; legacy fallback is disabled.',
     );

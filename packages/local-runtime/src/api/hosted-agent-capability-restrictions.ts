@@ -1,4 +1,4 @@
-import type { ResolvedAgentCapabilities } from '@mavis/config';
+import type { ResolvedAgentCapabilities } from '@alran/config';
 
 import type { HostedAgentCapabilityRestrictions } from './hosted-agent-capabilities.js';
 
@@ -6,12 +6,12 @@ export function applyHostedCapabilityRestrictions(
   capabilities: ResolvedAgentCapabilities,
   restrictions: HostedAgentCapabilityRestrictions,
 ): ResolvedAgentCapabilities {
-  if (!restrictions.disableMavis) return capabilities;
+  if (!restrictions.disableAlran) return capabilities;
   return {
     ...capabilities,
     features: {
       ...capabilities.features,
-      mavis: false,
+      alran: false,
     },
   };
 }

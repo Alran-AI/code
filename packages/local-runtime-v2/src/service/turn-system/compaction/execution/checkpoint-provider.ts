@@ -11,8 +11,8 @@ import {
   type LLMCallOutcome,
   type LLMCallUsage,
   type LLMRequestSettledEvent,
-} from '@mavis/agent-core/pi-turn-runner';
-import { createDefaultTokenEstimator, withoutThinking } from '@mavis/context-manager';
+} from '@alran/agent-core/pi-turn-runner';
+import { createDefaultTokenEstimator, withoutThinking } from '@alran/context-manager';
 
 import type { CheckpointSession } from '../algorithm/compact-context.js';
 import type { ContextCompactionHooks, PromptSnapshotSource } from '../../agent-host/contracts.js';

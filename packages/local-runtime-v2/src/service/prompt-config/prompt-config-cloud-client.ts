@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-import { getRuntimeBuildEnv, getRuntimeRegion } from '@mavis/config';
+import { getRuntimeBuildEnv, getRuntimeRegion } from '@alran/config';
 
 import type {
   EncryptedPromptBundle,
@@ -168,7 +168,7 @@ function buildHeaders(input: {
     'x-signature': md5(`${second}${SIGNATURE_SALT}`),
   };
   if (input.accessToken) headers.Authorization = `Bearer ${input.accessToken}`;
-  else headers['X-Mavis-Anonymous'] = 'true';
+  else headers['X-Alran-Anonymous'] = 'true';
   if (input.etag) headers['if-none-match'] = input.etag;
   if (input.previewSecret?.trim())
     headers['X-Alran-Agent-Preview-Secret'] = input.previewSecret.trim();

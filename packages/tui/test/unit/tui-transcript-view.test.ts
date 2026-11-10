@@ -523,7 +523,7 @@ describe('TranscriptView', () => {
   });
 
   it('keeps leaked caption text and absolute paths out of the compact receipt', () => {
-    const path = '/Users/example/workspace/sample-project/output/mavis-architecture.html';
+    const path = '/Users/example/workspace/sample-project/output/alran-architecture.html';
     const view = new TranscriptView(() => [
       createTranscriptCell({
         id: 'assistant-long-asset',
@@ -532,7 +532,7 @@ describe('TranscriptView', () => {
         content: [
           'Done.',
           '<deliver-assets>',
-          `<media src="${path}" caption="Mavis architecture overview · ${path}RunTurnInput leaked text" />`,
+          `<media src="${path}" caption="Alran architecture overview · ${path}RunTurnInput leaked text" />`,
           '</deliver-assets>',
         ].join('\n'),
         createdAtMs: 1,
@@ -540,11 +540,11 @@ describe('TranscriptView', () => {
     ]);
 
     const lines = view.render(36).map((line) => stripVTControlCharacters(line).trimEnd());
-    const receiptLine = lines.findIndex((line) => line.includes('mavis-architecture.html ↗'));
+    const receiptLine = lines.findIndex((line) => line.includes('alran-architecture.html ↗'));
     const normalized = lines.join(' ').replace(/\s+/gu, ' ');
 
     expect(receiptLine).toBeGreaterThan(-1);
-    expect(normalized).toContain('Mavis architecture overview');
+    expect(normalized).toContain('Alran architecture overview');
     expect(normalized).not.toContain('leaked text');
     expect(normalized).not.toContain('/Users/example');
   });
@@ -1541,7 +1541,7 @@ describe('TranscriptView', () => {
         status: 'succeeded',
         title: 'bash',
         content: JSON.stringify({
-          command: 'pnpm --filter @mavis/ui exec vitest run packages/ui/test/unit/example.test.tsx',
+          command: 'pnpm --filter @alran/ui exec vitest run packages/ui/test/unit/example.test.tsx',
         }),
         detail: 'ok',
         createdAtMs: 1,

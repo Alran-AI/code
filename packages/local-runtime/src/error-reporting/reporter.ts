@@ -15,8 +15,8 @@
  * every stage; never expose them to callers or affect LLM requests, retries, or turn results.
  */
 
-import { getRuntimeBuildEnv, getRuntimeRegion, isTelemetryChannelEnabled } from '@mavis/config';
-import { LLM_ERROR_REASONS } from '@mavis/shared/llm-error-classifier';
+import { getRuntimeBuildEnv, getRuntimeRegion, isTelemetryChannelEnabled } from '@alran/config';
+import { LLM_ERROR_REASONS } from '@alran/shared/llm-error-classifier';
 
 import { logger } from '../common/logger.js';
 

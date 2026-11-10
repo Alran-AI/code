@@ -46,7 +46,7 @@ export function backgroundBashHost(
 export function parentSessionRecord(dataDir: string): LocalSessionRecord {
   return {
     sessionId: 'session-a',
-    agentName: 'mavis',
+    agentName: 'alran',
     workspaceDir: dataDir,
     runtime: 'pi-agent',
     sessionType: 'root',

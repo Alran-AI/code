@@ -4,7 +4,7 @@ import { arch, platform, release } from 'node:os';
 import { basename, delimiter, extname, isAbsolute, join, relative, sep } from 'node:path';
 import { promisify } from 'node:util';
 
-export const EVAL_META_INFO_SCHEMA = 'mavis.eval_meta_info.v1' as const;
+export const EVAL_META_INFO_SCHEMA = 'alran.eval_meta_info.v1' as const;
 
 export type EvalRuntimeKind = 'desktop' | 'cloud';
 export type EvalConfigFileKind = 'project';

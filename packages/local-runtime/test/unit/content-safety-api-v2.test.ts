@@ -1,6 +1,6 @@
 import { logger } from '../../src/common/logger.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SAFETY_CHECK_V2_SCENE } from '@mavis/shared/safety-check-v2';
+import { SAFETY_CHECK_V2_SCENE } from '@alran/shared/safety-check-v2';
 import { callLocalSafetyCheckV2 } from '../../src/content-safety/api-v2.js';
 import { callSafetyApi, SAFETY_SCENE } from '../../src/content-safety/api.js';
 
@@ -32,7 +32,7 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
       }),
     ).resolves.toEqual({ action: 'allow' });
     const [url, init] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe('https://matrix-test.example.invalid/mavis/api/v2/content?require_auth=true');
+    expect(url).toBe('https://matrix-test.example.invalid/alran/api/v2/content?require_auth=true');
     const headers = new Headers(init?.headers);
     expect(headers.get('Authorization')).toBe('Bearer oauth-token');
     expect(headers.get('Token')).toBeNull();
@@ -105,7 +105,7 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
     const sessionId = 'session-1';
     await callLocalSafetyCheckV2({ ...defaults, fetchImpl, request: { scene, ...payload, sessionId } });
     const [url, init] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe('https://matrix-test.example.invalid/mavis/api/v2/content?require_auth=true');
+    expect(url).toBe('https://matrix-test.example.invalid/alran/api/v2/content?require_auth=true');
     expect(JSON.parse(String(init?.body))).toEqual({ scene: wireScene, ...payload, sessionId });
   });
 
@@ -206,14 +206,14 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
       fetchImpl,
       testBaseURL: 'http://127.0.0.1:45678/',
     });
-    expect(fetchImpl.mock.calls[0]![0]).toBe('http://127.0.0.1:45678/mavis/api/v2/content?require_auth=true');
+    expect(fetchImpl.mock.calls[0]![0]).toBe('http://127.0.0.1:45678/alran/api/v2/content?require_auth=true');
     await callLocalSafetyCheckV2({
       ...defaults,
       fetchImpl,
       testBaseURL: 'https://untrusted.example.test',
     });
     expect(fetchImpl.mock.calls[1]![0]).toBe(
-      'https://matrix-test.example.invalid/mavis/api/v2/content?require_auth=true',
+      'https://matrix-test.example.invalid/alran/api/v2/content?require_auth=true',
     );
     await callLocalSafetyCheckV2({
       ...defaults,
@@ -223,12 +223,12 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
       testBaseURL: 'http://127.0.0.1:45678',
     });
     expect(fetchImpl.mock.calls[2]![0]).toBe(
-      'https://api.ottili.one/mavis/api/v2/content?require_auth=true',
+      'https://api.ottili.one/alran/api/v2/content?require_auth=true',
     );
   });
 
   it('does not send a credential when there is no active token', async () => {
-    vi.stubEnv('MAVIS_ACCESS_TOKEN', '');
+    vi.stubEnv('ALRAN_ACCESS_TOKEN', '');
     const fetchImpl = fetchResponse({ action: 1 });
     await callLocalSafetyCheckV2({ ...defaults, fetchImpl });
     expect(new Headers(fetchImpl.mock.calls[0]![1]?.headers).has('Authorization')).toBe(false);
@@ -244,7 +244,7 @@ describe('local biz-gateway SafetyCheckV2 client', () => {
       buildEnv: defaults.buildEnv,
     });
     expect(fetchImpl.mock.calls[0]![0]).toBe(
-      'https://matrix-test.example.invalid/mavis/api/v1/content',
+      'https://matrix-test.example.invalid/alran/api/v1/content',
     );
     expect(JSON.parse(String(fetchImpl.mock.calls[0]![1]?.body))).toEqual({
       content_text: 'hello',

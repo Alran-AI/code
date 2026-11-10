@@ -1,8 +1,8 @@
 import type { AssistantMessage } from '@earendil-works/pi-ai';
-import { GOAL_VERIFIER_READONLY_PROFILE } from '@mavis/config';
-import type { PiBeforeToolCallHook } from '@mavis/agent-core/pi-turn-runner';
-import type { AgentExtension } from '@mavis/agent-runtime';
-import type { VerificationHostContext } from '@mavis/goal';
+import { GOAL_VERIFIER_READONLY_PROFILE } from '@alran/config';
+import type { PiBeforeToolCallHook } from '@alran/agent-core/pi-turn-runner';
+import type { AgentExtension } from '@alran/agent-runtime';
+import type { VerificationHostContext } from '@alran/goal';
 
 import { summarizeCommittedPiGoalUsage } from '../../service/session-system/index.js';
 import { renderGoalVerifierReminder } from './goal-verifier-reminder.js';

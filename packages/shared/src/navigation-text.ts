@@ -18,9 +18,9 @@ const EMPHASIS_PATTERNS = (() => {
 })();
 
 const CHAT_CONTEXT_BLOCK_RE =
-  /<(user-provided-context|mavis-chat-context|html-selection-context)\b[^>]*>([\s\S]*?)(?:<\/\1\s*>|$)/giu;
+  /<(user-provided-context|alran-chat-context|html-selection-context)\b[^>]*>([\s\S]*?)(?:<\/\1\s*>|$)/giu;
 const NAVIGATION_BLOCK_RE =
-  /<(agent-message|agent-context|system-reminder|peer-memory-path|engine-message|inbound-context|archon_internal_context|locale-context|runtime-data-context|permission-ask|permission-response|questionnaire-ask|questionnaire-response|deliver-assets|deliver_assets|mavis-thinking)\b[^>]*>[\s\S]*?<\/\1\s*>/giu;
+  /<(agent-message|agent-context|system-reminder|peer-memory-path|engine-message|inbound-context|archon_internal_context|locale-context|runtime-data-context|permission-ask|permission-response|questionnaire-ask|questionnaire-response|deliver-assets|deliver_assets|alran-thinking)\b[^>]*>[\s\S]*?<\/\1\s*>/giu;
 const MEDIA_TAG_RE = /<media\b[^>]*\/?\s*>/giu;
 const UNICODE_WHITESPACE_RE = /\s+/gu;
 const USER_COMMENT_MARKER_RE = /^User comment \(requested change\):[ \t]*(.*)$/u;
@@ -92,7 +92,7 @@ function markdownToPlainText(markdown: string): string {
 }
 
 function isClosedContextMatch(match: RegExpMatchArray): boolean {
-  return /<\/(user-provided-context|mavis-chat-context|html-selection-context)\s*>$/iu.test(
+  return /<\/(user-provided-context|alran-chat-context|html-selection-context)\s*>$/iu.test(
     match[0] ?? '',
   );
 }

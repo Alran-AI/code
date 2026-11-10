@@ -1,4 +1,4 @@
-import { type TranscriptWindowReader } from '@mavis/goal';
+import { type TranscriptWindowReader } from '@alran/goal';
 
 const MAX_MESSAGES = 200;
 

@@ -19,8 +19,8 @@ import type {
   ChannelFamilyMutationKind,
 } from './channel-family-mutation.js';
 import type { LocalMessageAttachment } from '../messages/input.js';
-import type { OutboundMediaRef } from '@mavis/shared';
-import type { AskQuestionnaireRequest } from '@mavis/shared/questionnaire';
+import type { OutboundMediaRef } from '@alran/shared';
+import type { AskQuestionnaireRequest } from '@alran/shared/questionnaire';
 import { prepareChannelOutboundMessage } from './outbound-message.js';
 import {
   TelegramAttachmentDownloader,
@@ -769,7 +769,7 @@ export interface LocalTelegramChannelApiOptions {
 
 export function parseLocalTelegramUpdate(
   body: Record<string, unknown>,
-  defaultAgentName = 'mavis',
+  defaultAgentName = 'alran',
 ): LocalTelegramEnvelope | { error: Response } {
   const rawUpdate = isRecord(body.update) ? body.update : body;
   const message = firstRecord(rawUpdate, ['message', 'edited_message', 'channel_post']);
@@ -971,7 +971,7 @@ export function extractTelegramAttachmentRefs(
 }
 
 export function telegramClientId(agentName: string): string {
-  return `telegram:${agentName.trim() || 'mavis'}`;
+  return `telegram:${agentName.trim() || 'alran'}`;
 }
 
 /**

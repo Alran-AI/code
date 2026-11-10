@@ -1,4 +1,4 @@
-import type { RuntimeTool, ToolResult } from '@mavis/agent-core/tools';
+import type { RuntimeTool, ToolResult } from '@alran/agent-core/tools';
 
 export function applyProcessLocalToolResultPolicy(
   tools: readonly RuntimeTool[],

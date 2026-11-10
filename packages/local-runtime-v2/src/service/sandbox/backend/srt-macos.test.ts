@@ -18,7 +18,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 import {
   getSandboxConfigDefaults,
   type SandboxFilesystemPolicy,
-} from "@mavis/config";
+} from "@alran/config";
 
 import { compileSandboxEffectivePolicy } from "../effective-policy.js";
 import { resolveSandboxInvocationContext } from "../invocation-context.js";
@@ -189,14 +189,14 @@ describe("srt-macos backend", () => {
       },
       command: "wrapped command",
       // Recoverable deletion must stay inside the cage: without this flag
-      // mavis-trash would hand the unlink to Finder, which runs unsandboxed
+      // alran-trash would hand the unlink to Finder, which runs unsandboxed
       // and would bypass unlinkAllowOnly entirely. GIT_TEMPLATE_DIR points at
       // an empty dir under sandboxTempDir so git init/clone skip hook-template
       // copies (an empty env value no longer skips on git >= 2.53).
       env: {
         GIT_TEMPLATE_DIR: "/tmp/session-1/git-templates-empty",
         ...baseEnv,
-        MAVIS_TRASH_FORCE_MV: "1",
+        ALRAN_TRASH_FORCE_MV: "1",
       },
       handle: { backendId: "srt-macos", invocationId: "invocation-1" },
     });

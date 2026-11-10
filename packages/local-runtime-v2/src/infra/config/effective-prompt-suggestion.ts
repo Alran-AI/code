@@ -1,4 +1,4 @@
-import { withEffectivePromptSuggestion, type PromptSuggestionRemotePolicy } from '@mavis/config';
+import { withEffectivePromptSuggestion, type PromptSuggestionRemotePolicy } from '@alran/config';
 
 import type { LocalRuntimeConfig } from './types.js';
 import type { updateLocalConfigFile } from './update.js';

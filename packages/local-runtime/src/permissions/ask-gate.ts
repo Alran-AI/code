@@ -49,7 +49,7 @@
  * exhaustive trigger table.
  */
 
-import type { PermissionMode } from '@mavis/permission';
+import type { PermissionMode } from '@alran/permission';
 
 import type { LocalPermissionCheckResult } from './facade.js';
 
@@ -69,7 +69,7 @@ export function applyAskGate(
 ): LocalPermissionCheckResult {
   if (mode !== 'bypassPermissions') return verdict;
   if (verdict.behavior !== 'ask') return verdict;
-  // Preserve `rewrittenInput` (e.g. `rm` → `mavis-trash` rewrite) so
+  // Preserve `rewrittenInput` (e.g. `rm` → `alran-trash` rewrite) so
   // the downstream tool call still receives the safer payload. Drop
   // `ruleContents` — they are an ask-card UI concern and have no
   // meaning on an allow verdict.

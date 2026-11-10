@@ -2,8 +2,8 @@ import type {
   LocalAskUserAdapter,
   LocalAskUserBeginResult,
   LocalRuntimeToolContext,
-} from '@mavis/agent-tools/desktop';
-import type { AskUserToolInput } from '@mavis/shared/questionnaire';
+} from '@alran/agent-tools/desktop';
+import type { AskUserToolInput } from '@alran/shared/questionnaire';
 
 import {
   LocalQuestionnaireService,

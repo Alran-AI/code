@@ -15,7 +15,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import type { ThreadGoalState } from "@mavis/goal";
+import type { ThreadGoalState } from "@alran/goal";
 
 import {
   buildThreadGoalRuntimeTools,

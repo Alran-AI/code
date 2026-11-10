@@ -1,11 +1,11 @@
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
 
-const MANAGED_MATRIX_BASE_URLS: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const MANAGED_MATRIX_BASE_URLS: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
@@ -30,7 +30,7 @@ export interface LocalMatrixEndpoint {
 
 const EXPLICIT_MATRIX_TOKEN_ENV_KEYS = ['MATRIX_TOKEN'] as const;
 
-function normalizeRegion(value: string | undefined, env: NodeJS.ProcessEnv): MavisRegion {
+function normalizeRegion(value: string | undefined, env: NodeJS.ProcessEnv): AlranRegion {
   if (value === 'cn' || value === 'en') return value;
   const locale = env.NEXT_PUBLIC_LOCALE;
   if (locale === 'zh') return 'cn';
@@ -38,7 +38,7 @@ function normalizeRegion(value: string | undefined, env: NodeJS.ProcessEnv): Mav
   return getRuntimeRegion();
 }
 
-function normalizeBuildEnv(value: string | undefined, env: NodeJS.ProcessEnv): MavisBuildEnv {
+function normalizeBuildEnv(value: string | undefined, env: NodeJS.ProcessEnv): AlranBuildEnv {
   if (value === 'dev' || value === 'test' || value === 'prod' || value === 'staging') {
     return value;
   }
@@ -53,8 +53,8 @@ export function normalizeMatrixBaseUrl(value: string): string {
 }
 
 export function getManagedLocalMatrixBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
-  return MANAGED_MATRIX_BASE_URLS[normalizeRegion(env.MAVIS_REGION, env)][
-    normalizeBuildEnv(env.MAVIS_BUILD_ENV, env)
+  return MANAGED_MATRIX_BASE_URLS[normalizeRegion(env.ALRAN_REGION, env)][
+    normalizeBuildEnv(env.ALRAN_BUILD_ENV, env)
   ];
 }
 

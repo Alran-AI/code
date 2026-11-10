@@ -4,7 +4,7 @@ import {
   withAlranToolsMasterReminder,
   type Logger as SystemReminderLogger,
   type SystemReminderDiagnostic,
-} from '@mavis/system-reminder';
+} from '@alran/system-reminder';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import { logger } from '../common/logger.js';

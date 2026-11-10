@@ -115,7 +115,7 @@ export interface SkillEvolveProposalConfig {
   /**
    * Agent name allow-list for fallback re-prompt + skill reflection.
    * Special value `["*"]` enables all agents.
-   * Default: `["mavis"]`.
+   * Default: `["alran"]`.
    */
   eligibleAgents: string[];
   /**

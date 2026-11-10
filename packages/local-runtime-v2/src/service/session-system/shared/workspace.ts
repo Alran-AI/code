@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@mavis/config/data-dir';
+import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@alran/config/data-dir';
 
 import type { SessionRunLocation } from '../sessions/repo/contract.js';
 import { normalizeAbsolutePath, pathFlavor } from './path-normalization.js';
@@ -128,7 +128,7 @@ function parseAgentWorkspacePath(
     return undefined;
   }
   const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
+  const match = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
   if (!match?.[1]) return undefined;
   return {
     windows,

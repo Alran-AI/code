@@ -4,9 +4,9 @@ import type {
   PiLLMRequestObserver,
   RunTurnInput,
   TurnEventReporter,
-} from '@mavis/agent-core/pi-turn-runner';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import type { IRuntimeEvent } from '@mavis/protocol';
+} from '@alran/agent-core/pi-turn-runner';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import type { IRuntimeEvent } from '@alran/protocol';
 
 import type { MetricsClient } from '../common/metrics.js';
 import type { ContextUsageDebugMeasurement, PromptRange } from '../context/context-usage.js';

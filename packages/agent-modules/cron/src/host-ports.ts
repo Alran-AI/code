@@ -13,8 +13,8 @@
  * `configureCronHost`; this file only declares cron-specific ports.
  */
 
-import type { ChannelPlatform } from '@mavis/shared';
-import type { RespData } from '@mavis/agent-core/protocol/agent-message';
+import type { ChannelPlatform } from '@alran/shared';
+import type { RespData } from '@alran/agent-core/protocol/agent-message';
 import type { RequestContext } from './host-utils.js';
 import type { CronConfig, CronConfigUpdate } from './types.js';
 

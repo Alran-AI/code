@@ -13,7 +13,7 @@ import {
   type AskUserToolImageInput,
   type AskUserToolInput,
   type AskUserToolStepInput,
-} from '@mavis/shared/questionnaire';
+} from '@alran/shared/questionnaire';
 
 export class QuestionnaireNormalizationError extends Error {
   constructor(message: string) {
@@ -70,7 +70,7 @@ export function isAllowedImageSrc(src: string): boolean {
   const trimmed = src.trim();
   if (trimmed === '') return false;
   if (trimmed.startsWith('https://')) return true;
-  if (trimmed.startsWith('/mavis/api/')) return true;
+  if (trimmed.startsWith('/alran/api/')) return true;
   if (trimmed.startsWith('/alran-desktop/api/')) return true;
   return false;
 }

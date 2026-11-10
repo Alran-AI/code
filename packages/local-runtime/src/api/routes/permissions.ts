@@ -35,7 +35,7 @@ import {
   snapshotPermissionInput,
   validatePermissionExecutionPlan,
   type ExecutionPlan,
-} from '@mavis/permission';
+} from '@alran/permission';
 import { logger } from '../../common/logger.js';
 import type { ChannelPermissionOutboundPort } from '../../channels/permission-bridge.js';
 import type { GlobalEventPublisher } from '../../events/global-events.js';
@@ -220,7 +220,7 @@ export async function beforeLocalToolCall(
   }
   if (decision.behavior === 'allow') {
     // The validated plan is the only execution-input source. In particular,
-    // recoverable deletes must apply its mavis-trash effective input rather
+    // recoverable deletes must apply its alran-trash effective input rather
     // than falling back to the original rm command.
     applyPermissionExecutionPlan(toolContext, executionPlan);
     logPermissionEnforcement(session.sessionId, turnId, toolContext, toolName, {

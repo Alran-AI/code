@@ -1,4 +1,4 @@
-import type { MiniAppSurfaceSummary } from '@mavis/shared/miniapp-surface';
+import type { MiniAppSurfaceSummary } from '@alran/shared/miniapp-surface';
 
 import {
   miniAppBusyReason,
@@ -108,7 +108,7 @@ function summary(
 }
 
 function localIconUrl(iconPath: string): string {
-  return `/mavis/api/file/preview?path=${encodeURIComponent(iconPath)}`;
+  return `/alran/api/file/preview?path=${encodeURIComponent(iconPath)}`;
 }
 
 function mapRuntimeStatus(

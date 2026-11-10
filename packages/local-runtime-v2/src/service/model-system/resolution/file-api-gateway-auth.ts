@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import {
   managedBackendRoutingHeaders,
   type ManagedBackendRoutingContext,
-} from '@mavis/agent-tools/desktop';
-import type { MavisBuildEnv } from '@mavis/config';
+} from '@alran/agent-tools/desktop';
+import type { AlranBuildEnv } from '@alran/config';
 
 import type { LocalRuntimeAuthContext } from '../contracts.js';
 
@@ -17,7 +17,7 @@ export interface LocalFileApiGatewayAuth {
 export function resolveLocalFileApiGatewayAuth(
   context: LocalRuntimeAuthContext | undefined,
   routingContext: ManagedBackendRoutingContext | undefined,
-  buildEnv: MavisBuildEnv | undefined = currentBuildEnv(),
+  buildEnv: AlranBuildEnv | undefined = currentBuildEnv(),
 ): LocalFileApiGatewayAuth | undefined {
   const accessToken = context?.accessToken?.trim();
   if (!accessToken || /[\u0000-\u001f\u007f]/u.test(accessToken)) return undefined;
@@ -32,8 +32,8 @@ export function resolveLocalFileApiGatewayAuth(
   };
 }
 
-function currentBuildEnv(): MavisBuildEnv | undefined {
-  const value = process.env.MAVIS_BUILD_ENV;
+function currentBuildEnv(): AlranBuildEnv | undefined {
+  const value = process.env.ALRAN_BUILD_ENV;
   return value === 'dev' || value === 'test' || value === 'staging' || value === 'prod'
     ? value
     : undefined;

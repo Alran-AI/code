@@ -15,11 +15,11 @@ import { tmpdir } from "node:os";
 import {
   type CreateLocalRuntimeHostOptions,
   type CreatedLocalRuntimeHost,
-} from "@mavis/local-runtime";
-import { DeferredRuntimeConversation } from "@mavis/conversation-contract";
+} from "@alran/local-runtime";
+import { DeferredRuntimeConversation } from "@alran/conversation-contract";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { formatDefaultAgentAvatarMarker } from "@mavis/shared/agent-avatar";
-import { serializeAgentReference } from "@mavis/shared/agent-mention";
+import { formatDefaultAgentAvatarMarker } from "@alran/shared/agent-avatar";
+import { serializeAgentReference } from "@alran/shared/agent-mention";
 
 import { createV1RuntimeCompatibility } from "../../../../src/compat/v1/runtime.js";
 import { DatabaseClient } from "../../../../src/infra/db/client.js";
@@ -41,7 +41,7 @@ import { projectLocalAgentReferencesForModel } from "../../../../src/service/tur
 import type { AgentSystemFactCallbacks } from "../../../../src/service/agent/contracts.js";
 
 vi.mock("../../../../src/compat/v1/cron.js", () => ({
-  createV1MavisCronAdapterBridge: () => ({
+  createV1AlranCronAdapterBridge: () => ({
     adapter: {},
     bindHandleRequest: () => undefined,
   }),
@@ -101,7 +101,7 @@ function createAgentReferenceCompatibility(agentResolver: LocalAgentService) {
         questionnaireServiceDeps: () => ({
           store: {},
           nowMs: Date.now,
-          primaryAgentName: "mavis",
+          primaryAgentName: "alran",
           configGetter: () => ({}),
           getSessionById: vi.fn(),
           startUserMessageTurn: vi.fn(),
@@ -281,11 +281,11 @@ describe("Frozen Session deletion continuity", () => {
 });
 
 describe("Local Agent reference resolver integration", () => {
-  it("authorizes a freshly persisted coder for a trusted interactive Mavis turn", async () => {
+  it("authorizes a freshly persisted coder for a trusted interactive Alran turn", async () => {
     const { repository } = await createRepository();
     await repository.insert({
-      name: "mavis",
-      agentRole: "mavis",
+      name: "alran",
+      agentRole: "alran",
       creationSource: "builtin",
       createdAtMs: 1,
       updatedAtMs: 1,
@@ -316,7 +316,7 @@ describe("Local Agent reference resolver integration", () => {
         agentConfig: {
           agent_profile: {
             agent_role: "orchestrator",
-            canonical_view_name: "mavis",
+            canonical_view_name: "alran",
             trusted_builtin: true,
             surface: "interactive",
           },
@@ -914,10 +914,10 @@ function registerConfigDocumentPublicationTests(): void {
       updatedAtMs: 10,
     });
     await repository.insert({
-      name: "mavis",
+      name: "alran",
       agentRole: "orchestrator",
       creationSource: "builtin",
-      defaultWorkspaceDir: "/workspace/mavis",
+      defaultWorkspaceDir: "/workspace/alran",
       createdAtMs: 20,
       updatedAtMs: 20,
     });
@@ -925,7 +925,7 @@ function registerConfigDocumentPublicationTests(): void {
     await expect(
       readFile(join(repository.getAgentDir("worker"), "agent.md"), "utf8"),
     ).resolves.toBe(
-      "---\nname: worker\ndescription: A worker\nx-mavis:\n  displayName: Worker\n---\n\nPersona\n\nSystem",
+      "---\nname: worker\ndescription: A worker\nx-alran:\n  displayName: Worker\n---\n\nPersona\n\nSystem",
     );
     await expect(readdir(repository.getAgentDir("worker"))).resolves.toEqual([
       ".agent-instance-id",
@@ -950,7 +950,7 @@ function registerConfigDocumentPublicationTests(): void {
       .get("worker") as { enc_display_name?: unknown };
     expect(storedIdentity.enc_display_name).toBeNull();
     await expect(repository.list()).resolves.toMatchObject([
-      { name: "mavis", agentRole: "orchestrator" },
+      { name: "alran", agentRole: "orchestrator" },
       { name: "worker", agentRole: "worker" },
     ]);
 
@@ -1008,16 +1008,16 @@ function registerBuiltinCanonicalPublicationTests(): void {
       };
       service.bindBuiltinModelGroupResolver(async () => modelGroup);
       await service.ensureBuiltinRows({ nowMs: 10 });
-      const canonical = await repository.getBuiltinCanonicalConfig("mavis");
+      const canonical = await repository.getBuiltinCanonicalConfig("alran");
       expect(canonical.systemPrompt).toContain("## Media Output");
       const input = {
-        exactOwnerName: "mavis",
+        exactOwnerName: "alran",
         surface: "cli" as const,
         promptProfile: "tui" as const,
         appMode: "coding" as const,
         capabilities: {
           tools: [],
-          features: { mavis: false, delegation: false, webSearch: false },
+          features: { alran: false, delegation: false, webSearch: false },
         },
         memoryEnabled: false,
         cronEnabled: false,
@@ -1073,19 +1073,19 @@ function registerBuiltinCanonicalPublicationTests(): void {
           capabilities: {},
         }),
       ).resolves.toMatchObject({ agentSystemPrompt: "legacy" });
-      expect(await repository.getBuiltinCanonicalConfig("mavis")).toEqual(
+      expect(await repository.getBuiltinCanonicalConfig("alran")).toEqual(
         canonical,
       );
     },
   );
 
-  it("rebuilds a legacy partial-policy Builtin with the resolver-provided M3 thinking group and removes stale Mavis/main files", async () => {
+  it("rebuilds a legacy partial-policy Builtin with the resolver-provided M3 thinking group and removes stale Alran/main files", async () => {
     const { repository, dataDir } = await createRepository();
-    const mavisBuiltin = join(
+    const alranBuiltin = join(
       dataDir,
       "agents",
       ".builtin",
-      "mavis",
+      "alran",
       "agent.md",
     );
     const mainBuiltin = join(dataDir, "agents", ".builtin", "main", "agent.md");
@@ -1096,7 +1096,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
       "explore",
       "agent.md",
     );
-    await mkdir(join(dataDir, "agents", ".builtin", "mavis"), {
+    await mkdir(join(dataDir, "agents", ".builtin", "alran"), {
       recursive: true,
     });
     await mkdir(join(dataDir, "agents", ".builtin", "main"), {
@@ -1105,11 +1105,11 @@ function registerBuiltinCanonicalPublicationTests(): void {
     await mkdir(join(dataDir, "agents", ".builtin", "explore"), {
       recursive: true,
     });
-    await writeFile(mavisBuiltin, "stale mavis config");
+    await writeFile(alranBuiltin, "stale alran config");
     await writeFile(mainBuiltin, "stale main config");
     await writeFile(
       exploreBuiltin,
-      "---\nname: explore\ndescription: stale description\nmodel: provider/model\neffort: high\nx-mavis:\n  contextWindow: 32000\n  maxOutputTokens: 4096\nmcpServers:\n  - not-a-tool-id\nfeatures:\n  webSearch: true\n---\n\nstale prompt\n",
+      "---\nname: explore\ndescription: stale description\nmodel: provider/model\neffort: high\nx-alran:\n  contextWindow: 32000\n  maxOutputTokens: 4096\nmcpServers:\n  - not-a-tool-id\nfeatures:\n  webSearch: true\n---\n\nstale prompt\n",
     );
 
     const service = createTestAgentService({ repository, nowMs: () => 10 });
@@ -1133,21 +1133,21 @@ function registerBuiltinCanonicalPublicationTests(): void {
     service.bindBuiltinModelGroupResolver(resolveModelGroup, bundled);
     await service.ensureBuiltinRows({ nowMs: 10 });
 
-    await expect(readFile(mavisBuiltin, "utf8")).resolves.toContain(
-      "name: mavis",
+    await expect(readFile(alranBuiltin, "utf8")).resolves.toContain(
+      "name: alran",
     );
     await expect(readFile(mainBuiltin, "utf8")).rejects.toMatchObject({
       code: "ENOENT",
     });
     await expect(
-      readFile(join(dataDir, "agents", "mavis", "agent.md"), "utf8"),
+      readFile(join(dataDir, "agents", "alran", "agent.md"), "utf8"),
     ).rejects.toMatchObject({ code: "ENOENT" });
     const rebuilt = await repository.getBuiltinCanonicalConfig("explore");
     expect(rebuilt).toMatchObject({
       name: "explore",
       model: "alran/Alran-M3",
       effort: "on",
-      xMavis: { contextWindow: 64_000, maxOutputTokens: 2_048 },
+      xAlran: { contextWindow: 64_000, maxOutputTokens: 2_048 },
       systemPrompt: expect.not.stringContaining("stale prompt"),
     });
     expect(rebuilt.mcpServers).toBeUndefined();
@@ -1168,13 +1168,13 @@ function registerBuiltinCanonicalPublicationTests(): void {
     );
     expect(rebuiltPolicies).toMatchObject({
       explore: expect.stringContaining(
-        "features:\n  mavis: false\n  delegation: false\n  webSearch: true",
+        "features:\n  alran: false\n  delegation: false\n  webSearch: true",
       ),
       worker: expect.stringContaining(
-        "features:\n  mavis: true\n  delegation: false\n  webSearch: true",
+        "features:\n  alran: true\n  delegation: false\n  webSearch: true",
       ),
       verifier: expect.stringContaining(
-        "features:\n  mavis: false\n  delegation: false\n  webSearch: true",
+        "features:\n  alran: false\n  delegation: false\n  webSearch: true",
       ),
     });
     expect(resolveModelGroup).toHaveBeenCalledWith({
@@ -1222,7 +1222,7 @@ function registerBuiltinCanonicalPublicationTests(): void {
       configured: {
         model: "openai/gpt-6",
         effort: "low",
-        mavis: { contextWindow: 65_536, maxOutputTokens: 8_192 },
+        alran: { contextWindow: 65_536, maxOutputTokens: 8_192 },
         systemPrompt: initial.configured.systemPrompt,
       },
     });
@@ -1472,7 +1472,7 @@ describe("DrizzleAgentRepository Desktop Agent directory safety", () => {
       repository.writeBuiltinCanonicalConfig("explore", {
         name: "explore",
         description: "Builtin",
-        features: { mavis: false, delegation: false, webSearch: true },
+        features: { alran: false, delegation: false, webSearch: true },
         systemPrompt: "Builtin prompt",
       }),
     ).resolves.toBe("published");
@@ -1612,7 +1612,7 @@ function registerAtomicDefinitionPublicationTests(): void {
         disallowedTools: ["shell"],
         mcpServers: ["design"],
         skills: ["review"],
-        mavis: {
+        alran: {
           displayName: "Atomic Writer",
           avatar: PNG_DATA_URL,
           contextWindow: 1_000_000,
@@ -1644,7 +1644,7 @@ function registerAtomicDefinitionPublicationTests(): void {
         disallowedTools: ["shell"],
         mcpServers: ["design"],
         skills: ["review"],
-        mavis: {
+        alran: {
           displayName: "Atomic Writer",
           avatar: "./avatar.png",
           contextWindow: 1_000_000,
@@ -1705,7 +1705,7 @@ function registerAtomicDefinitionCreationTests(): void {
         name: "测试删除",
         description: "",
         model: "alran/Alran-M3",
-        mavis: { displayName: "测试删除", avatar: PNG_DATA_URL },
+        alran: { displayName: "测试删除", avatar: PNG_DATA_URL },
         systemPrompt,
       },
     });
@@ -1726,7 +1726,7 @@ function registerAtomicDefinitionCreationTests(): void {
         name: created.exactOwnerName,
         description: "测试删除",
         model: "alran/Alran-M3",
-        mavis: { displayName: "测试删除", avatar: "./avatar.png" },
+        alran: { displayName: "测试删除", avatar: "./avatar.png" },
         systemPrompt,
       },
     });
@@ -1742,7 +1742,7 @@ function registerAtomicDefinitionCreationTests(): void {
           name: "测试删除",
           description: "",
           model: "alran/Alran-M3",
-          mavis: { displayName: "测试删除", avatar: PNG_DATA_URL },
+          alran: { displayName: "测试删除", avatar: PNG_DATA_URL },
           systemPrompt,
         },
       }),
@@ -1763,7 +1763,7 @@ function registerAtomicDefinitionCreationTests(): void {
         name: "测试删除",
         description: "",
         model: "alran/Alran-M3",
-        mavis: { displayName: "测试删除" },
+        alran: { displayName: "测试删除" },
         systemPrompt: "Keep the route owner.",
       },
     };
@@ -1849,7 +1849,7 @@ function registerAtomicDefinitionFailureTests(): void {
         initialDefinition: {
           name: "placeholder",
           description: "Must not become visible",
-          mavis: { avatar: PNG_DATA_URL },
+          alran: { avatar: PNG_DATA_URL },
           systemPrompt: "Prompt",
         },
       }),
@@ -1897,7 +1897,7 @@ function registerAtomicDefinitionFailureTests(): void {
             name: "placeholder",
             description: "Invalid model must not persist",
             model: "not a provider/model",
-            mavis: { avatar: PNG_DATA_URL },
+            alran: { avatar: PNG_DATA_URL },
             systemPrompt: "Prompt",
           },
         }),
@@ -1955,10 +1955,10 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
       `name: ${name}`,
       "description: Keep description",
       "unknownTopLevel: keep-top-level",
-      "x-mavis:",
+      "x-alran:",
       "  avatar: ./avatar.png",
       "  defaultWorkspaceDir: /keep/workspace",
-      "  unknownMavisField: keep-mavis-field",
+      "  unknownAlranField: keep-alran-field",
       "---",
       "",
       "Keep system prompt.",
@@ -1980,11 +1980,11 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
     expect(reconciled).toContain("description: Keep description");
     expect(reconciled).toContain("unknownTopLevel: keep-top-level");
     expect(reconciled).toContain("defaultWorkspaceDir: /keep/workspace");
-    expect(reconciled).toContain("unknownMavisField: keep-mavis-field");
+    expect(reconciled).toContain("unknownAlranField: keep-alran-field");
     expect(reconciled).toContain("Keep system prompt.");
     await expect(repository.getCanonicalConfig(name)).resolves.toMatchObject({
       description: "Keep description",
-      xMavis: {
+      xAlran: {
         displayName: "Recovered Display",
         avatar: "./avatar.png",
         defaultWorkspaceDir: "/keep/workspace",
@@ -2011,7 +2011,7 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
       recoveredFields: ["display_name"],
     });
     await expect(repository.getCanonicalConfig(name)).resolves.toMatchObject({
-      xMavis: { displayName: "New V2 Value" },
+      xAlran: { displayName: "New V2 Value" },
     });
   });
 
@@ -2024,7 +2024,7 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
       createdAtMs: 1,
       updatedAtMs: 1,
     });
-    for (const name of ["file-only", "mavis", "builtin-owned"]) {
+    for (const name of ["file-only", "alran", "builtin-owned"]) {
       const agentDir = repository.getAgentDir(name);
       await mkdir(agentDir, { recursive: true });
       await writeFile(join(agentDir, "agent.md"), "legacy prompt\n");
@@ -2035,10 +2035,10 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
       expect.objectContaining({ name: "file-only", creationSource: "manual" }),
     );
     expect(candidates.map((candidate) => candidate.name)).not.toEqual(
-      expect.arrayContaining(["mavis", "builtin-owned"]),
+      expect.arrayContaining(["alran", "builtin-owned"]),
     );
     await expect(
-      repository.materializeLegacyCustomAgent("mavis"),
+      repository.materializeLegacyCustomAgent("alran"),
     ).resolves.toBe("not-legacy");
     await expect(
       repository.materializeLegacyCustomAgent("builtin-owned"),
@@ -2153,7 +2153,7 @@ describe("DrizzleAgentRepository primary family provenance recovery", () => {
     const { repository, database } = await createRepository();
     for (const [name, creationSource] of [
       ["main", "manual"],
-      ["mavis", "auto"],
+      ["alran", "auto"],
     ] as const) {
       await repository.insert({
         name,
@@ -2172,10 +2172,18 @@ describe("DrizzleAgentRepository primary family provenance recovery", () => {
     expect(
       database.rawDb
         .prepare(
-          "SELECT agent_name, agent_role, creation_source, main_session_id, created_at, updated_at FROM agents WHERE agent_name IN ('main', 'mavis') ORDER BY agent_name",
+          "SELECT agent_name, agent_role, creation_source, main_session_id, created_at, updated_at FROM agents WHERE agent_name IN ('main', 'alran') ORDER BY agent_name",
         )
         .all(),
     ).toEqual([
+      {
+        agent_name: "alran",
+        agent_role: 1,
+        creation_source: "builtin",
+        main_session_id: "alran-root",
+        created_at: 20,
+        updated_at: 21,
+      },
       {
         agent_name: "main",
         agent_role: 1,
@@ -2183,14 +2191,6 @@ describe("DrizzleAgentRepository primary family provenance recovery", () => {
         main_session_id: "main-root",
         created_at: 10,
         updated_at: 11,
-      },
-      {
-        agent_name: "mavis",
-        agent_role: 1,
-        creation_source: "builtin",
-        main_session_id: "mavis-root",
-        created_at: 20,
-        updated_at: 21,
       },
     ]);
   });
@@ -2270,7 +2270,7 @@ describe("DrizzleAgentRepository legacy canonical materialization safety", () =>
     ).resolves.toMatchObject({
       name: "legacy-plain",
       description: "Legacy description",
-      xMavis: {
+      xAlran: {
         displayName: "Legacy Plain",
         avatar: "./avatar.png",
         defaultWorkspaceDir: "/legacy/workspace",
@@ -2328,11 +2328,11 @@ describe("DrizzleAgentRepository canonical source boundary", () => {
 });
 
 function registerCanonicalSourceOwnershipTests(): void {
-  it("never reconciles file-only main or mavis definitions into Custom runtime rows", async () => {
+  it("never reconciles file-only main or alran definitions into Custom runtime rows", async () => {
     const { repository, database } = await createRepository();
     const files = new Map([
       ["main", "---\nname: main\ndescription: Main\n---\n\nmain prompt\n"],
-      ["mavis", "---\nname: mavis\ndescription: Mavis\n---\n\nmavis prompt\n"],
+      ["alran", "---\nname: alran\ndescription: Alran\n---\n\nalran prompt\n"],
     ]);
     for (const [name, contents] of files) {
       const agentDir = repository.getAgentDir(name);
@@ -2346,7 +2346,7 @@ function registerCanonicalSourceOwnershipTests(): void {
     expect(
       database.rawDb
         .prepare(
-          "SELECT agent_name FROM agents WHERE agent_name IN ('main', 'mavis')",
+          "SELECT agent_name FROM agents WHERE agent_name IN ('main', 'alran')",
         )
         .all(),
     ).toEqual([]);
@@ -2362,7 +2362,7 @@ function registerCanonicalSourceOwnershipTests(): void {
     await repository.writeCanonicalConfig("file-only", {
       name: "file-only",
       description: "File-owned metadata",
-      xMavis: {
+      xAlran: {
         displayName: "File Only",
         defaultWorkspaceDir: "/workspace/file-only",
       },
@@ -2420,7 +2420,7 @@ function registerCanonicalSourceOwnershipTests(): void {
     await repository.writeCanonicalConfig("worker", {
       name: "worker",
       description: "Untrusted root file",
-      xMavis: { displayName: "Untrusted Custom" },
+      xAlran: { displayName: "Untrusted Custom" },
       systemPrompt: "Untrusted custom prompt",
     });
 
@@ -2479,7 +2479,7 @@ function registerCanonicalSourceCutoverTests(): void {
         "description: Original Agent intent",
         "# Preserve this comment",
         "model: alran/Alran-M3",
-        "x-mavis:",
+        "x-alran:",
         "  displayName: Custom name",
         "  contextWindow: 1000000",
         "  avatar: ./avatar.png",
@@ -2639,7 +2639,7 @@ function registerCanonicalSourceCutoverTests(): void {
     await service.create({ name: "new-cutover", nowMs: 10 });
     const newConfig = await repository.getCanonicalConfig("new-cutover");
     expect(newConfig.name).toBe("new-cutover");
-    expect(newConfig.xMavis?.defaultWorkspaceDir).toBeUndefined();
+    expect(newConfig.xAlran?.defaultWorkspaceDir).toBeUndefined();
   });
 }
 
@@ -2671,14 +2671,14 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
         "mcpServers: [local-mcp]",
         "skills: [research]",
         "unknownTopLevel: UNKNOWN_TOP_LEVEL_SENTINEL",
-        "x-mavis:",
+        "x-alran:",
         `  displayName: ${displayName}`,
         "  avatar: ./avatar.png",
         "  contextWindow: 32768",
         "  maxOutputTokens: 4096",
         "  defaultWorkspaceDir: /workspace/field-owner",
         "  extensionSkills: [extension-research]",
-        "  unknownMavisField: UNKNOWN_MAVIS_SENTINEL",
+        "  unknownAlranField: UNKNOWN_ALRAN_SENTINEL",
         "---",
         "",
         systemPrompt.trim(),
@@ -2697,7 +2697,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
           disallowedTools: ["Write"],
           mcpServers: ["local-mcp"],
           skills: ["research"],
-          xMavis: {
+          xAlran: {
             displayName,
             avatar: "./avatar.png",
             contextWindow: 32768,
@@ -2711,7 +2711,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
             { code: "unsupported_agent_field", field: "unknownTopLevel" },
             {
               code: "unsupported_agent_field",
-              field: "x-mavis.unknownMavisField",
+              field: "x-alran.unknownAlranField",
             },
           ],
         },
@@ -2777,7 +2777,7 @@ describe("DrizzleAgentRepository canonical Custom field boundary", () => {
       expect(live.corePrompt).not.toContain(displayName);
       expect(live.corePrompt).not.toContain("./avatar.png");
       expect(live.corePrompt).not.toContain("UNKNOWN_TOP_LEVEL_SENTINEL");
-      expect(live.corePrompt).not.toContain("UNKNOWN_MAVIS_SENTINEL");
+      expect(live.corePrompt).not.toContain("UNKNOWN_ALRAN_SENTINEL");
 
       const frozen = await service.renderFrozenProfile(
         { exactOwnerName: owner, requestRef: owner, surface: "task-child" },
@@ -2803,7 +2803,7 @@ describe("DrizzleAgentRepository canonical Custom metadata boundary", () => {
     });
     await writeFile(
       join(repository.getAgentDir(owner), "agent.md"),
-      '---\nname: blank-workspace\ndescription: Workspace metadata\nx-mavis:\n  defaultWorkspaceDir: "   "\n---\n\nPrompt\n',
+      '---\nname: blank-workspace\ndescription: Workspace metadata\nx-alran:\n  defaultWorkspaceDir: "   "\n---\n\nPrompt\n',
     );
 
     await expect(repository.getConfig(owner)).resolves.toEqual({});
@@ -2826,7 +2826,7 @@ describe("DrizzleAgentRepository canonical Custom metadata boundary", () => {
     });
     await writeFile(
       join(repository.getAgentDir(owner), "agent.md"),
-      "---\nname: invalid-field\ndescription: Invalid field\nx-mavis:\n  displayName: [not-a-string]\n---\n",
+      "---\nname: invalid-field\ndescription: Invalid field\nx-alran:\n  displayName: [not-a-string]\n---\n",
     );
 
     await expect(repository.getCanonicalConfig(owner)).rejects.toMatchObject({
@@ -2866,9 +2866,9 @@ describe("DrizzleAgentRepository canonical Custom profile editing", () => {
         "name: editable",
         "description: Before",
         "unknownTopLevel: retained",
-        "x-mavis:",
+        "x-alran:",
         "  displayName: Before Name",
-        "  unknownMavis: retained",
+        "  unknownAlran: retained",
         "---",
         markdownBody,
       ].join("\n"),
@@ -2887,11 +2887,11 @@ describe("DrizzleAgentRepository canonical Custom profile editing", () => {
     ).resolves.toMatchObject({ description: "After", displayName: owner });
     const config = await repository.getCanonicalConfig(owner);
     expect(config.description).toBe("After");
-    expect(config.xMavis?.displayName).toBeUndefined();
-    expect(config.xMavis?.avatar).toMatch(/^\.\/avatar-[a-f0-9]{16}\.png$/u);
+    expect(config.xAlran?.displayName).toBeUndefined();
+    expect(config.xAlran?.avatar).toMatch(/^\.\/avatar-[a-f0-9]{16}\.png$/u);
     const updated = await readFile(agentFile, "utf8");
     expect(updated).toContain("unknownTopLevel: retained");
-    expect(updated).toContain("unknownMavis: retained");
+    expect(updated).toContain("unknownAlran: retained");
     expect(updated.endsWith(markdownBody)).toBe(true);
     expect(
       database.rawDb

@@ -15,7 +15,7 @@ export interface ManagedDesktopPromptRegistry {
 
 /** Resolves the same packaged asset directory used by BuiltinAgentCatalog. */
 export async function resolveBuiltinPromptAssetsDir(): Promise<string> {
-  const configured = process.env.MAVIS_BUILTIN_AGENTS_V2_DIR?.trim();
+  const configured = process.env.ALRAN_BUILTIN_AGENTS_V2_DIR?.trim();
   const here = dirname(fileURLToPath(import.meta.url));
   const candidates = configured
     ? [configured]

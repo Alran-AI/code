@@ -1,4 +1,4 @@
-# Mavis PPT Element Map
+# Alran PPT Element Map
 
 ## Purpose
 
@@ -14,7 +14,7 @@ slides/slide-XX.js
 sidecar:
 slides/slide-XX.js
   -> mapped helper records elementId/text/rect/style
-  -> output/name.mavis-ppt-map.json
+  -> output/name.alran-ppt-map.json
 ```
 
 If map generation fails, fix the map or fall back to ordinary PPTX delivery. Do not change the deck
@@ -83,14 +83,14 @@ title, subtitle, heading, body, label, value, card, icon, image, chart, table, p
 
 ## Helper Usage
 
-Use `scripts/mavis-ppt-map.cjs` as a thin wrapper around PptxGenJS. The wrapper must call the same
+Use `scripts/alran-ppt-map.cjs` as a thin wrapper around PptxGenJS. The wrapper must call the same
 PptxGenJS method with the same visible text, coordinates, and style options, then record metadata.
 
 `compile.js`:
 
 ```javascript
 const pptxgen = require('pptxgenjs');
-const { createElementMapRecorder } = require('<skill_dir>/scripts/mavis-ppt-map.cjs');
+const { createElementMapRecorder } = require('<skill_dir>/scripts/alran-ppt-map.cjs');
 
 const pres = new pptxgen();
 pres.layout = 'LAYOUT_16x9';
@@ -101,23 +101,23 @@ const elementMap = createElementMapRecorder({
   filePath: outputPptx,
   layout: { name: 'LAYOUT_16x9', widthIn: 10, heightIn: 5.625 },
 });
-pres.__mavisElementMap = elementMap;
+pres.__alranElementMap = elementMap;
 
 require('./slide-01.js').createSlide(pres, theme);
 
 pres.writeFile({ fileName: outputPptx }).then(() => {
-  elementMap.writeFile('./output/restaurant-deck.mavis-ppt-map.json');
+  elementMap.writeFile('./output/restaurant-deck.alran-ppt-map.json');
 });
 ```
 
 `slides/slide-01.js`:
 
 ```javascript
-const { addMappedText } = require('<skill_dir>/scripts/mavis-ppt-map.cjs');
+const { addMappedText } = require('<skill_dir>/scripts/alran-ppt-map.cjs');
 
 function createSlide(pres, theme) {
   const slide = pres.addSlide();
-  const map = pres.__mavisElementMap;
+  const map = pres.__alranElementMap;
   map?.startSlide({ slideNumber: 1, slideId: 'cover', title: 'Farmhouse Cuisine' });
 
   addMappedText(slide, map, {
@@ -143,13 +143,13 @@ module.exports = { createSlide };
 ```
 
 The slide export remains synchronous `createSlide(pres, theme)`. The map recorder is reached through
-`pres.__mavisElementMap`, so older slide modules still compile normally.
+`pres.__alranElementMap`, so older slide modules still compile normally.
 
 ## Map Format
 
 ```json
 {
-  "schema": "mavis.ppt_element_map.v1",
+  "schema": "alran.ppt_element_map.v1",
   "artifact": {
     "fileName": "restaurant-deck.pptx",
     "filePath": "./output/restaurant-deck.pptx",
@@ -212,7 +212,7 @@ source of truth.
 The desktop preview runtime looks for the sidecar by replacing the selected PPTX path suffix:
 
 ```text
-deck.pptx -> deck.mavis-ppt-map.json
+deck.pptx -> deck.alran-ppt-map.json
 ```
 
 When a preview selection is submitted, the runtime:

@@ -1,4 +1,4 @@
-import type { ThreadGoalAttachment } from '@mavis/goal';
+import type { ThreadGoalAttachment } from '@alran/goal';
 
 import {
   discardLocalAssetRegistrations,

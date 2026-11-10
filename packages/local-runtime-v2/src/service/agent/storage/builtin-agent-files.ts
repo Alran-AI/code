@@ -190,8 +190,8 @@ export class BuiltinAgentFiles {
       routeName,
       { requireFeaturePolicy: true },
     );
-    if (config.xMavis?.avatar) {
-      await validateAgentAvatar(agentDir, config.xMavis.avatar, this.dataDir);
+    if (config.xAlran?.avatar) {
+      await validateAgentAvatar(agentDir, config.xAlran.avatar, this.dataDir);
     }
   }
 }

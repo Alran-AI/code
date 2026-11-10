@@ -5,9 +5,9 @@ import type { MetricsClient } from '../../src/common/metrics.js';
 const clients: MetricsClient[] = [];
 const fetchRequest = vi.fn<typeof fetch>();
 beforeEach(() => {
-  vi.stubEnv('__MAVIS_RUNTIME_MANAGED', '1');
-  vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
-  vi.stubEnv('MAVIS_REGION', 'en');
+  vi.stubEnv('__ALRAN_RUNTIME_MANAGED', '1');
+  vi.stubEnv('ALRAN_BUILD_ENV', 'prod');
+  vi.stubEnv('ALRAN_REGION', 'en');
   vi.stubEnv('ALRAN_DISABLE_TELEMETRY', '');
   vi.stubEnv('DO_NOT_TRACK', '');
   fetchRequest.mockReset().mockResolvedValue(new Response('{}', { status: 200 }));

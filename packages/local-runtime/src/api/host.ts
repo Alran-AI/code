@@ -2,26 +2,26 @@ import {
   CloudSessionReader,
   managedBackendRoutingHeaders,
   resolveLocalBashShell,
-} from "@mavis/agent-tools/desktop";
+} from "@alran/agent-tools/desktop";
 import type { AgentMessage as PiAgentMessage } from "@earendil-works/pi-agent-core";
 import type {
   InternalTurnPromptReadRegistry,
   PromptSnapshotSource,
-} from "@mavis/agent-core";
+} from "@alran/agent-core";
 import type {
   PiLLMRequestFailureHook,
   PiLLMRequestObserver,
-} from "@mavis/agent-core/pi-turn-runner";
-import type { AgentMessage } from "@mavis/agent-core/protocol/agent-message";
-import { getConfig } from "@mavis/config";
-import type { RuntimeConversation } from "@mavis/conversation-contract";
-import type { CronStorePort } from "@mavis/cron";
-import type { GlobalEventInput } from "@mavis/shared/global-events";
+} from "@alran/agent-core/pi-turn-runner";
+import type { AgentMessage } from "@alran/agent-core/protocol/agent-message";
+import { getConfig } from "@alran/config";
+import type { RuntimeConversation } from "@alran/conversation-contract";
+import type { CronStorePort } from "@alran/cron";
+import type { GlobalEventInput } from "@alran/shared/global-events";
 import { join } from "node:path";
 import type { AgentReferenceResolver } from "../agent/port.js";
 import {
   createFailClosedAgentRuntimePort,
-  createLocalMavisAgentAdapter,
+  createLocalAlranAgentAdapter,
   type LocalAgentRuntimePort,
 } from "../agent/runtime-port.js";
 import { stopBackgroundLocalBashTask } from "../background-task/bash-runner.js";
@@ -124,7 +124,7 @@ import {
 } from "../runtime/bash-completion-correlation.js";
 import { LocalDynamicMaxTokensState } from "../runtime/dynamic-max-tokens.js";
 import { resolveLocalRuntimeLocale } from "../runtime/locale.js";
-import { buildMavisSessionAdapter } from "../runtime/mavis-tool-adapters.js";
+import { buildAlranSessionAdapter } from "../runtime/alran-tool-adapters.js";
 import type { LocalMcpRuntimeCapability } from "../runtime/mcp-capability.js";
 import {
   buildLocalRuntimeCapabilities,
@@ -287,8 +287,8 @@ import {
   type LocalPermissionRouteContext,
 } from "./routes/permissions.js";
 
-const DEFAULT_LOCAL_AGENT_NAME = "mavis";
-const DEFAULT_LOCAL_AGENT_DISPLAY_NAME = "Mavis";
+const DEFAULT_LOCAL_AGENT_NAME = "alran";
+const DEFAULT_LOCAL_AGENT_DISPLAY_NAME = "Alran";
 export type { LocalRuntimeApiHostOptions };
 export class LocalRuntimeApiHost {
   public readonly controller: LocalSessionController;
@@ -435,7 +435,7 @@ export class LocalRuntimeApiHost {
   private closed = false;
   private closePromise: Promise<void> | undefined;
   private readonly metricsReporter: LocalRuntimeApiHostOptions["metricsReporter"];
-  private readonly mavisCronAdapterProvider: LocalRuntimeApiHostOptions["mavisCronAdapterProvider"];
+  private readonly alranCronAdapterProvider: LocalRuntimeApiHostOptions["alranCronAdapterProvider"];
   private readonly deleteAgentCronTasksOverride: LocalRuntimeApiHostOptions["deleteAgentCronTasks"];
   private readonly fileGitChangesCoordinator =
     createLocalFileApiGitChangesCoordinator();
@@ -458,7 +458,7 @@ export class LocalRuntimeApiHost {
     this.channelCapabilityEnabled = this.capabilityProfile !== "cli";
     const questionnaireRecoveryDeferred =
       options.deferQuestionnaireRecovery === true;
-    this.mavisCronAdapterProvider = options.mavisCronAdapterProvider;
+    this.alranCronAdapterProvider = options.alranCronAdapterProvider;
     this.deleteAgentCronTasksOverride = options.deleteAgentCronTasks;
     this.runtimeMode = options.runtimeMode ?? resolveLocalRuntimeMode();
     this.capabilities = buildLocalRuntimeCapabilities(
@@ -525,7 +525,7 @@ export class LocalRuntimeApiHost {
     const runtimeDataDir = runtimeConfig.dataDir;
     const nativeDelete = runtimeConfig.permission?.nativeDelete === true;
     try {
-      // Keep explicit mavis-trash available in either mode.
+      // Keep explicit alran-trash available in either mode.
       ensureTrashScript(runtimeDataDir);
       if (!nativeDelete) ensureRmShim(runtimeDataDir);
     } catch (error) {
@@ -1183,9 +1183,9 @@ export class LocalRuntimeApiHost {
     return buildLocalTurnToolSourcesForHost({
       ...input,
       host: this,
-      mavisAgentAdapter: createLocalMavisAgentAdapter(this.agentRuntimePort),
-      mavisCronAdapter: this.buildOwnerMavisCronAdapter(),
-      mavisSessionAdapter: this.buildOwnerMavisSessionAdapter(),
+      alranAgentAdapter: createLocalAlranAgentAdapter(this.agentRuntimePort),
+      alranCronAdapter: this.buildOwnerAlranCronAdapter(),
+      alranSessionAdapter: this.buildOwnerAlranSessionAdapter(),
     });
   }
   createHostedAgentCapabilities(): HostedAgentCapabilities {
@@ -1396,12 +1396,12 @@ export class LocalRuntimeApiHost {
     if (!this.startupExecutionEnabled) return Promise.resolve();
     return this.threadGoalKickoffQueue.recover(conversation);
   }
-  private buildOwnerMavisCronAdapter() {
-    return this.mavisCronAdapterProvider?.();
+  private buildOwnerAlranCronAdapter() {
+    return this.alranCronAdapterProvider?.();
   }
   /**
    * Mirrors the two conditions `buildLocalTurnToolSourcesForHost` uses to admit
-   * `mavisCronAdapter` into a Turn. Kept in sync so reminder guidance never
+   * `alranCronAdapter` into a Turn. Kept in sync so reminder guidance never
    * advertises Cron on a host where the tool would answer
    * `CRON_UNSUPPORTED_HOST`.
    */
@@ -1414,16 +1414,16 @@ export class LocalRuntimeApiHost {
     ) {
       return false;
     }
-    return this.buildOwnerMavisCronAdapter() !== undefined;
+    return this.buildOwnerAlranCronAdapter() !== undefined;
   }
   private isUserMemoryCapabilityAvailable(): boolean {
     return this.lockOwner.ownerKind !== "tui";
   }
-  private buildOwnerMavisSessionAdapter() {
+  private buildOwnerAlranSessionAdapter() {
     const conversation = this.requireRuntimeConversation(
-      "Mavis Session adapter",
+      "Alran Session adapter",
     );
-    return buildMavisSessionAdapter({
+    return buildAlranSessionAdapter({
       cloudReader: new CloudSessionReader({
         authContextGetter: this.authContextGetter ?? (() => undefined),
         authContextInvalidator: this.authContextInvalidator,

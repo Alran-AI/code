@@ -1,5 +1,5 @@
 import type { TuiAttachment, TuiTransportAttachment } from '../types/invocation.js';
-import type { GlobalThreadGoal } from '@mavis/shared/global-events';
+import type { GlobalThreadGoal } from '@alran/shared/global-events';
 import type {
   TuiCompactionResult,
   TuiMcpServer,
@@ -24,7 +24,7 @@ import type {
   CliSendMessageOptions,
   ConversationSteerInput,
   ConversationSteerResult,
-} from '@mavis/local-runtime-v2/cli-service';
+} from '@alran/local-runtime-v2/cli-service';
 
 export type { TuiMessage, TuiMessagePart, TuiStreamEvent, TuiToolCall } from './stream-events.js';
 export type { TuiRuntimeEvent } from '../types/runtime-events.js';
@@ -766,6 +766,8 @@ export interface TuiAccountStatus {
   modelId?: string;
   authMode?: string;
   managedTokenPresent?: boolean;
+  /** A Platform session from `alran login` is stored and can call the gateway. */
+  platformSessionPresent?: boolean;
   identity?: { readonly email?: string; readonly name?: string };
   modelSource?: 'token-plan' | 'byok';
   tokenPlanQuotaState?: 'available' | 'not-subscribed' | 'unavailable';

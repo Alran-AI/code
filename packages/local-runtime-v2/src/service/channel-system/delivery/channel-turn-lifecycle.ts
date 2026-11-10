@@ -1,4 +1,4 @@
-import type { ConversationChannelContext } from '@mavis/conversation-contract';
+import type { ConversationChannelContext } from '@alran/conversation-contract';
 
 import type {
   ChannelTurnExecutionContext,

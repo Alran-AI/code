@@ -38,7 +38,7 @@ function normalizeInputs(input: SidebarQuery) {
     types: enumSet(filter.types, ['chat', 'task', 'cron', 'im']),
     statuses,
     agentNames: [
-      ...new Set(stringSet(filter.agentNames).map((value) => (value === 'main' ? 'mavis' : value))),
+      ...new Set(stringSet(filter.agentNames).map((value) => (value === 'main' ? 'alran' : value))),
     ].sort(),
     activityDays: activityDays(filter.activityDays),
     unreadIds: statuses.includes('unread') ? stringSet(scope.unreadSessionIds) : [],

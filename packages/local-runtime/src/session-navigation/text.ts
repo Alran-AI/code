@@ -1,9 +1,9 @@
-import type { AgentMessage } from '@mavis/agent-core/protocol/agent-message';
+import type { AgentMessage } from '@alran/agent-core/protocol/agent-message';
 
 const INTERNAL_USER_SOURCES = new Set(['system', 'communication', 'team-engine']);
 const SYNTHETIC_RESPONSE_RE = /<(questionnaire|permission)-response\b/u;
 const NAVIGATION_BLOCK_RE =
-  /<(agent-message|agent-context|system-reminder|peer-memory-path|engine-message|inbound-context|html-selection-context|archon_internal_context|locale-context|runtime-data-context|permission-ask|permission-response|questionnaire-ask|questionnaire-response|deliver-assets|deliver_assets|mavis-thinking)\b[^>]*>[\s\S]*?<\/\1\s*>/giu;
+  /<(agent-message|agent-context|system-reminder|peer-memory-path|engine-message|inbound-context|html-selection-context|archon_internal_context|locale-context|runtime-data-context|permission-ask|permission-response|questionnaire-ask|questionnaire-response|deliver-assets|deliver_assets|alran-thinking)\b[^>]*>[\s\S]*?<\/\1\s*>/giu;
 const MEDIA_TAG_RE = /<media\b[^>]*\/?\s*>/giu;
 const UNICODE_WHITESPACE_RE = /\s+/gu;
 

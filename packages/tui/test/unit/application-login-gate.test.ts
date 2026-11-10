@@ -42,6 +42,25 @@ describe('Alran login gate', () => {
     ).resolves.toBe(account);
   });
 
+  it('accepts a Platform session from alran login for a managed model', async () => {
+    const account = {
+      status: 'ready' as const,
+      authMode: 'managed-login',
+      modelSource: 'token-plan' as const,
+      managedTokenPresent: false,
+      platformSessionPresent: true,
+      warnings: [],
+    };
+
+    await expect(
+      requireTuiAgentAccess({ getAccountStatus: async () => account }),
+    ).resolves.toBe(account);
+    await expect(
+      requireTuiAccountLogin({ getAccountStatus: async () => account }),
+    ).resolves.toBe(account);
+    expect(tuiAccountNeedsLoginPrompt(account)).toBe(false);
+  });
+
   it.each([
     { authMode: 'managed-login', modelSource: 'token-plan' as const },
     { authMode: 'managed-login', modelSource: undefined },

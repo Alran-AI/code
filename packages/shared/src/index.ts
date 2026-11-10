@@ -58,7 +58,7 @@ export type {
 } from './llm-retry-event.js';
 
 export {
-  MAVIS_BROWSER_EXTENSION_ID,
+  ALRAN_BROWSER_EXTENSION_ID,
   getHostName,
   generateManifest,
   serializeManifest,
@@ -76,23 +76,23 @@ export type {
   WindowsRegistryEntry,
 } from './browser-manifest.js';
 
-// Owner `<mavis-thinking>` and `<mavis-progress>` block helpers — single
+// Owner `<alran-thinking>` and `<alran-progress>` block helpers — single
 // source of truth for daemon, IM forwarders, and UI. Keep both packages on
 // the same regex/strip semantics; do not redefine the regex elsewhere.
 export {
-  MAVIS_THINKING_BLOCK_RE,
-  MAVIS_PROGRESS_BLOCK_RE,
-  MAVIS_INNERMOST_PAIRED_BLOCK_RE,
-  stripMavisThinkingTags,
-  stripMavisProgressTags,
-  stripMavisTagsForIm,
+  ALRAN_THINKING_BLOCK_RE,
+  ALRAN_PROGRESS_BLOCK_RE,
+  ALRAN_INNERMOST_PAIRED_BLOCK_RE,
+  stripAlranThinkingTags,
+  stripAlranProgressTags,
+  stripAlranTagsForIm,
   extractVisibleContent,
   isThinkingOrProgressOnly,
   isThinkingOnlyContent,
-  containsMavisProgressBlock,
-  containsMavisThinkingBlock,
-  containsMavisPairedBlock,
-} from './mavis-tags.js';
+  containsAlranProgressBlock,
+  containsAlranThinkingBlock,
+  containsAlranPairedBlock,
+} from './alran-tags.js';
 
 export {
   parseWatchInterval,
@@ -198,7 +198,7 @@ export type {
 export {
   AGENT_REQUEST_REF_DESCRIPTION,
   CANONICAL_SUBAGENT_ROLES,
-  LOCAL_MAVIS_AGENT_NAME_DESCRIPTION,
+  LOCAL_ALRAN_AGENT_NAME_DESCRIPTION,
   RESERVED_SUBAGENT_NAMES,
   SUBAGENT_ROLES,
   agentNameDescription,
@@ -263,19 +263,19 @@ export type { OutboundMediaNameSource, OutboundMediaRef } from './outbound-media
 export { placeholderMediaTags } from './im-text-sanitize.js';
 
 // ---------------------------------------------------------------------------
-// mavis-widget DSL types — shared contract between daemon (persistence) and
+// alran-widget DSL types — shared contract between daemon (persistence) and
 // UI (parsing + rendering).
 // ---------------------------------------------------------------------------
 export type {
-  MavisWidgetKind,
-  MavisWidgetStreamingMode,
-  MavisWidgetThemeMode,
-  MavisWidgetCapability,
-  MavisWidgetPolicy,
-  MavisWidgetData,
-  MavisWidgetEnvelope,
+  AlranWidgetKind,
+  AlranWidgetStreamingMode,
+  AlranWidgetThemeMode,
+  AlranWidgetCapability,
+  AlranWidgetPolicy,
+  AlranWidgetData,
+  AlranWidgetEnvelope,
   WidgetContentSegment,
-} from './mavis-widget-types.js';
+} from './alran-widget-types.js';
 
 // ---------------------------------------------------------------------------
 // V2 Multi-step questionnaire schema

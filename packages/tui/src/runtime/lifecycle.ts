@@ -2,15 +2,15 @@ import type {
   CreateLocalRuntimeHostOptions,
   LocalRuntimeAuthContext,
   LocalRuntimeConfig,
-} from '@mavis/local-runtime-v2/process-local';
-import { getDefaultLocalRuntimeConfig } from '@mavis/local-runtime-v2';
+} from '@alran/local-runtime-v2/process-local';
+import { getDefaultLocalRuntimeConfig } from '@alran/local-runtime-v2';
 import {
   currentBetaResolutionContext,
   getRuntimeBuildEnv,
   getRuntimeRegion,
   readExplicitBetaFeatureFromFile,
   resolveBetaFeature,
-} from '@mavis/config';
+} from '@alran/config';
 import {
   AuthSessionChangedError,
   ALRAN_OAUTH_SCOPES,
@@ -19,8 +19,8 @@ import {
   type AccessTokenLease,
   type AuthStatusSnapshot,
   type AlranOAuthCore,
-} from '@mavis/oauth-core';
-import type { AlranToolsHostAuthSession } from '@mavis/alran-tools-host';
+} from '@alran/oauth-core';
+import type { AlranToolsHostAuthSession } from '@alran/alran-tools-host';
 import {
   createEmbeddedRuntimeHost,
   type EmbeddedRuntimeHost,
@@ -63,7 +63,7 @@ import {
   type TuiBrowserProvider,
 } from './browser-provider.js';
 import { createAlranSharedAuthSession } from './auth-session.js';
-import type { AlranContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@alran/protocol/local';
 import { resolveTuiManagedBackendLane } from '../cli/environment.js';
 import {
   prepareTuiAlranToolsIntegration,

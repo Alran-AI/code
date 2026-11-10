@@ -124,7 +124,7 @@ export interface LegacyProfileOverlayInput {
 /**
  * One idempotent convergence pass: adopt the legacy row's user-authored profile
  * only while the canonical row is still empty or still equal to the package
- * seed. Persona / system prompt stay on the Mavis builtin package, and
+ * seed. Persona / system prompt stay on the Alran builtin package, and
  * Owner / ACL are deliberately out of scope here.
  */
 export function planLegacyProfileOverlay(

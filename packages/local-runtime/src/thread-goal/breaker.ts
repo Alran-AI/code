@@ -4,7 +4,7 @@ import {
   type ThreadGoalState,
   type ThreadGoalStore,
   type ThreadGoalToolActivity,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 import type { GlobalEventPublisher } from '../events/global-events.js';
 import type { ThreadGoalTurnAdmissionPreparation } from './admission.js';

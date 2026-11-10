@@ -3,7 +3,7 @@ import {
   alranApiModels,
   resolveOttiliApiKey,
   resolveOttiliGatewayBaseUrl,
-} from '@mavis/config';
+} from '@alran/config';
 
 import { resolveAlranApiDefaultBaseUrl } from '../catalog/alran-api.js';
 import type {

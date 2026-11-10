@@ -3,8 +3,8 @@ import {
   getRuntimeRegion,
   isManagedRuntime,
   isTelemetryChannelEnabled,
-} from '@mavis/config';
-import { createPiTurnHistogramBucketsByName } from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/config';
+import { createPiTurnHistogramBucketsByName } from '@alran/agent-core/pi-turn-runner';
 
 import { logger } from '../common/logger.js';
 import { POST_BASH_GAP_HISTOGRAM_BUCKETS } from './bash-completion-correlation.js';

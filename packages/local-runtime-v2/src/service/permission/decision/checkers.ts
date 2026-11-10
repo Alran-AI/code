@@ -4,8 +4,8 @@ import {
   resolvePermissionPath,
   splitShellSourceSegments,
   stripDataHeredocBodies,
-} from '@mavis/permission';
-import { shellSourceStages } from '@mavis/shared/shell-source-stages';
+} from '@alran/permission';
+import { shellSourceStages } from '@alran/shared/shell-source-stages';
 import {
   readPermissionCommand,
   type LocalPermissionCheckerInput,
@@ -609,7 +609,7 @@ function isRootOrHomeDeleteTarget(target: string, workspaceDir?: string): boolea
   // hard-delete. Do NOT block ordinary subpaths like `~/Desktop/hihi`
   // (no metachars in the first segment) — the caller runs this check
   // bypass-immune, so a plain-subpath match here would prevent the
-  // permission engine's `rm → mavis-trash` rewrite from ever taking
+  // permission engine's `rm → alran-trash` rewrite from ever taking
   // effect and force the model to fall back to a hard delete.
   const isBareHome = (form: string): boolean => normalized === form;
   const hasTopLevelHomeGlob = (form: string): boolean => {

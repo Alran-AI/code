@@ -12,7 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { getRuntimeBuildEnv, type MavisBuildEnv } from './config.js';
+import { getRuntimeBuildEnv, type AlranBuildEnv } from './config.js';
 
 export type PlatformEnvironment = 'dev' | 'prod';
 
@@ -22,7 +22,7 @@ export type PlatformEnvironment = 'dev' | 'prod';
  * local Platform.
  */
 export function resolvePlatformEnvironmentForBuild(
-  buildEnv: MavisBuildEnv = getRuntimeBuildEnv(),
+  buildEnv: AlranBuildEnv = getRuntimeBuildEnv(),
 ): PlatformEnvironment {
   return buildEnv === 'prod' ? 'prod' : 'dev';
 }

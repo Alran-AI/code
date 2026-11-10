@@ -1,11 +1,11 @@
-import type { LocalSandboxInvocationIdentity } from '@mavis/agent-tools/desktop';
+import type { LocalSandboxInvocationIdentity } from '@alran/agent-tools/desktop';
 import type { SandboxErrorCode } from '../sandbox-errors.js';
 
 /** Only bounded policy summaries belong here; never commands, paths, domains or environment. */
 export type SandboxObservation = Readonly<Record<string, unknown>>;
 
 export interface SandboxRuntimeEvent {
-  readonly schema: 'mavis.sandbox_runtime_event.v1';
+  readonly schema: 'alran.sandbox_runtime_event.v1';
   readonly event_id: string;
   readonly runtime_instance_id: string;
   readonly sequence: number;

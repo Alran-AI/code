@@ -12,7 +12,7 @@ import {
   type LocalBashManagedForegroundResult,
   type LocalBashToolInput,
   type LocalRuntimeToolContext,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import type { LocalSessionRecord } from '../sessions/controller.js';
 import type { LocalTaskRunnerHostWithSessionLookup } from '../api/local-task-host.js';

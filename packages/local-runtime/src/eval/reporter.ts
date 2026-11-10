@@ -1,4 +1,4 @@
-import type { EvalMetaInfo } from '@mavis/shared/eval-meta-info';
+import type { EvalMetaInfo } from '@alran/shared/eval-meta-info';
 
 import { logger } from '../common/logger.js';
 import {
@@ -406,7 +406,7 @@ export class LocalEvalReporter implements LocalEvalReporterLike {
         content: 'meta_info',
         usageJson: safeJsonStringify(
           {
-            schema: 'mavis.eval_step.v1',
+            schema: 'alran.eval_step.v1',
             kind: 'meta_info',
             meta_info: metaInfo,
           },

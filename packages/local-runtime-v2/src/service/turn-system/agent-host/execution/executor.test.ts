@@ -1,20 +1,20 @@
 import { createLocalTurnEventWriter } from '../events/runtime-event-writer.js';
 import { createLocalTurnOutcomeTracker } from '../runner/turn-outcome.js';
-import { RespDataType, ToolCallStatus } from '@mavis/agent-core/protocol/agent-message';
+import { RespDataType, ToolCallStatus } from '@alran/agent-core/protocol/agent-message';
 import {
   RUNTIME_EVENT_SCHEMA,
   RuntimeEventStatus,
   RuntimeEventType,
   type RuntimeEvent,
-} from "@mavis/agent-core/protocol";
+} from "@alran/agent-core/protocol";
 import type {
   LLMModelConfig,
   PiBeforeLlmCallHookInput,
-} from "@mavis/agent-core/pi-turn-runner";
+} from "@alran/agent-core/pi-turn-runner";
 import {
   composeStreamFn,
   PiTurnRunner,
-} from "@mavis/agent-core/pi-turn-runner";
+} from "@alran/agent-core/pi-turn-runner";
 import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import {
   defineRuntimeTool,
@@ -22,11 +22,11 @@ import {
   type RuntimeTool,
   type ToolExecutionContext,
   type ToolResult,
-} from "@mavis/agent-core/tools";
+} from "@alran/agent-core/tools";
 import {
   LocalBashTool,
   type LocalSandboxBashOperationsFactory,
-} from "@mavis/agent-tools/desktop";
+} from "@alran/agent-tools/desktop";
 import {
   buildLocalTurnToolCatalog,
   type LocalTurnAgentProfileFacts,
@@ -35,14 +35,14 @@ import {
   BuiltinAgentCatalog,
   resolveCanonicalCapabilities,
 } from "../../../agent/builtin/catalog.js";
-import type { AssemblyResult } from "@mavis/agent-runtime";
-import { createAgentRuntime } from "@mavis/agent-runtime";
-import { sessionReportExtension } from "@mavis/agent-extension";
+import type { AssemblyResult } from "@alran/agent-runtime";
+import { createAgentRuntime } from "@alran/agent-runtime";
+import { sessionReportExtension } from "@alran/agent-extension";
 import {
   pluginHookCodexTranscriptPath,
   pluginHookTranscriptPath,
-} from "@mavis/agent-tools";
-import { serializeAgentReference } from "@mavis/shared/agent-mention";
+} from "@alran/agent-tools";
+import { serializeAgentReference } from "@alran/shared/agent-mention";
 import { Type } from "@sinclair/typebox";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -85,7 +85,7 @@ import {
 import { localPluginHookCoordinator } from "../assembly/local-turn-plugin-hooks.js";
 import { NativeLocalTurnExecutionPreparationSource } from "../assembly/local-turn-execution-preparation.js";
 import { LocalTurnInputPreparer } from "../assembly/local-turn-input-preparation.js";
-import { LIGHTWEIGHT_SESSION_PURPOSE } from "@mavis/protocol/local";
+import { LIGHTWEIGHT_SESSION_PURPOSE } from "@alran/protocol/local";
 import {
   LIGHTWEIGHT_SYSTEM_PROMPT,
   LIGHTWEIGHT_TOOL_CALL_FALLBACK,
@@ -1079,7 +1079,7 @@ describe("LocalRuntimeTurnExecutor Bash output capability", () => {
       await executor.execute({ ...input, assembly: { ...input.assembly, tools: [bash] } });
     }
     expect(descriptions[0]).toContain('falling back to permanent deletion');
-    expect(descriptions[1]).not.toMatch(/mavis-trash|deletion/i);
+    expect(descriptions[1]).not.toMatch(/alran-trash|deletion/i);
     expect(descriptions[0]).toContain(descriptions[1]);
     expect(descriptions[2]).toBe(descriptions[0]);
   });
@@ -1191,11 +1191,11 @@ describe('LocalRuntimeTurnExecutor PTC program Bash promotion', () => {
         },
         agentProfile: {
           trustedBuiltin: true,
-          canonicalRole: 'mavis',
+          canonicalRole: 'alran',
           surface: 'interactive',
           capabilityCeiling: {
             personaEnabled: true,
-            features: { mavis: true, delegation: true, webSearch: true },
+            features: { alran: true, delegation: true, webSearch: true },
           },
         },
         llmModel: { provider: 'p', id: 'm', contextWindow: 100_000 },
@@ -1531,7 +1531,7 @@ describe("LocalRuntimeTurnExecutor runtime contracts", () => {
     const base = agentReferenceExecutionInput({
       agentProfile: {
         agent_role: "orchestrator",
-        canonical_view_name: "mavis",
+        canonical_view_name: "alran",
         trusted_builtin: true,
         surface: "interactive",
       },
@@ -1541,7 +1541,7 @@ describe("LocalRuntimeTurnExecutor runtime contracts", () => {
     const input = agentReferenceExecutionInput({
       agentProfile: {
         agent_role: "orchestrator",
-        canonical_view_name: "mavis",
+        canonical_view_name: "alran",
         trusted_builtin: true,
         surface: "interactive",
       },
@@ -1627,7 +1627,7 @@ describe("LocalRuntimeTurnExecutor Agent reference canonical history", () => {
 
   const mainProfile = {
     agent_role: "orchestrator",
-    canonical_view_name: "mavis",
+    canonical_view_name: "alran",
     trusted_builtin: true,
     surface: "interactive",
   } as const;
@@ -1702,7 +1702,7 @@ describe("LocalRuntimeTurnExecutor Agent reference canonical history", () => {
       "task child",
       {
         agent_role: "orchestrator",
-        canonical_view_name: "mavis",
+        canonical_view_name: "alran",
         trusted_builtin: true,
         surface: "task-child",
       },
@@ -1752,7 +1752,7 @@ describe("LocalRuntimeTurnExecutor Agent reference canonical history", () => {
     [
       "self",
       "unauthorized",
-      { requestRef: "agent:mavis", displayName: "Mavis" },
+      { requestRef: "agent:alran", displayName: "Alran" },
     ],
   ] as const)(
     "degrades a %s main-surface reference to visible text",
@@ -1986,7 +1986,7 @@ describe("LocalRuntimeTurnExecutor File API", () => {
           model: {
             ...base.preparation.llm.model,
             api: MESSAGES_API,
-            baseUrl: `https://gateway.example/mavis/api/v1/llm/${MESSAGES_SUFFIX}`,
+            baseUrl: `https://gateway.example/alran/api/v1/llm/${MESSAGES_SUFFIX}`,
           },
         },
       },

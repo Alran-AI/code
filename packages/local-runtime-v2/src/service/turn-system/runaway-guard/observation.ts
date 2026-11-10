@@ -1,9 +1,9 @@
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 import type {
   RunawayGuardObservation,
   RunawayGuardReminderObservation,
   RunawayGuardTurnSummary,
-} from '@mavis/agent-extension';
+} from '@alran/agent-extension';
 
 export interface RunawayGuardObserverOptions {
   readonly logger?: PiTurnRunnerLogger;

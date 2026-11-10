@@ -11,12 +11,12 @@ import { logger } from '../../src/common/logger.js';
 
 const region = () => 'cn' as const;
 const buildEnv = () => 'test' as const;
-const originalBuildEnv = process.env.MAVIS_BUILD_ENV;
+const originalBuildEnv = process.env.ALRAN_BUILD_ENV;
 
 afterEach(() => {
   vi.restoreAllMocks();
-  if (originalBuildEnv === undefined) delete process.env.MAVIS_BUILD_ENV;
-  else process.env.MAVIS_BUILD_ENV = originalBuildEnv;
+  if (originalBuildEnv === undefined) delete process.env.ALRAN_BUILD_ENV;
+  else process.env.ALRAN_BUILD_ENV = originalBuildEnv;
 });
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -194,7 +194,7 @@ describe('callSafetyApi fail-policy classification', () => {
     });
 
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://matrix-test.example.invalid/mavis/api/v1/content?require_auth=true',
+      'https://matrix-test.example.invalid/alran/api/v1/content?require_auth=true',
       expect.anything(),
     );
     const init = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as RequestInit;
@@ -222,7 +222,7 @@ describe('callSafetyApi fail-policy classification', () => {
       buildEnv,
     });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://matrix-test.example.invalid/mavis/api/v1/content',
+      'https://matrix-test.example.invalid/alran/api/v1/content',
       expect.anything(),
     );
   });
@@ -364,7 +364,7 @@ describe('callSafetyApi fail-policy classification', () => {
       testBaseURL: 'http://127.0.0.1:43123/',
     });
     expect(testFetch).toHaveBeenCalledWith(
-      'http://127.0.0.1:43123/mavis/api/v1/content',
+      'http://127.0.0.1:43123/alran/api/v1/content',
       expect.any(Object),
     );
 
@@ -378,7 +378,7 @@ describe('callSafetyApi fail-policy classification', () => {
       testBaseURL: 'http://127.0.0.1:43123',
     });
     expect(prodFetch).toHaveBeenCalledWith(
-      'https://api.ottili.one/mavis/api/v1/content',
+      'https://api.ottili.one/alran/api/v1/content',
       expect.any(Object),
     );
   });
@@ -394,7 +394,7 @@ describe('callSafetyApi fail-policy classification', () => {
       testBaseURL: 'https://example.com',
     });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://matrix-test.example.invalid/mavis/api/v1/content',
+      'https://matrix-test.example.invalid/alran/api/v1/content',
       expect.any(Object),
     );
   });

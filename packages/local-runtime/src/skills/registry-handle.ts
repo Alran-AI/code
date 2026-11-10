@@ -3,7 +3,7 @@ import {
   type SkillRegistry,
   type SkillRegistryWatcher,
   type SkillSourceRoot,
-} from '@mavis/skills';
+} from '@alran/skills';
 
 export interface RegistryHandle {
   registryPromise: Promise<SkillRegistry>;
@@ -55,5 +55,5 @@ export function createRegistryHandle(roots: SkillSourceRoot[]): RegistryHandle {
 
 export function normalizeAgentName(agentName: string | undefined): string {
   const trimmed = agentName?.trim();
-  return trimmed || 'mavis';
+  return trimmed || 'alran';
 }

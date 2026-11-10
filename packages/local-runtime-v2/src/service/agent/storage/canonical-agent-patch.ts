@@ -244,13 +244,13 @@ function patchCanonicalDisplayName(
 ): void {
   if (Object.hasOwn(patch, 'displayName')) {
     if (patch.displayName === null) {
-      document.deleteIn(['x-mavis', 'displayName']);
+      document.deleteIn(['x-alran', 'displayName']);
     } else {
       const displayName = patch.displayName?.trim();
       if (!displayName) {
-        throw invalidCanonicalPatch('x-mavis.displayName', 'displayName cannot be blank.');
+        throw invalidCanonicalPatch('x-alran.displayName', 'displayName cannot be blank.');
       }
-      document.setIn(['x-mavis', 'displayName'], displayName);
+      document.setIn(['x-alran', 'displayName'], displayName);
     }
   }
 }
@@ -263,9 +263,9 @@ function patchCanonicalAvatar(
   if (Object.hasOwn(patch, 'avatar')) {
     const avatar = patch.avatar;
     if (avatar === null || avatar === undefined || avatar.trim().length === 0) {
-      document.deleteIn(['x-mavis', 'avatar']);
+      document.deleteIn(['x-alran', 'avatar']);
     } else if (stagedAvatarReference) {
-      document.setIn(['x-mavis', 'avatar'], stagedAvatarReference);
+      document.setIn(['x-alran', 'avatar'], stagedAvatarReference);
     }
   }
 }

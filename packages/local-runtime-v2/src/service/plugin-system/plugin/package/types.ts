@@ -1,5 +1,5 @@
-import type { ResolvedMcpServer } from '@mavis/mcp';
-import type { PluginHookCommandHandler } from '@mavis/plugin-hooks';
+import type { ResolvedMcpServer } from '@alran/mcp';
+import type { PluginHookCommandHandler } from '@alran/plugin-hooks';
 
 export const MARKETPLACE_CATEGORY_NAMES = [
   'Office',

@@ -1,7 +1,7 @@
 # Preview Selection Writeback
 
 Use this route when the user message contains the structured
-`mavis.ppt_artifact_edit_request.v1` context produced by the desktop PPTX preview.
+`alran.ppt_artifact_edit_request.v1` context produced by the desktop PPTX preview.
 It is a targeted edit of an existing deck, not a template-wide presentation rewrite.
 
 ## Trust boundary

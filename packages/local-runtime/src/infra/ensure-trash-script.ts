@@ -1,19 +1,19 @@
 /**
- * Seed the `mavis-trash` script into `<dataDir>/bin/`. Called once during
- * `LocalRuntimeApiHost` startup so the bash-permission `rm → mavis-trash`
+ * Seed the `alran-trash` script into `<dataDir>/bin/`. Called once during
+ * `LocalRuntimeApiHost` startup so the bash-permission `rm → alran-trash`
  * rewrite has an actual executable to spawn.
  *
  * Ported from the retired daemon package (`packages/daemon/src/server.ts:
  * ensureTrashScript`, deleted by commit 99ccaca02 "chore(local-runtime):
  * retire daemon package"). The pi-agent refactor dropped this seeding
  * step, leaving the rewrite target missing so agent `rm` invocations
- * failed with `mavis-trash: No such file or directory` and the model
+ * failed with `alran-trash: No such file or directory` and the model
  * fell back to `/bin/rm` — hard-deleting the user's files.
  *
- * - macOS / Linux: seeds a POSIX bash script at `mavis-trash` (0o755).
- * - Windows: seeds a Node.js script at `mavis-trash.js` plus a `.cmd`
- *   launcher `mavis-trash.cmd`, so the permission pipeline can invoke
- *   `mavis-trash <paths>` uniformly across platforms.
+ * - macOS / Linux: seeds a POSIX bash script at `alran-trash` (0o755).
+ * - Windows: seeds a Node.js script at `alran-trash.js` plus a `.cmd`
+ *   launcher `alran-trash.cmd`, so the permission pipeline can invoke
+ *   `alran-trash <paths>` uniformly across platforms.
  *
  * Idempotent: only rewrites when the on-disk content differs from the
  * bundled string (so restarts don't churn the file mtime).
@@ -36,10 +36,10 @@ export function ensureTrashScript(
   const isWin = platform === 'win32';
 
   if (isWin) {
-    seedFileIfChanged(path.join(binDir, 'mavis-trash.js'), TRASH_SCRIPT_WIN_CONTENT);
-    seedFileIfChanged(path.join(binDir, 'mavis-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT);
+    seedFileIfChanged(path.join(binDir, 'alran-trash.js'), TRASH_SCRIPT_WIN_CONTENT);
+    seedFileIfChanged(path.join(binDir, 'alran-trash.cmd'), TRASH_CMD_LAUNCHER_CONTENT);
   } else {
-    seedFileIfChanged(path.join(binDir, 'mavis-trash'), TRASH_SCRIPT_CONTENT, 0o755);
+    seedFileIfChanged(path.join(binDir, 'alran-trash'), TRASH_SCRIPT_CONTENT, 0o755);
   }
   // Any change to the on-disk launcher invalidates the previous probe cache;
   // otherwise a stale cached "available: true" could survive an overwrite.
@@ -119,21 +119,21 @@ export function inspectTrashRuntime(
   probe?: (scriptPath: string, launcherPath: string) => boolean,
 ): TrashRuntimeStatus {
   if (platform === 'darwin' || platform === 'linux') {
-    const scriptPath = path.join(dataDir, 'bin', 'mavis-trash');
+    const scriptPath = path.join(dataDir, 'bin', 'alran-trash');
     const cacheKey = `${platform}:${dataDir}`;
     try {
       const scriptContent = readFileSync(scriptPath, 'utf8');
       const scriptHash = sha256(scriptContent);
       const launcherHash = 'posix-no-launcher';
       if (scriptContent !== TRASH_SCRIPT_CONTENT) {
-        const verdict = { available: false, reason: 'mavis-trash files are stale' } as const;
+        const verdict = { available: false, reason: 'alran-trash files are stale' } as const;
         trashRuntimeCache.set(cacheKey, { scriptHash, launcherHash, verdict });
         return verdict;
       }
       if ((statSync(scriptPath).mode & 0o111) === 0) {
         // Do not cache mode failures: ensureTrashScript may repair the execute
         // bit without changing the content hash on the next tick.
-        return { available: false, reason: 'mavis-trash is not executable' };
+        return { available: false, reason: 'alran-trash is not executable' };
       }
       const cached = trashRuntimeCache.get(cacheKey);
       if (cached && cached.scriptHash === scriptHash && cached.launcherHash === launcherHash) {
@@ -153,8 +153,8 @@ export function inspectTrashRuntime(
     }
   }
   if (platform !== 'win32') return { available: true };
-  const scriptPath = path.join(dataDir, 'bin', 'mavis-trash.js');
-  const launcherPath = path.join(dataDir, 'bin', 'mavis-trash.cmd');
+  const scriptPath = path.join(dataDir, 'bin', 'alran-trash.js');
+  const launcherPath = path.join(dataDir, 'bin', 'alran-trash.cmd');
   const cacheKey = `${platform}:${dataDir}`;
   let phase: TrashRuntimeDiagnostics['phase'] = 'read-script';
   try {
@@ -176,7 +176,7 @@ export function inspectTrashRuntime(
     if (!scriptMatchesBundled || !launcherMatchesBundled) {
       const verdict: TrashRuntimeStatus = {
         available: false,
-        reason: 'mavis-trash files are stale',
+        reason: 'alran-trash files are stale',
         diagnostics: {
           phase: 'verify-content',
           failure: 'content-mismatch',
@@ -200,7 +200,7 @@ export function inspectTrashRuntime(
       ? { available: true }
       : {
           available: false,
-          reason: 'mavis-trash is not callable',
+          reason: 'alran-trash is not callable',
           diagnostics: probeResult.diagnostics,
         };
     trashRuntimeCache.set(cacheKey, { scriptHash, launcherHash, verdict });

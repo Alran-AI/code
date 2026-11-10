@@ -1,4 +1,4 @@
-import { boundedJsonStringify } from '@mavis/shared/bounded-json-stringify';
+import { boundedJsonStringify } from '@alran/shared/bounded-json-stringify';
 
 import { isSensitiveFieldKey, LOCAL_PI_CAPTURE_ORIGIN, maskText } from './payload.js';
 import type { EvalReportRequest, LocalEvalSnapshotInput } from './types.js';
@@ -46,7 +46,7 @@ export function buildLocalEvalSnapshotRequest(options: {
   } = options;
   const snapshotResult = boundedJsonStringify(
     {
-      schema: 'mavis.cloud_eval_snapshot.v1',
+      schema: 'alran.cloud_eval_snapshot.v1',
       capture_origin: 'LocalPi',
       trajectory_id: trajectoryId,
       session_id: sessionId,

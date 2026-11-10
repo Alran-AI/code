@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { CliSendMessageReq, SendMessageReq } from '@mavis/local-runtime-v2/cli-service';
+import type { CliSendMessageReq, SendMessageReq } from '@alran/local-runtime-v2/cli-service';
 import { TuiFailure } from '../../src/failure.js';
 import {
   TuiChatController as ProductionTuiChatController,
@@ -864,7 +864,7 @@ describe('TuiChatController', () => {
 
       await expect(controller.submit('Ask first')).resolves.toBe('blocked');
       expect(runtime.getPendingQuestionnaire).toHaveBeenCalledWith(
-        'mavis', sessionId, expect.any(AbortSignal),
+        'alran', sessionId, expect.any(AbortSignal),
       );
       expect(writeAutomationResult).not.toHaveBeenCalled();
       expect(controller.snapshot()).toMatchObject({

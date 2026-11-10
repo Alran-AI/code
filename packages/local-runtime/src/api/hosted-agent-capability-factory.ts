@@ -34,8 +34,8 @@ export function createHostedCapabilities(
           disableComputerUse: true,
           ...(capabilityProfile === 'cli'
             ? {
-                disableMavis: true,
-                disabledBuiltinSkillNames: ['mavis-doctor', 'plugin-creator'] as const,
+                disableAlran: true,
+                disabledBuiltinSkillNames: ['alran-doctor', 'plugin-creator'] as const,
                 resumeCodexAvailable: true,
               }
             : {}),

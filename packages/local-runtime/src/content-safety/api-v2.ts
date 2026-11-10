@@ -1,15 +1,15 @@
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
 import {
   GATEWAY_SAFETY_CHECK_V2_HTTP_ACTION,
   postSafetyCheckV2,
   SafetyCheckV2Error,
   type SafetyCheckV2Scene,
-} from '@mavis/shared/safety-check-v2';
+} from '@alran/shared/safety-check-v2';
 
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
 import {
@@ -42,16 +42,16 @@ export async function callLocalSafetyCheckV2(input: {
   authContext?: LocalRuntimeAuthContext;
   routingContext?: LocalRuntimeRoutingContext;
   fetchImpl?: typeof fetch;
-  region?: () => MavisRegion;
-  buildEnv?: () => MavisBuildEnv;
+  region?: () => AlranRegion;
+  buildEnv?: () => AlranBuildEnv;
   /** Honored only for loopback URLs in test builds, as with V1. */
   testBaseURL?: string;
   signal?: AbortSignal;
 }): Promise<LocalSafetyCheckV2Result> {
   const buildEnv = (input.buildEnv ?? getRuntimeBuildEnv)();
   const region = (input.region ?? getRuntimeRegion)();
-  const token = input.authContext?.accessToken?.trim() || process.env.MAVIS_ACCESS_TOKEN?.trim();
-  const url = `${resolveSafetyApiBase(region, buildEnv, input.testBaseURL)}/mavis/api/v2/content?require_auth=true`;
+  const token = input.authContext?.accessToken?.trim() || process.env.ALRAN_ACCESS_TOKEN?.trim();
+  const url = `${resolveSafetyApiBase(region, buildEnv, input.testBaseURL)}/alran/api/v2/content?require_auth=true`;
   const reportFailure = createSafetyFailureReporter(url, 'v2', input.request.scene);
   try {
     const result = await postSafetyCheckV2({

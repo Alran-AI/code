@@ -1,12 +1,12 @@
 import {
   getMcpInvokeRegistries,
-  isPtcMavisDirectCommand,
-  ptcMavisChildToolName,
-  ptcMavisRunCodeCall,
+  isPtcAlranDirectCommand,
+  ptcAlranChildToolName,
+  ptcAlranRunCodeCall,
   resolveMcpInvokeTarget,
-} from '@mavis/agent-tools';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import type { PiBeforeToolCallHook } from '@mavis/agent-core/pi-turn-runner';
+} from '@alran/agent-tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import type { PiBeforeToolCallHook } from '@alran/agent-core/pi-turn-runner';
 
 type BeforeToolCallContext = Parameters<PiBeforeToolCallHook>[0];
 
@@ -41,7 +41,7 @@ export interface PtcChildToolPolicyInput {
 
 export function isPtcDirectTool(tool: RuntimeTool): boolean {
   if (tool.def.name === 'mcp_invoke') return hasPtcDirectMcpTarget(tool);
-  return PTC_DIRECT_ONLY_TOOL_NAMES.has(tool.def.name) || tool.def.name === 'mavis';
+  return PTC_DIRECT_ONLY_TOOL_NAMES.has(tool.def.name) || tool.def.name === 'alran';
 }
 
 /**
@@ -62,7 +62,7 @@ export function isPtcDirectTool(tool: RuntimeTool): boolean {
  * only when bash is enabled; the run_code description does not yet.
  *
  * Not handled because it only appears for a Custom Agent without bash in a
- * direct conversation; the built-in Agents (mavis, worker, verifier,
+ * direct conversation; the built-in Agents (alran, worker, verifier,
  * explore) and the evals all have bash. The user decided on 2026-10-15 to
  * ignore it for now. To fix it, make those passages in runCodeDescription
  * depend on whether childTools contains bash, keeping the text byte for
@@ -111,10 +111,10 @@ function evaluatePtcChildTargetPolicy(
   ) {
     return { block: true, reason: `PTC cannot invoke ${resolved.name} programmatically.` };
   }
-  // agent create and session send stay top-level (PTC_MAVIS_DIRECT_COMMANDS);
-  // run_code reaches every other command through its mavis_* tool.
-  if (resolved.name === 'mavis' && isPtcMavisDirectCommand(mavisCommand(resolved.args))) {
-    return { block: true, reason: 'PTC cannot invoke this mavis command programmatically.' };
+  // agent create and session send stay top-level (PTC_ALRAN_DIRECT_COMMANDS);
+  // run_code reaches every other command through its alran_* tool.
+  if (resolved.name === 'alran' && isPtcAlranDirectCommand(alranCommand(resolved.args))) {
+    return { block: true, reason: 'PTC cannot invoke this alran command programmatically.' };
   }
   return undefined;
 }
@@ -122,14 +122,14 @@ function evaluatePtcChildTargetPolicy(
 function evaluatePtcDirectToolPolicy(
   resolved: NonNullable<ReturnType<typeof resolveEffectivePtcTarget>>,
 ): { readonly block: true; readonly reason: string } | undefined {
-  if (resolved.name === 'mavis') {
-    // The top-level mavis of a PTC Turn lists only agent create, session send
+  if (resolved.name === 'alran') {
+    // The top-level alran of a PTC Turn lists only agent create, session send
     // and their help; the refusal names the run_code tool the model needs.
-    const child = ptcMavisChildToolName(mavisCommand(resolved.args));
+    const child = ptcAlranChildToolName(alranCommand(resolved.args));
     return child
       ? {
           block: true,
-          reason: `This mavis command runs inside run_code in a PTC turn: ${ptcMavisRunCodeCall(child)}.`,
+          reason: `This alran command runs inside run_code in a PTC turn: ${ptcAlranRunCodeCall(child)}.`,
         }
       : undefined;
   }
@@ -146,7 +146,7 @@ function isPtcChildTarget(
   resolved: NonNullable<ReturnType<typeof resolveEffectivePtcTarget>>,
 ): boolean {
   return (
-    resolved.name !== 'mavis' &&
+    resolved.name !== 'alran' &&
     resolved.name !== 'mcp_invoke' &&
     (!resolved.tool || isPtcChildTool(resolved.tool))
   );
@@ -164,7 +164,7 @@ function hasPtcDirectMcpTarget(gateway: RuntimeTool): boolean {
 
 /** An mcp_invoke target that a PTC Turn keeps behind the top-level gateway, never in run_code. */
 export function isPtcDirectMcpTarget(target: RuntimeTool): boolean {
-  return target.def.name === 'mavis' || !isPtcChildTool(target);
+  return target.def.name === 'alran' || !isPtcChildTool(target);
 }
 
 function resolveEffectivePtcTarget(input: PtcChildToolPolicyInput):
@@ -211,6 +211,6 @@ function recordValue(value: unknown): Readonly<Record<string, unknown>> {
     : {};
 }
 
-function mavisCommand(value: unknown): unknown {
+function alranCommand(value: unknown): unknown {
   return recordValue(value).command;
 }

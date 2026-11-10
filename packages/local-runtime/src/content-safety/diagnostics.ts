@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { SafetyTransportKind } from '@mavis/shared/safety-check-v2';
+import type { SafetyTransportKind } from '@alran/shared/safety-check-v2';
 import { logger } from '../common/logger.js';
 
 /** One bounded record per failed check, in every build. Never log raw upstream data. */

@@ -10,8 +10,8 @@
 //
 // The skill domain owns its registry provider; callers supply config + optional roots.
 // DesktopService pulls it through the process-scoped `getSkillService()` accessor.
-import type { SkillSourceRoot } from '@mavis/skills';
-import type { SkillFileInfo, SkillInfo } from '@mavis/protocol/local';
+import type { SkillSourceRoot } from '@alran/skills';
+import type { SkillFileInfo, SkillInfo } from '@alran/protocol/local';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import type { MetricsClient } from '../common/metrics.js';
@@ -464,7 +464,7 @@ function resolveRuntimeSkillSelectors(scope: LocalRuntimeSkillScope) {
 
 function normalizeAgentName(agentName: string | undefined): string {
   const trimmed = agentName?.trim();
-  return trimmed || 'mavis';
+  return trimmed || 'alran';
 }
 
 // ─── process-scoped domain accessor ──────────────────────────────────────────

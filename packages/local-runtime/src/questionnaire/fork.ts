@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { AskQuestionnaireRequest } from '@mavis/shared/questionnaire';
+import type { AskQuestionnaireRequest } from '@alran/shared/questionnaire';
 
 import type { QuestionnaireRequestRecord, QuestionnaireRequestStore } from './store.js';
 

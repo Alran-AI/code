@@ -2,21 +2,21 @@ import type { LocalRuntimeRoutingContext } from '../runtime/routing-headers.js';
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
 import { LocalMatrixClient } from '../matrix/local-matrix-client.js';
 
-const WEBSITE_STATE_GET_PATH = '/mavis/api/v1/drive/websites/state/get';
-const WEBSITE_LIST_PATH = '/mavis/api/v1/drive/websites/list';
+const WEBSITE_STATE_GET_PATH = '/alran/api/v1/drive/websites/state/get';
+const WEBSITE_LIST_PATH = '/alran/api/v1/drive/websites/list';
 const WEBSITE_LIST_MAX_OFFSET = 2_147_483_647;
-const WEBSITE_TRAFFIC_GET_PATH = '/mavis/api/v1/drive/websites/traffic/get';
-const WEBSITE_WATERMARK_UPDATE_PATH = '/mavis/api/v1/drive/websites/watermark/update';
-const WEBSITE_ALIAS_CHECK_PATH = '/mavis/api/v1/drive/websites/alias/check';
-const WEBSITE_NAME_UPDATE_PATH = '/mavis/api/v1/drive/websites/name/update';
-const WEBSITE_ALIAS_SET_PATH = '/mavis/api/v1/drive/websites/alias/set';
-const WEBSITE_ALIAS_UNBIND_PATH = '/mavis/api/v1/drive/websites/alias/unbind';
-const WEBSITE_ALIAS_REMOVE_PATH = '/mavis/api/v1/drive/websites/alias/remove';
-const WEBSITE_DEPLOYMENT_CANCEL_PATH = '/mavis/api/v1/drive/websites/deployment/cancel';
-const WEBSITE_UNPUBLISH_PATH = '/mavis/api/v1/drive/websites/deployment/unpublish';
-const WEBSITE_REPUBLISH_PATH = '/mavis/api/v1/drive/websites/deployment/republish';
+const WEBSITE_TRAFFIC_GET_PATH = '/alran/api/v1/drive/websites/traffic/get';
+const WEBSITE_WATERMARK_UPDATE_PATH = '/alran/api/v1/drive/websites/watermark/update';
+const WEBSITE_ALIAS_CHECK_PATH = '/alran/api/v1/drive/websites/alias/check';
+const WEBSITE_NAME_UPDATE_PATH = '/alran/api/v1/drive/websites/name/update';
+const WEBSITE_ALIAS_SET_PATH = '/alran/api/v1/drive/websites/alias/set';
+const WEBSITE_ALIAS_UNBIND_PATH = '/alran/api/v1/drive/websites/alias/unbind';
+const WEBSITE_ALIAS_REMOVE_PATH = '/alran/api/v1/drive/websites/alias/remove';
+const WEBSITE_DEPLOYMENT_CANCEL_PATH = '/alran/api/v1/drive/websites/deployment/cancel';
+const WEBSITE_UNPUBLISH_PATH = '/alran/api/v1/drive/websites/deployment/unpublish';
+const WEBSITE_REPUBLISH_PATH = '/alran/api/v1/drive/websites/deployment/republish';
 const WEBSITE_PROJECT_SOURCE_DOWNLOAD_URL_PATH =
-  '/mavis/api/v1/drive/websites/project-source/download-url';
+  '/alran/api/v1/drive/websites/project-source/download-url';
 
 export interface WebsiteManagementGateway {
   postGatewayJson(

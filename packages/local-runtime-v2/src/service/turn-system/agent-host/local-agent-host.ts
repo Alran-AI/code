@@ -1,5 +1,5 @@
-import type { TurnAssemblyCtx, TurnEndHandler, TurnStartHandler } from '@mavis/agent-runtime';
-import { pluginHookEffort } from '@mavis/plugin-hooks';
+import type { TurnAssemblyCtx, TurnEndHandler, TurnStartHandler } from '@alran/agent-runtime';
+import { pluginHookEffort } from '@alran/plugin-hooks';
 
 import type { SessionRecord } from '../../session-system/index.js';
 import type { AgentHost, AgentHostDependencies, AgentHostRunInput } from './contracts.js';
@@ -364,8 +364,8 @@ export class LocalAgentHost<
     const pluginHostApprovalTargets = new Map<
       string,
       {
-        readonly tool: import('@mavis/agent-core/tools').RuntimeTool;
-        readonly inputSchema: import('@mavis/agent-core/tools').RuntimeTool['def']['schema'];
+        readonly tool: import('@alran/agent-core/tools').RuntimeTool;
+        readonly inputSchema: import('@alran/agent-core/tools').RuntimeTool['def']['schema'];
         readonly pluginName: string;
       }
     >();

@@ -1,4 +1,4 @@
-import { isLegacyManagedAlranProvider } from "@mavis/config";
+import { isLegacyManagedAlranProvider } from "@alran/config";
 import {
   normalizeTuiPermissionMode,
   type TuiPermissionMode,

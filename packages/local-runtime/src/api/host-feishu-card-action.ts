@@ -1,4 +1,4 @@
-import type { AskQuestionnaireReplyPayload } from '@mavis/shared/questionnaire';
+import type { AskQuestionnaireReplyPayload } from '@alran/shared/questionnaire';
 
 import { json } from './host-helpers.js';
 import { feishuClientId } from '../channels/feishu.js';
@@ -371,7 +371,7 @@ function legacyPayloadContext(
     chatType: 'p2p',
     chatId: String(payload.open_chat_id ?? fallbackChatId),
     senderId: String(payload.open_id ?? payload.user_id ?? ''),
-    clientName: clientName || feishuClientId('mavis'),
+    clientName: clientName || feishuClientId('alran'),
   };
 }
 

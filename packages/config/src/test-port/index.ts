@@ -16,7 +16,7 @@
  *   1. Two worktrees running E2E in parallel both grab 5050/15001 and one
  *      EADDRINUSE-fails immediately or — worse — the second silently shares
  *      the first's runtime and crosses test state.
- *   2. A runtime discovery fallback can route every `/mavis/api/*` request
+ *   2. A runtime discovery fallback can route every `/alran/api/*` request
  *      away from the test runtime, causing UI E2E to render real session data
  *      instead of the test runtime's empty state. Fixed structurally by making
  *      the Vite proxy honour explicit test runtime ports over discovery.
@@ -136,7 +136,7 @@ export async function pickTestPort(
 // ─── Defaults (live OS bindings) ──────────────────────────────────────────
 
 function defaultGetWorktreeBasePort(): number {
-  // Mirrors resolvePort() except it never reads __MAVIS_RUNTIME_PORT — test
+  // Mirrors resolvePort() except it never reads __ALRAN_RUNTIME_PORT — test
   // ports are derived from the worktree slot, not from explicit env, so
   // multiple parallel test runs in the same worktree get the same slot
   // (preferred) and the bind-check arbitrates between them.

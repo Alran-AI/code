@@ -613,7 +613,7 @@ export class McpConnectionPool {
       ...(this.fetchImpl ? { fetchImpl: this.fetchImpl } : {}),
     });
     const client = new Client(
-      { name: 'mavis-local-runtime-mcp', version: '1.0.0' },
+      { name: 'alran-local-runtime-mcp', version: '1.0.0' },
       { capabilities: { roots: { listChanged: false } } },
     );
 

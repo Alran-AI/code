@@ -61,7 +61,7 @@ export interface EvolutionState {
  *
  * @param currentMemorySnapshot - Host-collected snapshot of agent-level memory files
  * @param sessionId - Current session ID
- * @param agentName - Agent name (for mavis memory commands)
+ * @param agentName - Agent name (for alran memory commands)
  * @param turnCount - Current turn number (1-indexed, from service layer)
  * @param state - Mutable state maps (owned by SystemReminderService)
  * @returns Reminder text or undefined
@@ -133,7 +133,7 @@ export function getEvolutionReminder(
           '没有新东西？不写也完全没问题，不是每次都有新知识。',
           '',
           '不要写：代码结构、git 历史、API schema、已有文档能查到的信息。',
-          '如果你还没读过 `mavis-memory` skill，先 load 它再写——里面有完整的分层规则和排除项。',
+          '如果你还没读过 `alran-memory` skill，先 load 它再写——里面有完整的分层规则和排除项。',
         ].join('\n'),
       );
     } else {

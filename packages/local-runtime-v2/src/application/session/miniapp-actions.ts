@@ -14,7 +14,7 @@ import {
   type MiniAppRuntimeErrorDetail,
   type MiniAppSummary,
   type MiniAppTargetActionContext,
-} from '@mavis/agent-extension';
+} from '@alran/agent-extension';
 
 import {
   MiniAppError,

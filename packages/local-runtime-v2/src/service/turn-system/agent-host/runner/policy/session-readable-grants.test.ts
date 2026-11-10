@@ -6,7 +6,7 @@ import {
   PermissionEngine,
   createToolPermissionContext,
   registerDefaultCheckers,
-} from '@mavis/permission';
+} from '@alran/permission';
 
 import {
   compactionSnapshotGrantSource,
@@ -85,7 +85,7 @@ describe('runtime-allocated workspace grant', () => {
   it.each([
     ['/home/u/.alran/sessions/mvs_1/workspace', true],
     ['/home/u/.alran/workspace', true],
-    ['/home/u/.alran/agents/mavis/workspace', true],
+    ['/home/u/.alran/agents/alran/workspace', true],
     ['/home/u/.alran/v2', false],
     ['/home/u/.alran/sessions/mvs_1', false],
     ['/home/u/.alran', false],
@@ -173,7 +173,7 @@ describe('runtime-handed paths with the real permission engine', () => {
         workingDirectory: workspace,
         dataDir,
         homeDir: root,
-        agentName: 'mavis',
+        agentName: 'alran',
         sessionOwnedReadablePaths: await resolve(sessionId),
       });
       const input = toolName === 'grep' ? { pattern: 'x', path: target } : { path: target };

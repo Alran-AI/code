@@ -1,4 +1,4 @@
-import { resolveProviderAuthMode } from "@mavis/config";
+import { resolveProviderAuthMode } from "@alran/config";
 
 import {
   SAFETY_SCENE,

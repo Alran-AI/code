@@ -1,5 +1,5 @@
 import nodePath from 'node:path';
-import { shellSourceStages } from '@mavis/agent-runtime';
+import { shellSourceStages } from '@alran/agent-runtime';
 
 import type { ToolSourceAdapterInput, ToolSourceReference } from './source-reference.js';
 
@@ -215,7 +215,7 @@ export function isTemporaryOrInternalFilePath(value: string): boolean {
     return false;
   }
   return (
-    /(?:^|\/)\.(?:alran|mavis)(?:-[^/]*)?(?:\/|$)/iu.test(path) ||
+    /(?:^|\/)\.(?:alran|alran)(?:-[^/]*)?(?:\/|$)/iu.test(path) ||
     /(?:^|\/)reports\/tool-outputs(?:\/|$)/iu.test(path) ||
     /(?:^|\/)(?:\.tmp|tmp|temp)(?:\/|$)/iu.test(path) ||
     /^\/?(?:private\/)?var\/folders\/[^/]+\/[^/]+\/T(?:\/|$)/iu.test(path) ||

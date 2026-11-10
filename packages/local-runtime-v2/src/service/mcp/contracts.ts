@@ -1,10 +1,10 @@
-import type { McpToolEntry } from '@mavis/agent-tools';
+import type { McpToolEntry } from '@alran/agent-tools';
 import type {
-  LocalMavisMcpAdapter,
+  LocalAlranMcpAdapter,
   ManagedBackendRoutingContext as LocalRuntimeRoutingContext,
-} from '@mavis/agent-tools/desktop';
-import type { McpConnectionPool } from '@mavis/mcp/runtime/connection-pool';
-import type { McpConnectionTokenOverrides, McpToolCallResult } from '@mavis/mcp/runtime/types';
+} from '@alran/agent-tools/desktop';
+import type { McpConnectionPool } from '@alran/mcp/runtime/connection-pool';
+import type { McpConnectionTokenOverrides, McpToolCallResult } from '@alran/mcp/runtime/types';
 
 type McpTransport = 'stdio' | 'http' | 'streamable-http' | 'sse';
 
@@ -232,7 +232,7 @@ type Emit = (type: string, payload: Record<string, unknown>) => void;
 export interface McpRuntimeCapability {
   isBuiltinMatrixAvailable(): boolean;
   readConfiguredServerNames(): Promise<Set<string>>;
-  createMavisAdapter(emit: Emit): LocalMavisMcpAdapter;
+  createAlranAdapter(emit: Emit): LocalAlranMcpAdapter;
   listToolEntriesForTurn(input: {
     sessionId: string;
     workspaceRoot: string;

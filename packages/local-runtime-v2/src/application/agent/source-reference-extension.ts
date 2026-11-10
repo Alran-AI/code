@@ -1,4 +1,4 @@
-import { sourceReferenceExtension } from '@mavis/agent-extension';
+import { sourceReferenceExtension } from '@alran/agent-extension';
 import { existsSync } from 'node:fs';
 import { posix, win32 } from 'node:path';
 

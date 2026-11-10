@@ -6,7 +6,7 @@ import { turnIngress as t } from '../../../../infra/db/schema/turn.js';
 import type { NormalizedSidebarQuery } from './context.js';
 import { sessionAfterProjectRemoval } from '../../shared/project-removal.js';
 
-export const TRUSTED_IM_MARKER = '[mavis:trusted-legacy-im-root]';
+export const TRUSTED_IM_MARKER = '[alran:trusted-legacy-im-root]';
 const trustedImRoot = and(
   eq(s.sessionType, 'root'),
   eq(s.sessionKind, 'conversation'),
@@ -15,7 +15,7 @@ const trustedImRoot = and(
     sql`substr(${s.purpose}, -${TRUSTED_IM_MARKER.length + 1}) = ${`\n${TRUSTED_IM_MARKER}`}`,
   ),
 )!;
-export const canonicalOwner = sql<string>`CASE WHEN ${s.agentName} IN ('main','mavis') THEN 'mavis' ELSE ${s.agentName} END`;
+export const canonicalOwner = sql<string>`CASE WHEN ${s.agentName} IN ('main','alran') THEN 'alran' ELSE ${s.agentName} END`;
 export const isDone = sql<boolean>`(${s.status} = 'idle' AND EXISTS (
   SELECT 1 FROM ${a} WHERE ${a.sessionId} = ${s.sessionId} AND ${a.terminalOutcome} = 'completed'
 ) AND NOT EXISTS (SELECT 1 FROM ${t} WHERE ${t.sessionId} = ${s.sessionId} AND ${t.status} = 'accepted'))`;

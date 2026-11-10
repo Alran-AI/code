@@ -7,7 +7,7 @@ import {
   type AssistantMessageEventStream,
   type Model,
 } from '@earendil-works/pi-ai';
-import { wrapInternalContext } from '@mavis/goal';
+import { wrapInternalContext } from '@alran/goal';
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildLocalRequestPayloadTransform } from '../agent-host/assembly/local-turn-payload-transform.js';

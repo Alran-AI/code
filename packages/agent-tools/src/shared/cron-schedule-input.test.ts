@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { LocalMavisCronValidationError, parseOnceRunAtMs } from './cron-schedule-input.js';
+import { LocalAlranCronValidationError, parseOnceRunAtMs } from './cron-schedule-input.js';
 
 const NOW = Date.UTC(2026, 0, 1, 0, 0, 0);
 const SECOND = 1_000;
@@ -40,7 +40,7 @@ describe('parseOnceRunAtMs relative `after` durations', () => {
   it.each(['w', '1x', '1week', '1 w', 'w1', '1w-', '0w', '1y'])(
     'rejects invalid duration %j',
     (after) => {
-      expect(() => parseOnceRunAtMs({ after }, NOW)).toThrow(LocalMavisCronValidationError);
+      expect(() => parseOnceRunAtMs({ after }, NOW)).toThrow(LocalAlranCronValidationError);
       expect(() => parseOnceRunAtMs({ after }, NOW)).toThrow(
         /Invalid cron once after duration|target time must be in the future/,
       );
@@ -57,7 +57,7 @@ describe('parseOnceRunAtMs relative `after` durations', () => {
     // An unanchored global token pattern retried from every offset took seconds here.
     const after = '1'.repeat(50_000) + 'x';
     const started = performance.now();
-    expect(() => parseOnceRunAtMs({ after }, NOW)).toThrow(LocalMavisCronValidationError);
+    expect(() => parseOnceRunAtMs({ after }, NOW)).toThrow(LocalAlranCronValidationError);
     expect(performance.now() - started).toBeLessThan(500);
   });
 });

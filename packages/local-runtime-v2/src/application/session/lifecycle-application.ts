@@ -12,7 +12,7 @@ import {
   type DeleteSessionResult as DeleteSessionResp,
   type UpdateSessionInput as UpdateSessionReq,
   type UpdateSessionResult as UpdateSessionResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import {
   LocalRunLocationError,

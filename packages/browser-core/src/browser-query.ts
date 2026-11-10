@@ -227,11 +227,11 @@ export abstract class BrowserQuerySupport extends BrowserSnapshotSupport {
 function sanitizedDomQueryExpression(selector: string): string {
   return `(() => {
     const source = document.querySelector(${JSON.stringify(selector)});
-    if (!source || source.closest('[data-mavis-agent-cursor-host]')) return { found: false, html: '' };
+    if (!source || source.closest('[data-alran-agent-cursor-host]')) return { found: false, html: '' };
     const blocked = 'script, noscript, style, link, template, iframe, object, embed, svg defs, svg symbol';
-    if (source.matches('[data-mavis-agent-cursor-host], ' + blocked)) return { found: true, html: '' };
+    if (source.matches('[data-alran-agent-cursor-host], ' + blocked)) return { found: true, html: '' };
     const clone = source.cloneNode(true);
-    clone.querySelectorAll('[data-mavis-agent-cursor-host]').forEach((element) => element.remove());
+    clone.querySelectorAll('[data-alran-agent-cursor-host]').forEach((element) => element.remove());
     clone.querySelectorAll(blocked).forEach((element) => element.remove());
 
     const walker = document.createTreeWalker(clone, NodeFilter.SHOW_COMMENT);

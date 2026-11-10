@@ -2,7 +2,7 @@
  * Matrix Gateway client for desktop error batches.
  *
  * Transport requirements (design §4): Authentication matches existing local-runtime managed-cloud
- * calls, including content-safety `/mavis/api/v1/content` and connectors under skill-hub
+ * calls, including content-safety `/alran/api/v1/content` and connectors under skill-hub
  * `/alran-cloud/api/v1/skill-hub`:
  * - POST `/alran-cloud/api/v1/observability/desktop-errors/batch`.
  * - Like other Shared OAuth managed-cloud calls, put the access token in `Authorization: Bearer`,
@@ -21,9 +21,9 @@
 import {
   getRuntimeBuildEnv,
   getRuntimeRegion,
-  type MavisBuildEnv,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranBuildEnv,
+  type AlranRegion,
+} from '@alran/config';
 
 import { logger } from '../common/logger.js';
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
@@ -43,7 +43,7 @@ const DESKTOP_ERROR_BATCH_PATH = '/alran-cloud/api/v1/observability/desktop-erro
  * Map region/build environment to Matrix hosts, aligned with Electron, content-safety, and
  * local-runtime managed Matrix environments.
  */
-const DESKTOP_ERROR_API_HOST: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const DESKTOP_ERROR_API_HOST: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
@@ -65,8 +65,8 @@ export interface SendDesktopErrorBatchParams {
   authContext: LocalRuntimeAuthContext | undefined;
   routingContext?: LocalRuntimeRoutingContext | undefined;
   fetchImpl: typeof fetch;
-  region?: () => MavisRegion;
-  buildEnv?: () => MavisBuildEnv;
+  region?: () => AlranRegion;
+  buildEnv?: () => AlranBuildEnv;
 }
 
 /**

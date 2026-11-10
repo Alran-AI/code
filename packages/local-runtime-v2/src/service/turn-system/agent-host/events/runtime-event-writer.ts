@@ -1,7 +1,7 @@
 import { createLocalTurnOutcomeTracker } from '../runner/turn-outcome.js';
 
-import type { RuntimeEvent } from '@mavis/agent-core/protocol';
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
+import type { RuntimeEvent } from '@alran/agent-core/protocol';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
 
 import type { AgentExecutionSnapshot } from '../preparation/contracts.js';
 import type { LocalTurnExecutionInput } from '../runner/contracts.js';

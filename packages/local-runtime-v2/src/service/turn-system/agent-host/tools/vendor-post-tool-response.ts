@@ -1,10 +1,10 @@
-import type { ToolResult } from '@mavis/agent-core/tools';
+import type { ToolResult } from '@alran/agent-core/tools';
 import {
   compatibleBashToolResponseFromPiDetails,
   compatibleReadToolResponseFromPiDetails,
   readPluginHookCompatibleToolResponse,
-} from '@mavis/agent-tools';
-import type { PluginHookEventInput } from '@mavis/plugin-hooks';
+} from '@alran/agent-tools';
+import type { PluginHookEventInput } from '@alran/plugin-hooks';
 
 export interface VendorPostToolResponseInput {
   readonly toolName: string;

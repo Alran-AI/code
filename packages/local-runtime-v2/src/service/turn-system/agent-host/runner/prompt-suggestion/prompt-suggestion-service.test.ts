@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { LLM_REQUEST_TIMEOUT_MS } from '@mavis/agent-core/pi-turn-runner';
+import { LLM_REQUEST_TIMEOUT_MS } from '@alran/agent-core/pi-turn-runner';
 import { createAssistantMessageEventStream, type AssistantMessage } from '@earendil-works/pi-ai';
 import {
   createPromptSuggestionCapture,

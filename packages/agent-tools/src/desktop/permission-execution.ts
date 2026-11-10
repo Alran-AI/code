@@ -1,11 +1,11 @@
-import type { BashEnvPolicy } from '@mavis/agent-core/bash-subprocess-env';
+import type { BashEnvPolicy } from '@alran/agent-core/bash-subprocess-env';
 
 /**
  * In-process permission execution metadata. The carrier is deliberately a
  * non-enumerable symbol so it never enters the model-visible Bash schema or
  * serialized tool arguments.
  */
-const LOCAL_PERMISSION_EXECUTION_PLAN = Symbol.for('@mavis/permission/execution-plan');
+const LOCAL_PERMISSION_EXECUTION_PLAN = Symbol.for('@alran/permission/execution-plan');
 
 type PermissionExecutionPlanCarrier = {
   [LOCAL_PERMISSION_EXECUTION_PLAN]?: unknown;

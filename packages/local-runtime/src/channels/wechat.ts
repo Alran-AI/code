@@ -2,7 +2,7 @@ import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import yaml from 'js-yaml';
 
-import type { OutboundMediaRef } from '@mavis/shared';
+import type { OutboundMediaRef } from '@alran/shared';
 
 import {
   type DeadLetterRefKind,
@@ -347,7 +347,7 @@ export class LocalWeChatChannelClient implements LocalMultiChannelClient {
     sessionId?: string;
     queueItemId?: string;
     error?: string;
-    questionnaire?: import('@mavis/shared/questionnaire').AskQuestionnaireRequest;
+    questionnaire?: import('@alran/shared/questionnaire').AskQuestionnaireRequest;
   }): Promise<LocalChannelOutboundMessage> {
     const outbound = prepareChannelOutboundMessage(input);
     // Questionnaire branch — render via the adapter's WeChat questionnaire
@@ -404,7 +404,7 @@ export class LocalWeChatChannelApi {
      * AccessControl owner record so a re-bind (possibly by a different person)
      * can re-claim ownership. Previously this api had no `ownerStore` handle at
      * all, so WeChat unbind never cleared the owner stored under the imGateway
-     * key `mavis:wechat` (im-runtime-bridge.ts:238) — a re-binding user was then
+     * key `alran:wechat` (im-runtime-bridge.ts:238) — a re-binding user was then
      * denied with `access-control:owner_only`.
      */
     private readonly ownerStore?: LocalChannelOwnerStore,
@@ -808,7 +808,7 @@ export class LocalWeChatChannelApi {
       //   1. `wechatClientId(agentName)` → `wechat:<agent>` (daemon-local key).
       //   2. the imGateway inbound key `${agentName}:wechat` → WeChat inbound
       //      events flow through the Electron imGateway, which records the owner
-      //      under `mavis:wechat` (im-runtime-bridge.ts:238). This api had no
+      //      under `alran:wechat` (im-runtime-bridge.ts:238). This api had no
       //      ownerStore handle before, so neither key was ever cleared on unbind.
       await clearOwnerAllConventions(
         this.ownerStore,
@@ -948,7 +948,7 @@ function weChatIlinkQrFailureResponse(): Response {
 
 export function parseLocalWeChatEvent(
   body: Record<string, unknown>,
-  defaultAgentName = 'mavis',
+  defaultAgentName = 'alran',
 ): LocalWeChatEnvelope | { error: Response } {
   const normalized = normalizeWeChatMessageEvent(body);
   if (!normalized) {
@@ -994,7 +994,7 @@ export function parseLocalWeChatEvent(
 }
 
 export function wechatClientId(agentName: string): string {
-  return `wechat:${agentName.trim() || 'mavis'}`;
+  return `wechat:${agentName.trim() || 'alran'}`;
 }
 
 interface NormalizedWeChatMessageEvent {

@@ -558,7 +558,7 @@ export class LocalFeishuChannelApi {
       //      daemon-local path uses when bootstrapping ownership.
       //   2. the imGateway inbound key `${agentName}:feishu` — Feishu inbound
       //      events flow through the Electron imGateway, which records the owner
-      //      under `mavis:feishu` (im-runtime-bridge.ts:238). The old code only
+      //      under `alran:feishu` (im-runtime-bridge.ts:238). The old code only
       //      cleared key (1), so the imGateway-stored owner survived unbind and
       //      denied a re-binding user with `access-control:owner_only`.
       await clearOwnerAllConventions(
@@ -743,7 +743,7 @@ export class LocalFeishuChannelApi {
 
 export function parseLocalFeishuEvent(
   body: Record<string, unknown>,
-  defaultAgentName = 'mavis',
+  defaultAgentName = 'alran',
   botIdentity?: FeishuBotIdentity,
 ): LocalFeishuEnvelope | { error: Response } {
   const normalized = normalizeFeishuMessageEvent(body);
@@ -821,7 +821,7 @@ export function parseLocalFeishuEvent(
 }
 
 export function feishuClientId(agentName: string): string {
-  return agentName.trim() || 'mavis';
+  return agentName.trim() || 'alran';
 }
 
 export function readFeishuAgentName(

@@ -2,7 +2,7 @@ import type {
   AgentHostTurnCapabilityView as DesktopTurnCapabilityView,
   AgentHostTurnRuntimeToolBinding as DesktopTurnRuntimeToolBinding,
 } from '../../turn-system/index.js';
-import { attachProgrammaticErrorRaw } from '@mavis/agent-core/tools';
+import { attachProgrammaticErrorRaw } from '@alran/agent-core/tools';
 import {
   describeMcpCallError,
   McpNameRegistry,
@@ -13,7 +13,7 @@ import {
   type McpRuntimeLogger,
   type McpToolCallResult,
   type McpToolInfo,
-} from '@mavis/mcp';
+} from '@alran/mcp';
 
 import type {
   PluginSnapshotDiagnostic,

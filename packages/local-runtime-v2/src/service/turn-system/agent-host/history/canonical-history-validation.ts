@@ -1,4 +1,4 @@
-import type { PiAgentMessage } from '@mavis/agent-core/pi-turn-runner';
+import type { PiAgentMessage } from '@alran/agent-core/pi-turn-runner';
 
 import type {
   CanonicalHistoryChange,

@@ -1,4 +1,4 @@
-import { parseSandboxConfig, type SandboxConfig } from '@mavis/config';
+import { parseSandboxConfig, type SandboxConfig } from '@alran/config';
 
 import { SandboxError, isSandboxError } from './sandbox-errors.js';
 

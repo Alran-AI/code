@@ -2,8 +2,8 @@ import {
   RuntimeEventStatus,
   RuntimeEventType,
   type RuntimeEvent,
-} from '@mavis/agent-core/protocol';
-import { Role } from '@mavis/agent-core/protocol/agent-message';
+} from '@alran/agent-core/protocol';
+import { Role } from '@alran/agent-core/protocol/agent-message';
 
 import type { DisplayMessageRecord, MessageRepository } from './messages/repo/contract.js';
 import type { QueryCollapseState, QueryCollapseViewState } from './query-collapse-state.js';

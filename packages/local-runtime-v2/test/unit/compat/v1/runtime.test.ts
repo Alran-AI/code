@@ -1,10 +1,10 @@
 import {
   type CreateLocalRuntimeHostOptions,
   type CreatedLocalRuntimeHost,
-} from "@mavis/local-runtime";
-import { DeferredRuntimeConversation } from "@mavis/conversation-contract";
-import type { ThreadGoalState, ThreadGoalStore } from "@mavis/goal";
-import type { AgentReferenceResolver } from "@mavis/shared";
+} from "@alran/local-runtime";
+import { DeferredRuntimeConversation } from "@alran/conversation-contract";
+import type { ThreadGoalState, ThreadGoalStore } from "@alran/goal";
+import type { AgentReferenceResolver } from "@alran/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -35,9 +35,9 @@ const mocked = vi.hoisted(() => ({
   suppressedDeliveryTaskIds: new Set<string>(),
 }));
 
-vi.mock("@mavis/local-runtime", async () => {
+vi.mock("@alran/local-runtime", async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    "@mavis/local-runtime",
+    "@alran/local-runtime",
   );
   return {
     ...actual,
@@ -60,7 +60,7 @@ vi.mock("@mavis/local-runtime", async () => {
 });
 
 vi.mock("../../../../src/compat/v1/cron.js", () => ({
-  createV1MavisCronAdapterBridge: () => ({
+  createV1AlranCronAdapterBridge: () => ({
     adapter: mocked.adapter,
     bindHandleRequest: (handleRequest: unknown) =>
       mocked.bindCalls.push(handleRequest),
@@ -278,7 +278,7 @@ describe('v1 Agent reference compatibility', () => {
       resolveAgentReadScope: vi.fn(async (requestedName: string) => ({
         requestedName,
         canonicalName: "coder",
-        primaryName: "mavis",
+        primaryName: "alran",
         compatibleNames: ["coder"],
         exact: true,
         source: "explicit_agent" as const,
@@ -325,17 +325,17 @@ describe('v1 Agent reference compatibility', () => {
     const targetResolver = resolver({
       resolveAgentReadScope: vi.fn(async (requestedName: string) => ({
         requestedName,
-        canonicalName: "mavis",
-        primaryName: "mavis",
-        compatibleNames: ["mavis", "main"],
+        canonicalName: "alran",
+        primaryName: "alran",
+        compatibleNames: ["alran", "main"],
         exact: true,
         source: "explicit_agent" as const,
-        exactOwnerName: "mavis",
+        exactOwnerName: "alran",
       })),
     });
 
     await expect(
-      resolveDelegatable(targetResolver, "agent:mavis"),
+      resolveDelegatable(targetResolver, "agent:alran"),
     ).resolves.toBe("unauthorized");
     expect(targetResolver.resolveAgentWriteTarget).not.toHaveBeenCalled();
     expect(targetResolver.requireExactAgentKey).not.toHaveBeenCalled();
@@ -1251,7 +1251,7 @@ function createdHost(
       questionnaireServiceDeps: () => ({
         store: {},
         nowMs: Date.now,
-        primaryAgentName: "mavis",
+        primaryAgentName: "alran",
         configGetter: () => ({}),
         getSessionById: vi.fn(),
         startUserMessageTurn: vi.fn(),

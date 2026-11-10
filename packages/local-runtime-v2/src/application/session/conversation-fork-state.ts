@@ -2,8 +2,8 @@ import type {
   CopyPendingQuestionnaireForForkInput,
   PreparedQuestionnaireForkSource,
   QuestionnaireRequestRecord,
-} from '@mavis/local-runtime';
-import type { AskQuestionnaireRequest } from '@mavis/shared/questionnaire';
+} from '@alran/local-runtime';
+import type { AskQuestionnaireRequest } from '@alran/shared/questionnaire';
 
 import type { ForkSessionStatePort } from './conversation-fork-contracts.js';
 

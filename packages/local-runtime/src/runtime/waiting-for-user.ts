@@ -1,5 +1,5 @@
-import { RespDataType, ToolCallStatus } from '@mavis/agent-core/protocol/agent-message';
-import type { IRuntimeEvent } from '@mavis/protocol';
+import { RespDataType, ToolCallStatus } from '@alran/agent-core/protocol/agent-message';
+import type { IRuntimeEvent } from '@alran/protocol';
 
 export function hasWaitingForUserToolResult(event: IRuntimeEvent): boolean {
   const raw = event.payload?.stream_resp;

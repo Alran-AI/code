@@ -9,7 +9,7 @@ import type {
 import type {
   BuiltinCanonicalAgentConfigForWrite,
   CanonicalAgentConfig,
-  CanonicalAgentMavisConfig,
+  CanonicalAgentAlranConfig,
 } from '../../storage/canonical-agent-config.js';
 import { AgentConfigError } from '../../storage/canonical-agent-config.js';
 import { BuiltinAgentConfigRepairError } from '../../storage/builtin-agent-files.js';
@@ -228,7 +228,7 @@ async function buildBuiltinFactoryConfig(
  * Rule for Builtin files: at runtime the local `agent.md` is the source of
  * truth (an edit applies from the next Turn), and every startup reloads it to
  * the current version's bundled content, keeping only the model group
- * (`model`, `effort`, `x-mavis.contextWindow`, `x-mavis.maxOutputTokens`).
+ * (`model`, `effort`, `x-alran.contextWindow`, `x-alran.maxOutputTokens`).
  * The model group is the one part of a Builtin Agent the product lets users
  * change (UI `canEditConfigField` in AgentManagementPage.tsx, runtime
  * `assertBuiltinConfigModelOnlyUpdate`); everything else is bundled content
@@ -404,11 +404,11 @@ function toBuiltinCanonicalConfig(
   capabilities: ReturnType<typeof resolveCanonicalCapabilities>,
   content: Awaited<ReturnType<BuiltinAgentCatalog['readCanonicalContent']>>,
 ): BuiltinCanonicalAgentConfigForWrite {
-  const xMavis = builtinMavisConfig(definition, modelGroup);
+  const xAlran = builtinAlranConfig(definition, modelGroup);
   return {
     name: definition.name,
     description: definition.identity.description?.trim() || definition.name,
-    ...(xMavis ? { xMavis } : {}),
+    ...(xAlran ? { xAlran } : {}),
     ...(modelGroup?.model ? { model: modelGroup.model } : {}),
     ...(modelGroup?.effort ? { effort: modelGroup.effort } : {}),
     ...(capabilities.tools === undefined ? {} : { tools: capabilities.tools }),
@@ -420,10 +420,10 @@ function toBuiltinCanonicalConfig(
   };
 }
 
-function builtinMavisConfig(
+function builtinAlranConfig(
   definition: BuiltinAgentDefinition,
   modelGroup: BuiltinModelGroup | undefined,
-): CanonicalAgentMavisConfig | undefined {
+): CanonicalAgentAlranConfig | undefined {
   const displayName = definition.identity.displayName?.trim() || undefined;
   const contextWindow = modelGroup?.contextWindow;
   const maxOutputTokens = modelGroup?.maxOutputTokens;
@@ -461,12 +461,12 @@ function modelGroupFromCanonical(
   const group = {
     ...(config.model ? { model: config.model } : {}),
     ...(config.effort ? { effort: config.effort } : {}),
-    ...(config.xMavis?.contextWindow === undefined
+    ...(config.xAlran?.contextWindow === undefined
       ? {}
-      : { contextWindow: config.xMavis.contextWindow }),
-    ...(config.xMavis?.maxOutputTokens === undefined
+      : { contextWindow: config.xAlran.contextWindow }),
+    ...(config.xAlran?.maxOutputTokens === undefined
       ? {}
-      : { maxOutputTokens: config.xMavis.maxOutputTokens }),
+      : { maxOutputTokens: config.xAlran.maxOutputTokens }),
   };
   return Object.keys(group).length > 0 ? group : undefined;
 }

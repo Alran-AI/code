@@ -35,7 +35,7 @@ lark-cli auth status 2>/dev/null \
 ## bind-feishu-bot
 
 ```bash
-mavis im channel bind "${AGENT_NAME:-main}" \
+alran im channel bind "${AGENT_NAME:-main}" \
   --platform feishu \
   --app-id "${FEISHU_APP_ID}" \
   --app-secret "${FEISHU_APP_SECRET}"

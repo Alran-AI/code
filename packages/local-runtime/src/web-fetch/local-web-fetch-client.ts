@@ -2,7 +2,7 @@ import type {
   LocalWebFetchAdapter,
   LocalWebFetchRetrievalOutcome,
   LocalWebFetchToolInput,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 const WEB_FETCH_USER_AGENT = 'AlranAgent';
 const DEFAULT_TIMEOUT_MS = 30_000;

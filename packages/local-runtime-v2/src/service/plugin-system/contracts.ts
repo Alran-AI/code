@@ -1,9 +1,9 @@
-import type { McpNameRegistry } from "@mavis/mcp";
+import type { McpNameRegistry } from "@alran/mcp";
 import type { LocalMcpService } from "../mcp/index.js";
 import type {
   CreatedLocalRuntimeHost,
   LocalSkillService,
-} from "@mavis/local-runtime";
+} from "@alran/local-runtime";
 import type {
   GetMarketplacePluginInput,
   GetMarketplacePluginResult,
@@ -19,7 +19,7 @@ import type {
   MutatePluginResult,
   PreviewGithubPluginInput,
   PreviewGithubPluginResult,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 import type { AppDb } from "../../infra/db/client.js";
 import type { HostProcessConnectorGateway } from "../host-connector-system/index.js";
 import type { ConnectorRuntimePort } from "./app/runtime.js";

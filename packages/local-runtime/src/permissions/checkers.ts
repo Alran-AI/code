@@ -11,8 +11,8 @@ import {
   splitShellSourceSegments,
   unwrapCommandWrappers,
   type ShellFamily,
-} from '@mavis/permission';
-import { shellSourceStages } from '@mavis/shared/shell-source-stages';
+} from '@alran/permission';
+import { shellSourceStages } from '@alran/shared/shell-source-stages';
 
 export type LocalPermissionCheckerBehavior = 'deny' | 'ask';
 
@@ -55,7 +55,7 @@ export interface LocalPermissionCheckerInput {
 
 function parseDirectTrashTargets(command: string): string[] {
   const [program, ...tokens] = tokenizeWindowsCommand(command);
-  if (!program || normalizeWindowsProgramName(program) !== 'mavis-trash') return [];
+  if (!program || normalizeWindowsProgramName(program) !== 'alran-trash') return [];
   const targets: string[] = [];
   let pastDoubleDash = false;
   for (const token of tokens) {
@@ -106,7 +106,7 @@ function isRecursiveWindowsWriteCommand(command: string, shellFamily?: ShellFami
   if (['remove-item', 'ri', 'remove'].includes(name)) {
     return args.some((arg) => /^(?:-recurse|-r)$/i.test(arg));
   }
-  if (name === 'mavis-trash') {
+  if (name === 'alran-trash') {
     return args.some((arg) => /^-\S*r\S*$/i.test(arg) || /^--recursive$/i.test(arg));
   }
   if (name === 'xcopy') return args.some((arg) => /^\/(?:e|s|t)$/i.test(arg));
@@ -139,7 +139,7 @@ const WINDOWS_WRITE_OR_DELETE_COMMANDS = new Set([
   'cp',
   'copy',
   'copy-item',
-  'mavis-trash',
+  'alran-trash',
   'md',
   'move',
   'move-item',
@@ -1606,7 +1606,7 @@ function isRootOrHomeDeleteTarget(target: string, workspaceDir?: string): boolea
   // hard-delete. Do NOT block ordinary subpaths like `~/Desktop/hihi`
   // (no metachars in the first segment) — the caller runs this check
   // bypass-immune, so a plain-subpath match here would prevent the
-  // permission engine's `rm → mavis-trash` rewrite from ever taking
+  // permission engine's `rm → alran-trash` rewrite from ever taking
   // effect and force the model to fall back to a hard delete.
   const isBareHome = (form: string): boolean => normalized === form;
   const hasTopLevelHomeGlob = (form: string): boolean => {

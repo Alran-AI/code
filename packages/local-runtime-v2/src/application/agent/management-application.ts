@@ -11,7 +11,7 @@ import type {
   ListAgentsResult as ListAgentsResp,
   UpdateAgentInput as UpdateAgentReq,
   UpdateAgentResult as UpdateAgentResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 import {
   AgentServiceError,
   type AgentConfiguredDefinition,
@@ -46,7 +46,7 @@ export class AgentManagementApplication {
       const listed = await application.list(options);
       const filtered = listed.filter(
         (agent) =>
-          !(req.excludePrimary === true && agent.canonicalViewName === "mavis"),
+          !(req.excludePrimary === true && agent.canonicalViewName === "alran"),
       );
       const offset = Math.max(0, req.offset ?? 0);
       const limit =
@@ -302,9 +302,9 @@ function fromDesktopConfiguredDefinition(
     name: input.name,
     description: input.description,
     ...fromDesktopDefinitionFields(input),
-    ...(input.mavis === undefined
+    ...(input.alran === undefined
       ? {}
-      : { mavis: fromDesktopMavisConfig(input.mavis) }),
+      : { alran: fromDesktopAlranConfig(input.alran) }),
     systemPrompt: input.systemPrompt,
   };
 }
@@ -313,7 +313,7 @@ function fromDesktopDefinitionFields(
   input: DesktopAgentConfiguredDefinition,
 ): Omit<
   AgentConfiguredDefinition,
-  "name" | "description" | "mavis" | "systemPrompt"
+  "name" | "description" | "alran" | "systemPrompt"
 > {
   return {
     ...(input.model === undefined ? {} : { model: input.model }),
@@ -329,9 +329,9 @@ function fromDesktopDefinitionFields(
   };
 }
 
-function fromDesktopMavisConfig(
-  input: NonNullable<DesktopAgentConfiguredDefinition["mavis"]>,
-): NonNullable<AgentConfiguredDefinition["mavis"]> {
+function fromDesktopAlranConfig(
+  input: NonNullable<DesktopAgentConfiguredDefinition["alran"]>,
+): NonNullable<AgentConfiguredDefinition["alran"]> {
   return {
     ...(input.displayName === undefined
       ? {}

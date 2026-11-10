@@ -1,9 +1,9 @@
-import type { AfterLlmCallHandler, AgentExtension, TurnAssemblyCtx } from '@mavis/agent-runtime';
+import type { AfterLlmCallHandler, AgentExtension, TurnAssemblyCtx } from '@alran/agent-runtime';
 import {
   decideOutputLimitRecovery,
   OUTPUT_LIMIT_EXHAUSTED_REASON,
   OUTPUT_LIMIT_RETRY_REASON,
-} from '@mavis/context-manager';
+} from '@alran/context-manager';
 
 export interface OutputLimitRecoveryObservation {
   readonly sessionId: string;

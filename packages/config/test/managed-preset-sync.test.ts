@@ -12,7 +12,7 @@ import {
 import { loadConfigFromFile } from "../src/file-loader.js";
 
 const secret = "synthetic-preset-sync-secret";
-const oldBaseURL = "https://api.ottili.one/mavis/api/v1/llm/v1";
+const oldBaseURL = "https://api.ottili.one/alran/api/v1/llm/v1";
 const presetBaseURL = "https://ottili-overseas-pre.example.invalid/v1";
 const original = yaml.dump({
   logLevel: "debug",
@@ -25,11 +25,11 @@ let file: string;
 beforeEach(() => {
   root = fs.mkdtempSync(join(os.tmpdir(), "managed-preset-sync-"));
   file = join(root, "config.yaml");
-  vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "1");
-  vi.stubEnv("__MAVIS_RUNTIME_DATA_DIR", root);
+  vi.stubEnv("__ALRAN_RUNTIME_MANAGED", "1");
+  vi.stubEnv("__ALRAN_RUNTIME_DATA_DIR", root);
   vi.stubEnv("ALRAN_DATA_DIR", root);
-  vi.stubEnv("MAVIS_REGION", "en");
-  vi.stubEnv("MAVIS_BUILD_ENV", "staging");
+  vi.stubEnv("ALRAN_REGION", "en");
+  vi.stubEnv("ALRAN_BUILD_ENV", "staging");
   setLegacyByokProviderMigrationEnabled(false);
   setManagedPresetBaseUrlSyncEnabled(true);
   resetConfig();
@@ -142,7 +142,7 @@ it.each([
 ] as const)(
   "preserves %s provider policy after a safe sync failure",
   (buildEnv, expectedBaseURL) => {
-    vi.stubEnv("MAVIS_BUILD_ENV", buildEnv);
+    vi.stubEnv("ALRAN_BUILD_ENV", buildEnv);
     // A staging endpoint needs syncing in both prod and test builds.
     fs.writeFileSync(file, original.replace(oldBaseURL, presetBaseURL));
     vi.spyOn(fs, "ftruncateSync").mockImplementation(() => {

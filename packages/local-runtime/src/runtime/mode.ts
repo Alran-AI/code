@@ -86,7 +86,7 @@ export type LocalRuntimeSurfaceCapabilities = Record<
 >;
 
 export function resolveLocalRuntimeMode(
-  env: { MAVIS_LOCAL_RUNTIME_CLEAN?: string } = process.env,
+  env: { ALRAN_LOCAL_RUNTIME_CLEAN?: string } = process.env,
 ): LocalRuntimeMode {
   void env;
   return 'clean';
@@ -340,8 +340,8 @@ export function legacyRuntimeEnabledForMode(
 
 function normalizeRuntimeApiPath(pathname: string): string {
   const path = pathname.split('?')[0]?.replace(/\/+$/, '') || '/';
-  if (path.startsWith('/mavis/api/')) return `/api/${path.slice('/mavis/api/'.length)}`;
-  if (path === '/mavis/api') return '/api';
-  if (path.startsWith('/mavis/')) return path.slice('/mavis'.length) || '/';
+  if (path.startsWith('/alran/api/')) return `/api/${path.slice('/alran/api/'.length)}`;
+  if (path === '/alran/api') return '/api';
+  if (path.startsWith('/alran/')) return path.slice('/alran'.length) || '/';
   return path;
 }

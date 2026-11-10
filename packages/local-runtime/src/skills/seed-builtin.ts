@@ -69,7 +69,7 @@ export function seedBuiltinSkills(deps: SeedBuiltinSkillsDeps): void {
   cleanupLegacySeedArtifacts(builtinSkillsDir);
 
   // Union the skill sets of every readable source dir; candidate order is
-  // priority order (e.g. the MAVIS_BUILTIN_SKILLS_DIR override is listed
+  // priority order (e.g. the ALRAN_BUILTIN_SKILLS_DIR override is listed
   // first), so for a name present in several dirs the earliest readable
   // candidate wins. A candidate path may exist but not be a readable
   // directory (points at a file, EACCES, or a broken symlink). readdirSync
@@ -103,7 +103,7 @@ export function seedBuiltinSkills(deps: SeedBuiltinSkillsDeps): void {
   }
 
   // Fail-open no-op when no bundled source dir resolved (packaging glitch or a
-  // transient MAVIS_BUILTIN_SKILLS_DIR outage): leave dest and marker
+  // transient ALRAN_BUILTIN_SKILLS_DIR outage): leave dest and marker
   // untouched so we never wipe already-seeded builtin skills that a prior
   // successful run installed.
   if (!sawSourceDir) {

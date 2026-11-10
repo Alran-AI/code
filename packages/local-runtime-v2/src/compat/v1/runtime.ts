@@ -1,7 +1,7 @@
 import type {
   InternalTurnPromptReadRegistry,
   PromptSnapshotSource,
-} from "@mavis/agent-runtime";
+} from "@alran/agent-runtime";
 import {
   backgroundTaskNotificationReceiptId,
   closeAgentDb,
@@ -30,12 +30,12 @@ import {
   type QuestionnaireRequestAdmission,
   type CreateLocalRuntimeHostOptions as V1CreateLocalRuntimeHostOptions,
   type LocalRuntimeProductHostOptions as V1LocalRuntimeProductHostOptions,
-} from "@mavis/local-runtime";
-import type { AgentReferenceResolver } from "@mavis/shared";
+} from "@alran/local-runtime";
+import type { AgentReferenceResolver } from "@alran/shared";
 import type {
   GlobalEventInput,
   GlobalThreadGoal,
-} from "@mavis/shared/global-events";
+} from "@alran/shared/global-events";
 import type {
   InitializeMcpServiceOptions,
   McpRuntimeCapability,
@@ -1080,7 +1080,7 @@ function createDeferredMcpRuntimeCapability(): {
       isBuiltinMatrixAvailable: () => requireOwner().isBuiltinMatrixAvailable(),
       readConfiguredServerNames: () =>
         requireOwner().readConfiguredServerNames(),
-      createMavisAdapter: (emit) => requireOwner().createMavisAdapter(emit),
+      createAlranAdapter: (emit) => requireOwner().createAlranAdapter(emit),
       listToolEntriesForTurn: (input) =>
         requireOwner().listToolEntriesForTurn(input),
     },

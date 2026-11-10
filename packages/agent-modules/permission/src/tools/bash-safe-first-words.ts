@@ -143,8 +143,8 @@ export const SAFE_BASH_FIRST_WORDS: ReadonlySet<string> = new Set([
   'lark-cli',
   'matrix-cli',
   'archon',
-  'mavis',
-  'mavis-trash',
+  'alran',
+  'alran-trash',
   // Trash-cli entries
   'trash-put',
   'trash',

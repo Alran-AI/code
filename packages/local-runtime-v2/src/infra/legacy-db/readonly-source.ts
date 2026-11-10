@@ -254,7 +254,7 @@ class SqliteLegacyOpencodeReadonlySource {
     }
   }
   private constructorFor(): DatabaseConstructor {
-    const overridePath = process.env.MAVIS_SQLITE3_MODULE_PATH?.trim();
+    const overridePath = process.env.ALRAN_SQLITE3_MODULE_PATH?.trim();
     const require = overridePath
       ? createRequire(join(overridePath, 'package.json'))
       : createRequire(import.meta.url);

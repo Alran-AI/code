@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 
-import { createAuthNamespace, type AuthStatus } from '@mavis/oauth-core';
+import { createAuthNamespace, type AuthStatus } from '@alran/oauth-core';
 import {
   setLegacyByokProviderMigrationEnabled,
   setManagedPresetBaseUrlSyncEnabled,
-} from '@mavis/config';
+} from '@alran/config';
 
 import {
   resolveAlranAuthEnvironment,
@@ -55,7 +55,7 @@ export function configureTuiRuntimeEnvironment(
   const sharedAuthScope = dataDir
     ? readSharedAuthScope(dataDir, buildEnvironment.buildEnv)
     : undefined;
-  const inheritedRegion = readRuntimeRegion(target.MAVIS_REGION);
+  const inheritedRegion = readRuntimeRegion(target.ALRAN_REGION);
   const environment = resolveAlranAuthEnvironment({
     ...environmentOptions,
     runtimeRegion:
@@ -67,11 +67,11 @@ export function configureTuiRuntimeEnvironment(
   });
   if (dataDir) {
     target.ALRAN_DATA_DIR = dataDir;
-    target.MAVIS_DATA_DIR = dataDir;
+    target.ALRAN_DATA_DIR = dataDir;
   }
-  target.MAVIS_REGION = environment.region;
-  target.MAVIS_BUILD_ENV = environment.buildEnv;
-  target.__MAVIS_RUNTIME_MANAGED = '1';
+  target.ALRAN_REGION = environment.region;
+  target.ALRAN_BUILD_ENV = environment.buildEnv;
+  target.__ALRAN_RUNTIME_MANAGED = '1';
   return environment;
 }
 

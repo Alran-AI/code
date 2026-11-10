@@ -14,7 +14,7 @@
 
 import type { LocalRuntimeAuthContext } from '../runtime/model-resolver.js';
 import type { LocalRuntimeRoutingContext } from '../runtime/routing-headers.js';
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
 /**
  * One caller-generated error event buffered in memory.
@@ -76,9 +76,9 @@ export interface DesktopErrorReporterOptions {
   /** Injectable fetch, defaulting to global `fetch`; read lazily so tests can replace it. */
   fetchImpl?: typeof fetch;
   /** Region selector for the endpoint host; defaults to `getRuntimeRegion`. */
-  region?: () => MavisRegion;
+  region?: () => AlranRegion;
   /** Build-environment selector for the endpoint host; defaults to `getRuntimeBuildEnv`. */
-  buildEnv?: () => MavisBuildEnv;
+  buildEnv?: () => AlranBuildEnv;
   /** Injectable clock; defaults to `Date.now`. */
   nowMs?: () => number;
   /** Send when the buffer reaches this count; see {@link DESKTOP_ERROR_REPORTING_DEFAULTS.batchSize} for the default. */

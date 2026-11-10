@@ -45,9 +45,9 @@ export async function runPrimaryAgentFamilyReconcile(
   const context = { input, ports, platform, family } as const;
   const port = ports[platform];
   const records = await port.list();
-  // Mavis is the canonical view/lock key, while the Agent core's exact owner
+  // Alran is the canonical view/lock key, while the Agent core's exact owner
   // is the only physical credential target. This keeps Main-only installs
-  // from materializing a second Mavis credential before V2 has seeded it.
+  // from materializing a second Alran credential before V2 has seeded it.
   const winner = records.find((record) => record.agentName === family.winnerName);
   const familyLegacies = records.filter((record) => family.legacyNames.includes(record.agentName));
   const base = {

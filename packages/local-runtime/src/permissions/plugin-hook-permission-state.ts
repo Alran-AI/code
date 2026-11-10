@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 
-import type { PermissionRule } from '@mavis/permission';
+import type { PermissionRule } from '@alran/permission';
 
 import {
   LocalPluginHookPermissionMutationError,

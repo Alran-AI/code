@@ -2,7 +2,7 @@
  * Watch / cron self-reminder interval helpers.
  *
  * Shared between the daemon (server-side resolution for /api/cron/self-reminder),
- * the CLI (mavis cron self), and the UI (/watch slash command). All three layers
+ * the CLI (alran cron self), and the UI (/watch slash command). All three layers
  * accept the same surface so users get the same forgiveness.
  *
  * Accepted forms (case-insensitive):
@@ -228,20 +228,20 @@ export function appendTtlPromptSuffix(
       '---',
       `[self-reminder TTL] This reminder expires at ${options.expiry.label}.`,
       `If \`Date.now() > ${options.expiry.atMs}\`, your first action MUST be to delete this reminder and exit silently:`,
-      `use the \`mavis\` tool — run \`cron list\` (agent_name: "${options.agentName}"), find the cron named "${options.cronName}", then run \`cron delete\` with its cron_id.`,
+      `use the \`alran\` tool — run \`cron list\` (agent_name: "${options.agentName}"), find the cron named "${options.cronName}", then run \`cron delete\` with its cron_id.`,
     );
   } else {
     lines.push(
       '',
       '---',
-      '[self-reminder] No TTL — you are responsible for deleting this cron via the `mavis` tool (`cron list` → `cron delete`) when the reason is gone.',
+      '[self-reminder] No TTL — you are responsible for deleting this cron via the `alran` tool (`cron list` → `cron delete`) when the reason is gone.',
     );
   }
   if (options.quietOnSkip) {
     lines.push(
       '',
       '[gate-discipline] If your guard condition is not met (CI still running, MR not merged, ' +
-        'no new evidence), wrap a one-line status in `<mavis-progress>...</mavis-progress>` ' +
+        'no new evidence), wrap a one-line status in `<alran-progress>...</alran-progress>` ' +
         'and exit. The progress tag lets the user glance at "still waiting" without ' +
         'lighting up an unread notification. Do NOT send IMs and do NOT write plain replies ' +
         'on skip ticks.',

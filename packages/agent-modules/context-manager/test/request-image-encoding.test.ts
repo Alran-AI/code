@@ -1,6 +1,6 @@
 import { crc32, deflateSync } from 'node:zlib';
 
-import { readImageEncodedContent } from '@mavis/agent-core/tools';
+import { readImageEncodedContent } from '@alran/agent-core/tools';
 import { describe, expect, it } from 'vitest';
 
 import { encodeRequestImage, encodeRequestImageBlocks } from '../src/index.js';

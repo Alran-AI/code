@@ -8,7 +8,7 @@
  *   runtime/parent identity, session ids, profile/dataDir/port keys, safety
  *   switches, and ASR proxy auth. Leaking these is not a "secret exfil"
  *   problem but a boundary-correctness one: a child could impersonate the
- *   parent session against the runtime API, or a nested `mavis` CLI inside
+ *   parent session against the runtime API, or a nested `alran` CLI inside
  *   bash would silently bind to the parent runtime's profile.
  *
  * Layer B — provider and integration secret scrub. GATED, mirroring the
@@ -27,7 +27,7 @@
 
 import { isAbsolute, resolve } from 'node:path';
 
-import { stripRuntimeBoundaryKeysFrom } from '@mavis/shared/runtime-boundary-env';
+import { stripRuntimeBoundaryKeysFrom } from '@alran/shared/runtime-boundary-env';
 
 export type BashEnvSanitizeMode = 'off' | 'scrub' | 'strict';
 
@@ -167,7 +167,7 @@ const VALID_MODES: ReadonlySet<string> = new Set(['off', 'scrub', 'strict']);
 
 /**
  * Resolve the effective Layer B policy. Precedence: explicit override >
- * `MAVIS_BASH_ENV_SANITIZE` env switch > auto (CI markers → `scrub`,
+ * `ALRAN_BASH_ENV_SANITIZE` env switch > auto (CI markers → `scrub`,
  * otherwise `off` — interactive default, reference CLI parity).
  */
 export function resolveBashEnvPolicy(
@@ -176,7 +176,7 @@ export function resolveBashEnvPolicy(
 ): BashEnvPolicy {
   let mode: BashEnvSanitizeMode | undefined = overrides?.mode;
   if (mode === undefined) {
-    const explicit = envSource.MAVIS_BASH_ENV_SANITIZE?.trim().toLowerCase();
+    const explicit = envSource.ALRAN_BASH_ENV_SANITIZE?.trim().toLowerCase();
     if (explicit && VALID_MODES.has(explicit)) {
       mode = explicit as BashEnvSanitizeMode;
     } else if (isEnvTruthy(envSource.CI) || isEnvTruthy(envSource.GITHUB_ACTIONS)) {

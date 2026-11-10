@@ -1,13 +1,13 @@
-import { createAgentRuntime, type AgentExtension, type AgentRuntime } from '@mavis/agent-runtime';
-import type { PtcToolResultProjectionInput } from '@mavis/agent-core/tools';
+import { createAgentRuntime, type AgentExtension, type AgentRuntime } from '@alran/agent-runtime';
+import type { PtcToolResultProjectionInput } from '@alran/agent-core/tools';
 import {
   createDesktopPtcResultProjection,
   getLocalBashEnvironment,
   projectDesktopPtcEvidenceInput,
-} from '@mavis/agent-tools';
-import type { ResolvedAgentCapabilities } from '@mavis/config';
-import { redactSecretText } from '@mavis/shared/logging/redact-log-secret';
-import { sanitizeObservabilityText } from '@mavis/shared/local-runtime-diagnostics/redaction';
+} from '@alran/agent-tools';
+import type { ResolvedAgentCapabilities } from '@alran/config';
+import { redactSecretText } from '@alran/shared/logging/redact-log-secret';
+import { sanitizeObservabilityText } from '@alran/shared/local-runtime-diagnostics/redaction';
 
 import type {
   LocalModelResolverLike,
@@ -114,7 +114,7 @@ export interface NativeAgentHostProductionDependenciesOptions<
   >;
   /**
    * Explicitly configured normal-turn extensions. The seven built-in
-   * `@mavis/agent-extension` adapters are not enabled by this factory.
+   * `@alran/agent-extension` adapters are not enabled by this factory.
    */
   readonly normalExtensions?: readonly AgentExtension[];
 }

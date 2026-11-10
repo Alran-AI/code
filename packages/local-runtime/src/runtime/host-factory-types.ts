@@ -1,7 +1,7 @@
-import type { LocalSandboxBashExecutionPort } from '@mavis/agent-tools/desktop';
-import type { RuntimeConversation } from '@mavis/conversation-contract';
-import type { PromptSnapshotSource } from '@mavis/agent-core';
-import type { PromptSuggestionRemotePolicy } from '@mavis/config';
+import type { LocalSandboxBashExecutionPort } from '@alran/agent-tools/desktop';
+import type { RuntimeConversation } from '@alran/conversation-contract';
+import type { PromptSnapshotSource } from '@alran/agent-core';
+import type { PromptSuggestionRemotePolicy } from '@alran/config';
 
 import type { AgentReferenceResolver } from '../agent/port.js';
 import type { LocalAgentRuntimePort } from '../agent/runtime-port.js';
@@ -15,7 +15,7 @@ import type {
   LocalEvalReporterFactoryOptions,
 } from '../eval/types.js';
 import type { LocalMcpRuntimeCapability } from './mcp-capability.js';
-import type { McpRuntimeLogger } from '@mavis/mcp/runtime/types';
+import type { McpRuntimeLogger } from '@alran/mcp/runtime/types';
 import type { LocalHostDiagnosticsProvider } from '../observability/diagnostics-provider.js';
 import type { ObservabilityLogger } from '../observability/index.js';
 import type { LocalSessionController } from '../sessions/controller.js';
@@ -51,7 +51,7 @@ export interface LocalRuntimeProductHostOptions {
    * owner cannot prove it; Windows native delete then remains fail-closed.
    */
   shellFamily?: LocalRuntimeApiHostOptions['shellFamily'];
-  mavisCronAdapterProvider?: LocalRuntimeApiHostOptions['mavisCronAdapterProvider'];
+  alranCronAdapterProvider?: LocalRuntimeApiHostOptions['alranCronAdapterProvider'];
   deleteAgentCronTasks?: LocalRuntimeApiHostOptions['deleteAgentCronTasks'];
   cronConsumerEnabled?: LocalRuntimeApiHostOptions['cronConsumerEnabled'];
   /** Owner-injected write-only publisher; pure v1 keeps its local event source. */

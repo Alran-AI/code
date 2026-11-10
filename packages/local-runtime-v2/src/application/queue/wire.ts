@@ -10,7 +10,7 @@ import type {
   ModelSelectionInput,
   QueuedMessageItemView,
   UpdateQueueItemInput as UpdateQueueItemReq,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import {
   isInlineDisplayDataUrl,

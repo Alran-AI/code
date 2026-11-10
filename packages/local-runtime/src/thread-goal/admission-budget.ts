@@ -3,7 +3,7 @@ import {
   type ThreadGoalBudgetCheckResult,
   type ThreadGoalState,
   type ThreadGoalStore,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 import type { LocalActiveTurnTimingReader } from '../turns/active-turn-timing.js';
 import {

@@ -4,8 +4,8 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_SKILLS_CONFIG } from '@mavis/config';
-import { createSkillRegistry, type SkillRegistryWatcher } from '@mavis/skills';
+import { DEFAULT_SKILLS_CONFIG } from '@alran/config';
+import { createSkillRegistry, type SkillRegistryWatcher } from '@alran/skills';
 import { readConfiguredSkillRoots } from '../../src/skills/roots.js';
 
 let fixture: string;
@@ -27,7 +27,7 @@ afterEach(async () => {
 function workspaceRoots() {
   return readConfiguredSkillRoots(
     { dataDir: join(fixture, 'data'), provider: {} },
-    'mavis',
+    'alran',
     workspace,
   ).filter((root) => root.kind === 'workspace');
 }
@@ -110,7 +110,7 @@ describe('configured workspace skill directory links', () => {
       },
     };
     expect(
-      readConfiguredSkillRoots(config, 'mavis', workspace).filter((root) => root.external),
+      readConfiguredSkillRoots(config, 'alran', workspace).filter((root) => root.external),
     ).toEqual([]);
     config.skills.external.enabled = true;
     config.skills.external.sources = {
@@ -118,7 +118,7 @@ describe('configured workspace skill directory links', () => {
       'workspace-agents': { enabled: false, priority: 55 },
     };
     expect(
-      readConfiguredSkillRoots(config, 'mavis', workspace).some((root) =>
+      readConfiguredSkillRoots(config, 'alran', workspace).some((root) =>
         root.id.startsWith('external:workspace-agents:'),
       ),
     ).toBe(false);

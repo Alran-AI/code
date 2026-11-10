@@ -1,7 +1,7 @@
-import { isSameResolvedPath } from '@mavis/permission';
-import { KeyedOperationLane } from '@mavis/shared/keyed-operation-lane';
-import { translateRuntimeText, type RuntimeTranslationKey } from '@mavis/shared/runtime-i18n';
-import { createInternalTurnId } from '@mavis/shared/turn-identity';
+import { isSameResolvedPath } from '@alran/permission';
+import { KeyedOperationLane } from '@alran/shared/keyed-operation-lane';
+import { translateRuntimeText, type RuntimeTranslationKey } from '@alran/shared/runtime-i18n';
+import { createInternalTurnId } from '@alran/shared/turn-identity';
 
 import type {
   CommittedQueueCapability,

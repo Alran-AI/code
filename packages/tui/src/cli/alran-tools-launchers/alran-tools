@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-runtime_executable=${__MAVIS_ALRAN_TOOLS_RUNTIME_EXECUTABLE:-}
+runtime_executable=${__ALRAN_ALRAN_TOOLS_RUNTIME_EXECUTABLE:-}
 if [ -z "$runtime_executable" ]; then
   echo "Alran alran-tools runtime is unavailable. Restart Alran." >&2
   exit 1

@@ -1,5 +1,5 @@
-import type { CliSendMessageReq } from '@mavis/local-runtime-v2/cli-service';
-import { isTurnLifecycleMessageKind } from '@mavis/shared/turn-message-kind';
+import type { CliSendMessageReq } from '@alran/local-runtime-v2/cli-service';
+import { isTurnLifecycleMessageKind } from '@alran/shared/turn-message-kind';
 
 import type { TuiTransportAttachment } from '../types/invocation.js';
 import { TuiFailure } from '../failure.js';

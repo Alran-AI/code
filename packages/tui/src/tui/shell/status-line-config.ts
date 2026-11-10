@@ -25,7 +25,7 @@ export interface TuiPresentationConfig {
  */
 export async function readTuiPresentationConfig(dataDir: string): Promise<TuiPresentationConfig> {
   try {
-    const { loadConfigFromFile } = await import('@mavis/config');
+    const { loadConfigFromFile } = await import('@alran/config');
     const config = loadConfigFromFile(path.join(dataDir, 'config.yaml'), { dataDir });
     const tui = config.tui;
     return {

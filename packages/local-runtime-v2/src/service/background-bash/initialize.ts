@@ -1,7 +1,7 @@
 import type {
   LocalBashEnvPolicySource,
   LocalSandboxBashOperationsFactory,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 
 import { createLocalBackgroundBashExecutor } from './executor.js';
 

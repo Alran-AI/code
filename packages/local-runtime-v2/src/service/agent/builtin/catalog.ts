@@ -6,13 +6,13 @@ import {
   isAgentBuiltinToolEnabled,
   parseAgentCapabilityConfig,
   type AgentCapabilityConfig,
-} from '@mavis/config';
+} from '@alran/config';
 import {
   PromptSnapshotInvalidError,
   type PromptReadScope,
   type PromptSnapshotSource,
   type PromptReadSnapshot,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 
 import type {
   AgentAppMode,
@@ -388,7 +388,7 @@ export class BuiltinAgentCatalog {
         promptReadContext,
       });
       if (template === undefined)
-        throw new Error(`Mandatory ${mode} Mavis ${kind} prompt is missing.`);
+        throw new Error(`Mandatory ${mode} Alran ${kind} prompt is missing.`);
       return template;
     }
     const directory = canonical;
@@ -601,7 +601,7 @@ export class BuiltinAgentCatalog {
   }
 
   private async assetsDir(): Promise<string> {
-    const configured = process.env.MAVIS_BUILTIN_AGENTS_V2_DIR?.trim() || this.assetsDirOverride;
+    const configured = process.env.ALRAN_BUILTIN_AGENTS_V2_DIR?.trim() || this.assetsDirOverride;
     const here = dirname(fileURLToPath(import.meta.url));
     const candidates = configured
       ? [configured]

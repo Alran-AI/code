@@ -1,8 +1,8 @@
 /**
- * Stdio MCP transport for Mavis runtimes.
+ * Stdio MCP transport for Alran runtimes.
  *
  * Ported from the retired `packages/daemon/src/mcp/runtime/transport/stdio.ts`,
- * narrowed to the surface Mavis runtimes need:
+ * narrowed to the surface Alran runtimes need:
  *
  *   * `cwd: homedir()` — never inherit launchd / Electron / systemd CWD (which
  *     can be `/`), so MCP children that write workspace-relative dirs

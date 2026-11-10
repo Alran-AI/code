@@ -1,4 +1,4 @@
-import type { LLMCallUsage } from '@mavis/agent-core/pi-turn-runner';
+import type { LLMCallUsage } from '@alran/agent-core/pi-turn-runner';
 
 export type InspectorBuildVariant = 'dev' | 'test' | 'internal' | 'unavailable';
 

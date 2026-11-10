@@ -21,12 +21,12 @@ import {
   type AgentMessage as BridgeAgentMessage,
   type MessageQueuePort,
   type SessionLifecyclePort,
-} from '@mavis/cron';
+} from '@alran/cron';
 import {
   MsgType,
   RespDataType,
   Role as AgentMessageRole,
-} from '@mavis/agent-core/protocol/agent-message';
+} from '@alran/agent-core/protocol/agent-message';
 import { Cron } from 'croner';
 
 import type { LocalApiAgentRoutes } from '../api/routes/agents.js';
@@ -1083,7 +1083,7 @@ function cronErrorResponse(err: unknown): Response {
   // Attach a numeric `errorCode` so the UI's `resolveSessionErrorCodeText`
   // can map to a localized string (e.g. `errors.codes.40903 = Cron task already exists`)
   // instead of showing the raw daemon English text like
-  // `Cron task already registered: mavis/end-of-workday`. Keeps the same convention as
+  // `Cron task already registered: alran/end-of-workday`. Keeps the same convention as
   // `packages/local-runtime/src/api/routes/agents.ts` (40901 conflict etc.).
   const errorCode = isDuplicate ? 40903 : undefined;
   const publicMessage =

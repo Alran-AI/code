@@ -104,7 +104,7 @@ Alran Code keeps its own model identities — they drive thinking modes, effort 
 | `Alran-M3.1-Flash` | `ottili/werk-1.1` | Smart / Coding (default) |
 | `Alran-M3` | `ottili/werk-1.1-pro` | Premium |
 
-Requests are billed and metered by the Ottili platform against the key that made them. Builds from this repository and the published npm CLI `@ottili/alran-code@0.6.9` default to `~/.alran` for user data (or `~/.alran-<profile>` when a profile is selected). `ALRAN_DATA_DIR` or `MAVIS_DATA_DIR` can override the data directory. The installer's `~/.alran-code` installation directory is separate from this choice. See [Accounts and data](docs/installation.md#accounts-and-data) before locating or removing configuration and sessions.
+Requests are billed and metered by the Ottili platform against the key that made them. Builds from this repository and the published npm CLI `@ottili/alran-code@0.6.9` default to `~/.alran` for user data (or `~/.alran-<profile>` when a profile is selected). `ALRAN_DATA_DIR` or `ALRAN_DATA_DIR` can override the data directory. The installer's `~/.alran-code` installation directory is separate from this choice. See [Accounts and data](docs/installation.md#accounts-and-data) before locating or removing configuration and sessions.
 
 <details>
 <summary>Use your own API key (BYOK)</summary>
@@ -263,7 +263,7 @@ rm -rf -- "$HOME/.alran"
 Remove-Item -LiteralPath "$env:USERPROFILE\.alran" -Recurse -Force
 ```
 
-A profile uses `~/.alran-<profile>`; `ALRAN_DATA_DIR` or `MAVIS_DATA_DIR` can select a different location. Remove only the specific directories you intend to discard, without wildcard deletion. Remove any Alran-specific environment variable assignments you added to shell profiles or user environment settings if you no longer need them.
+A profile uses `~/.alran-<profile>`; `ALRAN_DATA_DIR` or `ALRAN_DATA_DIR` can select a different location. Remove only the specific directories you intend to discard, without wildcard deletion. Remove any Alran-specific environment variable assignments you added to shell profiles or user environment settings if you no longer need them.
 
 ## What you can do
 

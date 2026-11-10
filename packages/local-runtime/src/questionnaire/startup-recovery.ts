@@ -1,4 +1,4 @@
-import { QUESTIONNAIRE_TTL_MS } from '@mavis/shared/questionnaire';
+import { QUESTIONNAIRE_TTL_MS } from '@alran/shared/questionnaire';
 
 import type { LocalQuestionnaireServiceDeps, QuestionnaireRecoveryStats } from './contracts.js';
 import { emitQuestionnaireAsk } from './ask-delivery.js';

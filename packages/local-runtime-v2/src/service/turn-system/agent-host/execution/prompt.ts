@@ -1,5 +1,5 @@
-import type { ReminderEmission } from '@mavis/agent-runtime';
-import { LIGHTWEIGHT_SESSION_PURPOSE } from '@mavis/protocol/local';
+import type { ReminderEmission } from '@alran/agent-runtime';
+import { LIGHTWEIGHT_SESSION_PURPOSE } from '@alran/protocol/local';
 
 import { CONTEXT_USAGE_PROMPT_KINDS } from '../preparation/contracts.js';
 import type { SessionRecord } from '../../../session-system/index.js';

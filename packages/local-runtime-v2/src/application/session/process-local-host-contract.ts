@@ -1,41 +1,41 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
-import type { InternalTurnPromptReadRegistry, PromptSnapshotSource } from '@mavis/agent-core';
+import type { InternalTurnPromptReadRegistry, PromptSnapshotSource } from '@alran/agent-core';
 import type {
   PiLLMRequestFailureHook,
   PiLLMRequestObserver,
-} from '@mavis/agent-core/pi-turn-runner';
-import type { MatrixToolLogger } from '@mavis/agent-tools/cloud';
+} from '@alran/agent-core/pi-turn-runner';
+import type { MatrixToolLogger } from '@alran/agent-tools/cloud';
 import type {
   BackgroundTaskHost,
   BackgroundTaskRuntime,
   LocalBackgroundTaskService,
-  LocalMavisCronAdapter,
+  LocalAlranCronAdapter,
   LocalSandboxBashExecutionPort,
   LocalTaskRunResult,
   ManagedBackendRoutingContext,
-} from '@mavis/agent-tools/desktop';
+} from '@alran/agent-tools/desktop';
 import type {
   ConversationPluginAgentDefinition,
   ConversationSessionKind,
   ConversationTaskModelSelection,
   RuntimeConversation,
-} from '@mavis/conversation-contract';
-import type { CronStorePort } from '@mavis/cron';
-import type { McpRuntimeLogger } from '@mavis/mcp/runtime/types';
-import type { LocalPluginHookPermissionCapability, ShellFamily } from '@mavis/permission';
-import type { GlobalEventInput } from '@mavis/shared/global-events';
-import type { ObservabilityLogger } from '@mavis/shared/local-runtime-diagnostics/types';
+} from '@alran/conversation-contract';
+import type { CronStorePort } from '@alran/cron';
+import type { McpRuntimeLogger } from '@alran/mcp/runtime/types';
+import type { LocalPluginHookPermissionCapability, ShellFamily } from '@alran/permission';
+import type { GlobalEventInput } from '@alran/shared/global-events';
+import type { ObservabilityLogger } from '@alran/shared/local-runtime-diagnostics/types';
 import type {
   MetricsBatchReporter,
   MetricsClient,
   ModuleMetricsReporter,
-} from '@mavis/shared/local-runtime-logging/metrics';
-import type { RuntimeContentSafetyCapability } from '@mavis/shared/local-runtime-safety';
+} from '@alran/shared/local-runtime-logging/metrics';
+import type { RuntimeContentSafetyCapability } from '@alran/shared/local-runtime-safety';
 import type {
   LocalSkillEnabledStatePort,
   LocalSkillRegistryDiagnosticSink,
   RuntimeSkillCapability,
-} from '@mavis/shared/local-runtime-skills';
+} from '@alran/shared/local-runtime-skills';
 import type { AgentReferenceResolver, LocalAgentRuntimePort } from '../../service/agent/index.js';
 import type { LocalTaskRunnerHost } from '../../service/background-bash/index.js';
 import type {
@@ -137,7 +137,7 @@ export interface ProcessLocalProductHostOptions {
   appVersion?: string;
   capabilities?: Partial<LocalRuntimeCapabilities>;
   shellFamily?: ShellFamily;
-  mavisCronAdapterProvider?: () => LocalMavisCronAdapter | undefined;
+  alranCronAdapterProvider?: () => LocalAlranCronAdapter | undefined;
   deleteAgentCronTasks?: (agentName: string) => Promise<void>;
   cronConsumerEnabled?: boolean;
   globalEventPublisher?: (event: GlobalEventInput) => void;

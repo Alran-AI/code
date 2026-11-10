@@ -9,8 +9,8 @@ let dataDir: string;
 beforeEach(() => {
   dataDir = fs.mkdtempSync(join(os.tmpdir(), "alran-context-management-"));
   vi.stubEnv("ALRAN_DATA_DIR", dataDir);
-  vi.stubEnv("__MAVIS_RUNTIME_DATA_DIR", dataDir);
-  vi.stubEnv("__MAVIS_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
+  vi.stubEnv("__ALRAN_RUNTIME_DATA_DIR", dataDir);
+  vi.stubEnv("__ALRAN_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
 });
 
 afterEach(() => {

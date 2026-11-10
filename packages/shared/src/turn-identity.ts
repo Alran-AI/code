@@ -1,4 +1,4 @@
-export const INTERNAL_TURN_ID_PREFIX = 'mavis-internal:';
+export const INTERNAL_TURN_ID_PREFIX = 'alran-internal:';
 
 const LEGACY_SERVER_OWNED_TURN_ID_PREFIXES = [
   'plan-enter:',

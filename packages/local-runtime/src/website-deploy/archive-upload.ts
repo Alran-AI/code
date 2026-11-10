@@ -4,11 +4,11 @@ import { isAbsolute, join, relative, sep } from 'node:path';
 
 import JSZip from 'jszip';
 
-import type { LocalWebsiteDeployStage } from '@mavis/agent-tools/desktop';
+import type { LocalWebsiteDeployStage } from '@alran/agent-tools/desktop';
 
 import { deployFailure, ensureNotAborted, runDeployStage } from './deploy-failure.js';
 
-const GET_UPLOAD_URL_PATH = '/mavis/api/v1/mcp/get_upload_url';
+const GET_UPLOAD_URL_PATH = '/alran/api/v1/mcp/get_upload_url';
 const ARCHIVE_MIME = 'application/zip';
 
 /** Default exclusions keep dev output and credentials out of public archives. */

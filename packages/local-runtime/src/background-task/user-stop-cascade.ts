@@ -1,4 +1,4 @@
-import { readConversationStopConfig, type ConversationStopConfigRead } from '@mavis/config';
+import { readConversationStopConfig, type ConversationStopConfigRead } from '@alran/config';
 
 import type { LocalTaskRunnerHostWithSessionLookup } from '../api/local-task-host.js';
 import { logger } from '../common/logger.js';

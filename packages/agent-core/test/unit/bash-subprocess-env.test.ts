@@ -18,7 +18,7 @@ const providerEnv = {
 };
 
 describe('bash subprocess default provider credentials', () => {
-  it.each([{ CI: 'true' }, { GITHUB_ACTIONS: 'true' }, { MAVIS_BASH_ENV_SANITIZE: 'scrub' }])(
+  it.each([{ CI: 'true' }, { GITHUB_ACTIONS: 'true' }, { ALRAN_BASH_ENV_SANITIZE: 'scrub' }])(
     'scrubs both provider key names using policy %j',
     (markers) => {
       const original = { ...providerEnv, ...markers };

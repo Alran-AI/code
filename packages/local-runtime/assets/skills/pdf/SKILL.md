@@ -250,7 +250,7 @@ blindly.
 | `qpdf`                                        | MUTATE / decryption            | `brew install qpdf` (optional)                                 |
 
 `read_pdf_vision.py` additionally requires local-runtime to be running with authenticated native
-Matrix tools. Managed Matrix hosts use the Mavis login token; custom `MATRIX_BASE_URL` hosts
+Matrix tools. Managed Matrix hosts use the Alran login token; custom `MATRIX_BASE_URL` hosts
 require `MATRIX_TOKEN` in the runtime environment.
 Details: [`docs/vision-guide.md`](docs/vision-guide.md).
 
@@ -283,5 +283,5 @@ bash -c "pdftotext -layout out.pdf - | head -40"
 | `brew install poppler` | `winget install` or `scoop install poppler`                         |
 | `~/.zshrc`             | `$PROFILE` (PowerShell profile) or set env vars via System Settings |
 
-**If Git Bash or any tool is missing**, read the `mavis` skill's
+**If Git Bash or any tool is missing**, read the `alran` skill's
 `references/windows-tool-bootstrap.md` for detection + auto-install commands.

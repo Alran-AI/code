@@ -3,19 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
   LLMRetryEvent,
   RunTurnInput,
-} from "@mavis/agent-core/pi-turn-runner";
-import { createAgentRuntime, type AgentExtension } from "@mavis/agent-runtime";
+} from "@alran/agent-core/pi-turn-runner";
+import { createAgentRuntime, type AgentExtension } from "@alran/agent-runtime";
 import { baseCtx } from "../../agent-runtime/src/testing/fixtures.js";
-import type { RuntimeTool } from "@mavis/agent-core/tools";
-import { LocalSkillToolDef } from "@mavis/agent-tools/desktop";
+import type { RuntimeTool } from "@alran/agent-core/tools";
+import { LocalSkillToolDef } from "@alran/agent-tools/desktop";
 import type {
   DatabaseLike,
   QuestionnaireOwnedActionHandler,
-} from "@mavis/local-runtime";
+} from "@alran/local-runtime";
 import type {
   GlobalEvent,
   GlobalEventInput,
-} from "@mavis/shared/global-events";
+} from "@alran/shared/global-events";
 
 import { createRuntimeSourceReferenceExtension } from "./application/agent/source-reference-extension.js";
 import type { V1ServiceCompatibility } from "./compat/v1/runtime.js";
@@ -109,7 +109,7 @@ function createAgentServiceMock(vitest: Pick<typeof vi, "fn">) {
     resolveAgentReadScope: vitest.fn(async (requestedName: string) => ({
       requestedName,
       canonicalName: requestedName,
-      primaryName: "mavis",
+      primaryName: "alran",
       compatibleNames: [requestedName],
       exact: true,
       source: "stable_name" as const,
@@ -644,8 +644,8 @@ vi.mock("./service/session-system/index.js", async (importOriginal) => {
   };
 });
 
-vi.mock("@mavis/config", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@mavis/config")>()),
+vi.mock("@alran/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@alran/config")>()),
   allowsManagedAlranProviderOverride: () => false,
   getRuntimeRegion: () => mocked.runtimeRegion,
 }));
@@ -1279,7 +1279,7 @@ async function assertGoalQueueReadsPlanFence(): Promise<void> {
   const item = {
     itemId: "goal-queue-1",
     sessionId: "session-1",
-    agentName: "mavis",
+    agentName: "alran",
     source: "thread-goal" as const,
     status: "queued" as const,
     clientRequestId: "thread-goal-followup:turn-1",
@@ -1300,7 +1300,7 @@ async function assertGoalQueueReadsPlanFence(): Promise<void> {
   // Goal items, so nothing (budget-limit continuations included) can be admitted
   // by skipping them.
   expect(getPending).toHaveBeenCalledWith({
-    agentName: "mavis",
+    agentName: "alran",
     sessionId: "session-1",
   });
   expect(classifyGoalItem).toHaveBeenCalledWith(item, expect.any(Function));
@@ -1323,7 +1323,7 @@ async function assertGoalQueueYieldsToUserWork(): Promise<void> {
   const queueItem = (source: string) => ({
     itemId: `item-${source}`,
     sessionId: "session-1",
-    agentName: "mavis",
+    agentName: "alran",
     source,
     status: "queued" as const,
     message: { content: "queued", attachments: [] },
@@ -1381,7 +1381,7 @@ async function assertAskUserGateDefersQueueClassification(): Promise<void> {
   const item = {
     itemId: "queue-1",
     sessionId: "session-1",
-    agentName: "mavis",
+    agentName: "alran",
     source: "api" as const,
     status: "queued" as const,
     message: { content: "send after AskUser", attachments: [] },
@@ -1391,7 +1391,7 @@ async function assertAskUserGateDefersQueueClassification(): Promise<void> {
   await expect(classifier(item)).resolves.toBe("defer");
 
   expect(getPending).toHaveBeenCalledWith({
-    agentName: "mavis",
+    agentName: "alran",
     sessionId: "session-1",
   });
   expect(classifyGoalItem).not.toHaveBeenCalled();
@@ -1432,7 +1432,7 @@ async function assertQuestionnaireReplyBypassesAskUserGates(): Promise<void> {
   const item = {
     itemId: "queue-reply-1",
     sessionId: "session-1",
-    agentName: "mavis",
+    agentName: "alran",
     source: "questionnaire" as const,
     status: "queued" as const,
     message: {
@@ -1514,8 +1514,8 @@ describe("runtime services composition", () => {
   it.each([false, true])(
     "keeps source hooks and projection disabled for every build identity (internal=%s)",
     async (internal) => {
-      vi.stubEnv("__MAVIS_BUILD_INTERNAL", String(internal));
-      vi.stubEnv("__MAVIS_BUILD_INSIDE", "false");
+      vi.stubEnv("__ALRAN_BUILD_INTERNAL", String(internal));
+      vi.stubEnv("__ALRAN_BUILD_INSIDE", "false");
       const services = await createRuntimeServices({
         db: {} as AppDb,
         dataDir: "/data",
@@ -2034,13 +2034,13 @@ describe("runtime services CLI composition", () => {
         }
       | undefined;
     await processLocalSkills?.listRuntimeSkills({
-      agentName: "mavis",
+      agentName: "alran",
       includePluginSkills: true,
     });
     expect(
       mocked.runtimeSkillApplication.listRuntimeSkills,
     ).toHaveBeenCalledWith({
-      agentName: "mavis",
+      agentName: "alran",
       includePluginSkills: true,
     });
     expect(mocked.agentHostOptions).toMatchObject({
@@ -2073,7 +2073,7 @@ describe("runtime services CLI composition", () => {
    * publishing every captured Call with a missing request payload.
    */
   it("composes without a model resolver and captures through the global transport", async () => {
-    vi.stubEnv("MAVIS_BUILD_ENV", "dev");
+    vi.stubEnv("ALRAN_BUILD_ENV", "dev");
     const compatibility = defaultCompatibility();
     const globalFetch = vi.fn(async () => new Response("{}"));
     const originalFetch = globalThis.fetch;
@@ -2119,7 +2119,7 @@ describe("runtime services CLI composition", () => {
   });
 
   it("decorates the host transport for capture rather than replacing it", async () => {
-    vi.stubEnv("MAVIS_BUILD_ENV", "dev");
+    vi.stubEnv("ALRAN_BUILD_ENV", "dev");
     const compatibility = defaultCompatibility();
     const hostFetch = vi.fn(async () => new Response("{}"));
     (
@@ -2164,9 +2164,9 @@ describe("runtime services CLI composition", () => {
     const compatibility = defaultCompatibility();
     const globalFetch = vi.fn(async () => new Response("{}"));
     const originalFetch = globalThis.fetch;
-    const originalOptIn = process.env.MAVIS_TUI_LLM_CONTEXT_INSPECTOR;
+    const originalOptIn = process.env.ALRAN_TUI_LLM_CONTEXT_INSPECTOR;
     globalThis.fetch = globalFetch as unknown as typeof fetch;
-    process.env.MAVIS_TUI_LLM_CONTEXT_INSPECTOR = "1";
+    process.env.ALRAN_TUI_LLM_CONTEXT_INSPECTOR = "1";
 
     try {
       await createRuntimeServices({
@@ -2203,8 +2203,8 @@ describe("runtime services CLI composition", () => {
     } finally {
       globalThis.fetch = originalFetch;
       if (originalOptIn === undefined)
-        delete process.env.MAVIS_TUI_LLM_CONTEXT_INSPECTOR;
-      else process.env.MAVIS_TUI_LLM_CONTEXT_INSPECTOR = originalOptIn;
+        delete process.env.ALRAN_TUI_LLM_CONTEXT_INSPECTOR;
+      else process.env.ALRAN_TUI_LLM_CONTEXT_INSPECTOR = originalOptIn;
     }
   });
 });
@@ -2218,23 +2218,23 @@ describe("runtime services agent profile composition", () => {
       }) =>
         ({
           requestRef: "main",
-          resourceReadRef: "mavis",
+          resourceReadRef: "alran",
           exactOwnerName: input.exactOwnerName,
-          canonicalViewName: "mavis",
-          resolvedAgentName: "mavis",
+          canonicalViewName: "alran",
+          resolvedAgentName: "alran",
           agentRole: "orchestrator",
           creationSource: "builtin",
           surface: input.surface ?? "interactive",
-          memoryReadAgentNames: ["mavis", "main"],
+          memoryReadAgentNames: ["alran", "main"],
           corePrompt: "core",
           surfacePrompt: "surface",
           capabilityCeiling: {
             personaEnabled: true,
-            features: { mavis: false, delegation: false, webSearch: false },
+            features: { alran: false, delegation: false, webSearch: false },
           },
           provenance: {
             source: "legacy-read-through",
-            assetAgentName: "mavis",
+            assetAgentName: "alran",
             locale: "en-US",
           },
         }) as never,
@@ -2344,8 +2344,8 @@ describe("runtime services agent profile composition", () => {
         agent,
       });
       expect(rendered).toMatchObject({
-        resourceReadRef: "mavis",
-        memoryReadAgentNames: ["mavis", "main"],
+        resourceReadRef: "alran",
+        memoryReadAgentNames: ["alran", "main"],
       });
     }
     expect(
@@ -2359,7 +2359,7 @@ describe("runtime services agent profile composition", () => {
           memoryEnabled: false,
           cronEnabled: false,
           capabilities: expect.objectContaining({
-            features: expect.objectContaining({ mavis: false }),
+            features: expect.objectContaining({ alran: false }),
           }),
         }),
       ]),
@@ -2522,7 +2522,7 @@ describe("runtime active-steer consumption", () => {
     eventBus.subscribe({ next: (event) => events.push(event) });
     mocked.sessionSystem.sessions.repository.get.mockResolvedValue({
       sessionId: "session-1",
-      agentName: "mavis",
+      agentName: "alran",
     });
     await createRuntimeServices({
       db: {} as AppDb,
@@ -2566,7 +2566,7 @@ describe("runtime active-steer consumption", () => {
       source: "local-runtime",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-active",
       },
     });
@@ -3353,21 +3353,21 @@ describe("runtime services lifecycle", () => {
 
     expect(publish).toBeUndefined();
     await services.ready();
-    publish?.({ type: "agent.created", payload: { agentName: "mavis" } });
+    publish?.({ type: "agent.created", payload: { agentName: "alran" } });
 
     expect(received).toEqual([
       {
         type: "agent.created",
         timestamp: 1_700_000_000_000,
         source: "local-runtime",
-        payload: { agentName: "mavis" },
+        payload: { agentName: "alran" },
       },
     ]);
     publish?.({
       type: "session.finish",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-greeting",
         status: "finished",
       },
@@ -3380,7 +3380,7 @@ describe("runtime services lifecycle", () => {
       type: "session.error",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-failed-greeting",
         status: "error",
       },
@@ -3389,7 +3389,7 @@ describe("runtime services lifecycle", () => {
       type: "session.abort",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-cancelled-greeting",
         status: "aborted",
       },
@@ -3436,7 +3436,7 @@ describe("runtime services readiness and shutdown", () => {
       type: "session.finish",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-greeting-persistence-failure",
         status: "finished",
       },
@@ -3637,7 +3637,7 @@ describe("runtime services greeting terminal timing", () => {
       type: "session.finish",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-greeting-order",
         status: "finished",
       },
@@ -3676,7 +3676,7 @@ describe("runtime services greeting terminal timing", () => {
       type: "session.finish",
       payload: {
         sessionId: "session-1",
-        agentName: "mavis",
+        agentName: "alran",
         turnId: "turn-greeting-sync-failure",
         status: "finished",
       },
@@ -3796,7 +3796,7 @@ async function assertWorkspaceBashFileSourceResolution(): Promise<void> {
   expect(insidePatch?.content?.at(-1)).toEqual({
     type: "text",
     text: expect.stringContaining(
-      "Citation candidate: [demo.docx](#mavis-source=file:L3dvcmtzcGFjZS9wcm9qZWN0L2RlbW8uZG9jeA)",
+      "Citation candidate: [demo.docx](#alran-source=file:L3dvcmtzcGFjZS9wcm9qZWN0L2RlbW8uZG9jeA)",
     ),
   });
   expect(insidePatch?.details).toMatchObject({
@@ -3933,7 +3933,7 @@ function defaultCompatibility(
     sessionV2: {
       bindSessionPinReader: vi.fn(),
       legacyMigration: {
-        primaryAgentName: "mavis",
+        primaryAgentName: "alran",
         assets: {
           register: vi.fn(),
         },
@@ -4162,7 +4162,7 @@ describe("runtime services primary family execution identity", () => {
   function view(
     name: string,
     displayName: string,
-    canonicalViewName = "mavis",
+    canonicalViewName = "alran",
   ) {
     return {
       exactOwnerName: name,
@@ -4195,8 +4195,8 @@ describe("runtime services primary family execution identity", () => {
   function primaryFamilyViews(canonicalDisplayName: string): void {
     mocked.agentService.getPersistedOwnerForFrozenTask.mockImplementation(
       async (name) =>
-        name === "mavis"
-          ? view("mavis", canonicalDisplayName)
+        name === "alran"
+          ? view("alran", canonicalDisplayName)
           : name === "main"
             ? view("main", "Legacy Main")
             : undefined,
@@ -4204,7 +4204,7 @@ describe("runtime services primary family execution identity", () => {
     mocked.agentService.resolvePrimaryExecutionIdentity.mockImplementation(
       async (name) => ({
         storageOwnerName: name,
-        executionOwnerName: "mavis",
+        executionOwnerName: "alran",
         outcome: "canonical" as const,
       }),
     );
@@ -4248,8 +4248,8 @@ describe("runtime services primary family execution identity", () => {
     ).not.toHaveBeenCalled();
   });
 
-  it("keeps the main storage owner while sourcing identity from canonical mavis", async () => {
-    primaryFamilyViews("Mavis Canonical");
+  it("keeps the main storage owner while sourcing identity from canonical alran", async () => {
+    primaryFamilyViews("Alran Canonical");
     const info = vi.fn();
     const sources = await composeAgentSources({ ...noopLogger, info });
 
@@ -4257,46 +4257,46 @@ describe("runtime services primary family execution identity", () => {
       sources.agents.getExecutionSnapshot("main"),
     ).resolves.toMatchObject({
       agentName: "main",
-      executionOwnerName: "mavis",
-      resourceAgentName: "mavis",
-      displayName: "Mavis Canonical",
-      metadata: { requestRef: "mavis", canonicalViewName: "mavis" },
+      executionOwnerName: "alran",
+      resourceAgentName: "alran",
+      displayName: "Alran Canonical",
+      metadata: { requestRef: "alran", canonicalViewName: "alran" },
     });
     await expect(
-      sources.agents.getExecutionSnapshot("mavis"),
+      sources.agents.getExecutionSnapshot("alran"),
     ).resolves.toMatchObject({
-      agentName: "mavis",
-      executionOwnerName: "mavis",
-      resourceAgentName: "mavis",
-      displayName: "Mavis Canonical",
+      agentName: "alran",
+      executionOwnerName: "alran",
+      resourceAgentName: "alran",
+      displayName: "Alran Canonical",
     });
     expect(info).toHaveBeenCalledWith(
-      { storage_owner: "main", execution_owner: "mavis", outcome: "canonical" },
+      { storage_owner: "main", execution_owner: "alran", outcome: "canonical" },
       "primary_agent_execution_identity",
     );
   });
 
   it("renders the Turn profile from the resolved execution owner, not the storage owner", async () => {
-    primaryFamilyViews("Mavis Canonical");
+    primaryFamilyViews("Alran Canonical");
     mocked.agentService.renderProfile.mockResolvedValue({
-      requestRef: "mavis",
-      resourceReadRef: "mavis",
-      exactOwnerName: "mavis",
-      canonicalViewName: "mavis",
-      resolvedAgentName: "mavis",
+      requestRef: "alran",
+      resourceReadRef: "alran",
+      exactOwnerName: "alran",
+      canonicalViewName: "alran",
+      resolvedAgentName: "alran",
       agentRole: "orchestrator",
       creationSource: "builtin",
       surface: "interactive",
-      memoryReadAgentNames: ["mavis", "main"],
+      memoryReadAgentNames: ["alran", "main"],
       corePrompt: "core",
       surfacePrompt: "surface",
       capabilityCeiling: {
         personaEnabled: true,
-        features: { mavis: true, delegation: true, webSearch: true },
+        features: { alran: true, delegation: true, webSearch: true },
       },
       provenance: {
         source: "builtin",
-        assetAgentName: "mavis",
+        assetAgentName: "alran",
         locale: "en-US",
       },
     } as never);
@@ -4314,12 +4314,12 @@ describe("runtime services primary family execution identity", () => {
         isSessionFirstTurn: true,
       }),
       // Memory keeps reading the whole trusted family; behaviour does not.
-    ).resolves.toMatchObject({ memoryReadAgentNames: ["mavis", "main"] });
+    ).resolves.toMatchObject({ memoryReadAgentNames: ["alran", "main"] });
 
     expect(mocked.agentService.renderProfile).toHaveBeenCalledWith(
       expect.objectContaining({
-        exactOwnerName: "mavis",
-        requestRef: "mavis",
+        exactOwnerName: "alran",
+        requestRef: "alran",
         capabilities: undefined,
       }),
     );

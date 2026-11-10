@@ -1,4 +1,4 @@
-import { toRuntimeTool } from '@mavis/agent-core/tools';
+import { toRuntimeTool } from '@alran/agent-core/tools';
 import type { LocalBashEnvPolicySource } from './permission-execution.js';
 
 import { LocalAskUserTool } from './local-ask-user.js';
@@ -8,7 +8,7 @@ import type { LocalHostTrashRuntime } from './host-trash-executor.js';
 import { LocalGlobTool } from './local-glob.js';
 import { LocalGrepTool } from './local-grep.js';
 import { LocalSkillTool } from './local-skill.js';
-import { LocalMavisTool } from './local-mavis.js';
+import { LocalAlranTool } from './local-alran.js';
 import { LocalMemoryTool } from './local-memory.js';
 import { LocalCodeReviewTool } from './local-code-review.js';
 import {
@@ -36,10 +36,10 @@ import type {
   LocalWebsiteDeployAdapter,
   LocalMemoryAdapter,
   LocalCodeReviewAdapter,
-  LocalMavisAgentAdapter,
-  LocalMavisCronAdapter,
-  LocalMavisMcpAdapter,
-  LocalMavisSessionAdapter,
+  LocalAlranAgentAdapter,
+  LocalAlranCronAdapter,
+  LocalAlranMcpAdapter,
+  LocalAlranSessionAdapter,
   LocalSandboxBashOperationsFactory,
 } from './types.js';
 
@@ -61,10 +61,10 @@ export * from './local-glob.js';
 export * from './local-grep.js';
 export * from './local-rg-runner.js';
 export * from './local-skill.js';
-export * from './local-mavis.js';
-export * from './local-mavis-commands.js';
-export * from './local-mavis-ptc.js';
-export * from './local-mavis-cron-adapter.js';
+export * from './local-alran.js';
+export * from './local-alran-commands.js';
+export * from './local-alran-ptc.js';
+export * from './local-alran-cron-adapter.js';
 export * from './local-memory.js';
 export * from './local-code-review.js';
 export * from './local-task-control.js';
@@ -116,10 +116,10 @@ export interface LocalToolRegistryDeps {
   websiteDeployAdapter?: LocalWebsiteDeployAdapter;
   memoryAdapter?: LocalMemoryAdapter;
   codeReviewAdapter?: LocalCodeReviewAdapter;
-  mavisAgentAdapter?: LocalMavisAgentAdapter;
-  mavisCronAdapter?: LocalMavisCronAdapter;
-  mavisMcpAdapter?: LocalMavisMcpAdapter;
-  mavisSessionAdapter?: LocalMavisSessionAdapter;
+  alranAgentAdapter?: LocalAlranAgentAdapter;
+  alranCronAdapter?: LocalAlranCronAdapter;
+  alranMcpAdapter?: LocalAlranMcpAdapter;
+  alranSessionAdapter?: LocalAlranSessionAdapter;
 }
 
 export function buildLocalToolRegistry(deps: LocalToolRegistryDeps): Map<string, LocalRuntimeTool> {
@@ -149,14 +149,14 @@ export function buildLocalToolRegistry(deps: LocalToolRegistryDeps): Map<string,
   if (deps.codeReviewAdapter) {
     tools.push(toRuntimeTool(new LocalCodeReviewTool(deps.codeReviewAdapter)));
   }
-  if (deps.mavisAgentAdapter) {
+  if (deps.alranAgentAdapter) {
     tools.push(
       toRuntimeTool(
-        new LocalMavisTool(
-          deps.mavisAgentAdapter,
-          deps.mavisCronAdapter,
-          deps.mavisSessionAdapter,
-          deps.mavisMcpAdapter,
+        new LocalAlranTool(
+          deps.alranAgentAdapter,
+          deps.alranCronAdapter,
+          deps.alranSessionAdapter,
+          deps.alranMcpAdapter,
         ),
       ),
     );

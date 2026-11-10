@@ -5,7 +5,7 @@ import {
   type ConversationModelSelection,
   type ConversationPluginAgentDefinition,
   type ConversationTaskModelSelection,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import type {
   SessionKind,

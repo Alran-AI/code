@@ -3,8 +3,8 @@ import type {
   SandboxFilesystemPolicy,
   SandboxLocalAccess,
   SandboxNetworkPolicy,
-} from '@mavis/config';
-import type { LocalSandboxInvocationIdentity } from '@mavis/agent-tools/desktop';
+} from '@alran/config';
+import type { LocalSandboxInvocationIdentity } from '@alran/agent-tools/desktop';
 
 import type { SandboxApplyResult } from '../config-commit.js';
 import type {
@@ -115,7 +115,7 @@ export class SandboxObservability {
     const now = this.now();
     const sequence = this.#nextSequence++;
     const event: SandboxRuntimeEvent = {
-      schema: 'mavis.sandbox_runtime_event.v1',
+      schema: 'alran.sandbox_runtime_event.v1',
       runtime_instance_id: this.#runtimeId,
       event_id: `${this.#runtimeId}:${sequence}`,
       sequence,

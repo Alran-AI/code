@@ -1,8 +1,8 @@
 import {
   isCanonicalSubagentRole,
   resolveCanonicalSubagentRole,
-} from '@mavis/agent-tools/desktop/subagent-roles';
-import type { ResolvedAgentCapabilities } from '@mavis/config';
+} from '@alran/agent-tools/desktop/subagent-roles';
+import type { ResolvedAgentCapabilities } from '@alran/config';
 
 import type {
   AgentProfileRequest,
@@ -13,7 +13,7 @@ import type {
   AgentNameResolutionSource,
 } from '../contracts.js';
 
-const PRIMARY_AGENT_NAME = 'mavis';
+const PRIMARY_AGENT_NAME = 'alran';
 const LEGACY_PRIMARY_AGENT_NAME = 'main';
 
 const NAME_COMPAT_ERROR_CODES = new Set<AgentNameCompatErrorCode>([
@@ -56,7 +56,7 @@ export function toCanonicalClass(
   if (source === 'stable_name' || source === 'display_name_compat') {
     return trustedBuiltin === true &&
       (normalized === PRIMARY_AGENT_NAME || normalized === LEGACY_PRIMARY_AGENT_NAME)
-      ? 'mavis'
+      ? 'alran'
       : 'other';
   }
   return 'other';
@@ -116,7 +116,7 @@ export function stableTelemetryValue(value: unknown): string {
 
 export function resolveLocale(): string {
   return (
-    process.env.MAVIS_ELECTRON_LOCALE?.trim() ||
+    process.env.ALRAN_ELECTRON_LOCALE?.trim() ||
     Intl.DateTimeFormat().resolvedOptions().locale ||
     process.env.LANG?.split('.')[0]?.replace('_', '-') ||
     'en'
@@ -126,12 +126,12 @@ export function resolveLocale(): string {
 /**
  * A builtin SubAgent running as a task child answers to its parent task, not to
  * the user or to sibling Sessions, and it may not open further delegations. Its
- * static `agent.md` is deliberately left alone so the same Agent keeps Mavis on
+ * static `agent.md` is deliberately left alone so the same Agent keeps Alran on
  * a direct or root Session; the restriction belongs to the surface.
  *
- * SessionSend is a sub-command of the composite `mavis` Tool rather than a
+ * SessionSend is a sub-command of the composite `alran` Tool rather than a
  * top-level Tool, so hiding just that sub-command would leave the prompt and
- * the executable Tool disagreeing. Dropping the whole `mavis` capability keeps
+ * the executable Tool disagreeing. Dropping the whole `alran` capability keeps
  * prompt, Skill catalog and Tool catalog consistent. Custom Agents, including a
  * manual Agent holding a reserved name, are unaffected.
  */
@@ -149,10 +149,10 @@ export function applyBuiltinSubagentTaskChildCeiling(input: {
   ) {
     return capabilities;
   }
-  if (!capabilities.features.mavis && !capabilities.features.delegation) return capabilities;
+  if (!capabilities.features.alran && !capabilities.features.delegation) return capabilities;
   return {
     ...capabilities,
-    features: { ...capabilities.features, mavis: false, delegation: false },
+    features: { ...capabilities.features, alran: false, delegation: false },
   };
 }
 

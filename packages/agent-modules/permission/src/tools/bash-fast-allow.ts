@@ -31,7 +31,7 @@ import { consumeShellWrapperPrefix } from './bash-wrapper-unwrap.js';
  *   - any leading path component other than a normal absolute-path
  *     basename (relative paths like `./run.sh` are left alone)
  *
- * Env-var assignment prefixes (`MAVIS_SESSION=foo MAVIS_PORT=1 git commit …`)
+ * Env-var assignment prefixes (`ALRAN_SESSION=foo ALRAN_PORT=1 git commit …`)
  * are SKIPPED to find the real command word. To prevent deception via
  * `TARGET=/etc/shadow cat $TARGET`, we ALSO bail out when the post-prefix
  * command tokens reference ANY of the assigned variable names via `$VAR` /
@@ -49,7 +49,7 @@ import { consumeShellWrapperPrefix } from './bash-wrapper-unwrap.js';
 export function pureReadFirstWord(command: string): string | undefined {
   // POSIX shell line-continuation: `\` followed by a newline is the same as
   // a single whitespace. Without this fold the tokenizer keeps the literal
-  // backslash, mis-identifying `MAVIS_SESSION=x \↵ git push` as starting
+  // backslash, mis-identifying `ALRAN_SESSION=x \↵ git push` as starting
   // with `\` instead of `git`. Apply BEFORE shellTokenize so all downstream
   // (env-var prefix skip, command-word extraction) sees the joined form.
   const joined = command.replace(/\\\r?\n/g, ' ');
@@ -138,7 +138,7 @@ export function formatHardBlockedBashReason(
   ) {
     const base = `Blocked: command can irreversibly destroy files, disks, or backups. Command: ${command}. Reason: ${description}.`;
     if (category === 'windows-delete') {
-      return `${base} Use \`mavis-trash <path>\` for recoverable removal, or drop bypass for this call.`;
+      return `${base} Use \`alran-trash <path>\` for recoverable removal, or drop bypass for this call.`;
     }
     return base;
   }

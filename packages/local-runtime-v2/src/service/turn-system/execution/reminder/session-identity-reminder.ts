@@ -1,4 +1,4 @@
-import type { PiBeforeLlmCallHook } from '@mavis/agent-core/pi-turn-runner';
+import type { PiBeforeLlmCallHook } from '@alran/agent-core/pi-turn-runner';
 
 import {
   SESSION_IDENTITY_REMINDER_CUSTOM_TYPE,

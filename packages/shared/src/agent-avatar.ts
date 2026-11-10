@@ -3,8 +3,8 @@
  * created Custom Agents. It is deliberately a closed wire format: historical
  * URL/data/file avatar values can never be mistaken for a generated avatar.
  */
-const DEFAULT_AGENT_AVATAR_MARKER_PREFIX = 'mavis-agent-avatar://default/v1/';
-const DEFAULT_AGENT_AVATAR_MARKER_RE = /^mavis-agent-avatar:\/\/default\/v1\/([0-9])$/u;
+const DEFAULT_AGENT_AVATAR_MARKER_PREFIX = 'alran-agent-avatar://default/v1/';
+const DEFAULT_AGENT_AVATAR_MARKER_RE = /^alran-agent-avatar:\/\/default\/v1\/([0-9])$/u;
 
 /** Build the only supported generated-avatar marker (v1 has ten variants). */
 export function formatDefaultAgentAvatarMarker(variant: number): string {

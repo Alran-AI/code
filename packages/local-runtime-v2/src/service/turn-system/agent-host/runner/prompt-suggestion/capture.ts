@@ -1,4 +1,4 @@
-import type { LLMModelConfig, PiTurnHooks, RunTurnCaller } from '@mavis/agent-core/pi-turn-runner';
+import type { LLMModelConfig, PiTurnHooks, RunTurnCaller } from '@alran/agent-core/pi-turn-runner';
 import type { AgentHostTurnOutcome } from '../../contracts.js';
 import type { LocalTurnExecutionInput } from '../contracts.js';
 import { buildPromptSuggestionPayloadTransform } from '../../assembly/local-turn-payload-transform.js';

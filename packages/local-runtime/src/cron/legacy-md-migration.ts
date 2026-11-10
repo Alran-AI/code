@@ -9,7 +9,7 @@ import {
   type CronConfig,
   type CronRegistryStartOptions,
   type CronStorePort,
-} from '@mavis/cron';
+} from '@alran/cron';
 
 import { logger } from '../common/logger.js';
 import type { LocalSessionRecord } from '../sessions/controller.js';

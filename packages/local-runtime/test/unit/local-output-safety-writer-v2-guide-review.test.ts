@@ -11,8 +11,8 @@
  */
 import { describe, it, expect, vi } from 'vitest';
 
-import { RespDataType } from '@mavis/agent-core/protocol/agent-message';
-import { RuntimeEventType, type IRuntimeEvent } from '@mavis/protocol';
+import { RespDataType } from '@alran/agent-core/protocol/agent-message';
+import { RuntimeEventType, type IRuntimeEvent } from '@alran/protocol';
 
 import { LocalOutputSafetyEventWriter } from '../../src/runtime/output-safety-writer.js';
 import {

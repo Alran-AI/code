@@ -2,8 +2,8 @@ import {
   hasConversationTaskModelSelection,
   normalizeConversationSessionTitle,
   type ConversationTaskModelSelection,
-} from '@mavis/conversation-contract';
-import type { LocalTaskToolInput } from '@mavis/agent-tools/desktop';
+} from '@alran/conversation-contract';
+import type { LocalTaskToolInput } from '@alran/agent-tools/desktop';
 
 /** Shared Task boundary for foreground and background child creation. */
 export function normalizeLocalTaskInput(input: LocalTaskToolInput): LocalTaskToolInput {

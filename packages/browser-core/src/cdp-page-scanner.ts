@@ -35,7 +35,7 @@ type JavaScriptFallbackElement = Omit<InteractiveElement, 'backendNodeId'> & {
 
 const browserInputDiagnosticLogger = {
   info(fields: Record<string, unknown>): void {
-    if (process.env.MAVIS_BROWSER_DEBUG === '1') console.info(fields);
+    if (process.env.ALRAN_BROWSER_DEBUG === '1') console.info(fields);
   },
 };
 
@@ -70,7 +70,7 @@ export class CDPPageScanner {
   private buildSemanticPageTreeSafely(
     input: Parameters<typeof buildSemanticPageTree>[0],
   ): SemanticPageTree | null {
-    if (process.env.MAVIS_BROWSER_SEMANTIC_TREE_V1 === '0') return null;
+    if (process.env.ALRAN_BROWSER_SEMANTIC_TREE_V1 === '0') return null;
     try {
       return buildSemanticPageTree(input);
     } catch (error) {

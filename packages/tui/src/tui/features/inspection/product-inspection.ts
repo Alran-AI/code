@@ -65,7 +65,12 @@ export function createTuiAccountStatusInspection(
 ): TranscriptInspectionReport {
   const sessionModel = options.model;
   const status = account?.status ?? 'unknown';
-  const needsLogin = status === 'needs-login' || account?.managedTokenPresent === false;
+  const managedAccessPresent =
+    account?.managedTokenPresent === true || account?.platformSessionPresent === true;
+  const managedRoute =
+    account?.modelSource === 'token-plan' ||
+    (account?.modelSource === undefined && account?.authMode === 'managed-login');
+  const needsLogin = status === 'needs-login' || (managedRoute && !managedAccessPresent);
   // Match Desktop: show the editable profile name, falling back to the email.
   const identity = account?.identity?.name?.trim() || account?.identity?.email?.trim();
   const accountLabel = options.accountLoading
@@ -591,7 +596,8 @@ function createUsageAccountRows(
     account.tokenPlanQuota !== undefined;
   const needsLogin =
     !hasPlanInspection &&
-    (account.status === 'needs-login' || account.managedTokenPresent === false);
+    (account.status === 'needs-login' ||
+      (account.managedTokenPresent !== true && account.platformSessionPresent !== true));
   return [...createTokenPlanRows(account, needsLogin), ...createTokenPlanQuotaRows(account)];
 }
 

@@ -7,7 +7,7 @@ import { formatTuiShortcut } from "../../../../../src/tui/shell/shortcut-labels.
 import { normalizeAccountStatus } from "../../../../../src/runtime/adapters/normalizers.js";
 import { TuiWelcome } from "../../../../../src/tui/shell/welcome/component.js";
 import { stripAnsi } from "../../../../../src/tui/rendering/text.js";
-import { LIGHTWEIGHT_SESSION_PURPOSE } from "@mavis/protocol/local";
+import { LIGHTWEIGHT_SESSION_PURPOSE } from "@alran/protocol/local";
 
 const defaultQueueLabel = `${formatTuiShortcut("alt+enter")} queue`;
 

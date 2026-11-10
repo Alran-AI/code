@@ -1,4 +1,4 @@
-import { parsePluginMentions } from '@mavis/shared/plugin-mention';
+import { parsePluginMentions } from '@alran/shared/plugin-mention';
 import type { TuiMessage } from '../../../runtime/port.js';
 import {
   formatTuiHistorySubmission,

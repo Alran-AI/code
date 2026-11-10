@@ -10,7 +10,7 @@ import type {
   GetSessionForkOptionsResult as GetSessionForkOptionsResp,
   RewindSessionInput as RewindSessionReq,
   RewindSessionResult as RewindSessionResp,
-} from "@mavis/protocol/local";
+} from "@alran/protocol/local";
 
 import type {
   PendingSessionOperationIntent,

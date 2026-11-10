@@ -1,6 +1,6 @@
-import type { PiBeforeToolCallHook, PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
-import type { PluginHookPermissionUpdate } from '@mavis/plugin-hooks';
-import { withPermissionExecutionPlan } from '@mavis/agent-tools';
+import type { PiBeforeToolCallHook, PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
+import type { PluginHookPermissionUpdate } from '@alran/plugin-hooks';
+import { withPermissionExecutionPlan } from '@alran/agent-tools';
 
 import type { AgentHostChannelContext } from '../../preparation/contracts.js';
 import { assertAgentHostCapabilityAvailable } from '../../empty-dependencies.js';

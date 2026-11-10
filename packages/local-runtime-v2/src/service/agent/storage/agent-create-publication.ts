@@ -7,7 +7,7 @@ import { AgentFiles, type PreparedCustomAgentAvatar } from './agent-files.js';
 import {
   AgentConfigError,
   type CanonicalAgentConfig,
-  type CanonicalAgentMavisConfig,
+  type CanonicalAgentAlranConfig,
 } from './canonical-agent-config.js';
 
 export type PublishedCustomConfig = {
@@ -26,7 +26,7 @@ export function canonicalConfigForInsert(
   const displayName = input.displayName?.trim();
   const avatar = canonicalAvatar?.trim();
   const defaultWorkspaceDir = input.defaultWorkspaceDir?.trim();
-  const xMavis = {
+  const xAlran = {
     ...(displayName ? { displayName } : {}),
     ...(avatar ? { avatar } : {}),
     ...(defaultWorkspaceDir ? { defaultWorkspaceDir } : {}),
@@ -34,7 +34,7 @@ export function canonicalConfigForInsert(
   return {
     name: input.name,
     description: input.description?.trim() || displayName || input.name,
-    ...(Object.keys(xMavis).length > 0 ? { xMavis } : {}),
+    ...(Object.keys(xAlran).length > 0 ? { xAlran } : {}),
     systemPrompt: mergeLegacyPrompt(input.persona, input.systemPrompt),
   };
 }
@@ -101,7 +101,7 @@ function canonicalConfigForInitialDefinition(
   canonicalAvatar: string | undefined,
 ): Omit<CanonicalAgentConfig, 'diagnostics'> {
   const definition = initialDefinitionForInsert(input);
-  const xMavis = canonicalMavisForInitialDefinition(input, canonicalAvatar);
+  const xAlran = canonicalAlranForInitialDefinition(input, canonicalAvatar);
   return {
     name: input.name,
     description:
@@ -109,7 +109,7 @@ function canonicalConfigForInitialDefinition(
         ? definition.description
         : input.displayName?.trim() || input.name,
     ...canonicalInitialDefinitionFields(definition),
-    ...(Object.keys(xMavis).length === 0 ? {} : { xMavis }),
+    ...(Object.keys(xAlran).length === 0 ? {} : { xAlran }),
     systemPrompt: definition.systemPrompt,
   };
 }
@@ -137,22 +137,22 @@ function canonicalInitialDefinitionFields(
   };
 }
 
-function canonicalMavisForInitialDefinition(
+function canonicalAlranForInitialDefinition(
   input: AgentStoreInsert,
   canonicalAvatar: string | undefined,
-): CanonicalAgentMavisConfig {
-  const mavis = initialDefinitionForInsert(input).mavis;
+): CanonicalAgentAlranConfig {
+  const alran = initialDefinitionForInsert(input).alran;
   return {
     ...(input.displayName === undefined ? {} : { displayName: input.displayName }),
     ...(canonicalAvatar === undefined ? {} : { avatar: canonicalAvatar }),
-    ...(mavis?.contextWindow === undefined ? {} : { contextWindow: mavis.contextWindow }),
-    ...(mavis?.maxOutputTokens === undefined ? {} : { maxOutputTokens: mavis.maxOutputTokens }),
+    ...(alran?.contextWindow === undefined ? {} : { contextWindow: alran.contextWindow }),
+    ...(alran?.maxOutputTokens === undefined ? {} : { maxOutputTokens: alran.maxOutputTokens }),
     ...(input.defaultWorkspaceDir === undefined
       ? {}
       : { defaultWorkspaceDir: input.defaultWorkspaceDir }),
-    ...(mavis?.extensionSkills === undefined
+    ...(alran?.extensionSkills === undefined
       ? {}
-      : { extensionSkills: [...mavis.extensionSkills] }),
+      : { extensionSkills: [...alran.extensionSkills] }),
   };
 }
 

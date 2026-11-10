@@ -1,4 +1,4 @@
-import { getConfig, isManagedRuntime } from "@mavis/config";
+import { getConfig, isManagedRuntime } from "@alran/config";
 
 import { LocalRuntimeApiHost } from "../api/host.js";
 import { copyV2LayoutMigrationReceipt } from "../persistence/migration/v2-migration.js";
@@ -178,7 +178,7 @@ export function createLocalRuntimeHost(
     capabilities: options.capabilities,
     shellFamily: options.shellFamily,
     capabilityProfile: options.capabilityProfile,
-    mavisCronAdapterProvider: options.mavisCronAdapterProvider,
+    alranCronAdapterProvider: options.alranCronAdapterProvider,
     deleteAgentCronTasks: options.deleteAgentCronTasks,
     cronConsumerEnabled: options.cronConsumerEnabled,
     runtimeConversation: options.runtimeConversation,
@@ -258,7 +258,7 @@ function shouldUseRemoteSkillHub(
   options: CreateLocalRuntimeHostOptions,
 ): boolean {
   if (options.configGetter?.().skillHub?.enabled === false) return false;
-  if (process.env.__MAVIS_RUNTIME_MANAGED === "0") return false;
+  if (process.env.__ALRAN_RUNTIME_MANAGED === "0") return false;
   return (
     options.runtimeOwnerKind === "electron" ||
     options.capabilities?.electronHost === true ||

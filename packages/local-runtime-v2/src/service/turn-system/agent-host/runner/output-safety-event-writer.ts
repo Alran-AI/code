@@ -1,4 +1,4 @@
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
 import {
   MsgType,
   RespDataType,
@@ -6,20 +6,20 @@ import {
   type AgentMessage,
   type RespData,
   type ToolCall,
-} from '@mavis/agent-core/protocol/agent-message';
-import { readPtcChildExecutionDetails, readPtcExecutionDetails } from '@mavis/agent-core/tools';
+} from '@alran/agent-core/protocol/agent-message';
+import { readPtcChildExecutionDetails, readPtcExecutionDetails } from '@alran/agent-core/tools';
 import {
   sanitizePtcChildExecutionDetailsForSafety,
   sanitizePtcExecutionDetailsForSafety,
-} from '@mavis/agent-tools';
-import { KeyedOperationLane } from '@mavis/shared/keyed-operation-lane';
-import type { MetricsClient } from '@mavis/shared/metrics-proxy';
+} from '@alran/agent-tools';
+import { KeyedOperationLane } from '@alran/shared/keyed-operation-lane';
+import type { MetricsClient } from '@alran/shared/metrics-proxy';
 import {
   RUNTIME_EVENT_SCHEMA,
   RuntimeEventStatus,
   RuntimeEventType,
   type IRuntimeEvent,
-} from '@mavis/protocol';
+} from '@alran/protocol';
 
 import {
   reviewBlocks,

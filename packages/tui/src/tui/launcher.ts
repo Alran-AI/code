@@ -48,7 +48,7 @@ import {
   resolveAlranOAuthEndpointConfig,
   type AccessTokenLease,
   type AlranOAuthCore,
-} from '@mavis/oauth-core';
+} from '@alran/oauth-core';
 import {
   resolveTuiManagedBackendLane,
   resolveTuiStartupEnvironmentOption,
@@ -61,8 +61,8 @@ import {
   getRuntimeRegion,
   resetConfig,
   writeTuiStatusLineSetting,
-  type MavisRegion,
-} from '@mavis/config';
+  type AlranRegion,
+} from '@alran/config';
 import { markLoginRestartHandoff } from './login-restart-handoff.js';
 import {
   readTuiModeSetting,
@@ -77,7 +77,7 @@ import {
 } from '../cli/system-prompt-options.js';
 import { ALRAN_TUI_RESULT_PATH_ENV } from './automation/result-writer.js';
 import { startTuiStartupStatus, type TuiStartupStatus } from './startup-status.js';
-import type { AlranContextMode } from '@mavis/protocol/local';
+import type { AlranContextMode } from '@alran/protocol/local';
 
 const ALRAN_CODE_EXIT_SLOGAN = 'Your git diff is my farewell letter.';
 export interface LaunchTuiOptions {
@@ -147,7 +147,7 @@ export interface LaunchTuiDependencies {
   prepareDataDir?: typeof prepareTuiDataDir;
   restartProcess?: (
     sessionId?: string,
-    region?: MavisRegion,
+    region?: AlranRegion,
     initialPrompt?: string,
   ) => Promise<void>;
   createBusinessTelemetry?: typeof createAlranBusinessTelemetry;
@@ -344,7 +344,7 @@ export async function launchTui(
   let tuiRunning = false;
   let runtimeShutdownFailed = false;
   let restartRequested = false;
-  let restartRegion: MavisRegion | undefined;
+  let restartRegion: AlranRegion | undefined;
   let restartInitialPrompt: string | undefined;
   if (incidentReporter.runId) {
     process.on('uncaughtExceptionMonitor', onUncaughtExceptionMonitor);
@@ -840,7 +840,7 @@ function stopStartupStatus(status: TuiStartupStatus | undefined): void {
 
 export async function restartTuiProcess(
   sessionId?: string,
-  region?: MavisRegion,
+  region?: AlranRegion,
   initialPrompt?: string,
 ): Promise<void> {
   const args = resolveRestartArguments(process.execPath, process.argv, sessionId, initialPrompt);
@@ -874,9 +874,9 @@ export async function restartTuiProcess(
 
 export function resolveRestartEnvironment(
   environment: NodeJS.ProcessEnv,
-  region?: MavisRegion,
+  region?: AlranRegion,
 ): NodeJS.ProcessEnv {
-  return region ? markLoginRestartHandoff({ ...environment, MAVIS_REGION: region }) : environment;
+  return region ? markLoginRestartHandoff({ ...environment, ALRAN_REGION: region }) : environment;
 }
 
 export function resolveRestartArguments(

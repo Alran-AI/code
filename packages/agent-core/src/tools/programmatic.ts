@@ -12,8 +12,8 @@ import { createHash } from 'node:crypto';
 
 import type { ProgrammaticToolResult, ToolResult } from './types.js';
 
-const PROGRAMMATIC_ERROR_RAW = Symbol.for('mavis.programmaticTool.errorRaw');
-const PROGRAMMATIC_ERROR_DATA = Symbol.for('mavis.programmaticTool.errorData');
+const PROGRAMMATIC_ERROR_RAW = Symbol.for('alran.programmaticTool.errorRaw');
+const PROGRAMMATIC_ERROR_DATA = Symbol.for('alran.programmaticTool.errorData');
 
 /**
  * Attaches a raw error description to a thrown object in place, so the caller

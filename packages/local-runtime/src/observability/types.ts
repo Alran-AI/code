@@ -1,1 +1,1 @@
-export * from '@mavis/shared/local-runtime-diagnostics/types';
+export * from '@alran/shared/local-runtime-diagnostics/types';

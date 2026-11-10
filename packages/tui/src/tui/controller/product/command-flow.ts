@@ -1,4 +1,4 @@
-import { parsePluginMentions } from '@mavis/shared/plugin-mention';
+import { parsePluginMentions } from '@alran/shared/plugin-mention';
 import {
   createTuiCommandCatalog,
   matchTuiCommandInput,
@@ -38,7 +38,7 @@ import type { TuiUpdateFlow } from './update-flow.js';
 import type { TuiGoalFlow } from './goal-flow.js';
 import type { TuiPlanModeFlow } from '../interaction/plan-mode-flow.js';
 import type { TuiPermissionModeFlow } from '../interaction/permission-mode-flow.js';
-import type { MavisRegion } from '@mavis/config';
+import type { AlranRegion } from '@alran/config';
 import type { AlranAuthPort, AlranAuthResult } from '../../../auth/application.js';
 import { markTuiAuthorizationUrl } from '../../../auth/authorization-url.js';
 import type { TuiMode } from '../../engine/public.js';
@@ -124,7 +124,7 @@ export interface TuiCommandFlowOptions {
   readonly isLlmRetrying?: () => boolean;
   readonly abortLiveTurn: () => Promise<boolean>;
   readonly leaveUi: () => Promise<void>;
-  readonly requestRestart?: (region?: MavisRegion, initialPrompt?: string) => void;
+  readonly requestRestart?: (region?: AlranRegion, initialPrompt?: string) => void;
   readonly keybindings?: TuiKeybindingRegistry;
   readonly getTuiKeybindingOverrides?: () => Readonly<Record<string, TuiKeybindingOverride>>;
   readonly saveTuiKeybindingOverrides?: (
@@ -1489,7 +1489,9 @@ export class TuiCommandFlow {
     return {
       hasSession: Boolean(session),
       hasParentSession: Boolean(session?.parentSessionId),
-      managedTokenPresent: snapshot.account?.managedTokenPresent === true,
+      managedTokenPresent:
+        snapshot.account?.managedTokenPresent === true ||
+        snapshot.account?.platformSessionPresent === true,
       queueEnabled: this.options.queueEnabled,
       hasLiveRun: this.hasLiveRun(),
       hasPendingInteraction: this.options.interactionFlow.hasPending(),

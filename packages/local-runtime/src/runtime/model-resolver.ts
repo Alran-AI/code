@@ -1,15 +1,15 @@
-import { ThinkingLevel, type IAgentConfig, type IModelRef } from '@mavis/protocol';
+import { ThinkingLevel, type IAgentConfig, type IModelRef } from '@alran/protocol';
 import type { Api, Model } from '@earendil-works/pi-ai';
 import type { ThinkingLevel as PiThinkingLevel } from '@earendil-works/pi-agent-core';
-import type { LLMModelConfig } from '@mavis/agent-core/pi-turn-runner';
-import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@mavis/shared';
+import type { LLMModelConfig } from '@alran/agent-core/pi-turn-runner';
+import { withOpenCodeGoHeaders, withOpenRouterAttributionHeaders } from '@alran/shared';
 import { logger } from '../common/logger.js';
 import {
   isManagedProviderBaseUrl,
   resolveProviderAuthMode,
   type ProviderAuthMode,
   type ProviderAuthModeSource,
-} from '@mavis/config';
+} from '@alran/config';
 import type { LocalModelsConfig, LocalProviderOptions } from '../config/types.js';
 import { parseProviderId } from '../config/model-key.js';
 import {

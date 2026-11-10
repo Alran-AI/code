@@ -70,7 +70,7 @@ describe('local executor shell provenance', () => {
     for (const permissionModeOverride of ['off', 'default', 'bypassPermissions'] as const) {
       const result = await permissions.checkPermission({
         toolName: 'bash',
-        agentName: 'mavis',
+        agentName: 'alran',
         input: { command },
         permissionModeOverride,
       });
@@ -81,7 +81,7 @@ describe('local executor shell provenance', () => {
     expect(
       await permissions.checkPermission({
         toolName: 'bash',
-        agentName: 'mavis',
+        agentName: 'alran',
         input: { command: String.raw`Remove-Item C:\Windows\Temp\old.txt` },
       }),
     ).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
@@ -102,7 +102,7 @@ describe('local executor shell provenance', () => {
         ]) {
           const result = await permissions.checkPermission({
             toolName: 'bash',
-            agentName: 'mavis',
+            agentName: 'alran',
             input: { command },
             permissionModeOverride,
           });
@@ -119,7 +119,7 @@ describe('local executor shell provenance', () => {
         'powershell -Command "Remove-Item C:/Windows/Temp/old.txt"',
       ]) {
         expect(
-          await permissions.checkPermission({ toolName: 'bash', agentName: 'mavis', input: { command } }),
+          await permissions.checkPermission({ toolName: 'bash', agentName: 'alran', input: { command } }),
           command,
         ).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
       }
@@ -133,7 +133,7 @@ describe('local executor shell provenance', () => {
     expect(
       await resolveLocalPermissionService(host).checkPermission({
         toolName: 'bash',
-        agentName: 'mavis',
+        agentName: 'alran',
         input: { command: String.raw`del .\old.txt` },
       }),
     ).toMatchObject({ behavior: 'allow' });
@@ -148,7 +148,7 @@ describe('local executor shell provenance', () => {
     expect(
       await resolveLocalPermissionService(host).checkPermission({
         toolName: 'bash',
-        agentName: 'mavis',
+        agentName: 'alran',
         input: { command: 'Remove-Item ./old.txt' },
       }),
     ).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });

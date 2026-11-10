@@ -1,18 +1,18 @@
-import type { PiEventWriter } from '@mavis/agent-core/pi-turn-runner';
-import type { RuntimeTool } from '@mavis/agent-core/tools';
-import type { McpToolEntry } from '@mavis/agent-tools';
+import type { PiEventWriter } from '@alran/agent-core/pi-turn-runner';
+import type { RuntimeTool } from '@alran/agent-core/tools';
+import type { McpToolEntry } from '@alran/agent-tools';
 import type {
   LocalBashAdapter,
   LocalSandboxBashOperationsFactory,
   LocalCodeReviewAdapter,
-  LocalMavisAgentAdapter,
-  LocalMavisCronAdapter,
-  LocalMavisSessionAdapter,
+  LocalAlranAgentAdapter,
+  LocalAlranCronAdapter,
+  LocalAlranSessionAdapter,
   LocalTaskAdapter,
   LocalTaskAppendAdapter,
   LocalTaskControlAdapter,
-} from '@mavis/agent-tools/desktop';
-import type { AgentBuiltinSkillId, ResolvedAgentCapabilities } from '@mavis/config';
+} from '@alran/agent-tools/desktop';
+import type { AgentBuiltinSkillId, ResolvedAgentCapabilities } from '@alran/config';
 
 import type { LocalRuntimeConfig } from '../config/types.js';
 import type { DesktopTurnCapabilityView } from '../runtime/desktop-turn-capabilities.js';
@@ -63,9 +63,9 @@ export interface LocalTurnToolSourcesInput {
    */
   enableTodoWriteTool?: boolean;
   memoryFacade?: LocalMemoryFacade;
-  mavisAgentAdapter?: LocalMavisAgentAdapter;
-  mavisCronAdapter?: LocalMavisCronAdapter;
-  mavisSessionAdapter?: LocalMavisSessionAdapter;
+  alranAgentAdapter?: LocalAlranAgentAdapter;
+  alranCronAdapter?: LocalAlranCronAdapter;
+  alranSessionAdapter?: LocalAlranSessionAdapter;
   codeReviewAdapter?: LocalCodeReviewAdapter;
   /** Optional metrics reporter injected by the host. Absent -> noop. */
   metrics?: ModuleMetricsReporter;

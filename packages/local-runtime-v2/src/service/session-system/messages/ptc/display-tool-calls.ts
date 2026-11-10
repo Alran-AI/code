@@ -4,7 +4,7 @@ import {
   type AgentMessage,
   type AgentMessageChunk,
   type ToolCall,
-} from '@mavis/agent-core/protocol/agent-message';
+} from '@alran/agent-core/protocol/agent-message';
 
 import type { MessageRepository } from '../repo/contract.js';
 

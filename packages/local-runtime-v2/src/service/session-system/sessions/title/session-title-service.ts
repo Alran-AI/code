@@ -1,9 +1,9 @@
-import type { PromptSnapshotSource } from '@mavis/agent-runtime';
+import type { PromptSnapshotSource } from '@alran/agent-runtime';
 import {
   normalizeConversationSessionTitle,
   SESSION_TITLE_MAX_UNICODE_LENGTH,
-} from '@mavis/conversation-contract';
-import { parseAgentReferences } from '@mavis/shared/agent-mention';
+} from '@alran/conversation-contract';
+import { parseAgentReferences } from '@alran/shared/agent-mention';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { SessionRecord, SessionRepository } from '../repo/contract.js';

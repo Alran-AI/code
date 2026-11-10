@@ -1,5 +1,5 @@
 import type { ChalkInstance } from 'chalk';
-import type { GlobalThreadGoal } from '@mavis/shared/global-events';
+import type { GlobalThreadGoal } from '@alran/shared/global-events';
 import { formatTuiDuration } from '../../rendering/duration.js';
 import type { Component } from '../../rendering/component.js';
 import { sanitizeTerminalText } from '../../rendering/terminal-text.js';
@@ -269,7 +269,7 @@ function formatCompactCount(value: number): string {
  * chat-context contract; the TUI does not depend on the UI package.
  */
 const OBJECTIVE_EVIDENCE_RE =
-  /<(user-provided-context|mavis-chat-context|html-selection-context|deployed-website-context)\b[^>]*>[\s\S]*?<\/\1>/gu;
+  /<(user-provided-context|alran-chat-context|html-selection-context|deployed-website-context)\b[^>]*>[\s\S]*?<\/\1>/gu;
 
 function oneLine(value: string): string {
   return sanitizeTerminalText(value.replace(OBJECTIVE_EVIDENCE_RE, ''))

@@ -20,7 +20,7 @@
  * stays within the 500-line layout budget.
  */
 
-import type { AskQuestionnaireReplyPayload } from '@mavis/shared/questionnaire';
+import type { AskQuestionnaireReplyPayload } from '@alran/shared/questionnaire';
 
 import type {
   ChannelAttachmentDownloadInput,

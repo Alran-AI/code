@@ -1,4 +1,4 @@
-import type { CliService, SessionInfoView } from '@mavis/local-runtime-v2/cli-service';
+import type { CliService, SessionInfoView } from '@alran/local-runtime-v2/cli-service';
 import type {
   TuiAccountStatus,
   TuiEditMessageResult,
@@ -116,6 +116,7 @@ export function normalizeAccountStatus(raw: Record<string, unknown>): TuiAccount
     : [];
   const authMode = readString(provider, ['authMode']);
   const managedTokenPresent = readBoolean(auth, ['tokenPresent']);
+  const platformSessionPresent = readBoolean(auth, ['platformSessionPresent']);
   const providerId = readString(selection, ['providerId']) ?? readString(provider, ['id']);
   const byokRoute = authMode !== undefined && authMode !== 'managed-login';
   const modelSource: TuiAccountStatus['modelSource'] =
@@ -130,7 +131,8 @@ export function normalizeAccountStatus(raw: Record<string, unknown>): TuiAccount
             : undefined;
   const needsLogin =
     (modelSource === 'token-plan' || (modelSource === undefined && authMode === 'managed-login')) &&
-    managedTokenPresent !== true;
+    managedTokenPresent !== true &&
+    platformSessionPresent !== true;
   const tokenPlanQuota = normalizeTokenPlanQuota(raw.tokenPlanQuota);
   const rawTokenPlanQuotaState =
     raw.tokenPlanQuotaState === 'available' ||
@@ -155,6 +157,7 @@ export function normalizeAccountStatus(raw: Record<string, unknown>): TuiAccount
     modelId: readString(selection, ['modelId']),
     authMode,
     managedTokenPresent,
+    platformSessionPresent,
     modelSource,
     tokenPlanQuotaState,
     tokenPlanQuota,

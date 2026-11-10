@@ -38,7 +38,7 @@ export interface AskQuestionOption {
  * Image attached to a question step.
  *
  * `src` must be either an `https://` URL or an app-served attachment URL
- * (paths starting with `/mavis/api/`). Raw `file://` paths are rejected by
+ * (paths starting with `/alran/api/`). Raw `file://` paths are rejected by
  * the daemon normalizer to avoid local-fs exposure through the UI.
  */
 export interface AskQuestionImage {
@@ -231,7 +231,7 @@ export interface AskQuestionnaireReplyAnswer {
 
 /**
  * Structured reply payload posted by the UI to
- * `POST /mavis/api/agent/:agentId/questionnaire/:requestId/reply`.
+ * `POST /alran/api/agent/:agentId/questionnaire/:requestId/reply`.
  *
  * `submittedAt` is a Unix ms timestamp captured at the moment the user
  * clicked Submit. Storage is ms throughout; consumers format locally per
@@ -257,7 +257,7 @@ export interface AskQuestionnaireReplyPayload {
  * Option as authored by the LLM (id optional — the runtime fills it in).
  * `image` is optional preview art rendered above the label inside the
  * option card; same scheme rules as the step-level image (HTTPS or
- * `/mavis/api/...` paths).
+ * `/alran/api/...` paths).
  */
 export interface AskUserToolOptionInput {
   id?: string;
@@ -326,7 +326,7 @@ export interface AskUserToolInput {
 export const ASK_OTHER_PLACEHOLDER = 'Others...' as const;
 
 /**
- * Tool name registered for the Mavis-owned `ask_user` flow. The daemon
+ * Tool name registered for the Alran-owned `ask_user` flow. The daemon
  * marks this name as an interactive tool so the permission engine returns
  * `behavior: 'ask'`, which the legacy local-runtime plugin translates into a
  * `<questionnaire-ask>` XML instruction for the LLM to emit.

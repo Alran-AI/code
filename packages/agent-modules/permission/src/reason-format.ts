@@ -75,8 +75,8 @@ function formatWorkingDirectoryReason(
 
 function formatInternalWhitelistReason(fsPath: string, lang: Lang): string {
   return lang === 'zh'
-    ? `已允许：Mavis 内部托管路径。路径：${fsPath}`
-    : `Allowed: internal Mavis-managed path. Path: ${fsPath}`;
+    ? `已允许：Alran 内部托管路径。路径：${fsPath}`
+    : `Allowed: internal Alran-managed path. Path: ${fsPath}`;
 }
 
 function formatSessionOwnedReadablePathReason(fsPath: string, lang: Lang): string {
@@ -116,8 +116,8 @@ function formatDangerousRemovalReason(fsPath: string, lang: Lang): string {
 
 function formatRmRewriteReason(rewrittenCommand: string, lang: Lang): string {
   return lang === 'zh'
-    ? `已允许：rm 命令已改写为 mavis-trash 以便恢复。原命令：${rewrittenCommand}`
-    : `Allowed: rm command was rewritten to mavis-trash for recoverable deletion. Original command: ${rewrittenCommand}`;
+    ? `已允许：rm 命令已改写为 alran-trash 以便恢复。原命令：${rewrittenCommand}`
+    : `Allowed: rm command was rewritten to alran-trash for recoverable deletion. Original command: ${rewrittenCommand}`;
 }
 
 const UNKNOWN_REASON: Record<Lang, string> = {

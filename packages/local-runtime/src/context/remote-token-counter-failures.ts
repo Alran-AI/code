@@ -15,9 +15,9 @@ const CONFIGURATION_REJECTED_STATUSES = new Set([401, 402, 403, 410]);
 const REQUEST_REJECTED_STATUSES = new Set([400, 422]);
 const REQUEST_REJECTIONS_BEFORE_STOP = 2;
 const REQUEST_CONTEXT_HEADERS = new Set([
-  'x-mavis-session-id',
-  'x-mavis-agent-id',
-  'x-mavis-timezone-offset',
+  'x-alran-session-id',
+  'x-alran-agent-id',
+  'x-alran-timezone-offset',
   'x-opencode-session',
   'x-request-id',
   'traceparent',

@@ -2,7 +2,7 @@ import type {
   ThreadGoalSettleBoundTurnInput,
   ThreadGoalStatusReason,
   VerificationDispatchFailureCode,
-} from '@mavis/goal';
+} from '@alran/goal';
 
 /**
  * Map a verifier dispatch failure onto the status reason that names its *owner*.

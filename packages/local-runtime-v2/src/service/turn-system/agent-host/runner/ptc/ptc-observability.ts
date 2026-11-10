@@ -1,5 +1,5 @@
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
-import { isPtcMavisChildToolName } from '@mavis/agent-tools';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
+import { isPtcAlranChildToolName } from '@alran/agent-tools';
 
 import type { PtcExecutionResult } from '../../execution/ptc/contracts.js';
 
@@ -16,7 +16,7 @@ import type { PtcExecutionResult } from '../../execution/ptc/contracts.js';
 export type PtcLogger = Pick<PiTurnRunnerLogger, 'info'>;
 /**
  * The two MetricsClient methods PTC calls, spelled out so runner/ptc and
- * execution/ need no @mavis/shared import; the real MetricsClient fits as is.
+ * execution/ need no @alran/shared import; the real MetricsClient fits as is.
  */
 export interface PtcMetrics {
   counter(name: string, value: number, labels?: Record<string, string>): void;
@@ -146,7 +146,7 @@ const BUILTIN_TOOL_LABELS: ReadonlySet<string> = new Set([
   'task_output',
   'task_stop',
   'mcp_invoke',
-  'mavis',
+  'alran',
   'self_reminder',
   'workspace_semantic_search',
 ]);
@@ -157,10 +157,10 @@ type PtcToolLabeler = (toolName: string) => string;
  * Metric `tool` label for this Turn: listed built-ins by name, the Turn's MCP
  * and App tools (from their capability bindings, or the `mcp__` prefix) as
  * `mcp` / `app`, Browser (`browser`, `mcp_browser`) as `browser`, every
- * `computer_*` action as `computer_use`, the mavis_* run_code tools as `mavis`
- * (each is one mavis command, the same tool as the top-level mavis),
+ * `computer_*` action as `computer_use`, the alran_* run_code tools as `alran`
+ * (each is one alran command, the same tool as the top-level alran),
  * everything else as `other`. MCP and App tool names, Computer Use actions
- * and mavis commands never reach a label, which also keeps the label set small.
+ * and alran commands never reach a label, which also keeps the label set small.
  */
 export function createPtcToolLabeler(
   bindings: readonly {
@@ -175,7 +175,7 @@ export function createPtcToolLabeler(
     if (kind === 'mcp' || toolName.startsWith('mcp__')) return 'mcp';
     if (toolName === 'browser' || toolName === 'mcp_browser') return 'browser';
     if (toolName.startsWith('computer_')) return 'computer_use';
-    if (isPtcMavisChildToolName(toolName)) return 'mavis';
+    if (isPtcAlranChildToolName(toolName)) return 'alran';
     return BUILTIN_TOOL_LABELS.has(toolName) ? toolName : 'other';
   };
 }

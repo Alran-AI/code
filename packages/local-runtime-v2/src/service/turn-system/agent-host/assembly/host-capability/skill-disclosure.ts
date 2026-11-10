@@ -1,4 +1,4 @@
-import type { RuntimeTool } from '@mavis/agent-core/tools';
+import type { RuntimeTool } from '@alran/agent-core/tools';
 
 import type { HostCapabilityReferenceTarget } from './contracts.js';
 

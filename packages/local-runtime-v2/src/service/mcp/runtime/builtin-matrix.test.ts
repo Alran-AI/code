@@ -29,8 +29,8 @@ const desktopMocks = vi.hoisted(() => ({
   // PI MCP src split) — declare an explicit mock so the test does not
   // depend on dist freshness.
   getDesktopMatrixEndpoint: vi.fn((env: NodeJS.ProcessEnv = {}) => {
-    const region = env.MAVIS_REGION === 'cn' ? 'cn' : 'en';
-    const buildEnv = env.MAVIS_BUILD_ENV === 'prod' ? 'prod' : 'test';
+    const region = env.ALRAN_REGION === 'cn' ? 'cn' : 'en';
+    const buildEnv = env.ALRAN_BUILD_ENV === 'prod' ? 'prod' : 'test';
     const managed: Record<'en' | 'cn', Record<'test' | 'prod', string>> = {
       en: {
         test: 'https://matrix-overseas-test.example.invalid',
@@ -45,16 +45,16 @@ const desktopMocks = vi.hoisted(() => ({
   }),
 }));
 
-vi.mock('@mavis/agent-tools/desktop', () => ({
+vi.mock('@alran/agent-tools/desktop', () => ({
   createMatrixMcpRuntime: desktopMocks.createMatrixMcpRuntime,
   buildMatrixMcpToolDescriptors: desktopMocks.buildMatrixMcpToolDescriptors,
   getDesktopMatrixEndpoint: desktopMocks.getDesktopMatrixEndpoint,
 }));
 
 const ORIGINAL_ENV = {
-  MAVIS_REGION: process.env.MAVIS_REGION,
-  MAVIS_BUILD_ENV: process.env.MAVIS_BUILD_ENV,
-  MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT: process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT,
+  ALRAN_REGION: process.env.ALRAN_REGION,
+  ALRAN_BUILD_ENV: process.env.ALRAN_BUILD_ENV,
+  ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT: process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT,
 };
 
 function restoreEnv(key: keyof typeof ORIGINAL_ENV): void {
@@ -68,15 +68,15 @@ describe('builtin Matrix MCP server config', () => {
     vi.resetModules();
     desktopMocks.createMatrixMcpRuntime.mockClear();
     desktopMocks.buildMatrixMcpToolDescriptors.mockClear();
-    process.env.MAVIS_REGION = 'en';
-    process.env.MAVIS_BUILD_ENV = 'test';
-    process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT = process.execPath;
+    process.env.ALRAN_REGION = 'en';
+    process.env.ALRAN_BUILD_ENV = 'test';
+    process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT = process.execPath;
   });
 
   afterEach(() => {
-    restoreEnv('MAVIS_REGION');
-    restoreEnv('MAVIS_BUILD_ENV');
-    restoreEnv('MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT');
+    restoreEnv('ALRAN_REGION');
+    restoreEnv('ALRAN_BUILD_ENV');
+    restoreEnv('ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT');
   });
 
   it('marks the stdio child so packaged Electron runs it as Node', async () => {
@@ -85,9 +85,9 @@ describe('builtin Matrix MCP server config', () => {
     const config = buildBuiltinMatrixServerConfig({ workspaceRoot: '/workspace/current' });
 
     expect(config.env).toMatchObject({
-      MAVIS_REGION: 'en',
-      MAVIS_BUILD_ENV: 'test',
-      MAVIS_MATRIX_WORKSPACE_ROOT: '/workspace/current',
+      ALRAN_REGION: 'en',
+      ALRAN_BUILD_ENV: 'test',
+      ALRAN_MATRIX_WORKSPACE_ROOT: '/workspace/current',
       ELECTRON_RUN_AS_NODE: '1',
     });
   });
@@ -95,8 +95,8 @@ describe('builtin Matrix MCP server config', () => {
   it.each([undefined, 'qa'])(
     'omits an invalid raw build env from the Matrix child (%s)',
     async (buildEnv) => {
-      if (buildEnv === undefined) delete process.env.MAVIS_BUILD_ENV;
-      else process.env.MAVIS_BUILD_ENV = buildEnv;
+      if (buildEnv === undefined) delete process.env.ALRAN_BUILD_ENV;
+      else process.env.ALRAN_BUILD_ENV = buildEnv;
 
       const { buildBuiltinMatrixServerConfig } = await import('./builtin-matrix.js');
       const config = buildBuiltinMatrixServerConfig({
@@ -104,8 +104,8 @@ describe('builtin Matrix MCP server config', () => {
         routingContext: { bedrockLane: 'lane-a' },
       });
 
-      expect(config.env?.MAVIS_BUILD_ENV).toBeUndefined();
-      expect(config.env?.MAVIS_MATRIX_BEDROCK_LANE).toBe('lane-a');
+      expect(config.env?.ALRAN_BUILD_ENV).toBeUndefined();
+      expect(config.env?.ALRAN_MATRIX_BEDROCK_LANE).toBe('lane-a');
     },
   );
 
@@ -168,8 +168,8 @@ describe('builtin Matrix MCP server config', () => {
       authContext: { accessToken: 'token' },
     });
 
-    expect(config.env?.MAVIS_MATRIX_EXTRA_INPUT_ROOTS).toBe(expectedAssets);
-    expect(overrides.env?.MAVIS_MATRIX_EXTRA_INPUT_ROOTS).toBe(expectedAssets);
+    expect(config.env?.ALRAN_MATRIX_EXTRA_INPUT_ROOTS).toBe(expectedAssets);
+    expect(overrides.env?.ALRAN_MATRIX_EXTRA_INPUT_ROOTS).toBe(expectedAssets);
   });
 
   it('omits the extra input root without dataDir and keeps connectionKey dataDir-free (TS-10)', async () => {
@@ -183,8 +183,8 @@ describe('builtin Matrix MCP server config', () => {
       dataDir: join(tmpdir(), 'matrix-builtin-data'),
     });
 
-    expect(config.env?.MAVIS_MATRIX_EXTRA_INPUT_ROOTS).toBeUndefined();
-    expect(without.env?.MAVIS_MATRIX_EXTRA_INPUT_ROOTS).toBeUndefined();
+    expect(config.env?.ALRAN_MATRIX_EXTRA_INPUT_ROOTS).toBeUndefined();
+    expect(without.env?.ALRAN_MATRIX_EXTRA_INPUT_ROOTS).toBeUndefined();
     expect(withDataDir.connectionKey).toBe(without.connectionKey);
   });
 
@@ -207,7 +207,7 @@ describe('builtin Matrix MCP server config', () => {
   });
 
   it('does not resolve a missing Matrix stdio entrypoint', async () => {
-    process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT = join(
+    process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT = join(
       tmpdir(),
       `missing-matrix-mcp-stdio-${process.pid}.js`,
     );
@@ -222,7 +222,7 @@ describe('builtin Matrix MCP server config', () => {
     try {
       const entrypoint = join(tmp, 'matrix-mcp-stdio.js');
       await writeFile(entrypoint, '#!/usr/bin/env node\n', 'utf8');
-      process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT = entrypoint;
+      process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT = entrypoint;
       const { resolveMatrixMcpStdioEntrypoint } = await import('./builtin-matrix.js');
 
       expect(resolveMatrixMcpStdioEntrypoint()).toBe(entrypoint);
@@ -233,7 +233,7 @@ describe('builtin Matrix MCP server config', () => {
   });
 
   it('resolves the standalone Matrix stdio entrypoint next to cli.js', async () => {
-    delete process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT;
+    delete process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT;
     const tmp = await mkdtemp(join(tmpdir(), 'matrix-mcp-bundled-entrypoint-'));
     try {
       const cliEntry = join(tmp, 'cli.js');
@@ -249,16 +249,16 @@ describe('builtin Matrix MCP server config', () => {
   });
 
   it('keeps resolving the packaged Electron Matrix stdio entrypoint from agent-tools', async () => {
-    delete process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT;
+    delete process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT;
     const tmp = await mkdtemp(join(tmpdir(), 'matrix-mcp-electron-entrypoint-'));
     try {
       const runtimeEntry = join(
         tmp,
-        'node_modules/@mavis/local-runtime-v2/dist/service/mcp/runtime/builtin-matrix.js',
+        'node_modules/@alran/local-runtime-v2/dist/service/mcp/runtime/builtin-matrix.js',
       );
       const entrypoint = join(
         tmp,
-        'node_modules/@mavis/agent-tools/dist/desktop/matrix-mcp-stdio.js',
+        'node_modules/@alran/agent-tools/dist/desktop/matrix-mcp-stdio.js',
       );
       await mkdir(dirname(entrypoint), { recursive: true });
       await writeFile(entrypoint, '#!/usr/bin/env node\n', 'utf8');

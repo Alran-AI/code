@@ -2,7 +2,7 @@ import {
   QUESTIONNAIRE_TTL_MS,
   type AskQuestionnaireReplyPayload,
   type OrdinaryQuestionnaireResponseOrigin,
-} from '@mavis/shared/questionnaire';
+} from '@alran/shared/questionnaire';
 
 import type {
   BeginQuestionnaireInput,

@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@mavis/config/data-dir';
+import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@alran/config/data-dir';
 
 import type { LocalSessionRecord } from '../sessions/controller.js';
 import { validateAgentName } from '../agent/contract.js';
@@ -111,7 +111,7 @@ export function normalizeAbsolutePath(value: string | undefined): string | undef
 }
 
 /**
- * Match the one-way read alias from the historical `.mavis[-profile]` data
+ * Match the one-way read alias from the historical `.alran[-profile]` data
  * directory to the current `.alran[-profile]` data directory.
  *
  * The alias is deliberately narrower than a general path migration: both
@@ -217,7 +217,7 @@ function parseAgentWorkspacePath(
     return undefined;
   }
   const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
+  const match = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
   if (!match?.[1]) return undefined;
   return {
     windows,
@@ -228,7 +228,7 @@ function parseAgentWorkspacePath(
 }
 
 /**
- * Parser-only: lexically parses absolute `<parent>/.{mavis|alran}[-profile]/sessions/<sessionId>/workspace`
+ * Parser-only: lexically parses absolute `<parent>/.{alran|alran}[-profile]/sessions/<sessionId>/workspace`
  * candidates and extracts `windows`, `parentDir`, `dataDirBase`, and `profileSuffix`.
  * It validates the exact suffix shape and supplied `sessionId`; the caller compares alias
  * direction and parent/profile equality in `isLegacySessionDefaultWorkspaceDir`.
@@ -263,7 +263,7 @@ function parseSessionDefaultWorkspacePath(
   }
 
   const dataDirPart = parts.at(-4);
-  const dataDirMatch = dataDirPart?.match(/^\.(alran|mavis)(?:-(.+))?$/i);
+  const dataDirMatch = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
   if (!dataDirMatch) return undefined;
   const dataDirBase = dataDirMatch[1];
   if (!dataDirBase) return undefined;

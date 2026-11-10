@@ -94,7 +94,7 @@ export async function initializeManagedDesktopPromptConfig(
       fetchImpl: options.fetchImpl,
       ...(options.appVersion ? { appVersion: options.appVersion } : {}),
       previewSecret: process.env.PREVIEW_SECRET,
-      lane: process.env.MAVIS_PLUGIN_CLOUD_LANE,
+      lane: process.env.ALRAN_PLUGIN_CLOUD_LANE,
     }),
     desktopKey: readPromptConfigDesktopKey(options.desktopKey),
     allowedPaths: registry.paths,

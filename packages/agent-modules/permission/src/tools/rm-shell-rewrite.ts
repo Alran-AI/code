@@ -3,7 +3,7 @@ import { splitCommand, findHeredocBodyRanges } from './bash-split.js';
 import { consumeShellWrapperPrefix } from './bash-wrapper-unwrap.js';
 import { shellTokenizeWithMetadata } from './shell-tokenize.js';
 
-export const POSIX_TRASH_EXECUTION = Symbol.for('@mavis/permission/posix-trash-execution');
+export const POSIX_TRASH_EXECUTION = Symbol.for('@alran/permission/posix-trash-execution');
 
 export interface PosixTrashExecution {
   readonly launcher: string;

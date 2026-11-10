@@ -1,8 +1,8 @@
-import type { RuntimeEvent } from '@mavis/agent-core/protocol';
+import type { RuntimeEvent } from '@alran/agent-core/protocol';
 import type {
   ConversationChannelContext,
   ConversationCommittedMessage,
-} from '@mavis/conversation-contract';
+} from '@alran/conversation-contract';
 
 import type { DisplayMessageRecord, MessageSourceRecord } from '../session-system/index.js';
 

@@ -1,4 +1,4 @@
-import { isContinuationStatus, type ThreadGoalState, type ThreadGoalWaitReason } from '@mavis/goal';
+import { isContinuationStatus, type ThreadGoalState, type ThreadGoalWaitReason } from '@alran/goal';
 
 import type { GoalDependencyGates } from './dependency-gates.js';
 import { firstGoalBlocker } from './blockers.js';

@@ -3,8 +3,8 @@ import {
   listRequestImages,
   replaceRequestImages,
   type RequestImage,
-} from '@mavis/agent-core/pi-turn-runner';
-import { checkpointImageText } from '@mavis/context-manager';
+} from '@alran/agent-core/pi-turn-runner';
+import { checkpointImageText } from '@alran/context-manager';
 
 import type {
   CheckpointAttemptMetadata,

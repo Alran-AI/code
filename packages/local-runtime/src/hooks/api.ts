@@ -192,7 +192,7 @@ function registerLocalBuiltinHooks(
         ...readStringArray(output.metadata['localBuiltin']),
         'office-file-skill-env-gate',
       ];
-      if (process.env.MAVIS_LOCAL_RUNTIME_DISABLE_OFFICE_SKILLS === '1') {
+      if (process.env.ALRAN_LOCAL_RUNTIME_DISABLE_OFFICE_SKILLS === '1') {
         output._abort = {
           reason: `Office file tool use is disabled by local runtime environment: ${filePath}`,
         };
@@ -200,7 +200,7 @@ function registerLocalBuiltinHooks(
     },
   });
   // Computer Use — inject screenshot images into the LLM context when agent
-  // invokes CU tools via bash ("mavis mcp call cu desktop_screenshot").
+  // invokes CU tools via bash ("alran mcp call cu desktop_screenshot").
   registry.registerBuiltin(createCuImageInjectorRegistration());
   // Review links — record the PR/MR a branch belongs to when the agent runs
   // `gh pr create|view` / `glab mr create|view`, so the TUI status line can

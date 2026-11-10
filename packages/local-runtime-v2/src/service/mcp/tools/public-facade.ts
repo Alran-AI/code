@@ -3,7 +3,7 @@ import type {
   ListLocalMcpServersInput,
   ListLocalMcpServersResult,
   LocalMcpServerSummary,
-} from '@mavis/protocol/local';
+} from '@alran/protocol/local';
 
 import type {
   LocalMcpPublicServerCapability,

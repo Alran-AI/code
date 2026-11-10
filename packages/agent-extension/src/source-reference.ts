@@ -7,13 +7,13 @@ import {
   collapseAdjacentDuplicateFileCitations,
   collectUsedWebEvidenceIds,
   resolveKnownCitationAlias,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import type {
   AfterLlmCallHandler,
   AgentExtension,
   AfterToolCallHandler,
   TurnAssemblyCtx,
-} from '@mavis/agent-runtime';
+} from '@alran/agent-runtime';
 import {
   filePathsMatch,
   generatedFilePathsForToolCall,
@@ -455,7 +455,7 @@ function renderSourceReferenceMarker(
     reference.type === 'app' || reference.type === 'mcp'
       ? shortCitationIdFor(citationId, citationAliasState)
       : citationId;
-  return `Citation candidate: #mavis-source=${modelCitationId}`;
+  return `Citation candidate: #alran-source=${modelCitationId}`;
 }
 
 function withModelCitationAlias(
@@ -1083,7 +1083,7 @@ function comparableNumber(value: string): string | undefined {
 }
 
 function sourceReferenceHref(sourceId: string): string {
-  return `#mavis-source=${sourceId}`;
+  return `#alran-source=${sourceId}`;
 }
 
 function answerCitesReference(answer: string, reference: ToolSourceReference): boolean {
@@ -1651,7 +1651,7 @@ function normalizeMalformedFileMentionLinks(
       index % 2 === 1
         ? segment
         : segment.replace(
-            /\[(\[[^\]\n]+\]\((#mavis-source=file:[^\s)"'<>]+)\))\]\(((?:[^()\n]|\([^()\n]*\))*)\)/gu,
+            /\[(\[[^\]\n]+\]\((#alran-source=file:[^\s)"'<>]+)\))\]\(((?:[^()\n]|\([^()\n]*\))*)\)/gu,
             (wrapper, citation: string, href: string, outerHref: string) => {
               const target = decodePercentEncodedText(outerHref)
                 .replace(/^\((.*)\)$/u, '$1')
@@ -1891,7 +1891,7 @@ function normalizeFileCitationLineAddresses(
   if (fileNamesBySourceHref.size === 0) return text;
   return text.replace(
     new RegExp(
-      `\\[([^\\]\\n]+)\\]\\((#mavis-source=file:[^\\s)"'<>]+)\\)(${FILE_LINE_ADDRESS_PATTERN})`,
+      `\\[([^\\]\\n]+)\\]\\((#alran-source=file:[^\\s)"'<>]+)\\)(${FILE_LINE_ADDRESS_PATTERN})`,
       'giu',
     ),
     (citation, label: string, href: string, lineAddress: string) => {
@@ -1939,7 +1939,7 @@ function isFilePathTag(value: string): boolean {
 }
 
 function isFileSourceMarkdownLink(value: string): boolean {
-  return /^\[[^\]\n]+\]\(#mavis-source=file:/iu.test(value);
+  return /^\[[^\]\n]+\]\(#alran-source=file:/iu.test(value);
 }
 
 function isAssetMarkup(value: string): boolean {
@@ -2315,19 +2315,19 @@ function normalizeBareToolSourceLines(text: string): string {
   const label = /[\u3400-\u9fff]/u.test(text) ? '来源：' : 'Source: ';
   return text
     .replace(
-      /^([ \t]*)[（(]\s*(\[[^\]\n]+\]\(#mavis-source=[^)\n]+\))\s*[）)][ \t]*$/gmu,
+      /^([ \t]*)[（(]\s*(\[[^\]\n]+\]\(#alran-source=[^)\n]+\))\s*[）)][ \t]*$/gmu,
       (_line, indent: string, citation: string) =>
         `${indent}${indent ? '- ' : ''}${label}${citation}`,
     )
     .replace(
-      /^-[ \t]+((?:来源[：:]|Source:)[ \t]*\[[^\]\n]+\]\(#mavis-source=[^)\n]+\))[ \t]*$/gmu,
+      /^-[ \t]+((?:来源[：:]|Source:)[ \t]*\[[^\]\n]+\]\(#alran-source=[^)\n]+\))[ \t]*$/gmu,
       '$1',
     );
 }
 
 function sourceIdFromCandidateHref(href: string): string | undefined {
-  const marker = '#mavis-source=';
-  const schemeMarker = '://mavis-source=';
+  const marker = '#alran-source=';
+  const schemeMarker = '://alran-source=';
   let decodedHref = href.trim();
   try {
     decodedHref = decodeURIComponent(decodedHref);
@@ -2341,8 +2341,8 @@ function sourceIdFromCandidateHref(href: string): string | undefined {
       ? decodedHref.slice(markerIndex + marker.length)
       : schemeMarkerIndex >= 0
         ? decodedHref.slice(schemeMarkerIndex + schemeMarker.length)
-        : decodedHref.startsWith('mavis-source=')
-          ? decodedHref.slice('mavis-source='.length)
+        : decodedHref.startsWith('alran-source=')
+          ? decodedHref.slice('alran-source='.length)
           : /^(?:app|mcp):/u.test(decodedHref)
             ? decodedHref
             : undefined;
@@ -2358,7 +2358,7 @@ function legacyToolSourceLocator(href: string): { provider: string; toolName: st
     // Match the original candidate when malformed escaping is present.
   }
   const match = /^([a-z0-9._-]+)#([a-z0-9._-]+)$/iu.exec(decodedHref);
-  if (!match?.[1] || !match[2] || match[2].toLowerCase() === 'mavis-source') return undefined;
+  if (!match?.[1] || !match[2] || match[2].toLowerCase() === 'alran-source') return undefined;
   return { provider: match[1], toolName: match[2].toLowerCase() };
 }
 
@@ -2423,7 +2423,7 @@ function buildCitationRetryPrompt(
           : `${escapeMarkdownLabel(reference.name)} (${escapeMarkdownLabel(reference.tool_name)}) => ${sourceReferenceHref(modelCitationIdFor(reference, citationAliasState))}`,
     )
     .join(', ');
-  return `Rewrite only the current draft supplied below with localized citations. Do not reuse or rewrite any earlier assistant answer from the conversation. Preserve its content and formatting, including every <deliver-assets>, <deliver_assets>, and <media /> block exactly. Cite each used source once per sourced block. Treat one Markdown heading section as one sourced block; a table and its immediately following explanation belong to that same block. Within that block, cite the same target URL at most once, except that every code-file reference must remain individually sourced. For Markdown tables, remove citations from individual rows/cells and place one source line immediately below the table with each used source once, except code-file references, which stay linked in their cells. Web: exact URL. App/MCP: cite the exact target URL as a Markdown link and always label it with the App/MCP name; the client renders its icon. File: every code filename/path must use its listed exact internal target as a Markdown link; never leave it as inline code or plain text. For code use filename(line N) or filename(lines N-M); for other files use a concise filename/title. Never wrap factual answer text or a sentence/list/table cell. Never invent an HTTP URL for a local file, expose the local path in the link target, or turn an App/MCP tool name, API/interface name, result label, or artifact URL into a File citation. Omit unused targets; never output a bare parenthesized citation, repeat a non-file source within the same block, or list a source/provider name without its target link. Targets: ${candidates}. App/MCP URLs start #mavis-source=. File internal URLs also start #mavis-source=. Current draft JSON: ${JSON.stringify(currentDraft)}`;
+  return `Rewrite only the current draft supplied below with localized citations. Do not reuse or rewrite any earlier assistant answer from the conversation. Preserve its content and formatting, including every <deliver-assets>, <deliver_assets>, and <media /> block exactly. Cite each used source once per sourced block. Treat one Markdown heading section as one sourced block; a table and its immediately following explanation belong to that same block. Within that block, cite the same target URL at most once, except that every code-file reference must remain individually sourced. For Markdown tables, remove citations from individual rows/cells and place one source line immediately below the table with each used source once, except code-file references, which stay linked in their cells. Web: exact URL. App/MCP: cite the exact target URL as a Markdown link and always label it with the App/MCP name; the client renders its icon. File: every code filename/path must use its listed exact internal target as a Markdown link; never leave it as inline code or plain text. For code use filename(line N) or filename(lines N-M); for other files use a concise filename/title. Never wrap factual answer text or a sentence/list/table cell. Never invent an HTTP URL for a local file, expose the local path in the link target, or turn an App/MCP tool name, API/interface name, result label, or artifact URL into a File citation. Omit unused targets; never output a bare parenthesized citation, repeat a non-file source within the same block, or list a source/provider name without its target link. Targets: ${candidates}. App/MCP URLs start #alran-source=. File internal URLs also start #alran-source=. Current draft JSON: ${JSON.stringify(currentDraft)}`;
 }
 
 function modelCitationIdFor(reference: ToolSourceReference, state: CitationAliasState): string {

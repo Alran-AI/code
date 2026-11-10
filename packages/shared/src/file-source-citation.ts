@@ -7,10 +7,10 @@ import { mapMarkdownOutsideProtected } from './asset-markup/markdown-protected.j
  * Shared by answer repair and display/history projection; no source inference.
  */
 export function collapseAdjacentDuplicateFileCitations(markdown: string): string {
-  if (!markdown.includes('#mavis-source=file:')) return markdown;
+  if (!markdown.includes('#alran-source=file:')) return markdown;
   return mapMarkdownOutsideProtected(markdown, (text) => {
     const citationPattern =
-      /(?<![!\\])\[([^[\]\n]+)\]\([ \t]*(#mavis-source=file:[A-Za-z0-9_-]+)[ \t]*\)/gu;
+      /(?<![!\\])\[([^[\]\n]+)\]\([ \t]*(#alran-source=file:[A-Za-z0-9_-]+)[ \t]*\)/gu;
     let previous: { label: string; href: string; end: number } | undefined;
     let cursor = 0;
     const parts: string[] = [];

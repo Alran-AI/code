@@ -1,6 +1,6 @@
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 
-const SAFETY_API_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
+const SAFETY_API_BASE: Record<AlranRegion, Record<AlranBuildEnv, string>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',
@@ -16,8 +16,8 @@ const SAFETY_API_BASE: Record<MavisRegion, Record<MavisBuildEnv, string>> = {
 };
 
 export function resolveSafetyApiBase(
-  region: MavisRegion,
-  buildEnv: MavisBuildEnv,
+  region: AlranRegion,
+  buildEnv: AlranBuildEnv,
   testBaseURL: string | undefined,
 ): string {
   if (buildEnv === 'test' && testBaseURL && isLoopbackHttpURL(testBaseURL)) {

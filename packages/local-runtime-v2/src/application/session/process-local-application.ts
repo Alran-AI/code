@@ -1,5 +1,5 @@
-import type { GlobalEvent } from '@mavis/shared/global-events';
-import { isLegacyManagedAlranProvider } from '@mavis/config';
+import type { GlobalEvent } from '@alran/shared/global-events';
+import { isLegacyManagedAlranProvider } from '@alran/config';
 
 import {
   annotateModelFavorites,

@@ -16,11 +16,11 @@ let dataDir: string;
 beforeEach(() => {
   dataDir = fs.mkdtempSync(join(os.tmpdir(), "alran-model-fallback-"));
   vi.stubEnv("ALRAN_DATA_DIR", dataDir);
-  vi.stubEnv("__MAVIS_RUNTIME_DATA_DIR", dataDir);
-  vi.stubEnv("__MAVIS_RUNTIME_MANAGED", "1");
-  vi.stubEnv("__MAVIS_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
-  vi.stubEnv("MAVIS_REGION", "en");
-  vi.stubEnv("MAVIS_BUILD_ENV", "prod");
+  vi.stubEnv("__ALRAN_RUNTIME_DATA_DIR", dataDir);
+  vi.stubEnv("__ALRAN_RUNTIME_MANAGED", "1");
+  vi.stubEnv("__ALRAN_RUNTIME_DISABLE_GIT_AUTO_CONFIG", "1");
+  vi.stubEnv("ALRAN_REGION", "en");
+  vi.stubEnv("ALRAN_BUILD_ENV", "prod");
   resetConfig();
 });
 

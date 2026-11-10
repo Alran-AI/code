@@ -2,16 +2,16 @@ import {
   getRuntimeRegion,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
-} from '@mavis/config';
-import type { MavisBuildEnv, MavisRegion } from '@mavis/config';
+} from '@alran/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 import type {
   AuthStatusSnapshot,
   DeviceAuthorizationPrompt,
   LoginOptions,
   LoginResult,
   LogoutResult,
-} from '@mavis/oauth-core';
-import { resolvePlatformBaseUrl } from '@mavis/oauth-core';
+} from '@alran/oauth-core';
+import { resolvePlatformBaseUrl } from '@alran/oauth-core';
 import { runTuiLogin } from '../cli/auth-command.js';
 
 import type {
@@ -45,7 +45,7 @@ export interface AlranAuthPort {
    */
   login(
     onProgress?: (progress: AlranAuthProgress) => void,
-    region?: MavisRegion,
+    region?: AlranRegion,
     provider?: 'api-key' | 'keycloak' | 'platform',
     platformEnv?: 'dev' | 'prod',
   ): Promise<AlranAuthResult>;
@@ -63,19 +63,19 @@ export interface AlranSharedAuthCore {
 export interface AlranAuthApplicationOptions {
   readonly dataDir: string;
   readonly sharedAuthCore: AlranSharedAuthCore;
-  readonly resolveSharedAuthCore?: (region: MavisRegion) => AlranSharedAuthCore;
-  readonly region?: MavisRegion;
-  readonly buildEnv?: MavisBuildEnv;
+  readonly resolveSharedAuthCore?: (region: AlranRegion) => AlranSharedAuthCore;
+  readonly region?: AlranRegion;
+  readonly buildEnv?: AlranBuildEnv;
   readonly telemetry?: AlranBusinessTelemetry;
   readonly telemetrySource?: AlranLoginSource;
   readonly writeRegionPreference?: (
     dataDir: string,
-    preference: { region: MavisRegion; buildEnv: MavisBuildEnv },
+    preference: { region: AlranRegion; buildEnv: AlranBuildEnv },
   ) => unknown;
 }
 
 export class AlranAuthApplication implements AlranAuthPort {
-  private readonly scope: { region: MavisRegion; buildEnv: MavisBuildEnv };
+  private readonly scope: { region: AlranRegion; buildEnv: AlranBuildEnv };
 
   constructor(private readonly options: AlranAuthApplicationOptions) {
     const environment = resolveAlranAuthEnvironment({ runtimeRegion: getRuntimeRegion() });
@@ -87,7 +87,7 @@ export class AlranAuthApplication implements AlranAuthPort {
 
   async login(
     onProgress?: (progress: AlranAuthProgress) => void,
-    region: MavisRegion = this.scope.region,
+    region: AlranRegion = this.scope.region,
     provider: 'api-key' | 'keycloak' | 'platform' = 'platform',
     platformEnv?: 'dev' | 'prod',
   ): Promise<AlranAuthResult> {
@@ -210,7 +210,7 @@ export class AlranAuthApplication implements AlranAuthPort {
     });
   }
 
-  private persistRegionPreference(scope: { region: MavisRegion; buildEnv: MavisBuildEnv }): void {
+  private persistRegionPreference(scope: { region: AlranRegion; buildEnv: AlranBuildEnv }): void {
     try {
       this.options.writeRegionPreference?.(this.options.dataDir, scope);
     } catch {
@@ -240,15 +240,15 @@ function classifyLoginFailure(error: unknown): AlranLoginFailReason {
 }
 
 function isSameScope(
-  left: { region: MavisRegion; buildEnv: MavisBuildEnv },
-  right: { region: MavisRegion; buildEnv: MavisBuildEnv },
+  left: { region: AlranRegion; buildEnv: AlranBuildEnv },
+  right: { region: AlranRegion; buildEnv: AlranBuildEnv },
 ): boolean {
   return left.region === right.region && left.buildEnv === right.buildEnv;
 }
 
 function formatEnvironmentConflict(
-  active: { region: MavisRegion; buildEnv: MavisBuildEnv },
-  requested: { region: MavisRegion; buildEnv: MavisBuildEnv },
+  active: { region: AlranRegion; buildEnv: AlranBuildEnv },
+  requested: { region: AlranRegion; buildEnv: AlranBuildEnv },
 ): string {
   if (active.region !== requested.region) {
     return `Signed in to ${formatRegion(active.region)}. Run \`alran logout\` before signing in to ${formatRegion(requested.region)}.`;
@@ -256,7 +256,7 @@ function formatEnvironmentConflict(
   return `Signed in to another Alran ${active.buildEnv} environment. Run \`alran logout\` before signing in to ${requested.buildEnv}.`;
 }
 
-function formatRegion(region: MavisRegion): string {
+function formatRegion(region: AlranRegion): string {
   return region === 'cn' ? 'Alran China' : 'Alran Global';
 }
 
@@ -265,6 +265,6 @@ function formatRegion(region: MavisRegion): string {
  * against the real `ottili.one` endpoints; every development, test, and
  * staging build stays on the local Platform.
  */
-export function resolvePlatformEnvForBuild(buildEnv: MavisBuildEnv): 'dev' | 'prod' {
+export function resolvePlatformEnvForBuild(buildEnv: AlranBuildEnv): 'dev' | 'prod' {
   return resolvePlatformEnvironmentForBuild(buildEnv);
 }

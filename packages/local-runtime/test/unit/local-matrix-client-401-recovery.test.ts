@@ -1,4 +1,4 @@
-import { DesktopGatewayHttpError } from '@mavis/agent-tools/desktop';
+import { DesktopGatewayHttpError } from '@alran/agent-tools/desktop';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalMatrixClient } from '../../src/matrix/local-matrix-client.js';

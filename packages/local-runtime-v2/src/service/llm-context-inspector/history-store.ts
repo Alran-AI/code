@@ -1,6 +1,6 @@
 import { readFile, readdir, rm, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { KeyedOperationLane } from '@mavis/shared/keyed-operation-lane';
+import { KeyedOperationLane } from '@alran/shared/keyed-operation-lane';
 
 import {
   appendJsonl,

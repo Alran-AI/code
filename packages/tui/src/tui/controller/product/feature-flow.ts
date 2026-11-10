@@ -595,7 +595,10 @@ export class TuiFeatureFlow {
         ),
       ]);
       models = modelCatalog;
-      managedTokenPresent = account.managedTokenPresent === true;
+      // A Platform session is the credential the official models use after
+      // `alran login`, so it counts as managed access here as well.
+      managedTokenPresent =
+        account.managedTokenPresent === true || account.platformSessionPresent === true;
       codexOAuthStatus = codexStatus;
     } catch (error) {
       if (this.isCurrentSessionRequest(sessionId, sessionGeneration, loadSequence)) {

@@ -8,7 +8,7 @@ tools:
 builtinTools: []
 skills: []
 features:
-  mavis: false
+  alran: false
   delegation: false
   webSearch: true
 ---

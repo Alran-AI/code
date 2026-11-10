@@ -1,4 +1,4 @@
-import type { PtcToolExecutionBatch } from '@mavis/agent-core/tools';
+import type { PtcToolExecutionBatch } from '@alran/agent-core/tools';
 
 /**
  * Admission time (child hooks and approvals) moves the batch deadline later

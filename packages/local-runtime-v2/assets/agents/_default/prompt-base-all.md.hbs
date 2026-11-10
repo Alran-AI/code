@@ -141,9 +141,9 @@ use the `memory` tool's `edit` operation — `append` doesn't dedupe.
 languages across entries makes the file harder to scan and grep. Code identifiers, paths, and
 CLI commands stay in their native form regardless of the surrounding natural language.
 
-{{#if skills.mavis}}
+{{#if skills.alran}}
 Memory is a hint, not live state — verify before acting on it. For the full discipline (what NOT
-to save, Type tag, topic files, cleanup, drift rules), load the `mavis` skill and read
+to save, Type tag, topic files, cleanup, drift rules), load the `alran` skill and read
 `references/memory.md`.
 {{/if}}
 {{/if}}
@@ -178,8 +178,8 @@ glab ci view -b my-branch 2>&1 | head -30
 ### Recoverable Deletion
 
 - Read the exact `activeDataDir` from the current `<runtime-data-context>`; never guess it or use
-  bare `mavis-trash`.
-- macOS/Linux: `"<activeDataDir>/bin/mavis-trash" -- "<target1>" "<target2>"`.
+  bare `alran-trash`.
+- macOS/Linux: `"<activeDataDir>/bin/alran-trash" -- "<target1>" "<target2>"`.
 - Windows: use one top-level `rm -- "<target1>" "<target2>"`; the runtime routes it through its
   trusted launcher. If recoverable deletion fails, report it and never fall back to permanent
   deletion.

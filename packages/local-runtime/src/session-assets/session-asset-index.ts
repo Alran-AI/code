@@ -11,7 +11,7 @@
  * `asset_key` (latest occurrence wins) so message deletion lets earlier
  * occurrences resurface.
  */
-import { collectMessageAssetItems, type DeliverAssetItem } from '@mavis/shared/asset-markup';
+import { collectMessageAssetItems, type DeliverAssetItem } from '@alran/shared/asset-markup';
 
 import type { DatabaseLike } from '../persistence/db.js';
 

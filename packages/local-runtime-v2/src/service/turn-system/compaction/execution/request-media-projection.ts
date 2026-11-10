@@ -1,7 +1,7 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import type { Api, Model } from '@earendil-works/pi-ai';
-import { keepsRequestImages } from '@mavis/agent-core/pi-turn-runner';
-import { boundRequestMedia, resolveRequestMediaBudget } from '@mavis/context-manager';
+import { keepsRequestImages } from '@alran/agent-core/pi-turn-runner';
+import { boundRequestMedia, resolveRequestMediaBudget } from '@alran/context-manager';
 
 export interface RequestMediaProjectionInput<T extends AgentMessage> {
   readonly messages: readonly T[];

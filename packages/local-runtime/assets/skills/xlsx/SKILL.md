@@ -497,5 +497,5 @@ bash -c "python -c \"from openpyxl import load_workbook; wb=load_workbook('file.
 | `brew install --cask libreoffice` | `winget install TheDocumentFoundation.LibreOffice` |
 | `coreutils` (`gtimeout`) | Not needed — `recalc.py` falls back to `subprocess` timeout kwarg |
 
-**If Git Bash or any tool is missing**, read the `mavis` skill's
+**If Git Bash or any tool is missing**, read the `alran` skill's
 `references/windows-tool-bootstrap.md` for detection + auto-install commands.

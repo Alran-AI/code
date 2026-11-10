@@ -4,7 +4,7 @@
  * Sole responsibility: POST LLM input directly to archon-server's `/matrix/api/v1/mcp/<endpoint>`
  * REST proxy and wrap the response as `ToolResult`. RemoteArchonServerAdapter supplies identity
  * (user_id / biz_id / request_sk) in HTTP headers; api_key no longer enters the body. archon-server
- * derives Mavis chat context from the header identity.
+ * derives Alran chat context from the header identity.
  *
  * Failure semantics:
  * - `base_resp.status_code != 0`: Fixed business failure (`ok:false`), retaining numeric
@@ -23,7 +23,7 @@
  * Oversized responses are later truncated to the token budget by `withToolResultTruncation`.
  */
 
-import type { ToolResult } from '@mavis/agent-core/tools';
+import type { ToolResult } from '@alran/agent-core/tools';
 
 import type { MatrixExecutor as MatrixExecutorBase, MatrixToolContext } from './types.js';
 import { MATRIX_TOOL_TIMEOUTS } from './tool-defs.js';

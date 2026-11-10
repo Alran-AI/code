@@ -2,15 +2,17 @@ import { existsSync, readFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import yaml from "js-yaml";
-import { classifyLLMErrorToCode } from "@mavis/agent-core/event-bridge";
+import { classifyLLMErrorToCode } from "@alran/agent-core/event-bridge";
 import {
   allowsManagedAlranProviderOverride,
   getRuntimePresetKey,
   resolveLocalRuntimeAuthContextPath,
   resolveModelAvailability,
+  resolvePlatformEnvironmentForBuild,
   resolveProviderAuthMode,
+  resolveStoredPlatformSession,
   type ProviderAuthModeSource,
-} from "@mavis/config";
+} from "@alran/config";
 import { parseSourceQualifiedModelKey } from "../config/model-key.js";
 import { LegacyOpencodeMigrationError } from "../legacy-opencode/legacy-opencode-migrator.js";
 import type { LegacyMigrationRecord } from "../persistence/migration/legacy-migration-store.js";
@@ -1170,6 +1172,12 @@ export function buildRuntimeDoctorSnapshot(input: {
   });
   const warnings = validateRuntimeConfigFile(configPath, input.config);
   const tokenPresent = Boolean(input.authContext?.accessToken?.trim());
+  // `alran login` stores a Platform session that the gateway accepts as a
+  // bearer credential; it is a valid managed sign-in even when no Alran token
+  // was minted.
+  const platformSessionPresent = Boolean(
+    resolveStoredPlatformSession(dataDir, resolvePlatformEnvironmentForBuild()),
+  );
   const apiKeyPresent = Boolean(
     typeof providerOptions?.apiKey === "string" &&
       providerOptions.apiKey.trim().length > 0,
@@ -1213,6 +1221,7 @@ export function buildRuntimeDoctorSnapshot(input: {
     },
     auth: {
       tokenPresent,
+      platformSessionPresent,
       realUserIDPresent: Boolean(input.authContext?.realUserID?.trim()),
       userEmailPresent: Boolean(input.authContext?.userEmail?.trim()),
       userNamePresent: Boolean(input.authContext?.userName?.trim()),

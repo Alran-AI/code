@@ -1,4 +1,4 @@
-import type { InternalTurnPromptReadRegistry } from '@mavis/agent-runtime';
+import type { InternalTurnPromptReadRegistry } from '@alran/agent-runtime';
 
 import { createV2AgentExecutionSource } from './execution-source.js';
 import { createV2AgentProfileSource } from './profile-source.js';

@@ -9,4 +9,4 @@ export {
   type ConfigureImLoggerOptions,
   type ConfigureLocalRuntimeLoggingOptions,
   type LocalRuntimeLogger,
-} from '@mavis/shared/local-runtime-logging';
+} from '@alran/shared/local-runtime-logging';

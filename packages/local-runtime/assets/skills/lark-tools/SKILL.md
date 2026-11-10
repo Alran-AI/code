@@ -75,7 +75,7 @@ repeat a successful `docs +fetch` through another Lark command.
 ## Mandatory platform command router
 
 `lark-cli` itself is cross-platform, but the setup glue in this skill (installing `lark-cli`,
-checking auth JSON, and binding a Feishu bot with `mavis im channel bind`) is shell-specific. Before
+checking auth JSON, and binding a Feishu bot with `alran im channel bind`) is shell-specific. Before
 running any setup command, select exactly one platform command reference and use only that file's
 recipes.
 
@@ -108,7 +108,7 @@ skill keeps the high-level flow; the reference files keep the platform-specific 
 ## Install lark-cli
 
 `lark-cli` is the official Feishu/Lark CLI binary that this skill drives. It is **not** bundled with
-mavis and is not installed by default. For the direct-link fast path, run the requested command
+alran and is not installed by default. For the direct-link fast path, run the requested command
 without a separate installation probe. For other operations, or after a real command-not-found
 error, use the `install-lark-cli` recipe from the selected platform command reference; if missing,
 install it for the user before retrying the requested command.
@@ -123,7 +123,7 @@ Notes:
   Administrator on Windows) or a per-user prefix. **Never run `sudo` without telling the user
   first.**
 - After install, do **not** run `lark-cli config init` unless you explicitly need to initialize the
-  official CLI store outside Mavis. Bot binding in Mavis is handled by local-runtime channel config.
+  official CLI store outside Alran. Bot binding in Alran is handled by local-runtime channel config.
 - For upgrades after first install, see the update notice handling in
   `cli-skills/lark-shared/SKILL.md` (`npm update -g @larksuite/cli`).
 
@@ -151,7 +151,7 @@ If no bot is bound, ask the user for an existing Feishu app's `appId` and `appSe
 `bind-feishu-bot` recipe from the selected platform command reference. It runs:
 
 ```bash
-mavis im channel bind <agent> --platform feishu --app-id <appId> --app-secret <appSecret>
+alran im channel bind <agent> --platform feishu --app-id <appId> --app-secret <appSecret>
 ```
 
 The local runtime persists the credentials in the native Feishu channel store and connects the bot
@@ -191,7 +191,7 @@ To actually call the server (catches stale-but-not-yet-expired tokens), use
 
 Because local-runtime channel binding and official `lark-cli` user auth are separate:
 
-- Bot credentials are stored by local-runtime with `mavis im channel bind`.
+- Bot credentials are stored by local-runtime with `alran im channel bind`.
 - User OAuth tokens are stored by the official `lark-cli`.
 - After the user runs `lark-cli auth login --scope "..."` in the terminal to add an extra scope,
   subsequent terminal calls use the newly-issued UAT automatically.
@@ -246,7 +246,7 @@ entry in `apps[]` is auto-selected.
 
 Each entry maps to `cli-skills/<name>/SKILL.md`. **Before using any sub-skill, you MUST first Read
 `cli-skills/lark-shared/SKILL.md`** — it covers the cross-cutting basics (identity selection, scope
-concepts, permission-denied handling, security rules) and now aligns with the mavis flow described
+concepts, permission-denied handling, security rules) and now aligns with the alran flow described
 above (local-runtime owns Feishu bot binding; `lark-cli` owns user OAuth with `--recommend` or
 targeted `--scope`, never `--domain`).
 

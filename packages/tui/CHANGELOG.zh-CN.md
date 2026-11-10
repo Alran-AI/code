@@ -636,7 +636,7 @@ TUI 正式版中用户能直接感知的重要变化。收录范围以 TUI 用�
 - 修复 Session 历史操作、Queue 消息与后台任务在异步返回、恢复或 Session 切换时可能投影到错误上下文的问题。
 - 修复未显式指定模型的内置 Agent 未继承当前会话模型，以及 Goal
   verifier 等子任务的显式模型路由被 Agent 配置覆盖的问题。
-- 修复旧版本遗留的 `main` / `mavis` Agent 数据可能导致 Runtime 启动失败的问题。
+- 修复旧版本遗留的 `main` / `alran` Agent 数据可能导致 Runtime 启动失败的问题。
 - 修复 `/fork` 在当前仓库无法安全创建隔离 worktree 时仍展示该选项、选择后才失败的问题。
 - 修复 Alran Plugin Hook 收到错误的 Tool 名称或输入结构，导致 Hook 匹配和输入改写失效的问题。
 - 修复内置 Matrix 工具访问受管服务时使用错误鉴权方式的问题。

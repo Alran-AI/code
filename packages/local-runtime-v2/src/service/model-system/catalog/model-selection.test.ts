@@ -75,8 +75,8 @@ it.each(['alran', 'custom_provider:work'])(
 
 describe('legacy Alran compatibility', () => {
   beforeEach(() => {
-    vi.stubEnv('MAVIS_REGION', 'cn');
-    vi.stubEnv('MAVIS_BUILD_ENV', 'prod');
+    vi.stubEnv('ALRAN_REGION', 'cn');
+    vi.stubEnv('ALRAN_BUILD_ENV', 'prod');
   });
   afterEach(() => vi.unstubAllEnvs());
 
@@ -90,7 +90,7 @@ describe('legacy Alran compatibility', () => {
         custom_provider: {
           [key]: {
             options: {
-              baseURL: 'https://api.ottili.one/mavis/api/v1/llm/v1',
+              baseURL: 'https://api.ottili.one/alran/api/v1/llm/v1',
               apiKey: 'sk-xxx',
             },
             models: { retired: {} },

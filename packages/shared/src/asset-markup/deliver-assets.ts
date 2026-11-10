@@ -7,7 +7,7 @@
  * point is `ParseDeliverAssetsOptions.cloudDrivePathDetection`, which replaces
  * the UI's direct `CLOUD_LOGIC` read (the UI wrapper binds it).
  *
- * MUST NOT import from `@mavis/ui` — dependency direction is ui → shared.
+ * MUST NOT import from `@alran/ui` — dependency direction is ui → shared.
  */
 import { isImageAsset } from '../media-asset-meta.js';
 import { isDataUrl, parseDataUrlSource } from './data-url.js';
@@ -52,8 +52,8 @@ export interface ParseDeliverAssetsOptions {
 
 export const COMMIT_ID_PREFIX = 'commit-id-';
 
-const SESSION_DELIVERABLE_CANVAS_REFERENCE_PREFIX = 'mavis-session-deliverable:';
-const CANVAS_DELIVERABLE_DIRECTORY = '.mavis/canvas-assets';
+const SESSION_DELIVERABLE_CANVAS_REFERENCE_PREFIX = 'alran-session-deliverable:';
+const CANVAS_DELIVERABLE_DIRECTORY = '.alran/canvas-assets';
 
 /**
  * Encodes a Session deliverable path for the Canvas add-file command. The

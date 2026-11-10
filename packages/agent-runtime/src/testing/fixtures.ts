@@ -1,6 +1,6 @@
 /**
- * Runtime test fixtures — imported by `@mavis/agent-extension` adapter tests via the
- * `@mavis/agent-runtime/testing` subpath. Pure — no `node:fs` / build tooling
+ * Runtime test fixtures — imported by `@alran/agent-extension` adapter tests via the
+ * `@alran/agent-runtime/testing` subpath. Pure — no `node:fs` / build tooling
  * imports, so consumers that only need a `TurnAssemblyCtx` fixture don't
  * transitively pull the vitest-alias helper.
  */

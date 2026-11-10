@@ -12,7 +12,7 @@ import {
 import { arch, platform } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
-import { isTelemetryChannelEnabled, type MavisBuildEnv, type MavisRegion } from '@mavis/config';
+import { isTelemetryChannelEnabled, type AlranBuildEnv, type AlranRegion } from '@alran/config';
 
 export type TuiIncidentPhase = 'startup' | 'runtime' | 'shutdown';
 export type TuiIncidentSeverity = 'fatal' | 'error' | 'warning';
@@ -70,8 +70,8 @@ export interface CreateTuiIncidentReporterOptions {
   readonly readTelemetryEnabled?: () => boolean | undefined;
   readonly dataDir: string;
   readonly appVersion: string;
-  readonly region: MavisRegion;
-  readonly buildEnv: MavisBuildEnv;
+  readonly region: AlranRegion;
+  readonly buildEnv: AlranBuildEnv;
   readonly resolveAuthContext?: () =>
     | TuiIncidentAuthContext
     | undefined
@@ -143,7 +143,7 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
 const DEFAULT_CLOSE_FLUSH_TIMEOUT_MS = 300;
 const BATCH_SIZE = 20;
 
-const ERROR_API_HOST: Readonly<Record<MavisRegion, Readonly<Record<MavisBuildEnv, string>>>> = {
+const ERROR_API_HOST: Readonly<Record<AlranRegion, Readonly<Record<AlranBuildEnv, string>>>> = {
   cn: {
     dev: 'https://matrix-test.example.invalid',
     test: 'https://matrix-test.example.invalid',

@@ -1,4 +1,4 @@
-import { QUESTIONNAIRE_TTL_MS } from '@mavis/shared/questionnaire';
+import { QUESTIONNAIRE_TTL_MS } from '@alran/shared/questionnaire';
 
 import type { AppDb } from '../../../infra/db/client.js';
 import type { QueueItem, SessionInteractionModeCapability } from '../../session-system/index.js';

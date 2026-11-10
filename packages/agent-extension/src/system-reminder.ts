@@ -1,5 +1,5 @@
 /**
- * `systemReminderExtension`: Installs `SystemReminderService` through the `@mavis/agent-runtime`
+ * `systemReminderExtension`: Installs `SystemReminderService` through the `@alran/agent-runtime`
  * extension SPI. The design document §4.3 table maps system-reminder to
  * `pi.registerReminderProvider`.
  *
@@ -27,13 +27,13 @@
  * `AssemblyResult.userPromptPrefix`.
  */
 
-import type { AgentExtension, ExtensionAPI, TurnAssemblyCtx } from '@mavis/agent-runtime';
+import type { AgentExtension, ExtensionAPI, TurnAssemblyCtx } from '@alran/agent-runtime';
 import type {
   MessageRequest,
   SessionInfo,
   SystemReminderDiagnostic,
   SystemReminderService,
-} from '@mavis/system-reminder';
+} from '@alran/system-reminder';
 
 export interface SystemReminderResolvedContext {
   readonly session: SessionInfo;

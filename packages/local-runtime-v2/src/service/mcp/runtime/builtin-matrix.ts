@@ -5,16 +5,16 @@ import {
   buildMatrixMcpToolDescriptors,
   createMatrixMcpRuntime,
   getDesktopMatrixEndpoint,
-} from '@mavis/agent-tools/desktop';
-import { getRuntimeRegion } from '@mavis/config';
+} from '@alran/agent-tools/desktop';
+import { getRuntimeRegion } from '@alran/config';
 
-import type { McpConnectionTokenOverrides } from '@mavis/mcp/runtime/types';
+import type { McpConnectionTokenOverrides } from '@alran/mcp/runtime/types';
 import type {
   LocalMcpRuntimeContext,
   LocalMcpServerConfig,
   LocalMcpToolInfo,
 } from '../contracts.js';
-import { resolveV2DirectoryContract } from '@mavis/shared/local-runtime-paths';
+import { resolveV2DirectoryContract } from '@alran/shared/local-runtime-paths';
 import { getRawRuntimeBuildEnv } from './routing-context.js';
 
 export const BUILTIN_MATRIX_SERVER_NAME = 'matrix';
@@ -49,9 +49,9 @@ export function buildBuiltinMatrixServerConfig(
     args: [entrypoint],
     env: {
       ...runtimeEnv,
-      MAVIS_MATRIX_WORKSPACE_ROOT: workspaceRoot,
+      ALRAN_MATRIX_WORKSPACE_ROOT: workspaceRoot,
       ...(context?.routingContext?.bedrockLane
-        ? { MAVIS_MATRIX_BEDROCK_LANE: context.routingContext.bedrockLane }
+        ? { ALRAN_MATRIX_BEDROCK_LANE: context.routingContext.bedrockLane }
         : {}),
       ...resolveMatrixExtraInputRootsEnv(context),
     },
@@ -63,8 +63,8 @@ export function buildBuiltinMatrixServerConfig(
       'Built-in Matrix MCP server for local desktop runtime. Exposes Matrix tools through MCP ' +
       'with canonical tool names.',
     metadata: {
-      mavisBuiltinMcpServer: BUILTIN_MATRIX_SERVER_NAME,
-      mavisBuiltinMcpVersion: BUILTIN_MATRIX_MCP_VERSION,
+      alranBuiltinMcpServer: BUILTIN_MATRIX_SERVER_NAME,
+      alranBuiltinMcpVersion: BUILTIN_MATRIX_MCP_VERSION,
       managedBy: 'local-runtime',
     },
     tools: getBuiltinMatrixTools(workspaceRoot, runtimeEnv, options?.webSearchOnly === true),
@@ -82,8 +82,8 @@ export function isBuiltinMatrixConfig(server: string, config: LocalMcpServerConf
   return (
     server === BUILTIN_MATRIX_SERVER_NAME &&
     config.builtin === true &&
-    config.metadata?.['mavisBuiltinMcpServer'] === BUILTIN_MATRIX_SERVER_NAME &&
-    config.metadata?.['mavisBuiltinMcpVersion'] === BUILTIN_MATRIX_MCP_VERSION
+    config.metadata?.['alranBuiltinMcpServer'] === BUILTIN_MATRIX_SERVER_NAME &&
+    config.metadata?.['alranBuiltinMcpVersion'] === BUILTIN_MATRIX_MCP_VERSION
   );
 }
 
@@ -93,8 +93,8 @@ export function isRetiredLegacyMatrixMcpServerConfig(
 ): boolean {
   if (server !== BUILTIN_MATRIX_SERVER_NAME) return false;
   return (
-    config.metadata?.['mavisBuiltinMcpServer'] === BUILTIN_MATRIX_SERVER_NAME &&
-    config.metadata?.['mavisBuiltinMcpVersion'] === LEGACY_MATRIX_MCP_VERSION
+    config.metadata?.['alranBuiltinMcpServer'] === BUILTIN_MATRIX_SERVER_NAME &&
+    config.metadata?.['alranBuiltinMcpVersion'] === LEGACY_MATRIX_MCP_VERSION
   );
 }
 
@@ -116,19 +116,19 @@ export function buildBuiltinMatrixTokenOverrides(
       `lane-${shortStableHash(routingLane)}`,
     env: {
       ...buildBuiltinMatrixRuntimeEnv(),
-      MAVIS_MATRIX_WORKSPACE_ROOT: workspaceRoot,
+      ALRAN_MATRIX_WORKSPACE_ROOT: workspaceRoot,
       ...(context?.routingContext?.bedrockLane
-        ? { MAVIS_MATRIX_BEDROCK_LANE: context.routingContext.bedrockLane }
+        ? { ALRAN_MATRIX_BEDROCK_LANE: context.routingContext.bedrockLane }
         : {}),
       ...resolveMatrixExtraInputRootsEnv(context),
-      MAVIS_MATRIX_ACCESS_TOKEN: accessToken,
+      ALRAN_MATRIX_ACCESS_TOKEN: accessToken,
       MATRIX_ACCESS_TOKEN: accessToken,
     },
   };
 }
 
 export function resolveMatrixMcpStdioEntrypoint(baseUrl = import.meta.url): string | undefined {
-  const override = process.env.MAVIS_MATRIX_MCP_STDIO_ENTRYPOINT?.trim();
+  const override = process.env.ALRAN_MATRIX_MCP_STDIO_ENTRYPOINT?.trim();
   if (override) return safeExistsSync(override) ? override : undefined;
 
   for (const candidate of [
@@ -160,13 +160,13 @@ function safeExistsSync(file: string): boolean {
 function resolveMatrixExtraInputRootsEnv(context?: LocalMcpRuntimeContext): Record<string, string> {
   const dataDir = context?.dataDir?.trim();
   if (!dataDir) return {};
-  return { MAVIS_MATRIX_EXTRA_INPUT_ROOTS: resolveV2DirectoryContract(dataDir).assets };
+  return { ALRAN_MATRIX_EXTRA_INPUT_ROOTS: resolveV2DirectoryContract(dataDir).assets };
 }
 
 function resolveMatrixWorkspaceRoot(context?: LocalMcpRuntimeContext): string {
   return (
     context?.workspaceRoot?.trim() ||
-    process.env.MAVIS_MATRIX_WORKSPACE_ROOT?.trim() ||
+    process.env.ALRAN_MATRIX_WORKSPACE_ROOT?.trim() ||
     process.env.WORKSPACE_ROOT?.trim() ||
     process.cwd()
   );
@@ -180,8 +180,8 @@ function buildBuiltinMatrixRuntimeEnv(): Record<string, string> {
   const buildEnv = getRawRuntimeBuildEnv();
   return {
     ELECTRON_RUN_AS_NODE: '1',
-    MAVIS_REGION: getRuntimeRegion(),
-    ...(buildEnv ? { MAVIS_BUILD_ENV: buildEnv } : {}),
+    ALRAN_REGION: getRuntimeRegion(),
+    ...(buildEnv ? { ALRAN_BUILD_ENV: buildEnv } : {}),
   };
 }
 

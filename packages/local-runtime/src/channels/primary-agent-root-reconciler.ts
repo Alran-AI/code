@@ -4,7 +4,7 @@ import { imLogger as logger } from '../common/im-logger.js';
 /** Bounded Root reconcile event (plan §13): keeper_session_id / demoted_count. */
 const ROOT_RECONCILE_EVENT = 'primary_agent_root_reconcile';
 /** Bare name the family is resolved from; never a caller-supplied `agent:main`. */
-const PRIMARY_FAMILY_REQUEST_NAME = 'mavis';
+const PRIMARY_FAMILY_REQUEST_NAME = 'alran';
 
 /** The Session facts the keeper decision needs; deliberately not a full record. */
 export interface PrimaryFamilyRootView {
@@ -138,7 +138,7 @@ export class PrimaryAgentRootReconciler {
    * Point every trusted family Agent row at the keeper. The FIRST call performs
    * the actual demotion inside the existing transactional family swap; the
    * later ones find nothing to demote and only repair their own pointer, which
-   * is exactly why `main` and `mavis` end up agreeing without a second
+   * is exactly why `main` and `alran` end up agreeing without a second
    * pointer-writing code path.
    */
   private async converge(
@@ -151,7 +151,7 @@ export class PrimaryAgentRootReconciler {
     const pointers = await this.readPointers(family.names);
     for (const name of family.names) {
       const pointer = pointers.get(name);
-      // A name with no Agent row (pure-mavis install, or a legacy `main` that
+      // A name with no Agent row (pure-alran install, or a legacy `main` that
       // was never created) has nothing to repair and must not fail the step.
       if (!family.rows.has(name)) {
         logger.info(
@@ -343,7 +343,7 @@ export class PrimaryAgentRootReconciler {
 
 interface ResolvedRootFamily {
   readonly canonicalName: string;
-  /** Physical Root owner chosen by Agent core; canonical remains the Mavis view. */
+  /** Physical Root owner chosen by Agent core; canonical remains the Alran view. */
   readonly winnerName: string;
   /** Canonical first, then the trusted legacy members, deduplicated. */
   readonly names: readonly string[];

@@ -26,7 +26,7 @@ import { describe, expect, it, vi } from "vitest";
 import type {
   InternalTurnPromptReadRegistry,
   PromptSnapshotSource,
-} from "@mavis/agent-core";
+} from "@alran/agent-core";
 
 import {
   digestThreadGoalObjective,
@@ -38,7 +38,7 @@ import {
   type ThreadGoalPatchInput,
   type ThreadGoalState,
   type ThreadGoalStore,
-} from "@mavis/goal";
+} from "@alran/goal";
 
 import { LocalThreadGoalIntegration } from "../../../src/thread-goal/host-integration.js";
 import type { LocalQueuedMessage } from "../../../src/messages/queue.js";
@@ -272,7 +272,7 @@ function kickoffQueueItem(
   return {
     itemId: "queue_goal_1",
     sessionId: "sess_int",
-    agentName: "mavis",
+    agentName: "alran",
     source: "api",
     status: "queued",
     message: {
@@ -299,7 +299,7 @@ function continuationQueueItem(
   return {
     itemId: "queue_goal_followup_1",
     sessionId: "sess_int",
-    agentName: "mavis",
+    agentName: "alran",
     source: "thread-goal",
     status: "queued",
     message: {

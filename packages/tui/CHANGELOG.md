@@ -1031,7 +1031,7 @@ Internal refactors, test-only changes, and changes limited to other product surf
   wrong context after asynchronous responses, recovery, or Session switches.
 - Fixed built-in Agents without an explicit model failing to inherit the current Session model, and
   explicit routing for Goal verifiers and other subtasks being overwritten by Agent configuration.
-- Fixed legacy `main` or `mavis` Agent data preventing Runtime startup.
+- Fixed legacy `main` or `alran` Agent data preventing Runtime startup.
 - Fixed `/fork` offering worktree isolation when the current repository could not safely create it
   and failing only after selection.
 - Fixed Alran Plugin Hooks receiving incorrect Tool names or input shapes, which broke Hook

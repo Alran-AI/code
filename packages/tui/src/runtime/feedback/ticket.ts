@@ -1,4 +1,4 @@
-import { type MavisBuildEnv, type MavisRegion } from '@mavis/config';
+import { type AlranBuildEnv, type AlranRegion } from '@alran/config';
 
 import { redactTuiSensitiveText } from '../../user-facing-failure.js';
 import type { TuiFeedbackReceipt } from '../port.js';
@@ -15,8 +15,8 @@ export interface FeedbackTicketDraft {
 
 export function feedbackEndpoint(input: {
   readonly endpoint?: string;
-  readonly region?: () => MavisRegion;
-  readonly buildEnv?: () => MavisBuildEnv;
+  readonly region?: () => AlranRegion;
+  readonly buildEnv?: () => AlranBuildEnv;
 }): string {
   if (input.endpoint) return input.endpoint;
   return `${publicGatewayOrigin(input)}/alran-cloud/api/v1/feedback/ticket`;
@@ -50,7 +50,7 @@ export function feedbackRequest(input: {
   readonly token: string;
   readonly realUserID: string;
   readonly appVersion: string;
-  readonly region: MavisRegion;
+  readonly region: AlranRegion;
   readonly nowMs: number;
 }): { readonly url: URL; readonly headers: Record<string, string>; readonly body: string } {
   const body = JSON.stringify(input.payload);
@@ -71,7 +71,7 @@ export function feedbackListRequest(input: {
   readonly token: string;
   readonly realUserID: string;
   readonly appVersion: string;
-  readonly region: MavisRegion;
+  readonly region: AlranRegion;
   readonly nowMs: number;
   readonly limit: number;
 }): { readonly url: URL; readonly headers: Record<string, string> } {

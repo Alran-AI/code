@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { TuiRuntimeAdapter } from "../../src/runtime/adapter.js";
-import { LIGHTWEIGHT_SESSION_PURPOSE } from "@mavis/protocol/local";
+import { LIGHTWEIGHT_SESSION_PURPOSE } from "@alran/protocol/local";
 
 describe("TuiRuntimeAdapter process-local facades", () => {
   it("marks only newly created root Sessions as lightweight", async () => {
@@ -21,12 +21,12 @@ describe("TuiRuntimeAdapter process-local facades", () => {
     });
 
     expect(createSession).toHaveBeenNthCalledWith(1, {
-      name: "mavis",
+      name: "alran",
       workspaceDir: "/workspace",
       purpose: LIGHTWEIGHT_SESSION_PURPOSE,
     });
     expect(createSession).toHaveBeenNthCalledWith(2, {
-      name: "mavis",
+      name: "alran",
       workspaceDir: "/workspace",
       parentSessionId: "parent",
       purpose: "local-task:child",
@@ -43,7 +43,7 @@ describe("TuiRuntimeAdapter process-local facades", () => {
     await adapter.createSession({ workspaceDir: "/workspace", title: "hello" });
 
     expect(JSON.stringify(createSession.mock.calls[0]?.[0])).toBe(
-      '{"name":"mavis","workspaceDir":"/workspace","title":"hello"}',
+      '{"name":"alran","workspaceDir":"/workspace","title":"hello"}',
     );
   });
 
@@ -322,7 +322,7 @@ describe("TuiRuntimeAdapter process-local facades", () => {
           {
             requestId: "permission-1",
             sessionId: "session-1",
-            agentName: "mavis",
+            agentName: "alran",
             toolName: "bash",
             ruleContents: ["pnpm test"],
             reason: "Run the relevant tests",
@@ -336,40 +336,40 @@ describe("TuiRuntimeAdapter process-local facades", () => {
     const adapter = new TuiRuntimeAdapter(cliService as never);
 
     await expect(
-      adapter.getPendingQuestionnaire("mavis", "session-1"),
+      adapter.getPendingQuestionnaire("alran", "session-1"),
     ).resolves.toMatchObject({
       id: "question-1",
     });
     await expect(
-      adapter.replyQuestionnaire("mavis", "question-1", []),
+      adapter.replyQuestionnaire("alran", "question-1", []),
     ).resolves.toBe(true);
     await expect(
-      adapter.dismissQuestionnaire("mavis", "question-1"),
+      adapter.dismissQuestionnaire("alran", "question-1"),
     ).resolves.toBe(true);
     await expect(adapter.listPendingPermissions()).resolves.toEqual([
       expect.objectContaining({ requestId: "permission-1" }),
     ]);
     await expect(
-      adapter.replyPermission("mavis", "permission-1", "allowAlways"),
+      adapter.replyPermission("alran", "permission-1", "allowAlways"),
     ).resolves.toBe(true);
     expect(cliService.getPendingQuestionnaire).toHaveBeenCalledWith({
-      name: "mavis",
+      name: "alran",
       sessionId: "session-1",
     });
     expect(cliService.replyQuestionnaire).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "mavis",
+        name: "alran",
         requestId: "question-1",
         answers: [],
         submittedAt: expect.any(Number),
       }),
     );
     expect(cliService.dismissQuestionnaire).toHaveBeenCalledWith({
-      name: "mavis",
+      name: "alran",
       requestId: "question-1",
     });
     expect(cliService.replyPermission).toHaveBeenCalledWith({
-      name: "mavis",
+      name: "alran",
       requestId: "permission-1",
       reply: 1,
     });
@@ -402,9 +402,9 @@ describe("TuiRuntimeAdapter process-local facades", () => {
       summary: { totalTokens: 120 },
     });
     await expect(
-      adapter.requestCompaction("session-1", "mavis", "keep evidence"),
+      adapter.requestCompaction("session-1", "alran", "keep evidence"),
     ).resolves.toMatchObject({ success: true, compactionId: "compact-1" });
-    await expect(adapter.listSkills("mavis", "docs")).resolves.toMatchObject({
+    await expect(adapter.listSkills("alran", "docs")).resolves.toMatchObject({
       skills: [expect.objectContaining({ name: "docs" })],
       hasMore: false,
     });
@@ -416,13 +416,13 @@ describe("TuiRuntimeAdapter process-local facades", () => {
       id: "session-1",
     });
     expect(cliService.requestCompaction).toHaveBeenCalledWith({
-      name: "mavis",
+      name: "alran",
       id: "session-1",
       reason: "ui_request",
       customInstructions: "keep evidence",
     });
     expect(cliService.listRuntimeSkills).toHaveBeenCalledWith({
-      agentName: "mavis",
+      agentName: "alran",
       workspaceDir: "/workspace",
       includePluginSkills: true,
     });
@@ -633,7 +633,7 @@ describe("TuiRuntimeAdapter process-local facades", () => {
       forkSession: vi.fn(async () => ({
         session: {
           sessionId: "child-1",
-          agentName: "mavis",
+          agentName: "alran",
           title: "Fork of: hi",
           workspaceDir: "/repo",
         },
@@ -726,7 +726,7 @@ describe("TuiRuntimeAdapter process-local facades", () => {
     ).resolves.toEqual({
       session: {
         sessionId: "child-1",
-        agentName: "mavis",
+        agentName: "alran",
         title: "Fork of: hi",
         workspaceDir: "/repo",
       },

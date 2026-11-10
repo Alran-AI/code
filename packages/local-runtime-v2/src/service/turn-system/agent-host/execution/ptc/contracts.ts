@@ -1,12 +1,12 @@
 // Type-only on purpose: the packaged QuickJS Worker loads this module from
-// app.asar.unpacked, where @mavis/agent-core is not unpacked, so a value
+// app.asar.unpacked, where @alran/agent-core is not unpacked, so a value
 // import here breaks every run_code in the desktop build.
 import type {
   PtcExecutionDetails as AgentCorePtcExecutionDetails,
   PtcRetainedFact as AgentCorePtcRetainedFact,
   PtcToolCallRecord as AgentCorePtcToolCallRecord,
   ToolResultContent,
-} from '@mavis/agent-core/tools';
+} from '@alran/agent-core/tools';
 
 export const PTC_LIMITS = {
   maxCodeBytes: 64 * 1024,

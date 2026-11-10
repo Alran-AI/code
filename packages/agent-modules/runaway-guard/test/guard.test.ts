@@ -11,7 +11,7 @@ import {
 const ctx: RunawayGuardRunIdentity = {
   sessionId: 'session-a',
   turnId: 'turn-a',
-  agentName: 'mavis',
+  agentName: 'alran',
 };
 
 function step(index: number, kind: 'action' | 'error' | 'progress' = 'action'): RunawayGuardReplayStep {

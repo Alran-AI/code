@@ -29,7 +29,7 @@ type OwnedWorktree = {
   readonly allowTargetMutation?: boolean;
 };
 
-const OWNERSHIP_SIDECAR_SUFFIX = '.mavis-fork-ownership.json';
+const OWNERSHIP_SIDECAR_SUFFIX = '.alran-fork-ownership.json';
 
 class ForkWorktreeUnavailableError extends Error {
   override readonly name = 'ForkWorktreeUnavailableError';
@@ -301,9 +301,9 @@ async function createUnbornWorkspaceBase(sourceDir: string): Promise<SourceWorks
   const head = await git(
     [
       '-c',
-      'user.name=Mavis',
+      'user.name=Alran',
       '-c',
-      'user.email=mavis@localhost.invalid',
+      'user.email=alran@localhost.invalid',
       'commit-tree',
       emptyTree,
       '-m',
@@ -376,7 +376,7 @@ async function copyTrackedPatch(input: {
   readonly updateIndex: boolean;
   readonly bestEffort: boolean;
 }): Promise<void> {
-  const temporary = await mkdtemp(join(tmpdir(), 'mavis-fork-patch-'));
+  const temporary = await mkdtemp(join(tmpdir(), 'alran-fork-patch-'));
   try {
     // Patches may be large; use a controlled temporary file to avoid another overflow during copying after fingerprint repair.
     const patchPath = join(temporary, 'changes.patch');

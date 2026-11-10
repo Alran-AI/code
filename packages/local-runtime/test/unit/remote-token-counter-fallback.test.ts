@@ -49,7 +49,7 @@ describe('remote counting failure fallback', () => {
         };
         const result = await coordinator.calibrateTools({
           context, model,
-          streamOptions: { apiKey: 'test-key', headers: { 'X-Mavis-Session-Id': `session-${turn}` } },
+          streamOptions: { apiKey: 'test-key', headers: { 'X-Alran-Session-Id': `session-${turn}` } },
         });
         expect(result.status).toBe('UNAVAILABLE');
         now += 60_001;

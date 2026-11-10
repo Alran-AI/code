@@ -4,7 +4,7 @@
  *
  * Wire contract is pixel-aligned to the production endpoint already in use:
  *
- *   POST {region-routed-host}/mavis/api/v1/permission/check
+ *   POST {region-routed-host}/alran/api/v1/permission/check
  *   Authorization: Bearer <managed-auth-token>
  *
  *   Request:

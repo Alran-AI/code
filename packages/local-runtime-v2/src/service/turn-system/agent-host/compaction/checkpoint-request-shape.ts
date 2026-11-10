@@ -1,4 +1,4 @@
-import type { PiTurnRunnerLogger } from '@mavis/agent-core/pi-turn-runner';
+import type { PiTurnRunnerLogger } from '@alran/agent-core/pi-turn-runner';
 
 import type { AgentHostCompactionDependencies } from '../contracts.js';
 import type { AgentEventContext } from '../events/contracts.js';
