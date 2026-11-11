@@ -66,9 +66,10 @@ describe('Alran terminal theme palettes', () => {
       expect(tuiChalk.hex(tuiColors.text)('text')).toBe('text');
       expect(tuiChalk.bold.hex(tuiColors.text)('strong')).toContain('\u001B[1m');
       expect(tuiChalk.hex(tuiColors.muted)('muted')).toContain('\u001B[2m');
-      expect(tuiChalk.hex(tuiColors.brand)('brand')).toContain('\u001B[36m');
-      expect(tuiChalk.hex(tuiColors.signal)('signal')).toContain('\u001B[36m');
-      expect(tuiChalk.hex(tuiColors.accent)('accent')).toContain('\u001B[36m');
+      expect(tuiChalk.hex(tuiColors.brand)('brand')).toContain('\u001B[95m');
+      expect(tuiChalk.hex(tuiColors.signal)('signal')).toContain('\u001B[95m');
+      expect(tuiChalk.hex(tuiColors.accent)('accent')).toContain('\u001B[95m');
+      expect(tuiChalk.hex(tuiColors.success)('success')).toContain('\u001B[92m');
       expect(tuiChalk.hex(tuiColors.line)('line')).toContain('\u001B[90m');
       expect(tuiChalk.hex(tuiColors.warning)('warning')).toContain('\u001B[93m');
       expect(tuiChalk.hex(tuiColors.error)('error')).toContain('\u001B[91m');
@@ -85,7 +86,7 @@ describe('Alran terminal theme palettes', () => {
       expect(tuiChalk.hex(tuiColors.signal)('signal')).toContain('\u001B[38;2;');
 
       applyTuiRenderTheme(ALRAN_CODE_LIGHT_THEME, 1);
-      expect(tuiChalk.bold.hex(tuiColors.signal)('signal')).toContain('\u001B[94m');
+      expect(tuiChalk.bold.hex(tuiColors.signal)('signal')).toContain('\u001B[35m');
       expect(tuiChalk.hex(tuiColors.line)('line')).toContain('\u001B[90m');
       expect(tuiChalk.hex(tuiColors.warning)('warning')).toContain('\u001B[33m');
       expect(tuiChalk.hex(tuiColors.error)('error')).toContain('\u001B[31m');
@@ -216,7 +217,7 @@ describe('TuiThemeController', () => {
     expect(controller.snapshot()).toMatchObject({ appearance: 'light', source: 'colorfgbg' });
     expect(getTuiThemeSnapshot()).toMatchObject({ appearance: 'light' });
     expect(tuiColors.text).toBe(ALRAN_CODE_LIGHT_THEME.colors.text);
-    expect(tuiChalk.hex(tuiColors.text)('body')).toContain('38;2;48;48;48');
+    expect(tuiChalk.hex(tuiColors.text)('body')).toContain('38;2;24;24;27');
     controller.dispose();
   });
 
@@ -463,7 +464,7 @@ describe('TuiThemeController theme selection', () => {
     expect(applied?.id).toBe('midnight');
     expect(controller.selectedThemeId()).toBe('midnight');
     expect(tuiColors.brand).not.toBe(before);
-    expect(tuiColors.brand).toBe('#5AB9FF');
+    expect(tuiColors.brand).toBe('#A78BFA');
     expect(onChange).toHaveBeenCalled();
     controller.dispose();
     restoreTheme();

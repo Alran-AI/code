@@ -24,16 +24,18 @@ export type TuiAnsi16ForegroundStyle =
 const ANSI16_FOREGROUND_STYLES: Readonly<
   Record<TuiResolvedAppearance, Partial<Record<keyof TuiThemeColors, TuiAnsi16ForegroundStyle>>>
 > = Object.freeze({
+  // The Ottili violet has no ANSI16 colour of its own; magenta is the nearest one. Roles that share
+  // a hex value in a palette must share a style here, because the lookup goes by value.
   dark: Object.freeze({
-    brand: 'cyan',
+    brand: 'magentaBright',
     wordmarkHighlight: 'whiteBright',
-    wordmarkShadow: 'cyan',
-    signal: 'cyan',
-    orbit: 'cyan',
-    accent: 'cyan',
+    wordmarkShadow: 'magenta',
+    signal: 'magentaBright',
+    orbit: 'greenBright',
+    accent: 'magentaBright',
     markdownHeading: 'magentaBright',
     markdownCode: 'greenBright',
-    markdownLink: 'cyan',
+    markdownLink: 'magentaBright',
     text: 'default',
     muted: 'defaultDim',
     dim: 'gray',
@@ -44,15 +46,15 @@ const ANSI16_FOREGROUND_STYLES: Readonly<
     error: 'redBright',
   }),
   light: Object.freeze({
-    brand: 'blueBright',
-    wordmarkHighlight: 'blueBright',
-    wordmarkShadow: 'blue',
-    signal: 'blueBright',
-    orbit: 'cyan',
-    accent: 'blueBright',
+    brand: 'magenta',
+    wordmarkHighlight: 'magentaBright',
+    wordmarkShadow: 'magenta',
+    signal: 'magenta',
+    orbit: 'green',
+    accent: 'magenta',
     markdownHeading: 'magenta',
     markdownCode: 'green',
-    markdownLink: 'blue',
+    markdownLink: 'magenta',
     text: 'black',
     muted: 'black',
     dim: 'gray',

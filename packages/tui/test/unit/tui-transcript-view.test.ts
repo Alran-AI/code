@@ -1248,7 +1248,8 @@ describe('TranscriptView', () => {
         ' '.repeat(24),
       ]);
       expect(lines.join('\n')).not.toContain('YOU');
-      expect(lines.every((line) => line.includes('\u001B[48;2;245;245;245m'))).toBe(true);
+      // The light prompt band is the Ottili kit's bg-muted (#F4F4F6).
+      expect(lines.every((line) => line.includes('\u001B[48;2;244;244;246m'))).toBe(true);
       expect(lines.every((line) => visibleWidth(line) === 24)).toBe(true);
     } finally {
       applyTuiRenderTheme(originalPalette, original.colorLevel);
