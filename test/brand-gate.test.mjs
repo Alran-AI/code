@@ -41,3 +41,21 @@ test('LICENSE and THIRD_PARTY_NOTICES.md say what the MIT license of the upstrea
 test('every dependency license is allowed or a reviewed exception', () => {
   assert.deepEqual(checkDependencyLicenses(root), []);
 });
+
+test('a bundled upstream license keeps its original copyright line', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, copyFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { UPSTREAM_NESTED_NOTICES } = await import('../scripts/check-licenses.mjs');
+  const scratch = mkdtempSync(path.join(tmpdir(), 'alran-license-gate-'));
+  try {
+    for (const name of ['LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md']) copyFileSync(path.join(root, name), path.join(scratch, name));
+    const [file, holder] = Object.entries(UPSTREAM_NESTED_NOTICES)[0];
+    mkdirSync(path.dirname(path.join(scratch, file)), { recursive: true });
+    writeFileSync(path.join(scratch, file), `MIT License\n\n${holder}\n`);
+    assert.deepEqual(checkLegalFiles(scratch), []);
+    writeFileSync(path.join(scratch, file), 'MIT License\n\nCopyright (c) 2026 AlranAI\n');
+    assert.match(checkLegalFiles(scratch).join('\n'), /original copyright line/u);
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+});

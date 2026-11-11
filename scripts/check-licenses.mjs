@@ -30,6 +30,10 @@ export const REVIEWED_EXCEPTIONS = Object.freeze(new Map([
 ]));
 
 const UPSTREAM_COPYRIGHT = 'Copyright (c) 2026 MiniMax Code';
+/** Nested license files of upstream material, with the copyright line each must keep. */
+export const UPSTREAM_NESTED_NOTICES = Object.freeze({
+  'packages/local-runtime/assets/skills/docx/LICENSE': 'Copyright (c) 2026 MiniMaxAI',
+});
 const MIT_PERMISSION = 'Permission is hereby granted, free of charge, to any person obtaining a copy';
 
 export function checkLegalFiles(root) {
@@ -48,6 +52,12 @@ export function checkLegalFiles(root) {
   if (notices && !notices.includes('https://github.com/minimax-ai/minimax-code')) problems.push('THIRD_PARTY_NOTICES.md: upstream source URL missing');
   if (notices && !/Modifications made to MiniMax Code/u.test(notices)) problems.push('THIRD_PARTY_NOTICES.md: list of modifications missing');
   read('NOTICE');
+  // Bundled upstream material that came with a license of its own keeps its copyright line (MIT:
+  // "The above copyright notice … shall be included"); a rename once replaced one with our name.
+  for (const [file, holder] of Object.entries(UPSTREAM_NESTED_NOTICES)) {
+    const text = read(file);
+    if (text && !text.includes(holder)) problems.push(`${file}: the original copyright line "${holder}" was changed`);
+  }
   return problems;
 }
 

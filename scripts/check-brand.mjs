@@ -39,6 +39,8 @@ export const ALLOWED_FILES = Object.freeze(new Set([
   'NOTICE',
   'THIRD_PARTY_NOTICES.md',
   'LICENSE-STATUS.md',
+  // The docx skill came with its own MIT license; its copyright line names its author and stays.
+  'packages/local-runtime/assets/skills/docx/LICENSE',
   'docs/MIGRATION_FROM_MINIMAX.md',
   'scripts/check-brand.mjs',
   'scripts/check-licenses.mjs',
