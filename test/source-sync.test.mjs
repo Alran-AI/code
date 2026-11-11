@@ -435,7 +435,10 @@ test('npm release manifests require native SQLite and pin installed external dep
   }
   const manifest = releaseManifest([f.root], '0.4.13');
   assert.equal(manifest.version, '0.4.13');
-  assert.equal(manifest.private, true);
+  // Publishable as @ottili/alran-code on the public registry.
+  assert.equal(manifest.private, undefined);
+  assert.equal(manifest.name, '@ottili/alran-code');
+  assert.deepEqual(manifest.publishConfig, { access: 'public', registry: 'https://registry.npmjs.org/' });
   assert.equal(manifest.bin.alran, 'cli.js');
   assert.equal(manifest.dependencies['better-sqlite3'], '1.2.3');
   assert.equal(manifest.dependencies['@vscode/ripgrep'], '1.2.3');

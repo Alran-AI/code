@@ -13,6 +13,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "release:cli": "node scripts/release-cli.mjs",
+    "release:npm-dry-run": "node scripts/npm-publish-dry-run.mjs",
     "start": "node dist/cli.js",
     "alran": "node dist/cli.js",
     "verify": "node scripts/verify.mjs",

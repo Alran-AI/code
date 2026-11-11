@@ -24,6 +24,7 @@
       "packages/tui/test/unit/tui-assistant-content.test.ts",
       "packages/tui/test/unit/business-telemetry-privacy.test.ts",
       "packages/tui/test/unit/account-commands.test.ts",
+      "packages/tui/test/unit/update-hint.test.ts",
       "packages/tui/test/unit/auth-session.test.ts",
       "packages/tui/test/unit/cli-auth-command.test.ts",
       "packages/tui/test/unit/network-proxy.test.ts",

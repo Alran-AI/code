@@ -223,8 +223,13 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   program
     .command('update')
     .description('Check for and install an Alran Code update')
+    .option('--source <url>', 'self-hosted release source (signed manifests); default: npm or the Ottili release host')
     .allowExcessArguments(false)
-    .action(options.runUpdate);
+    .action((commandOptions: { source?: string }) => {
+      // The source travels as the documented environment variable, the one place the updater reads it.
+      if (commandOptions.source) process.env.ALRAN_UPDATE_SOURCE = commandOptions.source;
+      return options.runUpdate();
+    });
 
   const telemetry = program
     .command('telemetry')
@@ -432,7 +437,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   registerMascotCommand(program);
   // The Ottili account: auth, config, models, usage, billing.
-  registerAccountCommands(program);
+  registerAccountCommands(program, undefined, options.version);
 
   return program;
 }

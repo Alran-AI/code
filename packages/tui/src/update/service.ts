@@ -25,9 +25,19 @@ import {
 
 export { isManagedAlranInstallRoot } from './install-source.js';
 
-const DEFAULT_RELEASE_BASE_URL =
-  'https://algeng-ali-shanghai-agent-02.oss-cn-shanghai.aliyuncs.com/' +
-  'alran-dialogue/data/env/.npm-global/alran';
+/**
+ * Where an installer-managed installation looks for signed release manifests
+ * (`<base>/channels/<channel>.json` + `.sig`, `<base>/releases/<version>/manifest.json` + `.sig`).
+ *
+ * An Ottili host: the release host of the code base this CLI was derived from is gone for good, and
+ * no update is ever read from a third party's storage. `ALRAN_UPDATE_SOURCE` (or
+ * `alran update --source <url>`) points a self-hosted mirror at the same layout, which is how a
+ * network without npm access updates. See docs/UPDATE_PIPELINE.md.
+ */
+export const DEFAULT_RELEASE_BASE_URL = 'https://cdn.ottili.one/alran-code';
+
+/** The environment variable naming a self-hosted release source. */
+export const ALRAN_UPDATE_SOURCE_ENV = 'ALRAN_UPDATE_SOURCE';
 const DEFAULT_TIMEOUT_MS = 8_000;
 
 export interface AlranUpdateRequest extends AlranUpdateOperationOptions {
@@ -83,7 +93,14 @@ export class AlranUpdateService {
   constructor(options: AlranUpdateServiceOptions) {
     this.currentVersion = parseAlranVersion(options.currentVersion);
     this.installRoot = options.installRoot ?? resolveAlranInstallRoot(options.environment);
-    this.releaseBaseUrl = (options.releaseBaseUrl ?? DEFAULT_RELEASE_BASE_URL).replace(/\/+$/u, '');
+    this.releaseBaseUrl = (
+      options.releaseBaseUrl ??
+      (options.environment ?? process.env)[ALRAN_UPDATE_SOURCE_ENV]?.trim() ??
+      DEFAULT_RELEASE_BASE_URL
+    ).replace(/\/+$/u, '');
+    if (!/^https:\/\//u.test(this.releaseBaseUrl) && !/^http:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/u.test(this.releaseBaseUrl)) {
+      throw new Error(`Alran update source must be https: ${this.releaseBaseUrl}`);
+    }
     this.publicKey = options.publicKey;
     this.environment = options.environment ?? process.env;
     this.dependencies = {

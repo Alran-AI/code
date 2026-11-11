@@ -61,12 +61,19 @@ export function releaseManifest(importers, version) {
     const target = name === '@mariozechner/clipboard' ? optionalDependencies : dependencies;
     target[name] = [...versions][0];
   }
+  // The same manifest is the GitHub release archive and the npm package `@ottili/alran-code`: the
+  // archive installs with `npm install --global ./alran-code-<v>.tar.gz`, and the founders publish it
+  // with `npm publish ./alran-code-<v>.tar.gz` (docs/UPDATE_PIPELINE.md). Public, scoped, on npmjs.
   return {
-    name: '@ottili/alran-code', version, private: true, type: 'module', license: 'MIT',
-    description: 'Alran Code CLI built from the tagged public source.',
+    name: '@ottili/alran-code', version, type: 'module', license: 'MIT',
+    description: 'Alran Code — the AI coding agent of the Ottili AI Platform, in your terminal.',
+    keywords: ['ottili', 'alran', 'cli', 'coding-agent', 'ai'],
+    homepage: 'https://ai.ottili.one/settings/cli',
+    bugs: { url: 'https://github.com/Alran-AI/code/issues' },
     bin: { alran: 'cli.js' },
     engines: json(path.join(root, 'package.json')).engines,
-    repository: { type: 'git', url: 'https://github.com/ottili/alran-code.git' },
+    repository: { type: 'git', url: 'git+https://github.com/Alran-AI/code.git' },
+    publishConfig: { access: 'public', registry: 'https://registry.npmjs.org/' },
     dependencies, optionalDependencies,
   };
 }
@@ -88,12 +95,12 @@ export async function packageCliRelease({ tag, out }) {
     writeFileSync(path.join(stage, 'release.json'), JSON.stringify({ version, tag, revision, buildNode: process.version }, null, 2) + '\n');
     writeFileSync(path.join(stage, 'README.md'), `# Alran Code ${version}
 
-Built from https://github.com/ottili/alran-code/tree/${revision}.
+Built from https://github.com/Alran-AI/code/tree/${revision}.
 Install this tar.gz with npm. Node.js must satisfy the package engines requirement.
 Keep optional dependencies enabled and allow better-sqlite3 installation scripts.
 Update by installing a newer GitHub release archive; the built-in updater follows npm.
 The archive uses the same package name, alran command and user data as the official npm CLI.
-See https://github.com/ottili/alran-code/blob/${revision}/docs/installation.md.
+See https://github.com/Alran-AI/code/blob/${revision}/docs/installation.md.
 `);
     mkdirSync(out, { recursive: true });
     const archive = path.join(out, `alran-code-${version}.tar.gz`);
