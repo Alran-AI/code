@@ -69,7 +69,7 @@ export interface AccountCommandIo {
   readonly err: (text: string) => void;
   readonly now: () => Date;
   /** The interactive Platform sign-in (OIDC in the browser); returns the message to print. */
-  readonly login: (options: { openBrowser: boolean; apiKey: boolean }) => Promise<string>;
+  readonly login: (options: { openBrowser: boolean; apiKey: boolean; device?: boolean }) => Promise<string>;
   /** Remove every local credential (session files and a stored API key). */
   readonly clearLocalCredentials: () => Promise<void>;
   /** Persist the default model (`provider/model`). */
@@ -87,9 +87,13 @@ export function defaultAccountCommandIo(): AccountCommandIo {
     out: (text) => process.stdout.write(text),
     err: (text) => process.stderr.write(text),
     now: () => new Date(),
-    login: async ({ openBrowser, apiKey }) => {
+    login: async ({ openBrowser, apiKey, device }) => {
       const { runTuiLogin } = await import('./auth-command.js');
-      return runTuiLogin({ openBrowser, provider: apiKey ? 'api-key' : 'platform' });
+      return runTuiLogin({
+        openBrowser,
+        provider: apiKey ? 'api-key' : 'platform',
+        ...(device === undefined ? {} : { device }),
+      });
     },
     clearLocalCredentials: async () => {
       const { runTuiLogout } = await import('./auth-command.js');
@@ -311,7 +315,7 @@ export async function runAuthStatus(io: AccountCommandIo, options: { json?: bool
 
 export async function runAuthLogin(
   io: AccountCommandIo,
-  options: { force?: boolean; browser?: boolean; apiKey?: boolean } = {},
+  options: { force?: boolean; browser?: boolean; apiKey?: boolean; device?: boolean } = {},
 ): Promise<void> {
   const existing = resolveStoredPlatformSession(io.dataDir, io.platformEnv);
   if (existing && !options.force && !options.apiKey) {
@@ -324,7 +328,7 @@ export async function runAuthLogin(
       if (!(error instanceof AlranAccountError) || error.exitCode !== ACCOUNT_EXIT.authRequired) throw error;
     }
   }
-  io.out(`${await io.login({ openBrowser: options.browser !== false, apiKey: options.apiKey === true })}\n`);
+  io.out(`${await io.login({ openBrowser: options.browser !== false, apiKey: options.apiKey === true, ...(options.device === undefined ? {} : { device: options.device }) })}\n`);
 }
 
 export async function runAuthLogout(io: AccountCommandIo): Promise<void> {
@@ -713,11 +717,13 @@ export function registerAccountCommands(
   const auth = program.command('auth').description('Sign in to your Ottili account, check it, switch company, sign out');
   auth
     .command('login')
-    .description('Sign in with your Ottili account in the browser')
+    .description('Sign in with your Ottili account (in the browser, or with a code confirmed on any device)')
     .option('--force', 'sign in again even when a session exists')
+    .option('--device', 'sign in with a code you confirm in a browser anywhere (the default over SSH or without a display)')
+    .option('--no-device', 'sign in through a browser on this machine even when none seems to be there')
     .option('--no-browser', 'print the sign-in page URL without opening a browser')
     .option('--api-key', 'paste an Ottili API key instead (for machines without a browser)')
-    .action((options: { force?: boolean; browser?: boolean; apiKey?: boolean }) => run((io) => runAuthLogin(io, options))());
+    .action((options: { force?: boolean; browser?: boolean; apiKey?: boolean; device?: boolean }) => run((io) => runAuthLogin(io, options))());
   auth
     .command('logout')
     .description('Revoke the session at the Ottili Platform and remove local credentials')

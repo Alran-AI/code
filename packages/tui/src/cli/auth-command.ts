@@ -5,6 +5,7 @@ import { getTuiDataDirPath } from '../runtime/data-dir.js';
 import {
   clearStoredPlatformSession,
   platformEnvironmentOrder,
+  resolveOttiliGatewayBaseUrl,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
 } from '@alran/config';
@@ -17,6 +18,11 @@ import {
   type OttiliApiKeyLoginOptions,
 } from '../auth/ottili-api-key.js';
 import { resolveAlranAuthEnvironment } from '../auth/environment.js';
+import {
+  runDeviceAuthorization,
+  shouldUseDeviceFlow,
+  type DeviceAuthorizationOptions,
+} from './device-login.js';
 import { createTuiExternalTargetOpener, type TuiExternalTargetOpener } from '../host/open-external.js';
 
 import {
@@ -58,6 +64,14 @@ export interface RunTuiAuthCommandOptions
    * Defaults to the environment this build targets.
    */
   readonly platformEnv?: 'dev' | 'prod';
+  /**
+   * The `platform` provider signs in with the device authorization (a code confirmed in any browser)
+   * instead of the loopback redirect. Unset: decided by the terminal (SSH, no display) or by
+   * `ALRAN_LOGIN_FLOW`.
+   */
+  readonly device?: boolean;
+  /** Replaces the device authorization's network and clock in tests. */
+  readonly deviceAuthorization?: Partial<DeviceAuthorizationOptions>;
 }
 
 /**
@@ -99,6 +113,13 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
     });
   }
   if (options.provider === 'platform') {
+    if (options.device ?? shouldUseDeviceFlow()) {
+      return loginWithDevice({
+        platformEnv: options.platformEnv ?? defaultPlatformEnvironment(),
+        writeError,
+        ...(options.deviceAuthorization ? { overrides: options.deviceAuthorization } : {}),
+      });
+    }
     return loginWithPlatformOidc({
       platformEnv: options.platformEnv ?? defaultPlatformEnvironment(),
       openBrowser: options.openBrowser !== false,
@@ -143,6 +164,35 @@ interface LoginWithKeycloakOptions {
   readonly openBrowser?: boolean;
   readonly openExternalTarget?: TuiExternalTargetOpener;
   readonly writeError?: (value: string) => void;
+}
+
+interface LoginWithDeviceOptions {
+  readonly platformEnv: 'dev' | 'prod';
+  readonly writeError: (value: string) => void;
+  readonly overrides?: Partial<DeviceAuthorizationOptions>;
+}
+
+/** Sign in with a code that is confirmed in a browser anywhere (RFC 8628); see ./device-login.ts. */
+async function loginWithDevice(options: LoginWithDeviceOptions): Promise<string> {
+  const abort = new AbortController();
+  const onInterrupt = () => abort.abort(new Error('interrupted'));
+  process.once('SIGINT', onInterrupt);
+  let session;
+  try {
+    session = await runDeviceAuthorization({
+      gatewayBaseUrl: resolveOttiliGatewayBaseUrl(options.platformEnv),
+      write: options.writeError,
+      signal: abort.signal,
+      ...options.overrides,
+    });
+  } finally {
+    process.removeListener('SIGINT', onInterrupt);
+  }
+  const platformAuthDir = `${getTuiDataDirPath()}/auth/platform/${options.platformEnv}`;
+  const { mkdir } = await import('node:fs/promises');
+  await mkdir(platformAuthDir, { recursive: true });
+  await storePlatformSession(platformAuthDir, session);
+  return `Signed in to the Ottili AI Platform (${options.platformEnv === 'prod' ? 'production' : 'development'}) with a device code.`;
 }
 
 interface LoginWithPlatformOidcOptions {

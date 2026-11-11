@@ -27,6 +27,7 @@
       "packages/tui/test/unit/update-hint.test.ts",
       "packages/tui/test/unit/auth-session.test.ts",
       "packages/tui/test/unit/cli-auth-command.test.ts",
+      "packages/tui/test/unit/device-login.test.ts",
       "packages/tui/test/unit/network-proxy.test.ts",
       "packages/tui/test/unit/network-proxy-socks5.test.ts",
       "packages/tui/test/unit/application-login-gate.test.ts",
