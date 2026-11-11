@@ -20,7 +20,7 @@ describe('the weekly update hint', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     await resolveUpdateHint({ ...options, now: () => 1_000 + UPDATE_CHECK_INTERVAL_MS });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
-    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe('https://registry.npmjs.org/@ottili%2falran-code');
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe('https://registry.npmjs.org/alran');
   });
 
   it('says nothing when current, when switched off, in CI, or when the registry is unreachable', async () => {
