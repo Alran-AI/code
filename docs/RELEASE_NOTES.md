@@ -48,7 +48,7 @@ See `docs/MIGRATION_FROM_MINIMAX.md`.
 
 ## Known limitations
 
-- No Ottili-hosted Plugin registry yet (`docs/PLUGINS.md`).
+- No Ottili-hosted Plugin registry yet, and no CLI command to import a Plugin from GitHub (`docs/PLUGINS.md`).
 - The managed installer and its release host (`cdn.ottili.one`) are not set up; npm is the install
   and update path (`docs/UPDATE_PIPELINE.md`).
 
