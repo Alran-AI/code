@@ -25,7 +25,6 @@ import {
   isPaidOnlyOttiliModel,
   platformEnvironmentOrder,
   readOttiliAccountPreferences,
-  resolveDataDir,
   resolveOttiliCatalogModelId,
   resolveOttiliGatewayBaseUrl,
   resolvePlatformEnvironmentForBuild,
@@ -36,6 +35,9 @@ import {
   type PlatformEnvironment,
   type StoredPlatformSession,
 } from '@alran/config';
+// The data directory of the running CLI (ALRAN_DATA_DIR, else the profile's default): the same one
+// the model resolver reads the session from, so a sign-in is found where it is used.
+import { getTuiDataDirPath } from '../runtime/data-dir.js';
 
 export const ACCOUNT_EXIT = Object.freeze({
   ok: 0,
@@ -78,7 +80,7 @@ export interface AccountCommandIo {
 
 export function defaultAccountCommandIo(): AccountCommandIo {
   return {
-    dataDir: resolveDataDir(),
+    dataDir: getTuiDataDirPath(),
     platformEnv: resolvePlatformEnvironmentForBuild(),
     environment: process.env,
     fetchImpl: fetch,
@@ -402,7 +404,16 @@ export async function runConfigProject(io: AccountCommandIo, target: string | un
     io.out('Project cleared: requests use the default project of the company.\n');
     return;
   }
-  const answer = await platformCall<ProjectsAnswer>(io, session, '/v2/projects', { query: { status: 'active', member: 'me', limit: '200' } });
+  let answer: ProjectsAnswer;
+  try {
+    answer = await platformCall<ProjectsAnswer>(io, session, '/v2/projects', { query: { status: 'active', member: 'me', limit: '200' } });
+  } catch (error) {
+    // A Platform release without shared projects answers 404 for the route itself.
+    if (error instanceof AlranAccountError && /HTTP 404/u.test(error.message)) {
+      throw new AlranAccountError('This Ottili Platform does not offer projects yet; requests use the default project of the company.', ACCOUNT_EXIT.error, 'projects_unavailable');
+    }
+    throw error;
+  }
   const projects = answer.items ?? [];
   if (!target) {
     if (options.json) {
@@ -433,7 +444,7 @@ export async function runConfigProject(io: AccountCommandIo, target: string | un
 export function modelKeyOf(name: string): string | undefined {
   const id = resolveOttiliCatalogModelId(name.replace(/^(alran|external)\//u, ''));
   if (!Object.hasOwn(ALRAN_MODELS, id)) return undefined;
-  return id.includes('/') ? `external/${id}` : `alran/${id}`;
+  return `alran/${id}`;
 }
 
 interface CreditsAnswer {
@@ -487,8 +498,8 @@ export async function runConfigModel(io: AccountCommandIo, target: string | unde
 /** The Ottili models with their list prices, for a listing that works signed out and offline too. */
 export const OTTILI_MODEL_LISTING = Object.freeze([
   { key: 'alran/Alran-Werk', id: 'ottili/werk-1.1', short: 'werk', name: 'Ottili Werk 1.1', input: 500_000, output: 1_500_000, feeBps: 0, credit: 'welcome or purchased credit', description: 'Ottili’s own model for coding and agentic work. Default.' },
-  { key: 'external/anthropic/claude-sonnet-5.5', id: 'anthropic/claude-sonnet-5.5', short: 'sonnet', name: 'Claude Sonnet 5.5', input: 2_000_000, output: 10_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s everyday model for coding and agents.' },
-  { key: 'external/anthropic/claude-opus-5.5', id: 'anthropic/claude-opus-5.5', short: 'opus', name: 'Claude Opus 5.5', input: 4_000_000, output: 20_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s most capable Opus model for hard, long tasks.' },
+  { key: 'alran/anthropic/claude-sonnet-5.5', id: 'anthropic/claude-sonnet-5.5', short: 'sonnet', name: 'Claude Sonnet 5.5', input: 2_000_000, output: 10_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s everyday model for coding and agents.' },
+  { key: 'alran/anthropic/claude-opus-5.5', id: 'anthropic/claude-opus-5.5', short: 'opus', name: 'Claude Opus 5.5', input: 4_000_000, output: 20_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s most capable Opus model for hard, long tasks.' },
 ]);
 
 function availability(model: (typeof OTTILI_MODEL_LISTING)[number], credits: CreditsAnswer | null): string {
@@ -586,7 +597,7 @@ export async function runUsage(io: AccountCommandIo, options: { json?: boolean }
     formatMicroUsd(row.cost_microcents),
   ]);
   io.out([
-    `Credits (${credits.currency ?? 'USD'})`,
+    `Credits (${String(credits.currency ?? 'USD').toUpperCase()})`,
     `  Available        ${formatMicroUsd(credits.available_microcents ?? 0)}`,
     `  Reserved         ${formatMicroUsd(credits.reserved_microcents ?? 0)}`,
     `  Welcome credit   ${formatMicroUsd(credits.free_credit?.remaining_microcents ?? 0)} left of ${formatMicroUsd(credits.free_credit?.granted_microcents ?? 0)} (Werk only)`,
@@ -673,10 +684,22 @@ export async function runAccountAction(io: AccountCommandIo, action: () => Promi
   }
 }
 
-export function registerAccountCommands(program: Command, makeIo: () => AccountCommandIo = defaultAccountCommandIo): void {
+export function registerAccountCommands(
+  program: Command,
+  makeIo: () => AccountCommandIo = defaultAccountCommandIo,
+  version?: string,
+): void {
   const run = (action: (io: AccountCommandIo) => Promise<void>) => async () => {
     const io = makeIo();
+    // The weekly update hint runs beside the command and is given at most a moment after it.
+    const hint = version
+      ? import('../update/update-hint.js').then(({ resolveUpdateHint }) =>
+          resolveUpdateHint({ currentVersion: version, dataDir: io.dataDir, environment: io.environment, fetchImpl: io.fetchImpl }),
+        ).catch(() => null)
+      : Promise.resolve(null);
     await runAccountAction(io, () => action(io));
+    const text = await Promise.race([hint, new Promise<null>((resolve) => setTimeout(() => resolve(null), 1_500).unref())]);
+    if (text) io.err(`${text}\n`);
   };
 
   const auth = program.command('auth').description('Sign in to your Ottili account, check it, switch company, sign out');

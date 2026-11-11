@@ -1,8 +1,10 @@
 import type { AlranRegion } from '@alran/config';
+// The data directory of the running CLI (ALRAN_DATA_DIR, else the profile's default): the same one
+// the model resolver reads the session from, so a sign-in is found where it is used.
+import { getTuiDataDirPath } from '../runtime/data-dir.js';
 import {
   clearStoredPlatformSession,
   platformEnvironmentOrder,
-  resolveDataDir,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
 } from '@alran/config';
@@ -125,7 +127,7 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
  * a session behind that the model calls would keep using.
  */
 export async function runTuiLogout(options: RunTuiAuthCommandOptions = {}): Promise<string> {
-  const dataDir = resolveDataDir();
+  const dataDir = getTuiDataDirPath();
   for (const platformEnv of platformEnvironmentOrder(
     resolvePlatformEnvironmentForBuild(),
   )) {
@@ -170,7 +172,7 @@ async function loginWithKeycloak(options: LoginWithKeycloakOptions): Promise<str
   );
 
   const namespace = createAuthNamespace({
-    dataDir: resolveDataDir(),
+    dataDir: getTuiDataDirPath(),
     buildEnv,
     region,
   });
@@ -254,7 +256,7 @@ async function loginWithPlatformOidc(options: LoginWithPlatformOidcOptions): Pro
   const platformBaseUrl = resolvePlatformBaseUrl(options.platformEnv);
 
   // Store the Platform session under the Platform namespace.
-  const dataDir = resolveDataDir();
+  const dataDir = getTuiDataDirPath();
   const platformAuthDir = `${dataDir}/auth/platform/${options.platformEnv}`;
   const { mkdir } = await import('node:fs/promises');
   await mkdir(platformAuthDir, { recursive: true });
@@ -439,7 +441,7 @@ function formatRegion(region: AlranRegion): string {
 export async function platformSessionClient(
   platformEnv: 'dev' | 'prod' = resolvePlatformEnvironmentForBuild(),
 ): Promise<PlatformApiClient | null> {
-  const dataDir = resolveDataDir();
+  const dataDir = getTuiDataDirPath();
   const authDir = `${dataDir}/auth/platform/${platformEnv}`;
   const stored = await readPlatformSession(authDir);
   if (!stored) return null;

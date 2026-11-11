@@ -1692,39 +1692,22 @@ function buildPresetEntry(key: PresetKey) {
     baseURL: PRESET_BASE_URLS[key],
   };
 
-  // Ottili's own model (Werk) under the flagship "Ottili AI Platform" provider.
+  // One provider for every model the Ottili AI Gateway serves: Werk and the partner models (Claude).
+  // They share the route — the Platform session (or an Ottili API key) as bearer credential, and the
+  // gateway URL — so they must share the provider: a model under another provider id would not get
+  // that route and could never be called. Partner models are paid-credit-only; the gateway enforces
+  // it. Third-party providers with the user's own key are a separate, opt-in configuration.
   const internalProvider: ProviderConfig = {
     name: "Ottili AI Platform",
     npm: "@ai-sdk/openai-compatible",
     options: baseOptions,
-    models: Object.fromEntries(
-      Object.entries(ALRAN_MODELS).filter(
-        ([id]) => !id.includes("/"),
-      ),
-    ),
-    model_order: ["Alran-Werk"],
-  };
-
-  // Partner models (Claude), served by the same Ottili AI Gateway under their gateway ids
-  // (`anthropic/claude-sonnet-5.5`). They are paid-credit-only; the gateway enforces that.
-  // Third-party providers with the user's own key are a separate, opt-in configuration.
-  const externalProvider: ProviderConfig = {
-    name: "Ottili AI Platform · Claude",
-    npm: "@ai-sdk/openai-compatible",
-    options: baseOptions,
-    models: Object.fromEntries(
-      Object.entries(ALRAN_MODELS).filter(([id]) => id.includes("/")),
-    ),
-    model_order: [
-      "anthropic/claude-sonnet-5.5",
-      "anthropic/claude-opus-5.5",
-    ],
+    models: { ...ALRAN_MODELS },
+    model_order: ["Alran-Werk", "anthropic/claude-sonnet-5.5", "anthropic/claude-opus-5.5"],
   };
 
   return {
     provider: {
       alran: internalProvider,
-      external: externalProvider,
     } as ModelsConfig,
     defaultModel: "alran/Alran-Werk",
   };

@@ -245,7 +245,7 @@ describe('models', () => {
     signIn();
     const commandIo = io({ 'GET /v1/credits': CREDITS() });
     await runConfigModel(commandIo, 'sonnet');
-    expect(commandIo.setDefaultModel).toHaveBeenCalledWith('external/anthropic/claude-sonnet-5.5');
+    expect(commandIo.setDefaultModel).toHaveBeenCalledWith('alran/anthropic/claude-sonnet-5.5');
     expect(err.join('')).toContain('uses purchased credits only');
     expect(modelKeyOf('werk')).toBe('alran/Alran-Werk');
     expect(modelKeyOf('gpt-6')).toBeUndefined();
