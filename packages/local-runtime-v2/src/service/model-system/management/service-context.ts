@@ -4,6 +4,7 @@ import {
   formatModelKey,
   parseProviderId,
 } from '../resolution/model-key.js';
+import { ALRAN_MODEL_TO_GATEWAY_ID } from '@alran/config';
 import {
   LocalModelProviderError,
   type LocalCustomProviderConfig,
@@ -414,11 +415,13 @@ export class ModelProviderServiceContext {
     const effortOptions = normalizeModelThinkingEffortOptions(model?.thinking?.effortOptions);
     const alranM3ThinkingModes = alranThinkingModes(chosenModelId);
     const outputLimit = byokEffectiveOutputLimit(model);
+    // The Ottili AI Gateway is OpenAI-compatible and knows its own model ids: probing it in another
+    // protocol, or with the catalog's key (`Alran-Werk`), would fail on a healthy gateway.
     const target: ModelConnectionTestTarget = {
-      api: 'anthropic-messages',
-      baseUrl: normalizeProviderBaseUrl('anthropic-messages', alranApiBaseUrl(config)),
+      api: 'openai-completions',
+      baseUrl: normalizeProviderBaseUrl('openai-completions', alranApiBaseUrl(config)),
       apiKey,
-      modelId: chosenModelId,
+      modelId: ALRAN_MODEL_TO_GATEWAY_ID[chosenModelId] ?? chosenModelId,
       outputLimit,
     };
     return {

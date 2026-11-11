@@ -93,23 +93,22 @@ describe("IME cursor through the product renderer", () => {
         await terminal.waitForRender();
         expect(renderer.ui.getShowHardwareCursor()).toBe(true);
         expect(terminal.writes.join("")).toContain("\x1b[?25h");
-        // Below the prompt threshold the composer renders the editor alone, so
-        // the cursor sits at the editor padding instead of behind "alran > ".
-        expect(terminal.getCursorPosition()).toEqual(
-          columns === 8 ? { x: 1, y: 1 } : { x: 9, y: 2 },
-        );
+        // The cursor sits behind the two-column prompt prefix ("❯ ") and the editor padding.
+        expect(terminal.getCursorPosition()).toEqual({ x: 3, y: 2 });
         editor.setText("中文abc");
         renderer.ui.renderNow();
         await terminal.flush();
         expect(terminal.getCursorPosition()).toEqual(
-          columns === 8 ? { x: 4, y: 2 } : { x: 16, y: 2 },
+          // at 8 columns "abc" wraps to the second editor row
+          columns === 8 ? { x: 6, y: 3 } : { x: 10, y: 2 },
         );
         renderer.switchMode(mode === "regular" ? "fullscreen" : "regular");
         renderer.ui.renderNow();
         await terminal.flush();
         expect(renderer.ui.getShowHardwareCursor()).toBe(true);
         expect(terminal.getCursorPosition()).toEqual(
-          columns === 8 ? { x: 4, y: 2 } : { x: 16, y: 2 },
+          // at 8 columns "abc" wraps to the second editor row
+          columns === 8 ? { x: 6, y: 3 } : { x: 10, y: 2 },
         );
         renderer.ui.setFocus(null);
         terminal.writes = [];
@@ -179,25 +178,25 @@ describe("IME cursor through the product renderer", () => {
       };
       try {
         renderer.start();
-        expect(await assertFrame({ x: 9, y: 2 })).toBeGreaterThan(0);
+        expect(await assertFrame({ x: 3, y: 2 })).toBeGreaterThan(0);
         editor.setText("中文abc");
-        expect(await assertFrame({ x: 16, y: 2 })).toBeGreaterThan(0);
+        expect(await assertFrame({ x: 10, y: 2 })).toBeGreaterThan(0);
         editor.handleInput("\x1b[D");
-        await assertFrame({ x: 15, y: 2 });
+        await assertFrame({ x: 9, y: 2 });
         trailing.lines = ["status"]; // deleted-lines-only branch
-        expect(await assertFrame({ x: 15, y: 2 })).toBeGreaterThan(0);
+        expect(await assertFrame({ x: 9, y: 2 })).toBeGreaterThan(0);
         editor.setText("中文\nabc");
         // The cursor sits on the continuation line, which keeps the two-space
         // indent instead of the prompt prefix.
         expect(await assertFrame({ x: 6, y: 3 })).toBeGreaterThan(0);
         editor.setText(""); // differential shrink and placeholder restoration
-        expect(await assertFrame({ x: 9, y: 2 })).toBeGreaterThan(0);
-        await assertFrame({ x: 9, y: 2 }); // unchanged frame
+        expect(await assertFrame({ x: 3, y: 2 })).toBeGreaterThan(0);
+        await assertFrame({ x: 3, y: 2 }); // unchanged frame
         terminal.resize(32, 16);
         replay.resize(32, 16);
-        expect(await assertFrame({ x: 9, y: 2 })).toBeGreaterThan(0);
+        expect(await assertFrame({ x: 3, y: 2 })).toBeGreaterThan(0);
         renderer.ui.requestRender(true); // forced full repaint
-        expect(await assertFrame({ x: 9, y: 2 })).toBeGreaterThan(0);
+        expect(await assertFrame({ x: 3, y: 2 })).toBeGreaterThan(0);
       } finally {
         renderer.dispose();
       }

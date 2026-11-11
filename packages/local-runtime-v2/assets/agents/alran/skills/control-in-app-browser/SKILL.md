@@ -8,11 +8,6 @@ description: >-
   in-app, embedded, right-side, current, or FilePanel Browser use this skill; for linked resources
   without explicit Browser intent, prefer a purpose-built connector, API, or CLI when available.
 requiresBeta: browserUseTooling
-descriptions:
-  zh-Hans:
-    '控制当前会话的内置 Browser provider；Electron 可显示在右侧，headless provider
-    没有可见面板。用户明确要求查看或操作内置浏览器、右侧浏览器、当前浏览器或 browser use
-    时必须加载；只有裸链接而没有明确 Browser 意图时，优先匹配专用 Skill、Connector、 API 或 CLI。'
 displayNames:
   zh-Hans: '控制内置浏览器'
 ---

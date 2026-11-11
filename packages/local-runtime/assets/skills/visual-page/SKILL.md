@@ -7,8 +7,6 @@ description: >
   where a simple webpage would communicate more clearly than markdown text.
   Also use when the user explicitly asks for a visual page, a webpage, or says "show me" / "画个图" / "做个页面" / "可视化".
   This skill should be used proactively by the model — do not wait for the user to ask.
-descriptions:
-  zh-Hans: "在纯文本难以表达时主动创建可视化 HTML 页面，适用于图表、流程、时间线、交互演示和布局说明。"
 displayNames:
   zh-Hans: "可视化页面"
 ---

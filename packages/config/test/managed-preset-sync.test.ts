@@ -136,11 +136,14 @@ it("honors the disabled preset synchronization policy", () => {
   expect(fs.readFileSync(file, "utf8")).toBe(original);
 });
 
+// A config on the retired managed route is recognized as managed. When it cannot be rewritten, the
+// in-memory config still uses the build's own endpoint: the live gateway in prod, the staging one
+// elsewhere. The credential is never lost.
 it.each([
-  ["prod", oldBaseURL],
+  ["prod", "https://ai.ottili.one/v1"],
   ["test", presetBaseURL],
 ] as const)(
-  "preserves %s provider policy after a safe sync failure",
+  "serves the %s endpoint and keeps the credential after a safe sync failure",
   (buildEnv, expectedBaseURL) => {
     vi.stubEnv("ALRAN_BUILD_ENV", buildEnv);
     // A staging endpoint needs syncing in both prod and test builds.

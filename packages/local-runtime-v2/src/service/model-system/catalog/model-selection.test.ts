@@ -86,7 +86,7 @@ describe('legacy Alran compatibility', () => {
       const config: LocalRuntimeConfig = {
         dataDir: '/tmp/legacy-model-selection',
         defaultModel: `custom_provider:${key}/retired`,
-        provider: { alran: { models: { 'Alran-M3.1-Flash': {}, 'Alran-M3': {} } } },
+        provider: { alran: { models: { 'Alran-Werk': {}, 'anthropic/claude-opus-5.5': {} } } },
         custom_provider: {
           [key]: {
             options: {
@@ -105,7 +105,7 @@ describe('legacy Alran compatibility', () => {
         }),
       ).toEqual({
         providerId: 'alran',
-        modelId: 'Alran-M3.1-Flash',
+        modelId: 'Alran-Werk',
       });
       expect(config).toEqual(before);
       config.custom_provider![key]!.options!.baseURL = 'https://proxy.example/v1';
@@ -168,16 +168,16 @@ describe('model selection input', () => {
 it('creates an API-only session before a shared Alran catalog exists', () => {
   const config: LocalRuntimeConfig = {
     dataDir: '/tmp/api-only-session-create',
-    defaultModel: 'alran_api/Alran-M3',
+    defaultModel: 'alran_api/Alran-Werk',
     provider: {},
     alran_api: { apiKey: 'api-only-placeholder' },
   };
   expect(
     resolveRequestedSessionModel(config, {
       providerId: 'alran_api',
-      modelId: 'Alran-M3',
+      modelId: 'Alran-Werk',
     }),
-  ).toMatchObject({ providerId: 'alran_api', modelId: 'Alran-M3' });
+  ).toMatchObject({ providerId: 'alran_api', modelId: 'Alran-Werk' });
 });
 
 describe('ordinary session inherits the selected global effort', () => {

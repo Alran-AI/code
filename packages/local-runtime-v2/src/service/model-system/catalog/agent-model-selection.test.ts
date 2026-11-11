@@ -137,8 +137,8 @@ describe('resolveAgentModelSelection', () => {
         ...config.provider,
         alran: {
           models: {
-            'Alran-M3.1-Flash': { limit: { context: 512_000, output: 128_000 } },
-            'Alran-M3': { limit: { context: 512_000, output: 128_000 } },
+            'Alran-Werk': { limit: { context: 512_000, output: 128_000 } },
+            'anthropic/claude-opus-5.5': { limit: { context: 512_000, output: 128_000 } },
           },
         },
       },
@@ -147,7 +147,7 @@ describe('resolveAgentModelSelection', () => {
       resolveEffectiveAgentModelSelection({ config: legacyConfig, sources: [] }),
     ).toMatchObject({
       providerId: 'alran',
-      modelId: 'Alran-M3.1-Flash',
+      modelId: 'Alran-Werk',
       contextWindow: 512_000,
     });
     expect(legacyConfig.defaultModel).toBe('custom_provider:alran-legacy/retired');

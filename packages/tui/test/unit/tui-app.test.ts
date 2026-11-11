@@ -1242,13 +1242,13 @@ describe("createTuiApp", () => {
       await app.ready;
 
       expect(stripAnsi(app.tui.render(80).join("\n"))).toContain(
-        "Ask Alran to do anything",
+        "Build anything",
       );
 
       app.editor.handleInput("R");
 
       expect(stripAnsi(app.tui.render(80).join("\n"))).not.toContain(
-        "Ask Alran to do anything",
+        "Build anything",
       );
       expect(app.editor.getText()).toBe("R");
     } finally {
@@ -6444,7 +6444,7 @@ describe("createTuiApp", () => {
         expect(history.filter((line) => line.trimEnd().endsWith(`› Message ${index}`))).toHaveLength(1);
       }
       expect(history.join("\n")).not.toContain("Session usage");
-      expect(terminal.getViewport().join("\n")).toContain("Ask Alran to do anything");
+      expect(terminal.getViewport().join("\n")).toContain("Build anything");
       expect(terminal.getViewport().join("\n")).toContain("/workspace");
     } finally {
       await app.stop();
@@ -14537,7 +14537,7 @@ describe("createTuiApp", () => {
         expect(screen.getScrollBuffer().filter((line) => line.match(/Answer (\d+)/u)?.[1] === String(index))).toHaveLength(1);
       }
       screen.scrollLines(10000);
-      expect(screen.getViewport().join("\n")).toContain("Ask Alran to do anything");
+      expect(screen.getViewport().join("\n")).toContain("Build anything");
     } finally {
       finish?.();
       await app.stop();

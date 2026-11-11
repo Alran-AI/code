@@ -30,7 +30,7 @@ describe('LocalModelResolver', () => {
   it('uses the frozen M3 1M context in the resolved executor model', async () => {
     const resolver = new LocalModelResolver({
       providerConfig: {
-        alran: { models: { 'Alran-M3': { limit: { context: 512_000, output: 128_000 } } } },
+        alran: { models: { 'anthropic/claude-opus-5.5': { limit: { context: 512_000, output: 128_000 } } } },
       },
       byokConfigGetter: () => ({
         alran_api: { apiKey: 'test-key', baseURL: 'https://example.invalid' },
@@ -41,7 +41,7 @@ describe('LocalModelResolver', () => {
       turnId: 'm3-turn',
       agentConfig: {
         ...AGENT_CONFIG,
-        model: { provider: 'alran_api', model_id: 'Alran-M3', context_window: 1_000_000 },
+        model: { provider: 'alran_api', model_id: 'anthropic/claude-opus-5.5', context_window: 1_000_000 },
       },
     });
     expect(resolved.model.contextWindow).toBe(1_000_000);
@@ -203,7 +203,7 @@ describe('LocalModelResolver', () => {
         ...AGENT_CONFIG,
         model: {
           provider: 'alran',
-          model_id: 'Alran-M2.7',
+          model_id: 'anthropic/claude-sonnet-5.5',
         },
       },
     });
@@ -267,7 +267,7 @@ describe('LocalModelResolver', () => {
         turnId: 'turn-managed-refresh',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: { provider: 'alran', model_id: 'Alran-M2.7' },
+          model: { provider: 'alran', model_id: 'anthropic/claude-sonnet-5.5' },
         },
       });
 
@@ -329,7 +329,7 @@ describe('LocalModelResolver managed auth continuity', () => {
         turnId: 'turn-managed-rotation',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: { provider: 'alran', model_id: 'Alran-M2.7' },
+          model: { provider: 'alran', model_id: 'anthropic/claude-sonnet-5.5' },
         },
       });
       Object.assign(authContext, {
@@ -370,7 +370,7 @@ describe('LocalModelResolver model routing', () => {
       providerConfig: {
         alran: {
           models: {
-            'Alran-M3': {
+            'anthropic/claude-opus-5.5': {
               limit: { context: 400_000, output: 128_000 },
             },
           },
@@ -391,7 +391,7 @@ describe('LocalModelResolver model routing', () => {
         ...AGENT_CONFIG,
         model: {
           provider: 'alran_api',
-          model_id: 'Alran-M3',
+          model_id: 'anthropic/claude-opus-5.5',
         },
       },
     });
@@ -402,8 +402,9 @@ describe('LocalModelResolver model routing', () => {
       maxTokens: 128_000,
       model: {
         provider: 'alran_api',
-        id: 'Alran-M3',
-        api: 'anthropic-messages',
+        id: 'anthropic/claude-opus-5.5',
+        // The Ottili AI Gateway speaks the OpenAI chat-completions protocol.
+        api: 'openai-completions',
         baseUrl: 'https://byok.example/messages-api',
         contextWindow: 400_000,
       },
@@ -470,7 +471,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       providerConfig: {
         alran: {
           models: {
-            'Alran-M3': {
+            'anthropic/claude-opus-5.5': {
               limit: { context: 400_000, output: 128_000 },
             },
           },
@@ -492,7 +493,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
         ...AGENT_CONFIG,
         model: {
           provider: 'alran',
-          model_id: 'Alran-M3',
+          model_id: 'anthropic/claude-opus-5.5',
         },
       },
     });
@@ -501,8 +502,8 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
       apiKey: 'alran-user-key',
       model: {
         provider: 'alran_api',
-        id: 'Alran-M3',
-        api: 'anthropic-messages',
+        id: 'anthropic/claude-opus-5.5',
+        api: 'openai-completions',
       },
     });
     expect(resolved.streamFn).toBeTypeOf('function');
@@ -657,7 +658,7 @@ describe('LocalModelResolver BYOK fallback', () => {
             baseURL: 'https://builtin.example/messages-api',
           },
           models: {
-            'Alran-M3': {
+            'anthropic/claude-opus-5.5': {
               reasoning: true,
               modalities: { input: ['text', 'image'], output: ['text'] },
               capabilities: { max_request_body_bytes: '67108864' },
@@ -699,7 +700,7 @@ describe('LocalModelResolver BYOK fallback', () => {
 
     expect(resolved.model).toMatchObject({
       provider: 'alran',
-      id: 'Alran-M3',
+      id: 'anthropic/claude-opus-5.5',
       contextWindow: 400_000,
       maxTokens: 128_000,
       reasoning: true,
@@ -1059,7 +1060,7 @@ describe('LocalModelResolver credentials and thinking', () => {
           ...AGENT_CONFIG,
           model: {
             provider: 'alran',
-            model_id: 'Alran-M2.7',
+            model_id: 'anthropic/claude-sonnet-5.5',
           },
         },
       }),
@@ -1135,7 +1136,7 @@ describe('LocalModelResolver credentials and thinking', () => {
         ...AGENT_CONFIG,
         model: {
           provider: 'alran',
-          model_id: 'Alran-M2.7',
+          model_id: 'anthropic/claude-sonnet-5.5',
           thinking_level: ThinkingLevel.MEDIUM,
           capabilities,
         },
@@ -1169,7 +1170,7 @@ describe('LocalModelResolver credentials and thinking', () => {
               apiKey: 'provider-key',
               baseURL: 'https://api.ottili.one/messages-api',
             },
-            models: { 'Alran-M3': modelConfig },
+            models: { 'anthropic/claude-opus-5.5': modelConfig },
           },
         },
       });
@@ -1179,7 +1180,7 @@ describe('LocalModelResolver credentials and thinking', () => {
         turnId: 'turn-m3-switch',
         agentConfig: {
           ...AGENT_CONFIG,
-          model: modelRefForModel('alran', 'Alran-M3', modelConfig, {
+          model: modelRefForModel('alran', 'anthropic/claude-opus-5.5', modelConfig, {
             thinking: { effort },
           }),
         },

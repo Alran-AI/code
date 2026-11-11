@@ -75,7 +75,6 @@ function isStandaloneSkillUsable(
     case 'plugin-creator':
     case 'skill-creator':
       return hasTools(capabilities, ['read', 'write', 'bash']);
-    case 'lark-tools':
     case 'llm-call':
     case 'alran-tools-master':
     case 'alran-doctor':

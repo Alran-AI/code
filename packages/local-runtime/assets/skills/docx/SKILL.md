@@ -13,8 +13,6 @@ metadata:
 description: >
   Unified DOCX skill — create, template-apply, edit/fill, read, repair, and compare Word documents.
   Use for formal Word deliverables and DOCX diagnosis. Not for PDF/PPT or casual plain-text drafting.
-descriptions:
-  zh-Hans: "创建、套模板、编辑、读取、修复和比较 Word DOCX 文档，适用于正式文档交付。"
 triggers:
   - Word
   - docx

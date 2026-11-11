@@ -54,7 +54,6 @@ export const AGENT_BUILTIN_SKILL_IDS = [
   'docx',
   'edit-deployed-website',
   'init',
-  'lark-tools',
   'llm-call',
   'alran-tools-master',
   'alran-doctor',

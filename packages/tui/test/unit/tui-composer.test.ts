@@ -55,7 +55,7 @@ describe("TuiComposer", () => {
     expect(rendered).toContain("Ctrl+J newline");
     expect(rendered).not.toContain("Shift+Enter");
     expect(rendered).not.toContain("Shift+Tab");
-    expect(rendered).toContain("alran > draft");
+    expect(rendered).toContain("❯ draft");
     expect(lines.filter((line) => line.includes("─"))).toHaveLength(2);
     expect(
       lines.some((line) => line.includes("Message") && line.includes("─")),
@@ -143,7 +143,7 @@ describe("TuiComposer", () => {
     const rendered = composer.render(80).map(stripAnsi).join("\n");
 
     expect(rendered).not.toContain("Ask a side question…");
-    expect(rendered).toContain("alran > draft");
+    expect(rendered).toContain("❯ draft");
   });
 
   it.each([
@@ -265,7 +265,7 @@ describe("TuiComposer", () => {
     const rendered = composer.render(80).slice(1).map(stripAnsi);
 
     expect(rendered[0]).toMatch(/^ {2}─── ↑ 2 more/u);
-    expect(rendered[1]).toContain("alran >  /docs summarize");
+    expect(rendered[1]).toContain("❯  /docs summarize");
     expect(rendered[2]).toMatch(/^ {2}─── ↓ 1 more/u);
   });
 
@@ -628,7 +628,7 @@ describe("TuiComposer", () => {
     expect(rendered).toContain("2 attachments · Enter send");
     expect(rendered).not.toContain("image-123.png");
     expect(rendered).not.toContain("Delete remove");
-    expect(rendered).toContain("alran > ");
+    expect(rendered).toContain("❯ ");
     expect(
       rendered
         .split("\n")

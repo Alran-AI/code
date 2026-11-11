@@ -9,9 +9,10 @@ import {
   buildPromptSuggestionPayloadTransform,
 } from './local-turn-payload-transform.js';
 
-// Mirrors the bundled Alran catalog entries that matter for thinking.
+// Mirrors the bundled catalog entries that matter for thinking: Werk (effort levels) and a partner
+// model without any.
 const M31_FLASH = {
-  name: 'M3.1-Flash',
+  name: 'Ottili Werk 1.1',
   reasoning: true,
   tool_call: true,
   modalities: { input: ['text', 'image'], output: ['text'] },
@@ -28,7 +29,7 @@ const M31_FLASH = {
 } as unknown as LocalModelConfig;
 
 const M3 = {
-  name: 'M3',
+  name: 'Claude Opus 5.5',
   reasoning: true,
   tool_call: true,
   modalities: { input: ['text'], output: ['text'] },
@@ -97,49 +98,59 @@ async function captureWireBody(input: {
 }
 
 describe('API-key Alran thinking effort', () => {
-  it.each(['high', 'low', 'xhigh', 'max'])(
-    'keeps --effort %s on the alran_api wire request',
-    async (effort) => {
+  // The OpenAI-compatible wire carries up to `high`; `xhigh` and `max` are clamped to it (the gateway
+  // accepts them too, and answers the same for Werk).
+  it.each([
+    ['high', 'high'],
+    ['low', 'low'],
+    ['xhigh', 'high'],
+    ['max', 'high'],
+  ])(
+    'keeps --effort %s on the alran_api wire request (as %s)',
+    async (effort, onTheWire) => {
       const body = await captureWireBody({
         provider: 'alran_api',
-        modelId: 'Alran-M3.1-Flash',
+        modelId: 'Alran-Werk',
         modelConfig: M31_FLASH,
         effort,
       });
-      expect(body.thinking).toEqual({ type: 'adaptive' });
-      expect(body.output_config).toEqual({ effort });
+      // Werk is served through the Ottili AI Gateway (OpenAI-compatible); the effort travels as
+      // `reasoning_effort`.
+      expect(body.model).toBe('ottili/werk-1.1');
+      expect(body.reasoning_effort).toBe(onTheWire);
     },
   );
 
   it('keeps --effort when a Alran model is routed through the API key source', async () => {
     const body = await captureWireBody({
       provider: 'alran',
-      modelId: 'Alran-M3.1-Flash',
+      modelId: 'Alran-Werk',
       modelConfig: M31_FLASH,
       effort: 'high',
       alranModelSource: 'alran_api_key',
     });
-    expect(body.output_config).toEqual({ effort: 'high' });
+    expect(body.reasoning_effort).toBe('high');
   });
 
   it('sends no effort when none was selected (default)', async () => {
     const body = await captureWireBody({
       provider: 'alran_api',
-      modelId: 'Alran-M3.1-Flash',
+      modelId: 'Alran-Werk',
       modelConfig: M31_FLASH,
     });
-    expect(body.thinking).toEqual({ type: 'adaptive' });
-    expect(body).not.toHaveProperty('output_config');
+    expect(body).not.toHaveProperty('reasoning_effort');
   });
 
   it('sends no effort for a model without effort levels', async () => {
     const body = await captureWireBody({
       provider: 'alran_api',
-      modelId: 'Alran-M3',
+      modelId: 'anthropic/claude-opus-5.5',
       modelConfig: M3,
       effort: 'high',
     });
-    expect(body.thinking).toEqual({ type: 'adaptive' });
+    expect(body.model).toBe('anthropic/claude-opus-5.5');
+    // The requested `high` is not forwarded; the wire carries the library's default level.
+    expect(body.reasoning_effort).not.toBe('high');
     expect(body).not.toHaveProperty('output_config');
   });
 });

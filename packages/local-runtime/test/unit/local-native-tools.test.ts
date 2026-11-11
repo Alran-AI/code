@@ -913,18 +913,18 @@ describe('local native turn tools', () => {
         agentName: 'alran',
       };
 
-      const available = await unrestrictedSkill!.impl.execute(context, { name: 'lark-tools' });
-      expect(available.text).toContain('# Feishu / Lark Tools');
+      const available = await unrestrictedSkill!.impl.execute(context, { name: 'llm-call' });
+      expect(available.text).toContain('# LLM Call');
 
       const { nativeTools: restrictedTools } = await buildLocalTurnToolSources({
         ...commonInput,
-        disabledBuiltinSkillNames: ['lark-tools'],
+        disabledBuiltinSkillNames: ['llm-call'],
       });
       const restrictedSkill = restrictedTools.find((tool) => tool.def.name === 'skill');
-      const blocked = await restrictedSkill!.impl.execute(context, { name: 'lark-tools' });
+      const blocked = await restrictedSkill!.impl.execute(context, { name: 'llm-call' });
       const unrelated = await restrictedSkill!.impl.execute(context, { name: 'skill-creator' });
 
-      expect(blocked.text).toBe('Local skill not found: lark-tools');
+      expect(blocked.text).toBe('Local skill not found: llm-call');
       expect(unrelated.text).toContain('name: skill-creator');
     } finally {
       await rm(dataDir, { recursive: true, force: true });
@@ -1009,10 +1009,10 @@ describe('local native turn tools', () => {
 
       const blocked = await skill!.impl.execute(
         { sessionId: 'frozen-skill-session', turnId: 'turn-2', agentName: 'alran' },
-        { name: 'lark-tools' },
+        { name: 'llm-call' },
       );
 
-      expect(blocked.text).toBe('Local skill not found: lark-tools');
+      expect(blocked.text).toBe('Local skill not found: llm-call');
       expect(blocked.details).toMatchObject({ found: false });
       expect(blocked.text).not.toContain('SKILL.md');
     } finally {

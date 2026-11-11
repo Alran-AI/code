@@ -2,8 +2,6 @@
 name: cu-desktop
 description: "Computer Use desktop operation guide. Auto-injected when CU mode is enabled."
 requiresBeta: cuMode
-descriptions:
-  zh-Hans: "Computer Use 桌面操作专家指南。CU mode 开启时自动注入，提供高效的桌面 GUI 操作策略。"
 ---
 
 # Computer Use — Desktop Operation Guide

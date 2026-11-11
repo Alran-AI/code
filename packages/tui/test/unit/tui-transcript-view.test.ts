@@ -798,7 +798,7 @@ describe('TranscriptView', () => {
               rows: [
                 {
                   label: 'Source',
-                  value: '/home/dev/.alran/config.yaml',
+                  value: '/home/dev01/.alran/config.yaml',
                 },
               ],
             },
@@ -808,10 +808,11 @@ describe('TranscriptView', () => {
       }),
     ]);
 
+    // The value fills the 18 columns of a row exactly before the wrap: "/home/dev01/.alran".
     const rendered = stripVTControlCharacters(view.render(28).join('\n'));
 
     expect(rendered).toMatch(/│ Source\s+│/u);
-    expect(rendered).toContain('│   /home/dev/.alran');
+    expect(rendered).toContain('│   /home/dev01/.alran');
     expect(rendered).toContain('│   /config.yaml');
     expect(rendered).not.toMatch(/│ Source\s+│?\s*\/home/u);
     expect(rendered).toContain('╰─');

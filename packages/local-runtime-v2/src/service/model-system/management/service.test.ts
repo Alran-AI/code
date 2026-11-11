@@ -466,7 +466,7 @@ describe('Alran model context', () => {
     expect(outcome).toMatchObject({ ok: true, status: { state: 'available' } });
     expect(h.testCalls).toHaveLength(1);
     expect(h.testCalls[0]?.target).toMatchObject({
-      api: 'anthropic-messages',
+      api: 'openai-completions',
       apiKey: RAW_KEY,
       modelId: 'Alran-M3',
     });
@@ -1196,7 +1196,7 @@ describe('custom provider candidate persistence', () => {
     expect(outcome.provider?.models).toEqual([]);
     expect(h.config.custom_provider?.work?.models).toEqual({});
     expect(h.testCalls).toEqual([]);
-    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-Werk');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 
@@ -2225,7 +2225,7 @@ describe('custom provider default model recovery', () => {
       models: [{ modelId: 'kept' }],
     });
 
-    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-Werk');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 });
@@ -2397,7 +2397,7 @@ describe('custom provider deletion', () => {
     await h.service.deleteUserProvider({ providerId: 'custom_provider:work' });
     expect(h.config.custom_provider?.work).toBeUndefined();
     expect(h.cache.load().provider_status['custom_provider:work']).toBeUndefined();
-    expect(h.config.defaultModel).toBe('alran/Alran-M3.1-Flash');
+    expect(h.config.defaultModel).toBe('alran/Alran-Werk');
     expect(h.config.defaultModelVariant).toBeUndefined();
   });
 
@@ -2613,12 +2613,31 @@ describe('connection tests', () => {
     await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
     await h.service.testProvider('alran_api');
     expect(h.testCalls[0]?.target).toMatchObject({
-      api: 'anthropic-messages',
+      api: 'openai-completions',
       baseUrl: ALRAN_API_DEFAULT_BASE_URL,
       apiKey: RAW_KEY,
       modelId: 'Alran-M3',
     });
     expect(h.testCalls.map((call) => call.target.alranM3ThinkingMode)).toEqual(['on', 'off']);
+  });
+
+  it('probes the gateway with the gateway id of a catalog model', async () => {
+    const h = makeHarness({
+      provider: {
+        alran: {
+          options: { authMode: 'managed-login', baseURL: 'https://managed.example/v1' },
+          models: { 'Alran-Werk': { name: 'Ottili Werk 1.1' } },
+        },
+      },
+      defaultModel: 'alran/Alran-Werk',
+    });
+    await h.service.upsertAlranApiKey({ apiKey: RAW_KEY });
+    await h.service.testModel('alran_api', 'Alran-Werk');
+    // `Alran-Werk` is the catalog's key; the gateway answers to `ottili/werk-1.1`.
+    expect(h.testCalls[0]?.target).toMatchObject({
+      api: 'openai-completions',
+      modelId: 'ottili/werk-1.1',
+    });
   });
 
   it('rejects testing providers without a key or unknown providers', async () => {

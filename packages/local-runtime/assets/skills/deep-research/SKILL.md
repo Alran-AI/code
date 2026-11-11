@@ -5,9 +5,6 @@ description: >
   external information verification. It is suitable for market/industry
   analysis, technical research, competitor research, trend judgment,
   policy/academic/fact verification, and long answers that need source citations.
-descriptions:
-  zh-Hans: >-
-    用于复杂、开放式深度研究任务，需要外部信息核验、跨来源搜索、事实校验和带引用的长答案。
 displayNames:
   zh-Hans: "深度研究"
 ---

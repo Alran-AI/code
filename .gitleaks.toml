@@ -20,13 +20,6 @@ regexTarget = "match"
 regexes = ['''^desktop_key combo="ctrl\+shift\+Escape"$''']
 
 [[rules.allowlists]]
-description = "Pagination example ends with explicit xxxx placeholder"
-condition = "AND"
-paths = ['''(^|/)(packages/local-runtime|dist)/assets/skills/lark-tools/cli-skills/lark-im/references/lark-im-reactions\.md$''']
-regexTarget = "match"
-regexes = ['''^page_token": "YhljsPiGfUgnVAg9urvRFd-BvSqRLxxxx"$''']
-
-[[rules.allowlists]]
 description = "PDF form field identifier, not an API key"
 condition = "AND"
 paths = ['''(^|/)(packages/local-runtime|dist)/assets/skills/pdf/templates/form-fill-acroform/cases/italy-schengen-visa-(zhangwei|example)/field_values\.case\.json$''']
