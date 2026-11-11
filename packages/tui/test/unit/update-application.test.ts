@@ -12,7 +12,7 @@ import {
   classifyAlranInstallPath,
   classifyNpmGlobalInstall,
   detectAlranInstallSource,
-  isInternalAlranPackageName,
+  parseAlranPackageName,
   resolveAlranNpmDistribution,
   resolveAlranNpmDistTag,
   resolveAlranNpmPrefixInstall,
@@ -58,7 +58,7 @@ describe('installer-owned npm runtime binding', () => {
 
   function bind(executable: string) {
     return bindAlranNpmCommandToRuntime(
-      { executable, args: ['view', '@ottili/alran-code@latest', '--json'], display: 'owned npm' },
+      { executable, args: ['view', 'alran@latest', '--json'], display: 'owned npm' },
       process.execPath,
     );
   }
@@ -78,14 +78,14 @@ describe('installer-owned npm runtime binding', () => {
       );
       expect(bind(npm)).toEqual({
         executable: process.execPath,
-        args: [cli, 'view', '@ottili/alran-code@latest', '--json'],
+        args: [cli, 'view', 'alran@latest', '--json'],
         display: 'owned npm',
       });
       await expect(
         resolveLatestAlranRegistryVersion('latest', {
           npmExecutable: npm,
           runtimeExecutable: process.execPath,
-          distribution: resolveAlranNpmDistribution('@ottili/alran-code'),
+          distribution: resolveAlranNpmDistribution('alran'),
         }),
       ).resolves.toBe('1.2.4');
       expect(existsSync(marker)).toBe(false);
@@ -238,12 +238,12 @@ describe('AlranUpdateApplication', () => {
         args: [
           'add',
           '--global',
-          '@ottili/alran-code@1.2.4',
+          'alran@1.2.4',
           '--registry',
           'https://registry.npmjs.org/',
         ],
         display:
-          'pnpm add --global @ottili/alran-code@1.2.4 --registry https://registry.npmjs.org/',
+          'pnpm add --global alran@1.2.4 --registry https://registry.npmjs.org/',
       },
     });
     const onOutput = vi.fn();
@@ -322,16 +322,16 @@ describe('AlranUpdateApplication', () => {
         args: [
           'install',
           '--global',
-          '@ottili/alran-code@0.0.1-beta.1786162945.e3fdada2',
+          'alran@0.0.1-beta.1786162945.e3fdada2',
           '--ignore-scripts=false',
           '--include=optional',
-          '--allow-scripts=@ottili/alran-code,better-sqlite3',
+          '--allow-scripts=alran,better-sqlite3',
           '--registry',
           'https://registry.npmjs.org/',
         ],
         display:
-          'npm install --global @ottili/alran-code@0.0.1-beta.1786162945.e3fdada2 ' +
-          '--ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3 ' +
+          'npm install --global alran@0.0.1-beta.1786162945.e3fdada2 ' +
+          '--ignore-scripts=false --include=optional --allow-scripts=alran,better-sqlite3 ' +
           '--registry https://registry.npmjs.org/',
       },
     });
@@ -375,8 +375,8 @@ describe('AlranUpdateApplication', () => {
       kind: 'manual',
       source: 'unsupported',
       command:
-        'npm install --global @ottili/alran-code@latest ' +
-        '--ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3 ' +
+        'npm install --global alran@latest ' +
+        '--ignore-scripts=false --include=optional --allow-scripts=alran,better-sqlite3 ' +
         '--registry https://registry.npmjs.org/',
     });
     await expect(application.apply(plan)).rejects.toThrow(/cannot be applied automatically/i);
@@ -386,10 +386,10 @@ describe('AlranUpdateApplication', () => {
   });
 
   it.each([
-    '/Users/demo/project/pnpm/global/5/source/@ottili/alran-code',
-    '/Users/demo/project/.config/yarn/global/source/@ottili/alran-code',
-    '/Users/demo/project/.yarn/global/source/@ottili/alran-code',
-    '/Users/demo/project/.bun/install/global/source/@ottili/alran-code',
+    '/Users/demo/project/pnpm/global/5/source/alran',
+    '/Users/demo/project/.config/yarn/global/source/alran',
+    '/Users/demo/project/.yarn/global/source/alran',
+    '/Users/demo/project/.bun/install/global/source/alran',
   ])(
     'treats a local checkout containing a global-install marker as unsupported: %s',
     async (packageRoot) => {
@@ -420,55 +420,16 @@ describe('AlranUpdateApplication', () => {
   it('keeps a future public package on the official npm registry', async () => {
     const application = createApplication(
       { detectInstallSource: async () => 'unsupported' },
-      { packageName: '@ottili/alran-code' },
+      { packageName: 'alran' },
     );
 
     await expect(application.inspect()).resolves.toMatchObject({
       kind: 'manual',
       command:
-        'npm install --global @ottili/alran-code@latest ' +
-        '--ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3 ' +
+        'npm install --global alran@latest ' +
+        '--ignore-scripts=false --include=optional --allow-scripts=alran,better-sqlite3 ' +
         '--registry https://registry.npmjs.org/',
     });
-  });
-
-  it('keeps a China mirror prefix on the same registry during updates', async () => {
-    const resolveLatestPackageVersion = vi.fn(async () => '1.2.4');
-    const application = createApplication(
-      {
-        detectInstallSource: async () => 'npm-prefix',
-        resolveLatestPackageVersion,
-      },
-      {
-        packageName: '@ottili/alran-code',
-        prefixInstall: {
-          executable: '/opt/alran/runtime/node/bin/npm',
-          packageName: '@ottili/alran-code',
-          prefix: '/opt/alran',
-          registry: 'https://registry.npmmirror.com/',
-        },
-      },
-    );
-
-    await expect(application.inspect()).resolves.toMatchObject({
-      kind: 'package-manager',
-      source: 'npm-prefix',
-      command: {
-        args: [
-          'install',
-          '--global',
-          '--prefix',
-          '/opt/alran',
-          '@ottili/alran-code@1.2.4',
-          '--ignore-scripts=false',
-          '--include=optional',
-          '--allow-scripts=@ottili/alran-code,better-sqlite3',
-          '--registry',
-          'https://registry.npmmirror.com/',
-        ],
-      },
-    });
-    expect(resolveLatestPackageVersion).toHaveBeenCalledWith('latest');
   });
 
   it('reads the installed public package identity from its real entry path', () => {
@@ -477,29 +438,42 @@ describe('AlranUpdateApplication', () => {
       temporaryRoot,
       'lib',
       'node_modules',
-      '@ottili',
-      'alran-code',
+      'alran',
     );
     try {
       mkdirSync(packageRoot, { recursive: true });
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code' }),
+        JSON.stringify({ name: 'alran' }),
       );
       const entryFile = path.join(packageRoot, 'cli.js');
       writeFileSync(entryFile, '');
 
-      expect(resolveAlranPackageName(entryFile)).toBe('@ottili/alran-code');
+      expect(resolveAlranPackageName(entryFile)).toBe('alran');
       expect(resolveInstalledAlranPackageVersion(entryFile)).toBeUndefined();
     } finally {
       rmSync(temporaryRoot, { recursive: true, force: true });
     }
   });
 
-  it('recognizes only the internal package identity as environment-selectable', () => {
-    expect(isInternalAlranPackageName('@alran/alran-code')).toBe(true);
-    expect(isInternalAlranPackageName('@ottili/alran-code')).toBe(false);
-    expect(isInternalAlranPackageName(undefined)).toBe(false);
+  it('recognizes the package name and the names it had before', () => {
+    expect(parseAlranPackageName('alran')).toBe('alran');
+    expect(parseAlranPackageName('@ottili/alran-code')).toBe('@ottili/alran-code');
+    expect(parseAlranPackageName('@ottili/code')).toBe('@ottili/code');
+    expect(parseAlranPackageName('@alran/alran-code')).toBeUndefined();
+    expect(parseAlranPackageName(undefined)).toBeUndefined();
+  });
+
+  it('tells an installation under an old package name to move to `alran`', async () => {
+    const application = createApplication(
+      { detectInstallSource: async () => 'npm-global' },
+      { packageName: '@ottili/alran-code' },
+    );
+
+    await expect(application.inspect()).resolves.toMatchObject({
+      kind: 'manual',
+      command: 'npm uninstall --global @ottili/alran-code && npm install --global alran',
+    });
   });
 
   it('rejects a package-manager update when the installed exact version does not match', async () => {
@@ -520,30 +494,30 @@ describe('AlranUpdateApplication', () => {
 
 describe('Alran update install-source commands', () => {
   it.each([
-    ['/opt/homebrew/lib/node_modules/@ottili/alran-code', 'npm-global'],
-    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\alran-code', 'npm-global'],
-    ['/usr/local/lib/node_modules/@ottili/alran-code', 'npm-global'],
-    ['/Users/demo/.local/share/pnpm/global/5/node_modules/@ottili/alran-code', 'pnpm-global'],
+    ['/opt/homebrew/lib/node_modules/alran', 'npm-global'],
+    ['C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\alran', 'npm-global'],
+    ['/usr/local/lib/node_modules/alran', 'npm-global'],
+    ['/Users/demo/.local/share/pnpm/global/5/node_modules/alran', 'pnpm-global'],
     [
-      '/Users/demo/Library/pnpm/global/v11/10c0afe5/node_modules/@ottili/alran-code',
+      '/Users/demo/Library/pnpm/global/v11/10c0afe5/node_modules/alran',
       'pnpm-global',
     ],
     [
-      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\5\\node_modules\\@alran\\alran-code',
+      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\5\\node_modules\\alran',
       'pnpm-global',
     ],
     [
-      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\v11\\10c0afe5\\node_modules\\@ottili\\alran-code',
+      'C:\\Users\\demo\\AppData\\Local\\pnpm\\global\\v11\\10c0afe5\\node_modules\\alran',
       'pnpm-global',
     ],
-    ['/Users/demo/.config/yarn/global/node_modules/@ottili/alran-code', 'yarn-global'],
+    ['/Users/demo/.config/yarn/global/node_modules/alran', 'yarn-global'],
     [
-      'C:\\Users\\demo\\.config\\yarn\\global\\node_modules\\@alran\\alran-code',
+      'C:\\Users\\demo\\.config\\yarn\\global\\node_modules\\alran',
       'yarn-global',
     ],
-    ['/Users/demo/.bun/install/global/node_modules/@ottili/alran-code', 'bun-global'],
+    ['/Users/demo/.bun/install/global/node_modules/alran', 'bun-global'],
     [
-      'C:\\Users\\demo\\.bun\\install\\global\\node_modules\\@alran\\alran-code',
+      'C:\\Users\\demo\\.bun\\install\\global\\node_modules\\alran',
       'bun-global',
     ],
   ] as const)('classifies %s as %s', (packageRoot, expected) => {
@@ -556,33 +530,33 @@ describe('Alran update install-source commands', () => {
       args: [
         'install',
         '--global',
-        '@ottili/alran-code@1.2.4',
+        'alran@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@ottili/alran-code,better-sqlite3',
+        '--allow-scripts=alran,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
-        'npm install --global @ottili/alran-code@1.2.4 --ignore-scripts=false --include=optional ' +
-        '--allow-scripts=@ottili/alran-code,better-sqlite3 --registry https://registry.npmjs.org/',
+        'npm install --global alran@1.2.4 --ignore-scripts=false --include=optional ' +
+        '--allow-scripts=alran,better-sqlite3 --registry https://registry.npmjs.org/',
     });
     expect(buildAlranPackageManagerCommand('bun-global', '1.2.4', 'win32')).toEqual({
       executable: 'bun.exe',
       args: [
         'add',
         '--global',
-        '@ottili/alran-code@1.2.4',
+        'alran@1.2.4',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
-        'bun add --global @ottili/alran-code@1.2.4 --registry https://registry.npmjs.org/',
+        'bun add --global alran@1.2.4 --registry https://registry.npmjs.org/',
     });
   });
 
   it('uses the installer-owned npm executable, prefix, package, and registry', () => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
     const command = buildAlranPackageManagerCommand(
       'npm-prefix',
       '1.2.4',
@@ -590,7 +564,7 @@ describe('Alran update install-source commands', () => {
       distribution,
       {
         executable: '/opt/alran/runtime/node/bin/npm',
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         prefix: '/opt/alran',
         registry: 'https://registry.npmjs.org/',
       },
@@ -603,51 +577,28 @@ describe('Alran update install-source commands', () => {
         '--global',
         '--prefix',
         '/opt/alran',
-        '@ottili/alran-code@1.2.4',
+        'alran@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@ottili/alran-code,better-sqlite3',
+        '--allow-scripts=alran,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
       display:
         '/opt/alran/runtime/node/bin/npm install --global --prefix /opt/alran ' +
-        '@ottili/alran-code@1.2.4 --ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3 --registry https://registry.npmjs.org/',
+        'alran@1.2.4 --ignore-scripts=false --include=optional --allow-scripts=alran,better-sqlite3 --registry https://registry.npmjs.org/',
     });
   });
 
-  it('keeps the explicit public mirror for installer-owned updates', () => {
-    const distribution = resolveAlranNpmDistribution(
-      '@ottili/alran-code',
-      'https://registry.npmmirror.com',
+  it('accepts the public npm registry only for installer-owned updates', () => {
+    expect(resolveAlranNpmDistribution('alran', 'https://registry.npmjs.org').registry).toBe(
+      'https://registry.npmjs.org/',
     );
-    const command = buildAlranPackageManagerCommand(
-      'npm-prefix',
-      '1.2.4',
-      'linux',
-      distribution,
-      {
-        executable: '/opt/alran/runtime/node/bin/npm',
-        packageName: '@ottili/alran-code',
-        prefix: '/opt/alran',
-        registry: 'https://registry.npmmirror.com/',
-      },
-    );
-
-    expect(command.args).toEqual([
-      'install',
-      '--global',
-      '--prefix',
-      '/opt/alran',
-      '@ottili/alran-code@1.2.4',
-      '--ignore-scripts=false',
-      '--include=optional',
-      '--allow-scripts=@ottili/alran-code,better-sqlite3',
-      '--registry',
-      'https://registry.npmmirror.com/',
-    ]);
     expect(() =>
-      resolveAlranNpmDistribution('@ottili/alran-code', 'https://registry.example.com/'),
+      resolveAlranNpmDistribution('alran', 'https://registry.npmmirror.com'),
+    ).toThrow('Unsupported Alran npm registry');
+    expect(() =>
+      resolveAlranNpmDistribution('alran', 'https://registry.example.com/'),
     ).toThrow('Unsupported Alran npm registry');
   });
 
@@ -674,10 +625,10 @@ describe('Alran update install-source commands', () => {
       },
       {
         entryFile: '/opt/alran/bin/alran',
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         prefixInstall: {
           executable: '/opt/alran/runtime/node/bin/npm',
-          packageName: '@ottili/alran-code',
+          packageName: 'alran',
           prefix: '/opt/alran',
           registry: 'https://registry.npmjs.org/',
         },
@@ -694,7 +645,7 @@ describe('Alran update install-source commands', () => {
     expect(activateVersionedPrefix).toHaveBeenCalledWith({
       stagingPrefix: '/opt/alran/releases/.staging-1.2.4',
       activePrefix: '/opt/alran',
-      packageName: '@ottili/alran-code',
+      packageName: 'alran',
       expectedVersion: '1.2.4',
       runtimeExecutable: process.execPath,
       npmExecutable: '/opt/alran/runtime/node/bin/npm',
@@ -705,7 +656,7 @@ describe('Alran update install-source commands', () => {
 
   it('reports malformed pending metadata instead of treating it as a staged update', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-malformed-pending-'));
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili/alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     const pendingFile = path.join(prefix, '.alran-update-pending.json');
     try {
@@ -713,7 +664,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3' }),
+        JSON.stringify({ name: 'alran', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -729,7 +680,7 @@ describe('Alran update install-source commands', () => {
           installRoot: prefix,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -751,7 +702,7 @@ describe('Alran update install-source commands', () => {
   it('rejects a pending journal owned by a different active prefix', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-foreign-pending-'));
     const foreignPrefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-foreign-owner-'));
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili/alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     const pendingFile = path.join(prefix, '.alran-update-pending.json');
     const foreignStaging = path.join(path.dirname(foreignPrefix), '.foreign-staging');
@@ -760,7 +711,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3' }),
+        JSON.stringify({ name: 'alran', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -775,7 +726,7 @@ describe('Alran update install-source commands', () => {
           activeModulesRoot: resolveAlranPrefixModulesRoot(foreignPrefix, process.platform),
           stagedModulesRoot: resolveAlranPrefixModulesRoot(foreignStaging, process.platform),
           backupModulesRoot: `${resolveAlranPrefixModulesRoot(foreignPrefix, process.platform)}.alran-update-backup`,
-          packageName: '@ottili/alran-code',
+          packageName: 'alran',
           expectedVersion: '1.2.4',
           launchers: resolveAlranPrefixLauncherPairs(foreignPrefix, foreignStaging, process.platform),
         }),
@@ -789,7 +740,7 @@ describe('Alran update install-source commands', () => {
           installRoot: prefix,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -813,8 +764,8 @@ describe('Alran update install-source commands', () => {
   it('resumes a valid staged update without checking for a newer registry version', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-valid-pending-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.staging`);
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili/alran-code');
-    const stagedPackageRoot = path.join(resolveAlranPrefixModulesRoot(stagingPrefix), '@ottili/alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
+    const stagedPackageRoot = path.join(resolveAlranPrefixModulesRoot(stagingPrefix), 'alran');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -824,11 +775,11 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3', bin: { alran: 'dist/index.js' } }),
+        JSON.stringify({ name: 'alran', version: '1.2.3', bin: { alran: 'dist/index.js' } }),
       );
       writeFileSync(
         path.join(stagedPackageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.4', bin: { alran: 'dist/index.js' } }),
+        JSON.stringify({ name: 'alran', version: '1.2.4', bin: { alran: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'alran' : 'bin/alran'), '1.2.3');
       writeFileSync(path.join(stagingPrefix, process.platform === 'win32' ? 'alran' : 'bin/alran'), '1.2.4');
@@ -849,7 +800,7 @@ describe('Alran update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveAlranPrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.alran-update-backup`,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         expectedVersion: '1.2.4',
         launchers: resolveAlranPrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -864,7 +815,7 @@ describe('Alran update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -892,7 +843,7 @@ describe('Alran update install-source commands', () => {
   it('rejects a pending update whose staged package and launchers are missing', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-missing-staging-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.missing`);
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili/alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -900,7 +851,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3', bin: { alran: 'dist/index.js' } }),
+        JSON.stringify({ name: 'alran', version: '1.2.3', bin: { alran: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'alran' : 'bin/alran'), '1.2.3');
       writeFileSync(
@@ -914,7 +865,7 @@ describe('Alran update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveAlranPrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.alran-update-backup`,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         expectedVersion: '1.2.4',
         launchers: resolveAlranPrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -928,7 +879,7 @@ describe('Alran update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -951,7 +902,7 @@ describe('Alran update install-source commands', () => {
   it('finishes cleanup when the staged version is already active', async () => {
     const prefix = mkdtempSync(path.join(os.tmpdir(), 'alran-update-pending-cleanup-'));
     const stagingPrefix = path.join(path.dirname(prefix), `.${path.basename(prefix)}.activated`);
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili/alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
     const entryFile = path.join(packageRoot, 'dist/index.js');
     try {
       mkdirSync(path.dirname(entryFile), { recursive: true });
@@ -959,7 +910,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.4', bin: { alran: 'dist/index.js' } }),
+        JSON.stringify({ name: 'alran', version: '1.2.4', bin: { alran: 'dist/index.js' } }),
       );
       writeFileSync(path.join(prefix, process.platform === 'win32' ? 'alran' : 'bin/alran'), '1.2.4');
       for (const pair of resolveAlranPrefixLauncherPairs(prefix, stagingPrefix)) {
@@ -977,7 +928,7 @@ describe('Alran update install-source commands', () => {
         activeModulesRoot,
         stagedModulesRoot: resolveAlranPrefixModulesRoot(stagingPrefix, process.platform),
         backupModulesRoot: `${activeModulesRoot}.alran-update-backup`,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         expectedVersion: '1.2.4',
         launchers: resolveAlranPrefixLauncherPairs(prefix, stagingPrefix, process.platform),
       });
@@ -992,7 +943,7 @@ describe('Alran update install-source commands', () => {
           platform: process.platform,
           prefixInstall: {
             executable: path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm'),
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             prefix,
             registry: 'https://registry.npmjs.org/',
           },
@@ -1023,7 +974,7 @@ describe('Alran update install-source commands', () => {
     }
   });
 
-  it.each(['https://registry.npmjs.org/', 'https://registry.npmmirror.com/'])(
+  it.each(['https://registry.npmjs.org/'])(
     'recovers installer prefix ownership from the versioned receipt using %s',
     async (registry) => {
     const temporaryRoot = mkdtempSync(path.join(os.tmpdir(), 'alran-update-prefix-'));
@@ -1031,8 +982,7 @@ describe('Alran update install-source commands', () => {
       temporaryRoot,
       ...(process.platform === 'win32' ? [] : ['lib']),
       'node_modules',
-      '@ottili',
-      'alran-code',
+      'alran',
     );
     const npmExecutable = path.join(temporaryRoot, 'runtime', 'node', ...(process.platform === 'win32' ? ['npm.cmd'] : ['bin', 'npm']));
     const entryFile = path.join(packageRoot, 'cli.js');
@@ -1043,7 +993,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3' }),
+        JSON.stringify({ name: 'alran', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(temporaryRoot, 'install.json'),
@@ -1052,7 +1002,7 @@ describe('Alran update install-source commands', () => {
           product: 'alran-code',
           updateOwner: 'npm-prefix',
           packageManager: 'npm',
-          packageName: '@ottili/alran-code',
+          packageName: 'alran',
           registry,
           distTag: 'latest',
           prefix: temporaryRoot,
@@ -1063,7 +1013,7 @@ describe('Alran update install-source commands', () => {
       const prefixInstall = resolveAlranNpmPrefixInstall(entryFile, process.platform);
       expect(prefixInstall).toEqual({
         executable: npmExecutable,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         prefix: realpathSync(temporaryRoot),
         registry,
       });
@@ -1089,7 +1039,7 @@ describe('Alran update install-source commands', () => {
       prefix,
       'releases/1.2.3',
       ...(process.platform === 'win32' ? [] : ['lib']),
-      'node_modules/@ottili/alran-code',
+      'node_modules/alran',
     );
     const npmExecutable = path.join(prefix, process.platform === 'win32' ? 'runtime/node/npm.cmd' : 'runtime/node/bin/npm');
     const entryFile = path.join(packageRoot, 'dist/index.js');
@@ -1100,7 +1050,7 @@ describe('Alran update install-source commands', () => {
       writeFileSync(npmExecutable, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3' }),
+        JSON.stringify({ name: 'alran', version: '1.2.3' }),
       );
       writeFileSync(
         path.join(prefix, 'install.json'),
@@ -1109,7 +1059,7 @@ describe('Alran update install-source commands', () => {
           product: 'alran-code',
           updateOwner: 'npm-prefix',
           packageManager: 'npm',
-          packageName: '@ottili/alran-code',
+          packageName: 'alran',
           registry: 'https://registry.npmjs.org/',
           distTag: 'latest',
           prefix,
@@ -1122,7 +1072,7 @@ describe('Alran update install-source commands', () => {
 
       expect(resolveAlranNpmPrefixInstall(entryFile, process.platform)).toEqual({
         executable: npmExecutable,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         prefix: realpathSync(prefix),
         registry: 'https://registry.npmjs.org/',
       });
@@ -1134,7 +1084,7 @@ describe('Alran update install-source commands', () => {
   it('recovers a legacy installer prefix only from its package root and adjacent npm', () => {
     const temporaryParent = mkdtempSync(path.join(os.tmpdir(), 'alran-update-legacy-'));
     const prefix = path.join(temporaryParent, '.alran-code');
-    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), '@ottili', 'alran-code');
+    const packageRoot = path.join(resolveAlranPrefixModulesRoot(prefix), 'alran');
     const nodeExecutable = path.join(prefix, 'runtime', 'node', ...(process.platform === 'win32' ? ['node.exe'] : ['bin', 'node']));
     const npmExecutable = path.join(prefix, 'runtime', 'node', ...(process.platform === 'win32' ? ['npm.cmd'] : ['bin', 'npm']));
     const entryFile = path.join(packageRoot, 'cli.js');
@@ -1146,12 +1096,12 @@ describe('Alran update install-source commands', () => {
       writeFileSync(entryFile, '');
       writeFileSync(
         path.join(packageRoot, 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.2.3' }),
+        JSON.stringify({ name: 'alran', version: '1.2.3' }),
       );
 
       expect(resolveAlranNpmPrefixInstall(entryFile, process.platform, nodeExecutable)).toEqual({
         executable: npmExecutable,
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         prefix: realpathSync(prefix),
         registry: 'https://registry.npmjs.org/',
       });
@@ -1169,7 +1119,7 @@ describe('Alran update install-source commands', () => {
     const command = buildAlranPackageManagerCommand(source, '1.2.4', 'linux');
     const scriptOptions =
       source === 'npm-global'
-        ? ' --ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3'
+        ? ' --ignore-scripts=false --include=optional --allow-scripts=alran,better-sqlite3'
         : '';
 
     expect(command.args.slice(-2)).toEqual([
@@ -1177,7 +1127,7 @@ describe('Alran update install-source commands', () => {
       'https://registry.npmjs.org/',
     ]);
     expect(command.display).toBe(
-      `${prefix} @ottili/alran-code@1.2.4${scriptOptions} --registry https://registry.npmjs.org/`,
+      `${prefix} alran@1.2.4${scriptOptions} --registry https://registry.npmjs.org/`,
     );
   });
 
@@ -1189,7 +1139,7 @@ describe('Alran update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('npm', [
       'view',
-      '@ottili/alran-code@test',
+      'alran@test',
       'version',
       '--json',
       '--registry',
@@ -1200,7 +1150,7 @@ describe('Alran update install-source commands', () => {
   });
 
   it('uses installer-owned npm for a prefix installation registry lookup', async () => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
     const run = vi.fn(async () => '"1.2.4"');
 
     await expect(
@@ -1213,7 +1163,7 @@ describe('Alran update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('/opt/alran/runtime/node/bin/npm', [
       'view',
-      '@ottili/alran-code@latest',
+      'alran@latest',
       'version',
       '--json',
       '--registry',
@@ -1224,7 +1174,7 @@ describe('Alran update install-source commands', () => {
   });
 
   it('accepts npm registry metadata returned as a single-item JSON array', async () => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
 
     await expect(
       resolveLatestAlranRegistryVersion('latest', {
@@ -1236,11 +1186,11 @@ describe('Alran update install-source commands', () => {
   });
 
   it('keeps public package lookup and installation on the official npm registry', async () => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
     const run = vi.fn(async () => '"1.2.4"');
 
     expect(distribution).toEqual({
-      packageName: '@ottili/alran-code',
+      packageName: 'alran',
       registry: 'https://registry.npmjs.org/',
     });
     await expect(
@@ -1252,7 +1202,7 @@ describe('Alran update install-source commands', () => {
     ).resolves.toBe('1.2.4');
     expect(run).toHaveBeenCalledWith('npm', [
       'view',
-      '@ottili/alran-code@latest',
+      'alran@latest',
       'version',
       '--json',
       '--registry',
@@ -1266,10 +1216,10 @@ describe('Alran update install-source commands', () => {
       args: [
         'install',
         '--global',
-        '@ottili/alran-code@1.2.4',
+        'alran@1.2.4',
         '--ignore-scripts=false',
         '--include=optional',
-        '--allow-scripts=@ottili/alran-code,better-sqlite3',
+        '--allow-scripts=alran,better-sqlite3',
         '--registry',
         'https://registry.npmjs.org/',
       ],
@@ -1277,7 +1227,7 @@ describe('Alran update install-source commands', () => {
   });
 
   it('does not fall back to the internal registry when the public package is absent', async () => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
     const run = vi.fn(async () => {
       throw new Error('E404 Not Found');
     });
@@ -1296,7 +1246,7 @@ describe('Alran update install-source commands', () => {
     ['[]', /invalid latest version/u],
     ['"1.2.4-beta.1"', /stable semantic version/u],
   ])('rejects invalid public latest metadata: %s', async (metadata, error) => {
-    const distribution = resolveAlranNpmDistribution('@ottili/alran-code');
+    const distribution = resolveAlranNpmDistribution('alran');
 
     await expect(
       resolveLatestAlranRegistryVersion('latest', {
@@ -1321,9 +1271,9 @@ describe('Alran update install-source commands', () => {
   });
 
   it.each([
-    ['/usr/local/lib/node_modules/@ottili/alran-code', '/usr/local', 'linux'],
+    ['/usr/local/lib/node_modules/alran', '/usr/local', 'linux'],
     [
-      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\@alran\\alran-code',
+      'C:\\Users\\demo\\AppData\\Roaming\\npm\\node_modules\\alran',
       'C:\\Users\\demo\\AppData\\Roaming\\npm',
       'win32',
     ],
@@ -1337,10 +1287,10 @@ function createApplication(
   options: {
     currentVersion?: string;
     packageTag?: 'latest' | 'test' | 'preview';
-    packageName?: '@ottili/alran-code' | '@ottili/alran-code';
+    packageName?: 'alran' | 'alran';
     prefixInstall?: {
       executable: string;
-      packageName: '@ottili/alran-code' | '@ottili/alran-code';
+      packageName: 'alran' | 'alran';
       prefix: string;
       registry: string;
     };

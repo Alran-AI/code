@@ -65,26 +65,17 @@ describe('formatSessionInputSummaryLabel', () => {
     expect(label.subtitle).toMatch(/0 files/u);
   });
 
-  it('uses Chinese Session history copy and formatting for a Chinese locale', () => {
+  it('keeps the history copy and formatting English whatever the locale is', () => {
     const label = formatSessionInputSummaryLabel(makeSummary(), {
       nowMs: NOW_MS,
       locale: 'zh-CN',
     });
 
-    expect(label.subtitle).toContain('2 个文件');
-    expect(label.subtitle).toContain('助手已回复');
-    expect(formatRelativeTimestamp(0, NOW_MS, 'zh-CN')).toBe('未知时间');
-    expect(sessionHistoryText('actions', 'zh_CN')).toBe('选择历史操作');
-    expect(sessionMutationText('sessionMutation.confirm.rewind.title', 'zh-Hans')).toBe(
-      '确认回退',
+    expect(label.subtitle).toContain('2 files');
+    expect(formatRelativeTimestamp(0, NOW_MS, 'zh-CN')).toBe(
+      sessionMutationText('sessionMutation.format.unknownTime'),
     );
-    expect(
-      sessionMutationTemplate(
-        'sessionMutation.confirm.fileCounts',
-        { ready: 2, skipped: 1 },
-        'zh-CN',
-      ),
-    ).toBe('2 可回退 · 1 已跳过');
+    expect(sessionHistoryText('actions', 'zh_CN')).toBe(sessionHistoryText('actions', 'en'));
   });
 });
 

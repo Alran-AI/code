@@ -1,6 +1,7 @@
 {
-  "name": "@ottili/code",
-  "version": "0.1.4",
+  "name": "alran-workspace",
+  "version": "0.2.0",
+  "private": true,
   "type": "module",
   "description": "Alran Code - The AI coding agent by Ottili.",
   "bin": {

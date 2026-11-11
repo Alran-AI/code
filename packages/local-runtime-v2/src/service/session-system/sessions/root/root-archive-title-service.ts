@@ -10,7 +10,6 @@ import {
   ARCHIVE_TITLE_RECENT_MESSAGE_LIMIT,
   ARCHIVE_TITLE_TIMEOUT_MS,
   ARCHIVE_TITLE_SYSTEM_PROMPT_EN_KEY,
-  ARCHIVE_TITLE_SYSTEM_PROMPT_ZH_KEY,
   buildArchiveTitlePrompts,
   isArchiveTitleFallback,
 } from './archived-root-title.js';
@@ -133,10 +132,7 @@ export class RootArchiveTitleService {
     try {
       const systemPrompt = await readPromptWithBuiltinFallback({
         source: this.options.promptSnapshots,
-        key:
-          locale.split('-')[0]?.toLowerCase() === 'zh'
-            ? ARCHIVE_TITLE_SYSTEM_PROMPT_ZH_KEY
-            : ARCHIVE_TITLE_SYSTEM_PROMPT_EN_KEY,
+        key: ARCHIVE_TITLE_SYSTEM_PROMPT_EN_KEY,
         builtin: archiveTitleSystemPrompt(locale),
       });
       return await this.options.model.summarize({

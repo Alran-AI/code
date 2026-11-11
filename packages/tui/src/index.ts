@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 
-import { fileURLToPath } from 'node:url';
-
 import {
   configureTuiRuntimeEnvironment,
   resolveTuiStartupEnvironmentOption,
 } from './cli/environment.js';
 import { prepareAlranPrefixProcess } from './update/prefix-update.js';
-import { isInternalAlranPackageName, resolveAlranPackageName } from './update/install-source.js';
 import { applyLegacyEnvironmentAliases, formatLegacyEnvironmentWarning } from '@alran/config';
 
 async function main(): Promise<void> {
@@ -15,8 +12,8 @@ async function main(): Promise<void> {
   // legacy-brand-compat: TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
   const legacyWarning = formatLegacyEnvironmentWarning(applyLegacyEnvironmentAliases(process.env));
   if (legacyWarning) process.stderr.write(`${legacyWarning}\n`);
-  const packageName = resolveAlranPackageName(fileURLToPath(import.meta.url));
-  const internalPackage = isInternalAlranPackageName(packageName);
+  // Startup environment selection is an internal switch; the public package has none.
+  const internalPackage = false;
   let startupBuildEnvironment: ReturnType<typeof resolveTuiStartupEnvironmentOption>;
   try {
     startupBuildEnvironment = resolveTuiStartupEnvironmentOption(

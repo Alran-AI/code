@@ -6,6 +6,14 @@ import { createLocalAuthFixture } from '../../../oauth-core/test/helpers/local-a
 import type { AlranBusinessEvent } from '../../src/analytics/business-telemetry.js';
 import { AlranAuthApplication } from '../../src/auth/application.js';
 
+import {
+  clearStoredPlatformSession,
+  platformEnvironmentOrder,
+  resolvePlatformEnvironmentForBuild,
+  resolveStoredPlatformSession,
+} from '@alran/config';
+import { clearOttiliApiKey } from '../../src/auth/ottili-api-key.js';
+
 vi.mock('@alran/config', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@alran/config')>();
   return {
@@ -22,14 +30,6 @@ vi.mock('../../src/auth/ottili-api-key.js', async (importOriginal) => {
     clearOttiliApiKey: vi.fn(async () => undefined),
   };
 });
-
-import {
-  clearStoredPlatformSession,
-  platformEnvironmentOrder,
-  resolvePlatformEnvironmentForBuild,
-  resolveStoredPlatformSession,
-} from '@alran/config';
-import { clearOttiliApiKey } from '../../src/auth/ottili-api-key.js';
 
 afterEach(() => {
   vi.clearAllMocks();

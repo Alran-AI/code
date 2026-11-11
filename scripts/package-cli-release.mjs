@@ -61,11 +61,11 @@ export function releaseManifest(importers, version) {
     const target = name === '@mariozechner/clipboard' ? optionalDependencies : dependencies;
     target[name] = [...versions][0];
   }
-  // The same manifest is the GitHub release archive and the npm package `@ottili/alran-code`: the
+  // The same manifest is the GitHub release archive and the npm package `alran`: the
   // archive installs with `npm install --global ./alran-code-<v>.tar.gz`, and the founders publish it
-  // with `npm publish ./alran-code-<v>.tar.gz` (docs/UPDATE_PIPELINE.md). Public, scoped, on npmjs.
+  // with `npm publish ./alran-code-<v>.tar.gz` (docs/UPDATE_PIPELINE.md). Public, unscoped, on npmjs.
   return {
-    name: '@ottili/alran-code', version, type: 'module', license: 'MIT',
+    name: 'alran', version, type: 'module', license: 'MIT',
     description: 'Alran Code — the AI coding agent of the Ottili AI Platform, in your terminal.',
     keywords: ['ottili', 'alran', 'cli', 'coding-agent', 'ai'],
     homepage: 'https://ai.ottili.one/settings/cli',

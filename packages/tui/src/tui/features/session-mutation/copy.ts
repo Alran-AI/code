@@ -1,12 +1,9 @@
-import { getRuntimeLocaleLanguage } from '@alran/shared/runtime-i18n';
-
 import {
   SESSION_HISTORY_COPY,
   SESSION_MUTATION_COPY,
   type SessionHistoryCopyKey,
   type SessionMutationCopyKey,
 } from './copy.en.js';
-import { ZH_HANS_SESSION_HISTORY_COPY, ZH_HANS_SESSION_MUTATION_COPY } from './copy.zh-Hans.js';
 
 export type { SessionHistoryCopyKey } from './copy.en.js';
 
@@ -18,22 +15,18 @@ export function sessionMutationLocale(): string {
   }
 }
 
-function isChineseLocale(locale: string): boolean {
-  return getRuntimeLocaleLanguage(locale) === 'zh';
-}
-
 export function sessionHistoryText(
   key: SessionHistoryCopyKey,
-  locale = sessionMutationLocale(),
+  _locale = sessionMutationLocale(),
 ): string {
-  return isChineseLocale(locale) ? ZH_HANS_SESSION_HISTORY_COPY[key] : SESSION_HISTORY_COPY[key];
+  return SESSION_HISTORY_COPY[key];
 }
 
 export function sessionMutationText(
   key: SessionMutationCopyKey,
-  locale = sessionMutationLocale(),
+  _locale = sessionMutationLocale(),
 ): string {
-  return isChineseLocale(locale) ? ZH_HANS_SESSION_MUTATION_COPY[key] : SESSION_MUTATION_COPY[key];
+  return SESSION_MUTATION_COPY[key];
 }
 
 export function sessionMutationTemplate(

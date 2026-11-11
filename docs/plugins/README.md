@@ -1,100 +1,100 @@
-# 写一个 Alran Code Plugin
+# Write an Alran Code Plugin
 
-本文是外部作者的上手路径：从零到一个可提交校验的 Plugin 包。目标是让你在本地
-就能跑出与官方 CI 同一条校验命令，避免提交后才发现格式问题。
+This is the path from nothing to a Plugin package that passes the same validation as CI.
 
-## 1. 先跑通环境
+## 1. Set up
 
 ```bash
-git clone https://github.com/ottili/alran-code.git
-cd alran-code
+git clone https://github.com/Alran-AI/code.git
+cd code
 pnpm install
 pnpm verify --profile docs
 ```
 
-最后一条必须先通过。它验证的是本仓库自身的公开边界，能跑通说明你的环境是对的——
-这是整条路径的信任锚点。
+The last command must pass first. It checks the public boundary of this repository, so if it passes,
+your environment is right.
 
-## 2. 创建一个 Plugin 包
+## 2. Create a Plugin package
 
-一个 Plugin 是一个独立目录，根下必须有 `.alran-plugin/plugin.json`：
+A Plugin is a directory with `.alran-plugin/plugin.json` at its root:
 
 ```text
 my-plugin/
   .alran-plugin/plugin.json
+  icon.png
   skills/research/SKILL.md
   my-tool.mcp.json
 ```
 
-最小的 manifest：
+The smallest manifest:
 
 ```json
 {
   "schemaVersion": 1,
   "name": "my-plugin",
   "version": "0.1.0",
-  "description": "一句话说明这个 Plugin 做什么。",
-  "author": "你的名字或组织",
+  "description": "One sentence about what this Plugin does.",
+  "author": "Your name or organization",
   "icon": "icon.png",
   "category": "Code",
-  "exampleQueries": ["用它做一件具体的事"],
+  "exampleQueries": ["Do one concrete thing with it"],
   "apps": [],
   "mcpServers": ["my-tool.mcp.json"],
   "skills": ["skills/research/SKILL.md"]
 }
 ```
 
-`name` 必须与目录名一致。`category` 只能取 `Office`、`Studio`、`Design & Sites`、
-`Code`、`Business`、`Sales`、`Productivity`、`Science & Healthcare`、`Education`、`Other`。
-`apps`、`mcpServers`、`skills`、`hooks` 至少有一项非空。
+`name` must equal the directory name. `category` is one of `Office`, `Studio`, `Design & Sites`,
+`Code`, `Business`, `Sales`, `Productivity`, `Science & Healthcare`, `Education`, `Other`. At least one
+of `apps`, `mcpServers`, `skills` and `hooks` is non-empty.
 
-完整字段与约束见 [Plugin 包格式 V1](package-format-v1.md)。
+All fields and limits are in [package-format-v1.md](package-format-v1.md).
 
-## 3. 本地校验
+## 3. Validate locally
 
 ```bash
 node tools/plugins/validate-plugin.mjs path/to/my-plugin
 ```
 
-或用仓库脚本：
+or with the repository script:
 
 ```bash
 pnpm check:plugin path/to/my-plugin
 ```
 
-这条校验与 `pnpm verify --profile docs` 内部执行的是**同一段代码**，所以本地通过
-意味着 CI 也会通过。它会检查：
+It checks that:
 
-- manifest 是否满足 `schemas/plugins/plugin-v1.schema.json`
-- 被引用的 App / MCP / Hook 文件是否存在且满足各自 schema
-- 每个 Skill 的 frontmatter 是否包含与目录一致的 `name` 和非空 `description`
-- 路径是否为 V1 允许的 portable ASCII path（禁止绝对路径、`..`、反斜杠、Windows 保留名）
+- the manifest satisfies `schemas/plugins/plugin-v1.schema.json`;
+- every referenced App, MCP and Hook file exists and satisfies its schema;
+- every Skill's frontmatter has a `name` equal to its directory and a non-empty `description`;
+- every path is a V1 portable ASCII path (no absolute paths, `..`, backslashes or Windows reserved
+  names).
 
-退出码 `0` 表示通过，`1` 表示发现问题，`2` 表示用法错误。
+Exit code `0` means it passed, `1` that problems were found, `2` a usage error.
 
-## 4. 提交
+## 4. Use it
 
-通过校验后按仓库的贡献流程提交 Plugin：先开 issue 描述你的 Plugin 与改动范围，
-再从 fork 提 PR。PR 描述里请贴上 `validate-plugin.mjs` 的真实输出。
+Copy the package directory into the local Plugin directory (`alran plugins marketplace list` prints
+where it is). A Plugin in that directory is installed; `alran plugins list` shows it, and
+`alran plugins enable|disable|remove <name>` manage it.
 
-## 5. 这条校验不覆盖什么
+To contribute a Plugin to this repository, open an issue that describes the Plugin and the change,
+then send a pull request from a fork with the real output of `validate-plugin.mjs` in its description.
 
-本地校验**不等于**发布通过。以下由官方 Marketplace validator 在提交时执行：
+## 5. What local validation does not cover
 
-- catalog 成员资格（Plugin 是否进入官方目录）
-- 跨文件能力闭合（manifest 引用与实际文件树完全一致）
-- archive 体积与 entry 上限、`content_digest` 计算
-- icon 与 Showcase 媒体的真实字节校验
+Passing locally means the package has the right **format**, not that its **content** is good. These
+checks are part of a registry's validation and are not run by the local validator:
 
-因此请不要把本地校验通过理解为"可以直接上架"。它保证的是包**格式正确**，
-而不是包**内容合格**。
+- membership in a catalog;
+- closure across files (the manifest references exactly the file tree);
+- archive size and entry limits, and the `content_digest` computation;
+- real-byte checks of icons and media.
 
-## 6. 参考
+## 6. Reference
 
-| 主题 | 文档 |
+| Topic | Document |
 | --- | --- |
-| 包格式、路径契约、安全上限、digest | [package-format-v1.md](package-format-v1.md) |
-| Host Binding 扩展 | [host-bindings.md](host-bindings.md) |
-| Showcase 案例配置 | [showcases.md](showcases.md) |
-| JSON Schema | `schemas/plugins/` |
-| 路径与 digest 参考向量 | `test-vectors/plugins/` |
+| Package format, path contract, safety limits, digest | [package-format-v1.md](package-format-v1.md) |
+| JSON Schemas | `schemas/plugins/` |
+| Path and digest reference vectors | `test-vectors/plugins/` |

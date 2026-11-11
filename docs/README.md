@@ -1,6 +1,6 @@
 # Documentation
 
-[English README](../README.md) · [简体中文 README](../README_ZH.md)
+[README](../README.md)
 
 ## Get started
 

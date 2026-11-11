@@ -14,7 +14,7 @@ See [Maintainers](docs/maintainers.md) for review ownership, independent approva
 
 ## Documentation language
 
-English is the primary language for project documentation, examples, issue templates, and contributor guidance. Write new documentation and commit messages in English. Keep `README.md` in English and `README_ZH.md` as its Simplified Chinese translation, with reciprocal language links. Update both when their shared content changes. Additional translations are optional and must be clearly labeled and linked from the English source.
+English is the primary language for project documentation, examples, issue templates, and contributor guidance. Write new documentation and commit messages in English. Keep `README.md` in English. Translations are optional and must be clearly labeled and linked from the English source.
 
 Preserve original third-party license text. Localized product strings, multilingual examples, and bundled runtime prompts / skill resources retain the languages required by their behavior; changing them is a runtime-content change, not a documentation translation.
 

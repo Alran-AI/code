@@ -5,7 +5,6 @@ const FOUR_DAYS_MS = 4 * DAY_MS;
 const RECENT_CALENDAR_DAYS = 7;
 
 const EN_WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
-const ZH_WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'] as const;
 
 const DEFAULT_TIME_ZONE = (() => {
   try {
@@ -28,7 +27,7 @@ export type ProductTimePreset =
 
 export interface ProductTimeOptions {
   preset: ProductTimePreset;
-  /** Runtime locale. Chinese locales use year-first hyphenated dates; others use English rules. */
+  /** Accepted for callers that pass one; times are always formatted by the English rules. */
   locale?: string;
   /** Injectable clock for deterministic rendering and tests. Defaults to Date.now(). */
   nowMs?: number;
@@ -36,7 +35,7 @@ export interface ProductTimeOptions {
   timeZone?: string;
 }
 
-type ProductTimeLocale = 'en' | 'zh';
+type ProductTimeLocale = 'en';
 
 interface ZonedDateParts {
   year: number;
@@ -78,8 +77,8 @@ function getZonedDateParts(timestampMs: number, timeZone: string): ZonedDatePart
   };
 }
 
-function resolveLocale(locale?: string): ProductTimeLocale {
-  return (locale ?? '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+function resolveLocale(_locale?: string): ProductTimeLocale {
+  return 'en';
 }
 
 function padTwo(value: number): string {
@@ -101,8 +100,8 @@ function formatDate(
 ): string {
   const month = padTwo(parts.month);
   const day = padTwo(parts.day);
-  if (!includeYear) return locale === 'zh' ? `${month}-${day}` : `${month}/${day}`;
-  return locale === 'zh' ? `${parts.year}-${month}-${day}` : `${month}/${day}/${parts.year}`;
+  if (!includeYear) return `${month}/${day}`;
+  return `${month}/${day}/${parts.year}`;
 }
 
 function formatDateTime(
@@ -119,7 +118,7 @@ function calendarDayIndex(parts: ZonedDateParts): number {
 
 function formatWeekday(parts: ZonedDateParts, locale: ProductTimeLocale): string {
   const weekday = new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
-  const labels = locale === 'zh' ? ZH_WEEKDAYS : EN_WEEKDAYS;
+  const labels = EN_WEEKDAYS;
   return labels[weekday] ?? labels[0];
 }
 
@@ -139,12 +138,12 @@ function formatSocialTime(
   }
 
   const elapsedMs = nowMs - timestampMs;
-  if (elapsedMs < MINUTE_MS) return locale === 'zh' ? '刚刚' : 'Now';
+  if (elapsedMs < MINUTE_MS) return 'Now';
   if (isSameDay(timestamp, now)) return formatTime(timestamp);
 
   const dayDelta = calendarDayIndex(now) - calendarDayIndex(timestamp);
   if (dayDelta === 1) {
-    const yesterday = locale === 'zh' ? '昨天' : 'Yesterday';
+    const yesterday = 'Yesterday';
     return `${yesterday} ${formatTime(timestamp)}`;
   }
   if (dayDelta > 1 && dayDelta < RECENT_CALENDAR_DAYS) {
@@ -168,18 +167,18 @@ function formatCommunityTime(
   if (timestampMs > nowMs) return formatDate(timestamp, locale, !sameYear);
 
   const elapsedMs = nowMs - timestampMs;
-  if (elapsedMs < MINUTE_MS) return locale === 'zh' ? '刚刚' : 'Now';
+  if (elapsedMs < MINUTE_MS) return 'Now';
   if (elapsedMs < HOUR_MS) {
     const minutes = Math.floor(elapsedMs / MINUTE_MS);
-    return locale === 'zh' ? `${minutes}分钟前` : `${minutes}m`;
+    return `${minutes}m`;
   }
   if (elapsedMs < DAY_MS) {
     const hours = Math.floor(elapsedMs / HOUR_MS);
-    return locale === 'zh' ? `${hours}小时前` : `${hours}h`;
+    return `${hours}h`;
   }
   if (elapsedMs < FOUR_DAYS_MS) {
     const days = Math.floor(elapsedMs / DAY_MS);
-    return locale === 'zh' ? `${days}天前` : `${days}d`;
+    return `${days}d`;
   }
 
   return formatDate(timestamp, locale, !sameYear);

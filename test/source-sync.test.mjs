@@ -435,9 +435,9 @@ test('npm release manifests require native SQLite and pin installed external dep
   }
   const manifest = releaseManifest([f.root], '0.4.13');
   assert.equal(manifest.version, '0.4.13');
-  // Publishable as @ottili/alran-code on the public registry.
+  // Publishable as `alran` on the public registry.
   assert.equal(manifest.private, undefined);
-  assert.equal(manifest.name, '@ottili/alran-code');
+  assert.equal(manifest.name, 'alran');
   assert.deepEqual(manifest.publishConfig, { access: 'public', registry: 'https://registry.npmjs.org/' });
   assert.equal(manifest.bin.alran, 'cli.js');
   assert.equal(manifest.dependencies['better-sqlite3'], '1.2.3');
@@ -1019,7 +1019,7 @@ test('public support forms preserve destination URLs and separate Desktop from C
   assert.notEqual(bug.body.find(field => field.id === 'upload-id').validations?.required, true);
   for (const retired of ['bug.yml', 'feature.yml'])
     assert.equal(existsSync(new URL(`../.github/ISSUE_TEMPLATE/${retired}`, import.meta.url)), false);
-  assert.equal(classifyChanges(['README_ZH.md', 'README.md']).docsOnly, true);
+  assert.equal(classifyChanges(['docs/PLUGINS.md', 'README.md']).docsOnly, true);
 });
 
 test('issue product labels follow current form answers without replacing unrelated labels', async () => {
@@ -1086,41 +1086,6 @@ test('issue forms label incoming reports for triage and retain collaborator-only
   const question = parseYaml(readFileSync(new URL('../.github/ISSUE_TEMPLATE/03-question.yml', import.meta.url), 'utf8'));
   assert.equal(question.body.find(field => field.id === 'platform').validations.required, false);
   assert.equal(question.body.find(field => field.id === 'question').validations.required, true);
-});
-
-test('issue notification is restricted to public destination events and builds payloads offline', t => {
-  const workflow = parseYaml(readFileSync(new URL('../.github/workflows/sync-issue-to-feishu.yml', import.meta.url), 'utf8'));
-  assert.deepEqual(workflow.on, { issues: { types: ['opened'] } });
-  assert.deepEqual(workflow.permissions, { contents: 'read', issues: 'read' });
-  const job = workflow.jobs['notify-feishu'];
-  assert.equal(job.if, "${{ github.repository == 'Alran-AI/alran-code' && github.event.repository.private == false && !github.event.issue.pull_request }}");
-  const generate = job.steps.find(step => step.name === 'Build Feishu payload').run;
-  // Execute only the payload builder, never the delivery step or its secrets.
-  assert.doesNotMatch(generate, /\$\{\{\s*github\.event/);
-  const script = generate.match(/^node <<'EOF'\r?\n([\s\S]*?)\r?\nEOF\s*$/)?.[1];
-  assert.ok(script);
-  const directory = mkdtempSync(path.join(tmpdir(), 'support-payload-'));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const marker = path.join(directory, 'must-not-execute');
-  const event = {
-    repository: { full_name: 'Alran-AI/alran-code', html_url: 'https://github.com/ottili/alran-code' },
-    issue: { number: 7, title: 'Synthetic issue', body: `$(touch ${marker}) <at id=all>test</at>`, labels: [{ name: 'bug' }], created_at: '2026-09-18T00:00:00Z', html_url: 'https://github.com/ottili/alran-code/issues/7', user: { login: 'fixture' } },
-  };
-  const eventPath = path.join(directory, 'event.json');
-  writeFileSync(eventPath, JSON.stringify(event));
-  const result = spawnSync(process.execPath, ['--input-type=commonjs'], {
-    input: script, cwd: directory, encoding: 'utf8', timeout: 10000,
-    env: { ...process.env, GITHUB_EVENT_PATH: eventPath, FEISHU_BOT_SECRET: '', FEISHU_BOT_WEBHOOK: '' },
-  });
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(existsSync(marker), false);
-  const payload = JSON.parse(readFileSync(path.join(directory, 'feishu-payload.json'), 'utf8'));
-  assert.equal(payload.card.header.template, 'red');
-  assert.equal(payload.card.card_link.url, event.issue.html_url);
-  assert.equal(payload.card.header.title.content, 'GitHub Issue #7: Synthetic issue');
-  assert.doesNotMatch(JSON.stringify(payload), /<at /);
-  assert.match(JSON.stringify(payload), /‹at id=all›/);
-  assert.equal(payload.sign, undefined);
 });
 
 test('source imports preserve vendored Office schema bytes through Git staging', t => {

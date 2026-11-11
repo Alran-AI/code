@@ -126,8 +126,8 @@ describe('status line picker', () => {
     expect(locked.options.save).not.toHaveBeenCalled();
   });
 
-  it.each(['en', 'zh-Hans'])('keeps selection and controls usable in a small viewport (%s)', (locale) => {
-    const { picker } = fixture({ locale });
+  it('keeps selection and controls usable in a small viewport', () => {
+    const { picker } = fixture({ locale: 'en' });
     for (let index = 0; index < 12; index += 1) picker.handleInput('\x1b[B');
     const lines = picker.renderViewport(36, 10);
     expect(lines.length).toBeLessThanOrEqual(10);
@@ -148,11 +148,9 @@ describe('status line picker', () => {
 
 
 describe('context meter settings', () => {
-  it.each([
-    ['en', 'Remaining context gauge'],
-    ['zh-Hans', '剩余上下文刻度条'],
-  ])('describes and saves the opt-in item in %s', async (locale, description) => {
-    const { picker, options } = fixture({ locale });
+  it('describes and saves the opt-in item', async () => {
+    const description = 'Remaining context gauge';
+    const { picker, options } = fixture({ locale: 'en' });
     picker.handleInput('context-meter');
     expect(picker.render(100).join('\n')).toContain(description);
     expect(picker.render(100).join('\n')).toContain('[ ] context-meter');

@@ -1,46 +1,21 @@
 import { readFileSync } from 'node:fs';
-import { getRuntimeLocaleLanguage } from '@alran/shared/runtime-i18n';
 
 declare const __IS_NPM_BUILD__: boolean | undefined;
 
-export type TuiChangelogLanguage = 'en' | 'zh-CN';
-
-const TUI_CHANGELOG_PATHS: Readonly<Record<TuiChangelogLanguage, string>> =
+const TUI_CHANGELOG_PATH =
   typeof __IS_NPM_BUILD__ !== 'undefined' && __IS_NPM_BUILD__
-    ? {
-        en: './CHANGELOG.md',
-        'zh-CN': './CHANGELOG.zh-CN.md',
-      }
-    : {
-        en: '../../../../CHANGELOG.md',
-        'zh-CN': '../../../../CHANGELOG.zh-CN.md',
-      };
+    ? './CHANGELOG.md'
+    : '../../../../CHANGELOG.md';
 
-export const TUI_CHANGELOG_URLS: Readonly<Record<TuiChangelogLanguage, URL>> = {
-  en: new URL(TUI_CHANGELOG_PATHS.en, import.meta.url),
-  'zh-CN': new URL(TUI_CHANGELOG_PATHS['zh-CN'], import.meta.url),
-};
+export const TUI_CHANGELOG_URL = new URL(TUI_CHANGELOG_PATH, import.meta.url);
 
-export function resolveTuiChangelogLanguage(
-  locale: string = resolveSystemLocale(),
-): TuiChangelogLanguage {
-  return getRuntimeLocaleLanguage(locale) === 'zh' ? 'zh-CN' : 'en';
-}
-
-export function readPackagedTuiChangelog(locale?: string): string | undefined {
-  const language = resolveTuiChangelogLanguage(locale);
-  const candidates =
-    language === 'zh-CN'
-      ? [TUI_CHANGELOG_URLS['zh-CN'], TUI_CHANGELOG_URLS.en]
-      : [TUI_CHANGELOG_URLS.en];
-  for (const url of candidates) {
-    try {
-      return readFileSync(url, 'utf8');
-    } catch {
-      // Localized release notes are optional; English is the deterministic fallback.
-    }
+/** The changelog bundled with the package, or undefined when it is missing. */
+export function readPackagedTuiChangelog(): string | undefined {
+  try {
+    return readFileSync(TUI_CHANGELOG_URL, 'utf8');
+  } catch {
+    return undefined;
   }
-  return undefined;
 }
 
 export function extractTuiChangelogMarkdown(source: string): string {
@@ -123,12 +98,4 @@ function normalizeMarkdownInline(value: string): string {
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-}
-
-function resolveSystemLocale(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().locale;
-  } catch {
-    return 'en';
-  }
 }

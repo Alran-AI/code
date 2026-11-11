@@ -1,5 +1,4 @@
 import type { TuiCustomStatusLineConfig } from '@alran/config';
-import { getRuntimeLocaleLanguage } from '@alran/shared/runtime-i18n';
 import { formatContextWindow } from '../../application/context-window.js';
 import type { Component } from '../rendering/component.js';
 import { stripAnsi, truncateToWidth, visibleWidth } from '../rendering/text.js';
@@ -391,10 +390,8 @@ function fitStatusSegments(segments: readonly StatusSegment[], width: number): s
   return fitLine(render(), width);
 }
 
-function lightweightModeLabels(locale = Intl.DateTimeFormat().resolvedOptions().locale): string[] {
-  return getRuntimeLocaleLanguage(locale) === 'zh'
-    ? ['轻量模式', '轻量', '轻']
-    : ['Lightweight', 'Light', 'Lite'];
+function lightweightModeLabels(): string[] {
+  return ['Lightweight', 'Light', 'Lite'];
 }
 
 function renderSessionTitle(state: TuiShellState, maxWidth?: number): string {

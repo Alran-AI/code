@@ -3,7 +3,9 @@ import { readFileSync } from 'node:fs';
 export const ALRAN_CODE_MIN_NODE_VERSION = '22.19.0';
 export const ALRAN_CODE_SUPPORTED_NODE_VERSIONS = '22.19+, 24, 25, or 26';
 export const TUI_BUILD_PROFILE = 'tui';
-export const ALRAN_CODE_PACKAGE_NAME = '@ottili/alran-code';
+export const ALRAN_CODE_PACKAGE_NAME = 'alran';
+/** Names of the same package before it was called `alran`. */
+const LEGACY_PACKAGE_NAMES: readonly string[] = ['@ottili/alran-code', '@ottili/code'];
 
 interface PackageManifest {
   name: string;
@@ -17,7 +19,7 @@ export function resolveTuiPackageVersion(moduleUrl: string | URL = import.meta.u
         readFileSync(new URL(relativePath, moduleUrl), 'utf8'),
       ) as Partial<PackageManifest>;
       if (
-        (manifest.name === ALRAN_CODE_PACKAGE_NAME || manifest.name === '@ottili/alran-code') &&
+        (manifest.name === ALRAN_CODE_PACKAGE_NAME || LEGACY_PACKAGE_NAMES.includes(manifest.name ?? '')) &&
         typeof manifest.version === 'string' &&
         manifest.version.length > 0
       ) {

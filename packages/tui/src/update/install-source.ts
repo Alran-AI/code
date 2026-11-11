@@ -4,18 +4,26 @@ import spawn from 'cross-spawn';
 import { parseAlranVersion } from './release.js';
 import type { AlranUpdateOperationOptions } from './progress.js';
 
-export const ALRAN_INTERNAL_NPM_REGISTRY = 'https://npmmirror.example.invalid/';
 export const ALRAN_PUBLIC_NPM_REGISTRY = 'https://registry.npmjs.org/';
-export const ALRAN_PUBLIC_NPM_MIRROR_REGISTRY = 'https://registry.npmmirror.com/';
 const REGISTRY_FETCH_TIMEOUT_MS = 30_000;
-const ALRAN_PACKAGE_BASENAME = 'alran-code';
-const ALRAN_INTERNAL_SCOPE = '@alran';
-const ALRAN_PUBLIC_SCOPE = '@ottili';
-// Public packaging rewrites this marker together with the bundled package identity.
-const ALRAN_EMBEDDED_PACKAGE_NAME = '@ottili/alran-code' as AlranNpmPackageName;
+
+/** The npm package of this CLI: `npm install -g alran`. */
+export const ALRAN_NPM_PACKAGE_NAME = 'alran';
+/**
+ * Names an installation of this CLI carried before the package was called `alran`. They are still
+ * recognized (an install of one is found, and updated to the current name), never published again.
+ */
+export const ALRAN_LEGACY_NPM_PACKAGE_NAMES = ['@ottili/alran-code', '@ottili/code'] as const;
+
+/** True for a package name this CLI had before it was called `alran`. */
+export function isLegacyAlranPackageName(packageName: string | undefined): boolean {
+  return (ALRAN_LEGACY_NPM_PACKAGE_NAMES as readonly string[]).includes(packageName ?? '');
+}
+const ALRAN_NPM_PACKAGE_NAMES = [ALRAN_NPM_PACKAGE_NAME, ...ALRAN_LEGACY_NPM_PACKAGE_NAMES] as const;
+const ALRAN_EMBEDDED_PACKAGE_NAME: AlranNpmPackageName = ALRAN_NPM_PACKAGE_NAME;
 
 export type AlranNpmDistTag = 'latest' | 'test' | 'preview';
-export type AlranNpmPackageName = '@ottili/alran-code' | '@alran/alran-code';
+export type AlranNpmPackageName = (typeof ALRAN_NPM_PACKAGE_NAMES)[number];
 type TuiBuildEnvironment = 'test' | 'staging' | 'prod';
 
 declare const __TUI_BUILD_ENV__: TuiBuildEnvironment | undefined;
@@ -115,30 +123,30 @@ export function classifyAlranInstallPath(
   packageRoot: string,
 ): AlranPackageManagerInstallSource | undefined {
   const normalized = packageRoot.replaceAll('\\', '/').toLocaleLowerCase();
-  const scope = alranPackageScopePattern();
+  const scope = alranPackageNamePattern();
   if (
-    new RegExp(`\\/pnpm\\/global\\/(?:v11\\/[^/]+|[^/]+)\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+    new RegExp(`\\/pnpm\\/global\\/(?:v11\\/[^/]+|[^/]+)\\/node_modules\\/${scope}$`, 'u').test(
       normalized,
     )
   ) {
     return 'pnpm-global';
   }
   if (
-    new RegExp(`\\/(?:\\.config\\/yarn|\\.yarn)\\/global\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+    new RegExp(`\\/(?:\\.config\\/yarn|\\.yarn)\\/global\\/node_modules\\/${scope}$`, 'u').test(
       normalized,
     )
   ) {
     return 'yarn-global';
   }
   if (
-    new RegExp(`\\/\\.bun\\/install\\/global\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+    new RegExp(`\\/\\.bun\\/install\\/global\\/node_modules\\/${scope}$`, 'u').test(
       normalized,
     )
   ) {
     return 'bun-global';
   }
   if (
-    new RegExp(`\\/(?:lib|npm)\\/node_modules\\/${scope}\\/${ALRAN_PACKAGE_BASENAME}$`, 'u').test(
+    new RegExp(`\\/(?:lib|npm)\\/node_modules\\/${scope}$`, 'u').test(
       normalized,
     )
   ) {
@@ -147,36 +155,26 @@ export function classifyAlranInstallPath(
   return undefined;
 }
 
-/** The install-directory scopes the CLI recognizes, kept next to their constants. */
-function alranPackageScopePattern(): string {
-  const scopes = [ALRAN_INTERNAL_SCOPE, ALRAN_PUBLIC_SCOPE].map((scope) =>
-    scope.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&'),
+/** The install directories (`node_modules/<name>`) the CLI recognizes, as a regular expression. */
+function alranPackageNamePattern(): string {
+  const names = ALRAN_NPM_PACKAGE_NAMES.map((name) =>
+    name.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&').replaceAll('/', '\\/'),
   );
-  return `(?:${scopes.join('|')})`;
+  return `(?:${names.join('|')})`;
 }
 
 export function resolveAlranNpmDistribution(
   packageName: AlranNpmPackageName = resolveAlranPackageName() ?? ALRAN_EMBEDDED_PACKAGE_NAME,
   registry?: string,
 ): AlranNpmDistribution {
-  if (packageName === alranPackageName(ALRAN_INTERNAL_SCOPE)) {
-    const resolvedRegistry = registry ? new URL(registry).href : ALRAN_INTERNAL_NPM_REGISTRY;
-    if (resolvedRegistry === ALRAN_INTERNAL_NPM_REGISTRY) {
-      return { packageName, registry: resolvedRegistry };
-    }
+  if (!(ALRAN_NPM_PACKAGE_NAMES as readonly string[]).includes(packageName)) {
+    throw new Error(`Unsupported Alran npm package: ${String(packageName)}`);
+  }
+  const resolvedRegistry = registry ? new URL(registry).href : ALRAN_PUBLIC_NPM_REGISTRY;
+  if (resolvedRegistry !== ALRAN_PUBLIC_NPM_REGISTRY) {
     throw new Error(`Unsupported Alran npm registry: ${resolvedRegistry}`);
   }
-  if (packageName === alranPackageName(ALRAN_PUBLIC_SCOPE)) {
-    const resolvedRegistry = registry ? new URL(registry).href : ALRAN_PUBLIC_NPM_REGISTRY;
-    if (
-      resolvedRegistry === ALRAN_PUBLIC_NPM_REGISTRY ||
-      resolvedRegistry === ALRAN_PUBLIC_NPM_MIRROR_REGISTRY
-    ) {
-      return { packageName, registry: resolvedRegistry };
-    }
-    throw new Error(`Unsupported Alran npm registry: ${resolvedRegistry}`);
-  }
-  throw new Error(`Unsupported Alran npm package: ${String(packageName)}`);
+  return { packageName, registry: resolvedRegistry };
 }
 
 export function resolveAlranNpmDistTag(
@@ -196,8 +194,7 @@ export function classifyNpmGlobalInstall(
 ): AlranInstallSource {
   const normalizedRoot = normalizeResolvedPath(packageRoot, platform);
   const platformPath = platform === 'win32' ? path.win32 : path.posix;
-  const packageName =
-    alranPackageNameFromPath(packageRoot) ?? alranPackageName(ALRAN_INTERNAL_SCOPE);
+  const packageName = alranPackageNameFromPath(packageRoot) ?? ALRAN_NPM_PACKAGE_NAME;
   const candidates =
     platform === 'win32'
       ? [platformPath.join(globalPrefix, 'node_modules', packageName)]
@@ -474,10 +471,6 @@ export function resolveAlranPackageName(
   return resolveAlranPackageIdentity(entryFile)?.packageName;
 }
 
-export function isInternalAlranPackageName(packageName: string | undefined): boolean {
-  return packageName === alranPackageName(ALRAN_INTERNAL_SCOPE);
-}
-
 export function resolveInstalledAlranPackageVersion(
   entryFile = process.argv[1],
 ): string | undefined {
@@ -492,7 +485,11 @@ export function resolveAlranNpmPrefixInstall(
   const identity = resolveAlranPackageIdentity(entryFile);
   if (!identity) return undefined;
   const platformPath = platform === 'win32' ? path.win32 : path.posix;
-  const nodeModules = platformPath.dirname(platformPath.dirname(identity.packageRoot));
+  // `node_modules/<name>`: one level for `alran`, two for a scoped name such as `@ottili/alran-code`.
+  let nodeModules = identity.packageRoot;
+  for (let level = 0; level < identity.packageName.split('/').length; level += 1) {
+    nodeModules = platformPath.dirname(nodeModules);
+  }
   if (platformPath.basename(nodeModules).toLocaleLowerCase() !== 'node_modules') return undefined;
   const nodeModulesParent = platformPath.dirname(nodeModules);
   const packagePrefix =
@@ -731,21 +728,13 @@ function isResolvedPathInside(
   return relative !== '' && !relative.startsWith('..') && !platformPath.isAbsolute(relative);
 }
 
-function parseAlranPackageName(value: unknown): AlranNpmPackageName | undefined {
-  if (value === alranPackageName(ALRAN_INTERNAL_SCOPE)) return value as AlranNpmPackageName;
-  if (value === alranPackageName(ALRAN_PUBLIC_SCOPE)) return value as AlranNpmPackageName;
-  return undefined;
-}
-
-function alranPackageName(scope: string): AlranNpmPackageName {
-  return `${scope}/${ALRAN_PACKAGE_BASENAME}` as AlranNpmPackageName;
+export function parseAlranPackageName(value: unknown): AlranNpmPackageName | undefined {
+  return ALRAN_NPM_PACKAGE_NAMES.find((name) => name === value);
 }
 
 function alranPackageNameFromPath(packageRoot: string): AlranNpmPackageName | undefined {
   const normalized = packageRoot.replaceAll('\\', '/');
-  const segments = normalized.split('/');
-  if (segments.at(-1) !== ALRAN_PACKAGE_BASENAME) return undefined;
-  return parseAlranPackageName(`${segments.at(-2)}/${ALRAN_PACKAGE_BASENAME}`);
+  return ALRAN_NPM_PACKAGE_NAMES.find((name) => normalized === name || normalized.endsWith(`/${name}`));
 }
 
 function normalizeResolvedPath(value: string, platform: NodeJS.Platform): string {

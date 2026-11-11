@@ -446,7 +446,7 @@ describe("BuiltinAgentCatalog composition", () => {
 });
 
 describe("BuiltinAgentCatalog localized assets", () => {
-  it("uses English built-in personas while keeping greeting assets localized", async () => {
+  it("uses the English built-in personas and greeting whatever the locale is", async () => {
     const root = await mkdtemp(
       join(tmpdir(), "local-runtime-v2-agent-assets-"),
     );
@@ -457,10 +457,6 @@ describe("BuiltinAgentCatalog localized assets", () => {
     await writeFile(
       join(root, "explore", "PERSONA.md"),
       "---\ndisplay_name: Explore\ndescription: Explore agent\navatar: explore.png\n---\nExplore EN",
-    );
-    await writeFile(
-      join(root, "explore", "PERSONA-zh.md"),
-      "---\ndisplay_name: 探索\n---\n探索",
     );
     await writeFile(
       join(root, "explore", "system-prompt.md.hbs"),
@@ -492,7 +488,6 @@ describe("BuiltinAgentCatalog localized assets", () => {
     );
     // Include the required platform layer without changing this fixture's expected prose.
     await writeFile(join(root, "_default", "prompt-base-windows.md.hbs"), "");
-    await writeFile(join(root, "greeting-zh.md"), "你好");
     await writeFile(join(root, "greeting.md"), "Hello");
 
     const catalog = new BuiltinAgentCatalog({ assetsDir: root });
@@ -563,7 +558,7 @@ describe("BuiltinAgentCatalog localized assets", () => {
         capabilities: resolveAgentCapabilities(),
       }),
     ).resolves.toMatchObject({ surfacePrompt: "Branch true" });
-    await expect(catalog.readGreetingTemplate("zh-CN")).resolves.toBe("你好");
+    await expect(catalog.readGreetingTemplate("zh-CN")).resolves.toBe("Hello");
     await expect(catalog.readGreetingTemplate("en-US")).resolves.toBe("Hello");
   });
 });

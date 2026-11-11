@@ -11,7 +11,11 @@ import {
 } from 'node:fs';
 import path from 'node:path';
 import spawn from 'cross-spawn';
-import { resolveAlranNpmPrefixInstall, type AlranNpmPackageName } from './install-source.js';
+import {
+  parseAlranPackageName,
+  resolveAlranNpmPrefixInstall,
+  type AlranNpmPackageName,
+} from './install-source.js';
 
 const PENDING_UPDATE_FILE = '.alran-update-pending.json';
 const ACTIVE_PROCESS_DIRECTORY = '.alran-active';
@@ -627,7 +631,7 @@ function readPendingUpdateFile(file: string): {
     typeof value.activeModulesRoot !== 'string' ||
     typeof value.stagedModulesRoot !== 'string' ||
     typeof value.backupModulesRoot !== 'string' ||
-    (value.packageName !== '@alran/alran-code' && value.packageName !== '@ottili/alran-code') ||
+    parseAlranPackageName(value.packageName) === undefined ||
     typeof value.expectedVersion !== 'string' ||
     !Array.isArray(value.launchers) ||
     !value.launchers.every(

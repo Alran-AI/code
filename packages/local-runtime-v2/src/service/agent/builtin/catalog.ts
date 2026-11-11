@@ -405,15 +405,10 @@ export class BuiltinAgentCatalog {
   }
 
   async readGreetingTemplate(
-    locale = defaultLocale(),
+    _locale = defaultLocale(),
     promptReadContext?: BuiltinPromptReadScope,
   ): Promise<string> {
-    const localized = locale.toLowerCase().startsWith('zh') ? 'greeting-zh.md' : 'greeting.md';
-    return (
-      (await this.readPromptAssetFile(promptReadContext, localized)) ??
-      (await this.readPromptAssetFile(promptReadContext, 'greeting.md')) ??
-      ''
-    );
+    return (await this.readPromptAssetFile(promptReadContext, 'greeting.md')) ?? '';
   }
 
   private async readRoster(): Promise<string[]> {

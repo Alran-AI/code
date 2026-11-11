@@ -11,7 +11,7 @@ import path from 'node:path';
 import { compareAlranVersions } from './release.js';
 
 export const UPDATE_CHECK_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
-export const UPDATE_CHECK_PACKAGE = '@ottili/alran-code';
+export const UPDATE_CHECK_PACKAGE = 'alran';
 const REGISTRY_URL = `https://registry.npmjs.org/${UPDATE_CHECK_PACKAGE.replace('/', '%2f')}`;
 
 interface UpdateCheckStamp {

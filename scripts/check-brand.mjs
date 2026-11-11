@@ -50,7 +50,6 @@ export const ALLOWED_FILES = Object.freeze(new Set([
 /** Single attribution lines a README must carry (MIT: the origin's notice travels with the code). */
 export const ALLOWED_LINES = Object.freeze({
   'README.md': [/derived from MiniMax Code/u],
-  'README_ZH.md': [/MiniMax Code/u],
   'docs/RELEASE_NOTES_v1.md': [/derived from MiniMax Code/u],
   'docs/ARCHITECTURE.md': [/derived from MiniMax Code/u],
 });

@@ -38,7 +38,7 @@ describe.skipIf(process.platform !== "win32")("Windows source contract", () => {
     const fixtureRoot = path.join(root, "package");
     mkdirSync(fixtureRoot);
     writeFileSync(path.join(fixtureRoot, "package.json"), JSON.stringify({
-      name: "@ottili/alran-code",
+      name: "alran",
       version: "1.2.4",
       bin: { alran: "cli.cjs" },
     }));

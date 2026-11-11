@@ -8,7 +8,6 @@ export function classifyChanges(files) {
   const documentation = (p) =>
     [
       "README.md",
-      "README_ZH.md",
       "CONTRIBUTING.md",
       ".github/PULL_REQUEST_TEMPLATE.md",
     ].includes(p) ||

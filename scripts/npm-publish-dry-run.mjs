@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Stage the npm package `@ottili/alran-code` from the current build and run `npm publish --dry-run`.
+// Stage the npm package `alran` from the current build and run `npm publish --dry-run`.
 //
 // This is the readiness check of a release, not the release: it does not need a tag or a clean tree,
 // and it never publishes. The real archive is built by `scripts/package-cli-release.mjs <tag> <out>`
@@ -8,7 +8,7 @@
 // Usage: pnpm build && node scripts/npm-publish-dry-run.mjs [--pack <dir>]
 //
 // `--pack <dir>` also writes the staged package as a tarball into <dir>, so the exact archive a publish
-// would upload can be installed and tried (`npm install -g <dir>/ottili-alran-code-<version>.tgz`).
+// would upload can be installed and tried (`npm install -g <dir>/alran-<version>.tgz`).
 import { cpSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';

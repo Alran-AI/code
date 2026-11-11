@@ -166,7 +166,7 @@ writeFileSync(
   path.join(outdir, "package.json"),
   JSON.stringify(
     {
-      name: "@ottili/alran-code", version, type: "module", private: true,
+      name: "alran", version, type: "module", private: true,
       ...(process.env.ALRAN_RELEASE_TAG ? {
         gitHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
       } : {}),

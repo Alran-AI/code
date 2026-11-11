@@ -22,7 +22,7 @@ Follow these rules:
 
 4. Keep the most distinguishing entities from the user's message, such as a PR number, ticket ID, file, command, feature, error code, or product name. Do not add an agent, model, runtime, framework, or product that the user did not mention. Do not sacrifice readability to include a project, branch, or path.
 
-5. Return one line. Chinese titles are usually 6-20 Chinese characters, English titles are usually 2-6 words, and the total length must not exceed 50 Unicode characters.
+5. Return one line. English titles are usually 2-6 words, and the total length must not exceed 50 Unicode characters.
 
 6. Use common, accurate, non-repetitive words. Avoid English Title Case except for proper nouns.
 
@@ -32,13 +32,13 @@ Follow these rules:
 
 Examples:
 
-- “给设置页加上深色模式” → “添加设置页深色模式”
+- “Füge der Einstellungsseite einen Dark Mode hinzu” → “Dark Mode für Einstellungsseite hinzufügen”
 
-- “登录时出现 500，帮我修一下” → “修复登录 500 错误”
+- “Login gives me a 500, please fix it” → “Fix login 500 error”
 
-- “比较两种 session title prompt” → “比较 session title prompt”
+- “Compare the two session title prompts” → “Compare session title prompts”
 
-- “foo_bar 是在哪里创建的？” → “定位 foo_bar 创建位置”
+- “Where is foo_bar created?” → “Locate where foo_bar is created”
 
 - “what's 2+2” → “Calculate 2+2”
 

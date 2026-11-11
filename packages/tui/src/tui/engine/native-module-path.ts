@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const moduleRequire = createRequire(import.meta.url);
-const ALRAN_PACKAGE_JSON = '@ottili/alran-code/package.json';
+const ALRAN_PACKAGE_JSONS = ['alran/package.json', '@ottili/alran-code/package.json'] as const;
 
 export interface NativeModuleCandidateOptions {
   moduleUrl?: string;
@@ -18,11 +18,14 @@ export function getNativeModuleCandidates(
   const moduleDir = dirname(fileURLToPath(options.moduleUrl ?? import.meta.url));
   const candidates: string[] = [];
 
-  try {
-    const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(ALRAN_PACKAGE_JSON);
-    candidates.push(join(dirname(packageJson), nativePath));
-  } catch {
-    // Standalone binaries do not have an installed @ottili/alran-code package.
+  for (const specifier of ALRAN_PACKAGE_JSONS) {
+    try {
+      const packageJson = (options.resolvePackage ?? moduleRequire.resolve)(specifier);
+      candidates.push(join(dirname(packageJson), nativePath));
+      break;
+    } catch {
+      // Standalone binaries do not have an installed `alran` package.
+    }
   }
 
   candidates.push(

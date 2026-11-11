@@ -1,18 +1,6 @@
-import {
-  EN_RUNTIME_TRANSLATIONS,
-  type RuntimeTranslationKey,
-  type RuntimeTranslations,
-} from './en.js';
-import { ZH_HANS_RUNTIME_TRANSLATIONS } from './zh-Hans.js';
+import { EN_RUNTIME_TRANSLATIONS, type RuntimeTranslationKey } from './en.js';
 
-type RuntimeLocale = 'en' | 'zh-Hans';
-
-const DEFAULT_RUNTIME_LOCALE: RuntimeLocale = 'en';
-
-const RUNTIME_TRANSLATIONS: Readonly<Record<RuntimeLocale, RuntimeTranslations>> = {
-  en: EN_RUNTIME_TRANSLATIONS,
-  'zh-Hans': ZH_HANS_RUNTIME_TRANSLATIONS,
-};
+const DEFAULT_RUNTIME_LOCALE = 'en';
 
 /** Extract the canonical language subtag from a BCP 47 locale. */
 export function getRuntimeLocaleLanguage(locale?: string | null): string {
@@ -26,15 +14,12 @@ export function getRuntimeLocaleLanguage(locale?: string | null): string {
   }
 }
 
-function resolveRuntimeLocale(locale?: string | null): RuntimeLocale {
-  return getRuntimeLocaleLanguage(locale) === 'zh' ? 'zh-Hans' : DEFAULT_RUNTIME_LOCALE;
-}
-
+/** Runtime text is English; the locale argument is accepted for callers that pass one. */
 export function translateRuntimeText(
-  locale: string | null | undefined,
+  _locale: string | null | undefined,
   key: RuntimeTranslationKey,
 ): string {
-  return RUNTIME_TRANSLATIONS[resolveRuntimeLocale(locale)][key];
+  return EN_RUNTIME_TRANSLATIONS[key];
 }
 
 export type { RuntimeTranslationKey } from './en.js';

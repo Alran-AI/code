@@ -6,11 +6,13 @@ import {
   type AlranUpdateRequest,
 } from './service.js';
 import {
+  ALRAN_NPM_PACKAGE_NAME,
   buildAlranPackageManagerCommand,
   bindAlranNpmCommandToRuntime,
   createAlranNpmRuntimeEnvironment,
   detectAlranInstallSource,
   resolveAlranNpmDistribution,
+  isLegacyAlranPackageName,
   resolveAlranNpmDistTag,
   resolveAlranNpmPrefixInstall,
   resolveInstalledAlranPackageVersion,
@@ -264,6 +266,16 @@ export class AlranUpdateApplication {
           this.platform,
           this.distribution,
         ).display,
+      };
+    }
+    // An installation of the package under its old name cannot be updated in place: the new versions
+    // are published as `alran`. Say what to run instead of installing a second copy next to it.
+    if (isLegacyAlranPackageName(this.distribution.packageName)) {
+      return {
+        kind: 'manual',
+        source: 'unsupported',
+        currentVersion: this.currentVersion,
+        command: `npm uninstall --global ${this.distribution.packageName} && npm install --global ${ALRAN_NPM_PACKAGE_NAME}`,
       };
     }
     const pendingUpdate =

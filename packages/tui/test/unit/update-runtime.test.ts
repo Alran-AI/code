@@ -88,9 +88,9 @@ const lifecycle = require('node:child_process').spawnSync('node', ['-p', 'proces
 if (lifecycle.status !== 0 || lifecycle.stdout.trim() !== process.execPath) throw new Error('Wrong lifecycle Node');
 if (process.argv.includes('view')) { console.log(JSON.stringify('1.2.4')); process.exit(0); }
 const prefix = process.argv[process.argv.indexOf('--prefix') + 1];
-const root = path.join(prefix, process.platform === 'win32' ? 'node_modules/@ottili/alran-code' : 'lib/node_modules/@ottili/alran-code');
+const root = path.join(prefix, process.platform === 'win32' ? 'node_modules/alran' : 'lib/node_modules/alran');
 fs.mkdirSync(path.join(root, 'node_modules/better-sqlite3'), { recursive: true });
-fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'@ottili/alran-code',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
+fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'alran',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
 fs.writeFileSync(path.join(root, 'cli.js'), 'console.log("1.2.4");');
 fs.writeFileSync(path.join(root, 'tools.js'), 'console.log("alran-tools 1.2.4");');
 fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), ${JSON.stringify(sqlite)});
@@ -111,7 +111,7 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), ${JSON
           prefixInstall: {
             executable: npm,
             prefix,
-            packageName: '@ottili/alran-code',
+            packageName: 'alran',
             registry: 'https://registry.npmjs.org/',
           },
         },
@@ -152,14 +152,13 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), ${JSON
       '1.2.3',
       'lib',
       'node_modules',
-      '@alran',
-      'code',
+      'alran',
     );
     mkdirSync(packageRoot, { recursive: true });
     writeFileSync(
       path.join(packageRoot, 'package.json'),
       JSON.stringify({
-        name: '@ottili/alran-code',
+        name: 'alran',
         version: '1.2.3',
         bin: { alran: 'cli.js', 'alran-tools': 'tools.js' },
       }),
@@ -173,7 +172,7 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), ${JSON
         product: 'alran-code',
         updateOwner: 'npm-prefix',
         packageManager: 'npm',
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         registry: 'https://registry.npmjs.org/',
         distTag: 'latest',
         npmExecutable: npm,
@@ -191,9 +190,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 if (process.argv.includes('view')) { console.log(JSON.stringify('1.2.4')); process.exit(0); }
 const prefix = process.argv[process.argv.indexOf('--prefix') + 1];
-const root = path.join(prefix, 'lib/node_modules/@ottili/alran-code');
+const root = path.join(prefix, 'lib/node_modules/alran');
 fs.mkdirSync(path.join(root, 'node_modules/better-sqlite3'), { recursive: true });
-fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'@ottili/alran-code',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
+fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'alran',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
 fs.writeFileSync(path.join(root, 'cli.js'), 'console.log("1.2.4");');
 fs.writeFileSync(path.join(root, 'tools.js'), 'console.log("alran-tools 1.2.4");');
 fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'module.exports = class { constructor() {} prepare() { return { get: () => ({ value: 1 }) }; } close() {} };');
@@ -267,22 +266,21 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'modul
     const npm = path.join(root, 'npm');
     writeFileSync(npm, '#!/bin/sh\nexit 42\n', { mode: 0o755 });
     const prefix = path.join(root, 'install');
-    const legacyEntry = path.join(prefix, 'lib', 'node_modules', '@ottili', 'alran-code', 'cli.js');
+    const legacyEntry = path.join(prefix, 'lib', 'node_modules', 'alran', 'cli.js');
     const versionedEntry = path.join(
       prefix,
       'releases',
       '1.0.0',
       'lib',
       'node_modules',
-      '@alran-ai',
-      'code',
+      'alran',
       'cli.js',
     );
     for (const entry of [legacyEntry, versionedEntry]) {
       mkdirSync(path.dirname(entry), { recursive: true });
       writeFileSync(
         path.join(path.dirname(entry), 'package.json'),
-        JSON.stringify({ name: '@ottili/alran-code', version: '1.0.0' }),
+        JSON.stringify({ name: 'alran', version: '1.0.0' }),
       );
       writeFileSync(entry, 'console.log("1.0.0");');
     }
@@ -296,7 +294,7 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'modul
           product: 'alran-code',
           updateOwner: 'npm-prefix',
           packageManager: 'npm',
-          packageName: '@ottili/alran-code',
+          packageName: 'alran',
           registry: 'https://registry.npmjs.org/',
           distTag: 'latest',
           npmExecutable: npm,
@@ -322,7 +320,7 @@ fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'modul
         product: 'alran-code',
         updateOwner: 'npm-prefix',
         packageManager: 'npm',
-        packageName: '@ottili/alran-code',
+        packageName: 'alran',
         registry: 'https://registry.npmjs.org/',
         distTag: 'latest',
         npmExecutable: npm,
@@ -374,14 +372,13 @@ async function runNpmPrefixUpdate(
     '1.2.3',
     'lib',
     'node_modules',
-    '@alran-ai',
-    'code',
+    'alran',
   );
   mkdirSync(packageRoot, { recursive: true });
   writeFileSync(
     path.join(packageRoot, 'package.json'),
     JSON.stringify({
-      name: '@ottili/alran-code',
+      name: 'alran',
       version: '1.2.3',
       bin: { alran: 'cli.js', 'alran-tools': 'tools.js' },
     }),
@@ -395,7 +392,7 @@ async function runNpmPrefixUpdate(
       product: 'alran-code',
       updateOwner: 'npm-prefix',
       packageManager: 'npm',
-      packageName: '@ottili/alran-code',
+      packageName: 'alran',
       registry: 'https://registry.npmjs.org/',
       distTag: 'latest',
       npmExecutable: npm,
@@ -413,9 +410,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 if (process.argv.includes('view')) { console.log(JSON.stringify('1.2.4')); process.exit(0); }
 const prefix = process.argv[process.argv.indexOf('--prefix') + 1];
-const root = path.join(prefix, 'lib/node_modules/@ottili/alran-code');
+const root = path.join(prefix, 'lib/node_modules/alran');
 fs.mkdirSync(path.join(root, 'node_modules/better-sqlite3'), { recursive: true });
-fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'@ottili/alran-code',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
+fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({name:'alran',version:'1.2.4',bin:{alran:'cli.js','alran-tools':'tools.js'}}));
 fs.writeFileSync(path.join(root, 'cli.js'), 'console.log("1.2.4");');
 fs.writeFileSync(path.join(root, 'tools.js'), 'console.log("alran-tools 1.2.4");');
 fs.writeFileSync(path.join(root, 'node_modules/better-sqlite3/index.js'), 'module.exports = class { constructor() {} prepare() { return { get: () => ({ value: 1 }) }; } close() {} };');
