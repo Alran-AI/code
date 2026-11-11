@@ -76,7 +76,7 @@ without a browser at all, create an API key at <https://ai.ottili.one/api-keys> 
 | `ALRAN_DATA_DIR` | Where configuration, sessions, caches and logs live. | `~/.alran` |
 | `ALRAN_NO_UPDATE_CHECK` | `1` switches off the weekly update hint. | — |
 
-Data of a build from before the rename (`~/.mavis`) is moved to `~/.alran` once, and a link is left
+The data directory of a build from before the rename is moved to `~/.alran` once, and a link is left
 ([MIGRATION_FROM_MINIMAX.md](MIGRATION_FROM_MINIMAX.md)). To keep a test run's sessions apart, point
 `ALRAN_DATA_DIR` at a temporary directory (`export ALRAN_DATA_DIR=/tmp/alran-test`, or
 `$env:ALRAN_DATA_DIR = 'C:\\path\\to\\test-profile'` in PowerShell).
