@@ -397,7 +397,7 @@ describe.skipIf(process.platform === "win32")("createLocalBashOperations parent-
 			expect(captured.launcher).toContain("RequiredPSVersion");
 			expect(captured.launcher).toContain("RequiredModules");
 			expect(captured.launcher).toContain("ScriptBlock]::Create");
-			expect(captured.launcher).not.toContain("$__mavisSource");
+			expect(captured.launcher).not.toContain("$__alranSource");
 			expect(captured.launcher).not.toContain(".ps1");
 			expect(captured.launcher.length).toBeLessThan(8192);
 		} finally {
@@ -452,7 +452,7 @@ describe.skipIf(process.platform === "win32")("createLocalBashOperations parent-
 			expect(captured.source).toBe(command);
 			expect(captured.forbidden).toEqual([]);
 			expect(captured.launcher).toContain("Invoke-Expression");
-			expect(captured.launcher).not.toContain("$__mavisSource");
+			expect(captured.launcher).not.toContain("$__alranSource");
 			expect(captured.launcher).not.toContain(".ps1");
 			expect(captured.launcher.length).toBeLessThan(1024);
 		} finally {

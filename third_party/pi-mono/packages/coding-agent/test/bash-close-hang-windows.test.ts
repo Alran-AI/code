@@ -159,7 +159,7 @@ describe.skipIf(process.platform !== "win32")("Windows child-process close handl
 
 		for (const [name, requirement] of [
 			["version", "#requires -Version 999"],
-			["module", "#requires -Modules DefinitelyMissingMavisModule"],
+			["module", "#requires -Modules DefinitelyMissingAlranModule"],
 		] as const) {
 			const marker = join(testDir, `${name}-must-not-run.txt`);
 			const quotedMarker = marker.replaceAll("'", "''");
@@ -186,7 +186,7 @@ describe.skipIf(process.platform !== "win32")("Windows child-process close handl
 		const operations = createLocalBashOperations({ shellPath: powershell });
 		let output = "";
 		const result = await operations.exec(
-			"if ($null -eq (Get-Variable -Name '__mavisSource' -ErrorAction SilentlyContinue)) { 'clean' } else { throw 'polluted' }",
+			"if ($null -eq (Get-Variable -Name '__alranSource' -ErrorAction SilentlyContinue)) { 'clean' } else { throw 'polluted' }",
 			testDir,
 			{
 				onData: (chunk) => {

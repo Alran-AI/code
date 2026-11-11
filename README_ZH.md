@@ -325,7 +325,6 @@ node /absolute/path/to/alran-code/dist/cli.js
 | [AlranCode@alran.io](mailto:AlranCode@alran.io) | 一般反馈与支持咨询。 |
 | [security.alran@alran.io](mailto:security.alran@alran.io) | 私密报告安全漏洞。请通过此邮箱发送复现步骤和脱敏证据，详见[安全报告指南](SECURITY.md)。 |
 | [Discord](https://alran.io/discord) | 社区交流与反馈。 |
-| [飞书反馈群二维码](https://cdn.hailuoai.com/hailuo-video-web/public_assets/alran_code_feishu_group_url.png) | 中文社区反馈。使用飞书扫码，或在中文版桌面应用的用户菜单 → **联系我们 → 飞书** 中查看二维码。 |
 
 也可关注 [Alran 的 X 账号](https://x.com/AlranAgent) 获取动态。请勿在公开 Issue 或社区聊天中发布漏洞细节、凭据和私人项目内容。
 

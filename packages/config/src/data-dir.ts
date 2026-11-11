@@ -3,7 +3,11 @@ import os from 'node:os';
 import path from 'node:path';
 
 export const NEW_DATA_DIR_BASENAME = '.alran';
+// legacy-brand-compat:begin — the data directory of releases before the rename. `resolveDataDir`
+// moves it to `.alran` once and leaves a symlink behind, so nothing a user stored is lost.
+// TODO: remove after 2027-Q1 — see docs/MIGRATION_FROM_MINIMAX.md.
 export const LEGACY_DATA_DIR_BASENAME = '.mavis';
+// legacy-brand-compat:end
 
 export type DataDirMigrationLogger = Pick<Console, 'error' | 'info' | 'warn'>;
 

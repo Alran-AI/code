@@ -10,7 +10,7 @@
   "auth": {
     "mode": "shared-broker",
     "protocol": {
-      "name": "@mavis/oauth-lease-protocol",
+      "name": "@alran/oauth-lease-protocol",
       "version": "0.1.0-beta.0",
       "wireVersion": 1
     }
@@ -19,7 +19,7 @@
   "resources": [
     {
       "path": "cli.mjs",
-      "sha256": "b9c3f9d0f3c6fca314ecee514c2a0a23c280281e4ded743994149b1ddab57499"
+      "sha256": "74d4c136d7b44ab6a1667916fdcaaf16c1b89244fd24064e2c82d29ab1d56f15"
     }
   ]
 }

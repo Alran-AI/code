@@ -328,7 +328,6 @@ This repository also hosts issue reporting for the Alran Code desktop app. The p
 | [AlranCode@alran.io](mailto:AlranCode@alran.io) | General feedback and support inquiries. |
 | [security.alran@alran.io](mailto:security.alran@alran.io) | Private vulnerability reports. Send reproduction details and redacted evidence here; see [Security](SECURITY.md). |
 | [Discord](https://alran.io/discord) | Community discussion and feedback. |
-| [Feishu feedback group QR code](https://cdn.hailuoai.com/hailuo-video-web/public_assets/alran_code_feishu_group_url.png) | Chinese-language community feedback. Scan with Feishu, or find the QR code in the Chinese desktop app under the user menu → **Contact us → Feishu**. |
 
 Follow [Alran on X](https://x.com/AlranAgent) for updates. Keep vulnerability details, credentials, and private project content out of public issues and community chats.
 

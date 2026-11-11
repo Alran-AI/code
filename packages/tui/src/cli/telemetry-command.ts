@@ -64,6 +64,7 @@ export function runAlranTelemetryCommand(
           version,
           now: dependencies.now,
           randomId: dependencies.randomId,
+          environment,
         },
       ),
     },

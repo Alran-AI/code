@@ -90,6 +90,8 @@ export interface CreateAlranBusinessTelemetryOptions {
   readonly randomId?: () => string;
   readonly queueLimit?: number;
   readonly timeoutMs?: number;
+  /** The environment the reporting endpoint is read from (`ALRAN_TELEMETRY_ENDPOINT`). */
+  readonly environment?: NodeJS.ProcessEnv;
 }
 
 export interface AlranTelemetryPolicy {
@@ -99,7 +101,8 @@ export interface AlranTelemetryPolicy {
 }
 
 export interface AlranBusinessTelemetryPreview {
-  readonly endpoint: string;
+  /** Where the request would go; null when no reporting endpoint is configured (the default). */
+  readonly endpoint: string | null;
   readonly method: 'POST';
   readonly contentType: 'application/x-www-form-urlencoded';
   readonly payload: SensorsPayload;
@@ -162,7 +165,7 @@ export function createAlranBusinessTelemetry(
   options: CreateAlranBusinessTelemetryOptions,
 ): AlranBusinessTelemetry {
   const fetchImpl = options.fetch ?? fetch;
-  const endpoint = resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv);
+  const endpoint = resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv, options.environment);
   const queueLimit = Math.max(1, options.queueLimit ?? DEFAULT_QUEUE_LIMIT);
   const queue: AlranBusinessEvent[] = [];
   let drainPromise: Promise<void> | undefined;
@@ -173,6 +176,8 @@ export function createAlranBusinessTelemetry(
     while (queue.length > 0) {
       const item = queue.shift();
       if (!item) continue;
+      // No endpoint, no request: an event that has nowhere to go is dropped here.
+      if (!endpoint) continue;
       try {
         const payload = createSensorsPayload(item, options);
         await fetchImpl(endpoint, {
@@ -219,7 +224,7 @@ export function createAlranBusinessTelemetryPreview<Event extends AlranBusinessE
   options: CreateAlranBusinessTelemetryOptions,
 ): AlranBusinessTelemetryPreview {
   return {
-    endpoint: resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv),
+    endpoint: resolveAlranBusinessTelemetryEndpoint(options.region, options.buildEnv, options.environment) ?? null,
     method: 'POST',
     contentType: 'application/x-www-form-urlencoded',
     payload: createSensorsPayload({ event, properties } as AlranBusinessEvent, options),
@@ -265,18 +270,33 @@ function selectEventProperties(item: AlranBusinessEvent): Record<string, string 
   return selected;
 }
 
+/** The environment variable that names the usage-reporting endpoint of a deployment. */
+export const ALRAN_TELEMETRY_ENDPOINT_ENV = 'ALRAN_TELEMETRY_ENDPOINT';
+
+/**
+ * Where opt-in usage reporting is sent.
+ *
+ * Ottili operates no reporting endpoint for the CLI today, so there is no default: without
+ * `ALRAN_TELEMETRY_ENDPOINT` nothing is sent, even when a user opted in. An endpoint must be https
+ * (or loopback http, for a local test receiver). The endpoints this code base used to carry belonged
+ * to the company it was derived from and are gone for good — a fork must never report to its origin.
+ */
 export function resolveAlranBusinessTelemetryEndpoint(
-  region: AlranRegion,
-  buildEnv: AlranBuildEnv,
-): string {
-  if (region === 'en') {
-    return buildEnv === 'prod'
-      ? 'https://data.hailuo.ai/meerkat-reporter/api/report?project=AlranAgent'
-      : 'https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=AlranAgent';
+  _region: AlranRegion,
+  _buildEnv: AlranBuildEnv,
+  environment: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  const configured = environment[ALRAN_TELEMETRY_ENDPOINT_ENV]?.trim();
+  if (!configured) return undefined;
+  let url: URL;
+  try {
+    url = new URL(configured);
+  } catch {
+    return undefined;
   }
-  return buildEnv === 'prod'
-    ? 'https://data.hailuoai.com/meerkat-reporter/api/report?project=AlranAgent'
-    : 'https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=AlranAgent';
+  const loopback = url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '[::1]';
+  if (url.protocol === 'https:' || (url.protocol === 'http:' && loopback)) return url.toString();
+  return undefined;
 }
 
 function isEnabledEnvironmentFlag(value: string | undefined): boolean {

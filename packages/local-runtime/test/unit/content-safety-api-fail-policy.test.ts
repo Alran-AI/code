@@ -210,7 +210,7 @@ describe('callSafetyApi fail-policy classification', () => {
 
   it.each([
     undefined,
-    [{ fileUrl: 'https://cdn.hailuoai.com/legacy.png', fileName: 'legacy.png' }],
+    [{ fileUrl: 'https://cdn.example.invalid/legacy.png', fileName: 'legacy.png' }],
   ])('preserves the auth policy for legacy text and URL requests: %j', async (attachments) => {
     const fetchImpl = vi.fn(async () => jsonResponse({ pass: true }));
     await callSafetyApi({

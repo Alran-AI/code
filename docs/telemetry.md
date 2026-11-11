@@ -72,12 +72,12 @@ As with any network request, the receiving server can observe transport metadata
 
 ## Usage-event destinations
 
-The destination depends on region and build environment:
-
-- China production: `https://data.hailuoai.com/meerkat-reporter/api/report?project=AlranAgent`
-- Global production: `https://data.hailuo.ai/meerkat-reporter/api/report?project=AlranAgent`
-- China non-production: `https://bigdata-test.xingyeai.com/meerkat-reporter/api/report?project=AlranAgent`
-- Global non-production: `https://bigdata-test.talkie-ai.com/meerkat-reporter/api/report?project=AlranAgent`
+Ottili operates no usage-reporting endpoint for the CLI today, so **there is no default
+destination**: without `ALRAN_TELEMETRY_ENDPOINT` no usage event leaves the machine, even when
+`telemetry.enabled` is `true`. A deployment that runs its own receiver names it there (https, or
+loopback http for a local test receiver); `alran telemetry preview` shows `"endpoint": null` until
+then. The reporting endpoints the code base this CLI was derived from carried were removed in 1.0 and
+are never contacted.
 
 The client keeps pending events only in memory and does not write them to disk. This repository does not define or verify server-side retention. Keep telemetry disabled when that policy does not meet your requirements.
 

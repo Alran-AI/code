@@ -714,12 +714,15 @@ function dataDirSource(): string {
   return source && KNOWN_DATA_DIR_SOURCES.has(source) ? source : 'unknown';
 }
 
+// legacy-brand-compat:begin — a data directory reached through the legacy `.mavis` symlink that the
+// data-dir migration leaves behind. TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
 function agentDirectoryRootKind(root: string): '.alran' | '.mavis' | 'other' {
   const name = basename(root).toLowerCase();
   if (name === '.alran' || name.startsWith('.alran-')) return '.alran';
   if (name === '.mavis' || name.startsWith('.mavis-')) return '.mavis';
   return 'other';
 }
+// legacy-brand-compat:end
 
 function agentDirectorySegment(segments: readonly string[], index: number): AgentDirectorySegment {
   if (index === 0) return 'data_dir';
@@ -747,6 +750,7 @@ async function agentDirectoryTargetScope(
   }
 }
 
+// legacy-brand-compat:begin — TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
 async function isExpectedDefaultDataDirTarget(
   root: string,
   current: string,
@@ -767,6 +771,7 @@ function expectedDefaultAlranDataDirName(root: string): string {
   const name = basename(root);
   return name.startsWith('.mavis-') ? `.alran${name.slice('.mavis'.length)}` : '.alran';
 }
+// legacy-brand-compat:end
 
 function samePath(left: string, right: string): boolean {
   return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;

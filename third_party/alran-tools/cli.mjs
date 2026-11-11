@@ -3025,7 +3025,7 @@ var require_commander = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@mavis+oauth-lease-protocol@0.1.0-beta.0/node_modules/@mavis/oauth-lease-protocol/dist/contracts.js
+// node_modules/.pnpm/@alran+oauth-lease-protocol@0.1.0-beta.0/node_modules/@alran/oauth-lease-protocol/dist/contracts.js
 var AUTH_LEASE_PROTOCOL_VERSION = 1;
 var AUTH_LEASE_AUDIENCE = "agent-backend";
 var AUTH_LEASE_SCOPES = ["agent.default"];
@@ -3176,7 +3176,7 @@ function requireErrorCode(value) {
   return value;
 }
 
-// node_modules/.pnpm/@mavis+oauth-lease-protocol@0.1.0-beta.0/node_modules/@mavis/oauth-lease-protocol/dist/codec.js
+// node_modules/.pnpm/@alran+oauth-lease-protocol@0.1.0-beta.0/node_modules/@alran/oauth-lease-protocol/dist/codec.js
 var FRAME_PREFIX_BYTES = 4;
 function encodeAuthLeaseFrame(value) {
   let payload;
@@ -3229,7 +3229,7 @@ var AuthLeaseFrameDecoder = class {
   }
 };
 
-// node_modules/.pnpm/@mavis+oauth-lease-protocol@0.1.0-beta.0/node_modules/@mavis/oauth-lease-protocol/dist/endpoints.js
+// node_modules/.pnpm/@alran+oauth-lease-protocol@0.1.0-beta.0/node_modules/@alran/oauth-lease-protocol/dist/endpoints.js
 import path from "node:path";
 var SOCKET_FILE = "alran-auth-lease-v1.sock";
 var CAPABILITY_FILE = "alran-auth-lease-v1.cap";
@@ -3249,7 +3249,7 @@ function assertAuthLeaseClientEndpoint(endpoint, capabilityFile, platform = proc
   }
 }
 
-// node_modules/.pnpm/@mavis+oauth-lease-protocol@0.1.0-beta.0/node_modules/@mavis/oauth-lease-protocol/dist/node-client.js
+// node_modules/.pnpm/@alran+oauth-lease-protocol@0.1.0-beta.0/node_modules/@alran/oauth-lease-protocol/dist/node-client.js
 import { randomUUID } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import net from "node:net";

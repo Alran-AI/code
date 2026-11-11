@@ -8,8 +8,13 @@ import {
 } from './cli/environment.js';
 import { prepareAlranPrefixProcess } from './update/prefix-update.js';
 import { isInternalAlranPackageName, resolveAlranPackageName } from './update/install-source.js';
+import { applyLegacyEnvironmentAliases, formatLegacyEnvironmentWarning } from '@alran/config';
 
 async function main(): Promise<void> {
+  // Old variable names are read under their new ones before anything else reads the environment.
+  // legacy-brand-compat: TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
+  const legacyWarning = formatLegacyEnvironmentWarning(applyLegacyEnvironmentAliases(process.env));
+  if (legacyWarning) process.stderr.write(`${legacyWarning}\n`);
   const packageName = resolveAlranPackageName(fileURLToPath(import.meta.url));
   const internalPackage = isInternalAlranPackageName(packageName);
   let startupBuildEnvironment: ReturnType<typeof resolveTuiStartupEnvironmentOption>;

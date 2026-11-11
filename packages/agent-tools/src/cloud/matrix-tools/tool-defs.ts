@@ -167,7 +167,7 @@ export const MAX_VIDEO_GENERATION_PROMPT_LENGTH = 7000;
 export const MAX_H3_REFERENCE_AUDIO_COUNT = 3;
 export const MAX_H3_REFERENCE_MEDIA_COUNT = 12;
 export const ALRAN_H3_MODEL = 'Alran-H3';
-export const HAILUO_23_MODEL = 'Alran-Hailuo-2.3';
+export const VIDEO_23_MODEL = 'Alran-Video-2.3';
 
 export function isH3VideoModel(model: string): boolean {
   return model === ALRAN_H3_MODEL;
@@ -180,7 +180,7 @@ const VIDEO_MODEL_DESCRIPTION =
   'Required and must be chosen in a separate first step. We recommend Alran-H3 for quality: it is ' +
   'newer and more capable. Alran-H3 natively generates synchronized audio together with the video ' +
   'directly from the prompt, without reference_audio_paths; reference audio is optional guidance, ' +
-  'not a prerequisite for sound. Alran-Hailuo-2.3 accepts exactly one image; Alran-H3 ' +
+  'not a prerequisite for sound. Alran-Video-2.3 accepts exactly one image; Alran-H3 ' +
   'supports either first/last-frame keyframes or multimodal references: 1-9 reference images, ' +
   '1-3 reference videos, and 1-3 reference audio files only together with reference images/videos, ' +
   'with at most 12 files total across all reference collections. If the ' +
@@ -192,7 +192,7 @@ const VIDEO_MODEL_DESCRIPTION =
   'Use Alran-H3 as the Tool and Matrix model value.';
 
 const VideoModelSchema = Type.Union(
-  [Type.Literal(ALRAN_H3_MODEL), Type.Literal(HAILUO_23_MODEL)],
+  [Type.Literal(ALRAN_H3_MODEL), Type.Literal(VIDEO_23_MODEL)],
   { description: VIDEO_MODEL_DESCRIPTION },
 );
 
@@ -202,9 +202,9 @@ export const MatrixSubmitVideoGenerationToolDef = {
     'Submit exactly one asynchronous video task and return task_id immediately.',
     'For Alran-H3 this Tool adapts the official POST /v2/video_generation contract to the current Matrix MCP wrapper: one required non-empty prompt becomes the single text content item, and frame/reference path fields become image_url/video_url/audio_url content roles.',
     "Use a strict two-step conversation: first resolve the video model; after the user selects a model, ask only that model's remaining applicable options.",
-    'The video model choice is mandatory unless the current user request or terminal `<video-generation-options>` explicitly names H3.0 (Alran-H3) or H2.3 (Alran-Hailuo-2.3). Never infer a default model from the Plugin name, a recommendation, or an omitted value.',
+    'The video model choice is mandatory unless the current user request or terminal `<video-generation-options>` explicitly names H3.0 (Alran-H3) or H2.3 (Alran-Video-2.3). Never infer a default model from the Plugin name, a recommendation, or an omitted value.',
     'When the video model is missing and the `ask_user` tool is available, make one actual `ask_user` tool call before any submission. Use this exact call shape, keeping `steps` and every `options` value as literal JSON arrays: { "mode": "questionnaire", "title": "Video specifications", "steps": [{ "question": "Which model?", "options": [{ "label": "H3.0 (Recommended)" }, { "label": "H2.3" }], "selectionMode": "single" }] }. Never wrap either array in an `item` container such as `{ "item": [...] }`. Use `selectionMode`; never `multiSelect`.',
-    'Write the questionnaire in the same language as the user. H3.0 maps to `Alran-H3`; H2.3 maps to `Alran-Hailuo-2.3`. Do not call `submit_video_generation` until the user replies. When `ask_user` is unavailable, ask the same unresolved choices in concise prose and wait for the reply.',
+    'Write the questionnaire in the same language as the user. H3.0 maps to `Alran-H3`; H2.3 maps to `Alran-Video-2.3`. Do not call `submit_video_generation` until the user replies. When `ask_user` is unavailable, ask the same unresolved choices in concise prose and wait for the reply.',
     'Alran-H3 is recommended for quality and supports 768P or 2K; ask the user to choose a resolution unless it is already explicit or delegated. When the user delegates or omits the choice, use 2K.',
     'Alran-H3 natively generates synchronized audio together with the video. Put requested dialogue, ambience, and sound effects in the prompt; native sound works without reference_audio_paths. Reference audio is optional guidance, not a prerequisite for an audible video. Do not use a separate audio-generation tool unless the user explicitly asks for a separate audio output.',
     'After Alran-H3 is selected, first ask whether the input mode is text-only, first-frame, last-frame, first+last-frame, or multimodal reference, then ask for an integer duration from 4 through 15 and a resolution. Text-only mode uses one non-adaptive ratio from 21:9, 16:9, 4:3, 1:1, 3:4, or 9:16 and defaults to 16:9 when omitted or delegated. Keyframe mode is always adaptive. Reference mode defaults to adaptive and also accepts any concrete ratio.',
@@ -225,7 +225,7 @@ export const MatrixSubmitVideoGenerationToolDef = {
       input_image_path: Type.Optional(
         Type.String({
           description:
-            'Optional public HTTP/HTTPS URL or workspace-relative path to a first-frame or last-frame image. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL before submission. Alran-H3 accepts .jpg/.jpeg/.png/.webp/.heic/.heif. Alran-Hailuo-2.3 accepts .jpg/.png/.webp and exactly one image for first-frame or legacy subject mode. Alran-H3 uses this only for a keyframe, not as multimodal reference media. Cannot be combined with reference collections.',
+            'Optional public HTTP/HTTPS URL or workspace-relative path to a first-frame or last-frame image. Public URLs pass through unchanged; a workspace path is automatically uploaded to a temporary public URL before submission. Alran-H3 accepts .jpg/.jpeg/.png/.webp/.heic/.heif. Alran-Video-2.3 accepts .jpg/.png/.webp and exactly one image for first-frame or legacy subject mode. Alran-H3 uses this only for a keyframe, not as multimodal reference media. Cannot be combined with reference collections.',
         }),
       ),
       last_frame_image_path: Type.Optional(
@@ -239,7 +239,7 @@ export const MatrixSubmitVideoGenerationToolDef = {
           [Type.Literal('first_frame'), Type.Literal('last_frame'), Type.Literal('subject')],
           {
             description:
-              'How input_image_path is used. Alran-H3 supports first_frame or last_frame keyframes; omit it to default input_image_path to first_frame. Alran-Hailuo-2.3 supports first_frame or legacy subject mode. Requires input_image_path and cannot be combined with reference collections.',
+              'How input_image_path is used. Alran-H3 supports first_frame or last_frame keyframes; omit it to default input_image_path to first_frame. Alran-Video-2.3 supports first_frame or legacy subject mode. Requires input_image_path and cannot be combined with reference collections.',
           },
         ),
       ),
@@ -247,7 +247,7 @@ export const MatrixSubmitVideoGenerationToolDef = {
         Type.Array(Type.String(), {
           minItems: 1,
           maxItems: 9,
-          description: `Alran-H3 only. 1-9 public HTTP/HTTPS URLs or workspace-relative reference image paths; local paths are automatically uploaded to temporary public URLs. Each must be .jpg/.jpeg/.png/.webp/.heic/.heif, no larger than 30 MB, with width and height each in [256, 5760] and width/height ratio in [0.4, 2.5]. ${H3_REFERENCE_TOTAL_RULE} Alran-Hailuo-2.3 does not accept this collection. Cannot be combined with keyframes.`,
+          description: `Alran-H3 only. 1-9 public HTTP/HTTPS URLs or workspace-relative reference image paths; local paths are automatically uploaded to temporary public URLs. Each must be .jpg/.jpeg/.png/.webp/.heic/.heif, no larger than 30 MB, with width and height each in [256, 5760] and width/height ratio in [0.4, 2.5]. ${H3_REFERENCE_TOTAL_RULE} Alran-Video-2.3 does not accept this collection. Cannot be combined with keyframes.`,
         }),
       ),
       reference_video_paths: Type.Optional(
@@ -276,12 +276,12 @@ export const MatrixSubmitVideoGenerationToolDef = {
         minimum: 4,
         maximum: 15,
         description:
-          'Required after model selection. Alran-H3 supports an integer from 4 through 15 seconds. Alran-Hailuo-2.3 supports exactly 6s or 10s.',
+          'Required after model selection. Alran-H3 supports an integer from 4 through 15 seconds. Alran-Video-2.3 supports exactly 6s or 10s.',
       }),
       resolution: Type.Optional(
         Type.Union([Type.Literal('768P'), Type.Literal('1080P'), Type.Literal('2K')], {
           description:
-            'Alran-H3 supports 768P or 2K and defaults to 2K when omitted or delegated. Alran-Hailuo-2.3 supports 768P (default) or 1080P; 10s requires 768P.',
+            'Alran-H3 supports 768P or 2K and defaults to 2K when omitted or delegated. Alran-Video-2.3 supports 768P (default) or 1080P; 10s requires 768P.',
         }),
       ),
       ratio: Type.Optional(

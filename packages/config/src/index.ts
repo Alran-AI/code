@@ -135,6 +135,13 @@ export {
   resolveDataDir,
 } from './data-dir.js';
 export type { DataDirMigrationLogger, ResolveDataDirOptions } from './data-dir.js';
+// legacy-brand-compat: TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
+export {
+  applyLegacyEnvironmentAliases,
+  formatLegacyEnvironmentWarning,
+  LEGACY_ENV_SUPPORT_ENDS,
+} from './legacy-env.js';
+export type { LegacyEnvironmentAlias } from './legacy-env.js';
 export {
   isLegacyManagedAlranProvider,
   isManagedProviderBaseUrl,

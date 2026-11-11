@@ -69,7 +69,7 @@ footer uses `margin-top: auto` to pin to the bottom.
 See [`skeleton.html`](skeleton.html) (~180 lines self-contained, CSS
 variables drive the palette, the logo is left as an inline SVG slot).
 
-**Case exemplar:** for a complete website-to-brand-guide workflow using the current Alran site, real logo asset, portable data-URI source, render command, and verification gates, read [`cases/alran-web-brand-guide/README.md`](cases/alran-web-brand-guide/README.md). Editable source: [`cases/alran-web-brand-guide/source.html`](cases/alran-web-brand-guide/source.html).
+**Website-to-brand-guide workflow:** inspect the live site and its linked image assets first (do not infer the palette from prose), embed the real logo as a data URI so the source stays portable, keep only the editable `source.html`, and verify the exact two-page A4 pagination before delivering the PDF.
 
 **Important:** case HTML is a reference exemplar, not a deliverable shortcut. For any user-requested website brand guide, independently explore the live website first (HTML, linked CSS, visible copy, logo/image assets, product/navigation structure, and screenshots when useful), then author a fresh/meaningfully adapted guide. Do not directly copy the case `source.html` or ship a lightly patched case output; use it only for layout patterns, pagination math, and verification examples.
 

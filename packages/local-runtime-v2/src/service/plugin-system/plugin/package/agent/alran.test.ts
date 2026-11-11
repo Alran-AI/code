@@ -39,7 +39,7 @@ describe('Alran Plugin Agents', () => {
     const root = await pluginRoot('alran-agent');
     await writePluginTree(
       root,
-      miniMaxFiles({ agents: ['agents/reviewer.md'] }, { 'agents/reviewer.md': REVIEWER }),
+      alranPluginFiles({ agents: ['agents/reviewer.md'] }, { 'agents/reviewer.md': REVIEWER }),
     );
 
     const plugin = await readAlranPlugin(root, { source: 'LOCAL_ALRAN' });
@@ -72,7 +72,7 @@ describe('Alran Plugin Agents', () => {
     const root = await pluginRoot('alran-agent-diagnostics');
     await writePluginTree(
       root,
-      miniMaxFiles(
+      alranPluginFiles(
         { agents: ['agents/reviewer.md'] },
         {
           'agents/reviewer.md': [
@@ -107,7 +107,7 @@ describe('Alran Plugin Agents', () => {
     const root = await pluginRoot('alran-agent-only');
     await writePluginTree(
       root,
-      miniMaxFiles(
+      alranPluginFiles(
         { mcpServers: [], skills: [], agents: ['agents/reviewer.md'] },
         { 'agents/reviewer.md': REVIEWER },
       ),
@@ -128,7 +128,7 @@ describe('Alran Plugin Agents', () => {
     const root = await pluginRoot('alran-agent-invalid');
     await writePluginTree(
       root,
-      miniMaxFiles(
+      alranPluginFiles(
         { agents: ['agents/reviewer.md'] },
         { 'agents/reviewer.md': `---\nname: reviewer\n${fields}\n---\nBody\n` },
       ),
@@ -143,7 +143,7 @@ describe('Alran Plugin Agents', () => {
     'rejects the manifest path %s',
     async (agentPath) => {
       const root = await pluginRoot('alran-agent-path');
-      await writePluginTree(root, miniMaxFiles({ agents: [agentPath] }));
+      await writePluginTree(root, alranPluginFiles({ agents: [agentPath] }));
 
       await expect(readAlranPlugin(root, { source: 'LOCAL_ALRAN' })).rejects.toMatchObject({
         code: 'MANIFEST_SCHEMA_INVALID',
@@ -153,7 +153,7 @@ describe('Alran Plugin Agents', () => {
 
   it('rejects a declared Agent file that does not exist', async () => {
     const root = await pluginRoot('alran-agent-missing');
-    await writePluginTree(root, miniMaxFiles({ agents: ['agents/reviewer.md'] }));
+    await writePluginTree(root, alranPluginFiles({ agents: ['agents/reviewer.md'] }));
 
     await expect(readAlranPlugin(root, { source: 'LOCAL_ALRAN' })).rejects.toBeInstanceOf(
       Error,
@@ -164,7 +164,7 @@ describe('Alran Plugin Agents', () => {
     const root = await pluginRoot('alran-agent-namespace');
     await writePluginTree(
       root,
-      miniMaxFiles(
+      alranPluginFiles(
         { name: 'agent', agents: ['agents/reviewer.md'] },
         { 'agents/reviewer.md': REVIEWER },
       ),
@@ -184,7 +184,7 @@ describe('Alran Plugin Agents', () => {
     const name = `a${'b'.repeat(60)}`;
     await writePluginTree(
       root,
-      miniMaxFiles(
+      alranPluginFiles(
         { agents: [`agents/${name}.md`] },
         { [`agents/${name}.md`]: `---\nname: ${name}\ndescription: Long\n---\nBody\n` },
       ),
@@ -214,7 +214,7 @@ async function pluginRoot(label: string): Promise<string> {
   return root;
 }
 
-function miniMaxFiles(
+function alranPluginFiles(
   overrides: Record<string, unknown> = {},
   extraFiles: Record<string, string> = {},
 ): Record<string, string | Buffer> {

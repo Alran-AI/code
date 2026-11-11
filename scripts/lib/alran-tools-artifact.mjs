@@ -22,7 +22,7 @@ export const ALRAN_TOOLS_ARTIFACT = Object.freeze({
   dir: 'third_party/alran-tools',
   version: '0.0.4',
   packageName: '@alran/alran-tools',
-  sha256: 'b9c3f9d0f3c6fca314ecee514c2a0a23c280281e4ded743994149b1ddab57499',
+  sha256: '74d4c136d7b44ab6a1667916fdcaaf16c1b89244fd24064e2c82d29ab1d56f15',
 });
 
 const MANIFEST_FIELDS = ['version', 'buildEnv', 'entry', 'packageName'];

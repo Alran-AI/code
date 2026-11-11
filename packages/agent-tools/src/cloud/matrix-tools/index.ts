@@ -1,4 +1,10 @@
 /**
+ * NOT WIRED INTO ALRAN CODE. These media tools (speech, music, image and video generation) need a
+ * media backend that Ottili does not operate; the standalone runtime registers none of them
+ * (`builtinMatrix: false` in `local-runtime-v2/src/compat/v1/runtime.ts`, and nothing imports
+ * `buildCloudToolRegistry`). The source stays until the media decision recorded in
+ * docs/RELEASE_NOTES_v1.md (Known gaps) — remove it, or point it at an Ottili media service.
+ *
  * matrix-tools package entry point: `buildCloudToolRegistry` (`../index.ts`) obtains all 18
  * RuntimeTools here.
  *

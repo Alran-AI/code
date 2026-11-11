@@ -54,13 +54,13 @@ export async function readAlranPluginAgents(
       agentPath,
       agentFilePath: file.path,
       content: file.content,
-      config: miniMaxCandidateConfig(config),
+      config: alranCandidateConfig(config),
     });
   }
   return acceptPluginAgents(input, candidates, diagnostics);
 }
 
-function miniMaxCandidateConfig(config: CanonicalAgentConfig): AgentCandidateConfig {
+function alranCandidateConfig(config: CanonicalAgentConfig): AgentCandidateConfig {
   return {
     description: config.description,
     systemPrompt: config.systemPrompt,
@@ -70,11 +70,11 @@ function miniMaxCandidateConfig(config: CanonicalAgentConfig): AgentCandidateCon
     ...(config.disallowedTools === undefined ? {} : { disallowedTools: config.disallowedTools }),
     ...(config.mcpServers === undefined ? {} : { mcpServers: config.mcpServers }),
     ...(config.skills === undefined ? {} : { skills: config.skills }),
-    ...(config.xAlran ? miniMaxExtensionConfig(config.xAlran) : {}),
+    ...(config.xAlran ? alranExtensionConfig(config.xAlran) : {}),
   };
 }
 
-function miniMaxExtensionConfig(
+function alranExtensionConfig(
   alran: NonNullable<CanonicalAgentConfig['xAlran']>,
 ): Pick<
   AgentCandidateConfig,

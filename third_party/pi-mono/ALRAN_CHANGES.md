@@ -53,7 +53,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: `packages/ai` (`@earendil-works/pi-ai`), Anthropic-compatible stream.
 - Change type: generic, upstreamable. `stopReason` stays `error`; `errorMessage` becomes `Model declined the request (stop_reason: refusal[; category: …])[: explanation]` for refusals both before and during output, omitting a null `category` / `explanation`. Hosts detect `stop_reason: refusal` and do not parse the explanation.
 - Upstream PR: not opened.
-- Validation: host-side non-retry and refusal classification are covered by the `@mavis/shared` classifier and `@mavis/agent-core` retry tests. Vendored upstream suites remain outside this distribution's verification; no live Claude service was called.
+- Validation: host-side non-retry and refusal classification are covered by the `@alran/shared` classifier and `@alran/agent-core` retry tests. Vendored upstream suites remain outside this distribution's verification; no live Claude service was called.
 
 ### 2026-09-23 — preserve Bash execution facts and bounded output
 
@@ -127,7 +127,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: local Bash / PowerShell execution backend and focused regressions in `packages/coding-agent` (`@earendil-works/pi-coding-agent`).
 - Change type: generic, upstreamable PowerShell compatibility fix. Probe and cache `LanguageMode` on first execution per PowerShell executable. `FullLanguage` retains UTF-8, `#requires`, and the full script-block path. `ConstrainedLanguage` transfers the original command through a one-use Unicode environment variable, removes it from the child environment, then uses `Invoke-Expression` within the same restricted language mode, without restricted .NET APIs.
 - Upstream PR: not created.
-- Validation in the source monorepo: `cd third_party/pi-mono/packages/coding-agent && node ../../../../node_modules/vitest/dist/cli.js --run test/graceful-terminate.test.ts` covers preserved `FullLanguage` behavior and restricted-API avoidance, long commands, and Chinese command transport in `ConstrainedLanguage`; `pnpm --filter @earendil-works/pi-coding-agent... build` validates the affected vendor build; `node scripts/test/focused-vitest.mjs --package @mavis/local-runtime packages/local-runtime/test/unit/local-background-bash-runner.test.ts packages/local-runtime/test/unit/local-background-bash-executor.test.ts` checks runtime consumers. Real Windows App Control / AppLocker acceptance remains external.
+- Validation in the source monorepo: `cd third_party/pi-mono/packages/coding-agent && node ../../../../node_modules/vitest/dist/cli.js --run test/graceful-terminate.test.ts` covers preserved `FullLanguage` behavior and restricted-API avoidance, long commands, and Chinese command transport in `ConstrainedLanguage`; `pnpm --filter @earendil-works/pi-coding-agent... build` validates the affected vendor build; `node scripts/test/focused-vitest.mjs --package @alran/local-runtime packages/local-runtime/test/unit/local-background-bash-runner.test.ts packages/local-runtime/test/unit/local-background-bash-executor.test.ts` checks runtime consumers. Real Windows App Control / AppLocker acceptance remains external.
 
 ### 2026-08-27 — omit explicit thinking for Claude default-thinking models
 
@@ -152,7 +152,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: `packages/coding-agent` (`@earendil-works/pi-coding-agent`), built-in Bash and Read result details.
 - Change type: generic upstreamable result metadata. Local Bash backends may declare exact split-stream callbacks; Read records its resolved path, undecorated returned page, line range, total lines, and automatic output-cap signal.
 - Upstream PR: not opened.
-- Validation: focused `packages/coding-agent/test/tools.test.ts`; downstream `@mavis/agent-tools` Desktop Bash/Read and Local Runtime v2 vendor PostToolUse tests.
+- Validation: focused `packages/coding-agent/test/tools.test.ts`; downstream `@alran/agent-tools` Desktop Bash/Read and Local Runtime v2 vendor PostToolUse tests.
 
 ### 2026-08-22 — agent: graceful stop after steering admission
 
@@ -168,7 +168,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: `packages/agent` (`@earendil-works/pi-agent-core`), tool-hook result contracts and agent-loop batch termination.
 - Change type: generic upstreamable control seam. Add optional `terminateAgent` to before/after-tool results. Sequential execution stops immediately after publishing the current call result; parallel preflight stops admitting later calls. Calls that never execute receive synthetic error ToolResults so provider history remains fully paired. An already-started parallel batch stops after publishing that batch. The existing every-result `terminate` behavior remains unchanged.
 - Upstream PR: not opened.
-- Validation: focused `packages/agent/test/agent-loop.test.ts`; downstream `@mavis/agent-core` and Local Runtime v2 Hook tests.
+- Validation: focused `packages/agent/test/agent-loop.test.ts`; downstream `@alran/agent-core` and Local Runtime v2 Hook tests.
 
 ### 2026-08-22 — expose the admitted tool execution boundary
 
@@ -208,7 +208,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: `packages/tui` (`@earendil-works/pi-tui`), `CancellableLoader` component.
 - Change type: generic upstreamable type-safety fix. Declare `CancellableLoader` constructor parameters explicitly (`TUI`, `(str: string) => string` color callbacks, optional message and indicator options) and forward them to the `Loader` superclass; runtime behavior is unchanged. The caller-side `string` annotations are not needed, keeping the vendored `packages/coding-agent` source at its imported baseline.
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @earendil-works/pi-tui build`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `@mavis/cli` typecheck.
+- Validation: `pnpm --filter @earendil-works/pi-tui build`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `@alran/cli` typecheck.
 
 ### 2026-08-12 — keep local image reads available in bundled Alran
 
@@ -262,7 +262,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/ai` (`@earendil-works/pi-ai`), Anthropic Messages history serialization only.
 - Change type: selective generic upstream material from `6731a0ba9e499d71916dd69200c05dfcbc0fa3e6` / [upstream PR #6457](https://github.com/earendil-works/pi-mono/pull/6457). Adapt the predicate to the vendored v0.79.1 `src/providers/anthropic.ts` path without migrating later Pi package structure, versions, lockfile, or `.alran-vendor.json` baseline.
 - Upstream PR: already merged as #6457; no additional upstream PR needed.
-- Validation: `pnpm --filter @earendil-works/pi-ai test` (349 passed, 727 skipped); `pnpm --filter @mavis/agent-core exec vitest run --config vitest.config.ts test/unit/pi-ai-thinking-tiered.test.ts --reporter verbose` (18 passed); `pnpm --filter @earendil-works/pi-ai build`; `pnpm check:pi-vendor-resolution`.
+- Validation: `pnpm --filter @earendil-works/pi-ai test` (349 passed, 727 skipped); `pnpm --filter @alran/agent-core exec vitest run --config vitest.config.ts test/unit/pi-ai-thinking-tiered.test.ts --reporter verbose` (18 passed); `pnpm --filter @earendil-works/pi-ai build`; `pnpm check:pi-vendor-resolution`.
 
 ### 2026-07-29 — harden Windows taskkill resolution and spawn failures
 
@@ -270,7 +270,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/coding-agent` (`@earendil-works/pi-coding-agent`), `src/utils/shell.ts` process-tree termination paths.
 - Change type: generic upstream material. Resolve `taskkill.exe` from `SystemRoot` / `windir`, attach an `error` listener to every graceful, forced, and emergency taskkill spawn, and fall back to killing the root shell so the Bash timeout/abort can settle even if the native tree killer is unavailable.
 - Upstream PR: not opened.
-- Validation: `node ../../../../node_modules/vitest/vitest.mjs --run test/windows-taskkill.test.ts test/graceful-terminate.test.ts test/bash-close-hang-windows.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `pnpm --filter @mavis/agent-tools exec vitest run test/desktop/local-bash-timeout.test.ts`.
+- Validation: `node ../../../../node_modules/vitest/vitest.mjs --run test/windows-taskkill.test.ts test/graceful-terminate.test.ts test/bash-close-hang-windows.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `pnpm --filter @alran/agent-tools exec vitest run test/desktop/local-bash-timeout.test.ts`.
 
 ### 2026-07-28 — allow hosts to inject fetch for OAuth token refresh
 
@@ -286,7 +286,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/ai` (`@earendil-works/pi-ai`).
 - Change type: generic upstream material. When `OpenAICodexResponsesOptions.fetch` is provided and transport is left at `auto`, route Codex through SSE so the host-owned fetch implementation handles egress. Explicit `transport: "websocket"` / `"websocket-cached"` remains unchanged for callers that intentionally choose WebSocket.
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @earendil-works/pi-ai exec vitest --run test/openai-codex-stream.test.ts`; `pnpm --filter @earendil-works/pi-ai build`; downstream `pnpm --filter @mavis/local-runtime exec vitest run --config vitest.config.ts test/e2e/provider-headers.e2e.test.ts`.
+- Validation: `pnpm --filter @earendil-works/pi-ai exec vitest --run test/openai-codex-stream.test.ts`; `pnpm --filter @earendil-works/pi-ai build`; downstream `pnpm --filter @alran/local-runtime exec vitest run --config vitest.config.ts test/e2e/provider-headers.e2e.test.ts`.
 
 ### 2026-07-22 — allow hosts to inject fetch for model provider egress
 
@@ -302,7 +302,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/agent` (`@earendil-works/pi-agent-core`).
 - Change type: generic upstream material. Add `shouldStopAfterTurn` to `AgentOptions` and the mutable wrapper callback surface, then forward it into the existing low-level loop config.
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @earendil-works/pi-agent-core test -- agent.test.ts -t 'should stop after a turn'`; `pnpm --filter @earendil-works/pi-agent-core build`; downstream `pnpm --filter @mavis/agent-core test -- pi-turn-runner.test.ts -t 'stops before consuming'`.
+- Validation: `pnpm --filter @earendil-works/pi-agent-core test -- agent.test.ts -t 'should stop after a turn'`; `pnpm --filter @earendil-works/pi-agent-core build`; downstream `pnpm --filter @alran/agent-core test -- pi-turn-runner.test.ts -t 'stops before consuming'`.
 
 ### 2026-07-31 — make coding-agent tests robust to composition and scheduler changes
 
@@ -318,7 +318,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/ai` (`@earendil-works/pi-ai`).
 - Change type: generic upstream material. Re-export `convertResponsesMessages` / `convertResponsesTools` and their option types from the package root.
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @mavis/local-runtime typecheck`; `pnpm --filter @mavis/local-runtime exec vitest run test/unit/local-remote-token-counter.test.ts test/unit/local-context-auto-compaction-remote-token-gate.test.ts test/unit/local-context-auto-compaction-token-gate.test.ts test/unit/local-dynamic-max-tokens.test.ts`; `pnpm --filter @mavis/local-runtime exec vitest run test/e2e/local-context-auto-compaction-gate.e2e.test.ts`.
+- Validation: `pnpm --filter @alran/local-runtime typecheck`; `pnpm --filter @alran/local-runtime exec vitest run test/unit/local-remote-token-counter.test.ts test/unit/local-context-auto-compaction-remote-token-gate.test.ts test/unit/local-context-auto-compaction-token-gate.test.ts test/unit/local-dynamic-max-tokens.test.ts`; `pnpm --filter @alran/local-runtime exec vitest run test/e2e/local-context-auto-compaction-gate.e2e.test.ts`.
 
 ### 2026-07-15 — backport GPT-5.6 catalog and Max thinking
 
@@ -336,7 +336,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/ai` (`@earendil-works/pi-ai`).
 - Change type: generic upstream material. Keep model metadata refresh available as an explicit `refresh-models` script, but make `build` compile the committed generated baselines only.
 - Upstream PR: not opened during the spike.
-- Validation: `pnpm --filter @earendil-works/pi-ai build`; `pnpm --filter @mavis/local-runtime... build`; `pnpm test:archon-guards`.
+- Validation: `pnpm --filter @earendil-works/pi-ai build`; `pnpm --filter @alran/local-runtime... build`; `pnpm test:archon-guards`.
 
 ### 2026-06-19 — accept Claude Fable 5 adaptive thinking metadata
 
@@ -368,7 +368,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/coding-agent` (`@earendil-works/pi-coding-agent`), `src/utils/shell.ts` (new `terminateProcessTreeGracefully` + `PROCESS_TREE_TERM_GRACE_MS`) and `src/core/tools/bash.ts` (abort + timeout paths call the graceful variant). The pending SIGKILL escalation is cancelled only once the process GROUP is empty (`kill(-pid, 0)` throws ESRCH); if a command backgrounded a SIGTERM-ignoring descendant that outlives the shell, the escalation stays armed so the grace-window SIGKILL still reaps it (`waitForChildProcess` resolving on shell exit is not proof the group is gone). The emergency node-exit cleanup (`killTrackedDetachedChildren` → `killProcessTree`) intentionally keeps immediate SIGKILL.
 - Change type: generic upstream material. Behavior fix + regression tests in `test/graceful-terminate.test.ts` (Unix-guarded: SIGTERM lets a TERM trap run; ignored-SIGTERM escalates to SIGKILL; canceller disarms escalation; abort with a SIGTERM-ignoring backgrounded descendant still SIGKILLs it — no early cancel).
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @earendil-works/pi-coding-agent exec vitest --run test/graceful-terminate.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `pnpm --filter @mavis/local-runtime exec vitest run --config vitest.config.ts test/unit/local-background-bash-runner.test.ts` (L7 regression) + alran-test `node bin/run-case.mjs L7`.
+- Validation: `pnpm --filter @earendil-works/pi-coding-agent exec vitest --run test/graceful-terminate.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; downstream `pnpm --filter @alran/local-runtime exec vitest run --config vitest.config.ts test/unit/local-background-bash-runner.test.ts` (L7 regression) + alran-test `node bin/run-case.mjs L7`.
 
 ### 2026-07-09 — edit tool: fidelity guard rejecting a widened fuzzy span that swallows a compat character
 
@@ -384,7 +384,7 @@ Alran integration files added in this spike:
 - Affected package: `packages/coding-agent` (`@earendil-works/pi-coding-agent`), `src/utils/shell.ts` (one shared detached IPC guardian per host process) and `src/core/tools/bash.ts` (opt-in `createLocalBashOperations({ parentDeathGuard: true })`). The default remains off; `packages/local-runtime` enables it only for managed local Bash, so cloud-runtime sandbox lifecycle is unchanged.
 - Change type: generic upstreamable primitive plus Alran host opt-in. Every registration has a unique lease ID, so a stale disarm cannot remove a PID-reused target. Unix uses an absolute system `sh` gate independent of the command `PATH`, then `exec`s the real shell after ACK, preserving shell PID=PGID; Windows uses a minimal-environment Node launcher and sends the real shell environment with the post-ACK payload, so host `NODE_OPTIONS` cannot poison the launcher. PowerShell 5.1 encoding setup uses a short inline launcher and sends the untouched command over stdin into an in-memory ScriptBlock, preserving first-statement syntax without Base64 argv expansion, `.ps1` policy checks, or crash-persistent command files; it validates the parsed top-level `ScriptRequirements` before execution. Stdout/stderr use independent streaming decoders, including the truncated full-output file, so interleaved split UTF-8 bytes remain valid text. If the host IPC lease disappears, the guardian terminates every armed process group with `SIGTERM → 3s grace → SIGKILL`; Windows uses native `taskkill /T` then `/F /T`.
 - Upstream PR: not opened.
-- Validation: `pnpm --filter @earendil-works/pi-coding-agent exec vitest --run test/graceful-terminate.test.ts test/windows-taskkill.test.ts test/bash-close-hang-windows.test.ts test/tools.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; `node scripts/test/focused-vitest.mjs --package @mavis/local-runtime packages/local-runtime/test/unit/local-background-bash-runner.test.ts packages/local-runtime/test/unit/local-background-bash-executor.test.ts packages/local-runtime/test/unit/local-background-task.test.ts`.
+- Validation: `pnpm --filter @earendil-works/pi-coding-agent exec vitest --run test/graceful-terminate.test.ts test/windows-taskkill.test.ts test/bash-close-hang-windows.test.ts test/tools.test.ts`; `pnpm --filter @earendil-works/pi-coding-agent build`; `node scripts/test/focused-vitest.mjs --package @alran/local-runtime packages/local-runtime/test/unit/local-background-bash-runner.test.ts packages/local-runtime/test/unit/local-background-bash-executor.test.ts packages/local-runtime/test/unit/local-background-task.test.ts`.
 
 ### 2026-09-05 — Optional Bash process-fact observation
 

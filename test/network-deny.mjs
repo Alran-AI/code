@@ -30,9 +30,7 @@ function withOfflinePolicy(delegate) {
   // Offline acceptance after restoring managed capabilities: these requests return only local failure responses and never reach servers.
   // Keep attempted requests in a separate log; unknown addresses still fail tests.
   if (process.env.ALRAN_TEST_MANAGED_OFFLINE === '1' && [
-    'api.ottili.one', 'api.ottili.one', 'api.ottili.one',
-    'api.ottili.one', 'platform.alran.io', 'models.dev',
-    'data.hailuo.ai', 'data.hailuoai.com',
+    'api.ottili.one', 'platform.ottili.one', 'ai.ottili.one', 'models.dev',
     ].includes(url.hostname) && url.protocol === 'https:') {
       appendFileSync(process.env.ALRAN_TEST_NETWORK_AUDIT + '.managed', `${url.origin}${url.pathname}\n`);
       return Promise.resolve(new Response(JSON.stringify({ error: 'Managed service offline fixture' }), { status: 503 }));

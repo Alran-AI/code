@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   createAlranBusinessTelemetry,
+  resolveAlranBusinessTelemetryEndpoint,
   createAlranBusinessTelemetryPreview,
   resolveAlranBusinessTelemetryPolicy,
   type SensorsPayload,
@@ -49,6 +50,7 @@ describe('business telemetry privacy', () => {
       version: '0.4.12',
       now: () => 123,
       randomId: () => ids.shift()!,
+      environment: { ALRAN_TELEMETRY_ENDPOINT: 'https://telemetry.example.invalid/report' },
       fetch: vi.fn(async (_url, init) => {
         requests.push(init!);
         return new Response(null, { status: 204 });
@@ -98,8 +100,24 @@ describe('business telemetry privacy', () => {
       is_attachment: 'text',
     });
     expect(JSON.stringify(payloads)).not.toMatch(
-      /hailuo_user_id|op_group_id|device_id|real_device_id|project_id|chat_id|session_id|model|command_name|workspace|prompt|response|file(?:name|path)|plugin|credential|token|secret/iu,
+      /user_id|op_group_id|device_id|real_device_id|project_id|chat_id|session_id|model|command_name|workspace|prompt|response|file(?:name|path)|plugin|credential|token|secret/iu,
     );
+  });
+
+  it('sends nothing without a configured reporting endpoint, even when a user opted in', async () => {
+    const fetchRequest = vi.fn(async () => new Response(null, { status: 204 }));
+    const telemetry = createAlranBusinessTelemetry({
+      region: 'en',
+      buildEnv: 'prod',
+      version: '0.4.12',
+      environment: {},
+      fetch: fetchRequest,
+    });
+    telemetry.track('tui_launch', { launch_type: 'cold' });
+    await telemetry.flush();
+    expect(fetchRequest).not.toHaveBeenCalled();
+    expect(resolveAlranBusinessTelemetryEndpoint('en', 'prod', {})).toBeUndefined();
+    expect(resolveAlranBusinessTelemetryEndpoint('en', 'prod', { ALRAN_TELEMETRY_ENDPOINT: 'http://telemetry.example.invalid/' })).toBeUndefined();
   });
 
   it('previews the decoded request without sending it', () => {
@@ -114,11 +132,12 @@ describe('business telemetry privacy', () => {
         now: () => 456,
         randomId: () => 'single-event',
         fetch: fetchRequest,
+        environment: { ALRAN_TELEMETRY_ENDPOINT: 'https://telemetry.example.invalid/report' },
       },
     );
 
     expect(preview).toMatchObject({
-      endpoint: 'https://data.hailuoai.com/meerkat-reporter/api/report?project=AlranAgent',
+      endpoint: 'https://telemetry.example.invalid/report',
       method: 'POST',
       payload: {
         distinct_id: 'single-event',
@@ -211,7 +230,8 @@ describe('business telemetry privacy', () => {
     expect(JSON.parse(enabledOutput)).toMatchObject({
       enabled: true,
       request: {
-        endpoint: 'https://data.hailuo.ai/meerkat-reporter/api/report?project=AlranAgent',
+        // No reporting endpoint is configured: the preview says where the request would go — nowhere.
+        endpoint: null,
         payload: {
           identities: { $identity_cookie_id: 'preview-event' },
           distinct_id: 'preview-event',

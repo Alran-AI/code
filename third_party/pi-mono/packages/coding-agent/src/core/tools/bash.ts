@@ -158,7 +158,7 @@ process.stdin.resume();
 `;
 
 const GUARDED_UNIX_SHELL_LAUNCHER_SOURCE = String.raw`
-IFS= read -r __mavis_guardian_ready || exit 125
+IFS= read -r __alran_guardian_ready || exit 125
 exec "$@" </dev/null
 `;
 
@@ -296,7 +296,7 @@ export function createLocalBashOperations(options?: {
 							[
 								"-c",
 								GUARDED_UNIX_SHELL_LAUNCHER_SOURCE,
-								"mavis-guarded-shell",
+								"alran-guarded-shell",
 								shell,
 								...args,
 								effectiveCommand,
@@ -467,8 +467,8 @@ function wrapConstrainedWindowsPowerShellCommand(): {
 	environmentVariable: string;
 } {
 	const nonce = randomUUID().replaceAll("-", "");
-	const environmentVariable = `MAVIS_POWERSHELL_SOURCE_${nonce.toUpperCase()}`;
-	const source = `$__mavis${nonce}Source`;
+	const environmentVariable = `ALRAN_POWERSHELL_SOURCE_${nonce.toUpperCase()}`;
+	const source = `$__alran${nonce}Source`;
 	return {
 		environmentVariable,
 		// Windows PowerShell 5.1 exits 0 after Invoke-Expression regardless of the
@@ -480,7 +480,7 @@ function wrapConstrainedWindowsPowerShellCommand(): {
 function wrapWindowsPowerShellStdinCommand(): string {
 	// PowerShell child scopes can read their parent scope. Use a per-execution
 	// nonce so the validation transport cannot shadow stable user variable names.
-	const prefix = `__mavis${randomUUID().replaceAll("-", "")}`;
+	const prefix = `__alran${randomUUID().replaceAll("-", "")}`;
 	const source = `$${prefix}Source`;
 	const tokens = `$${prefix}Tokens`;
 	const errors = `$${prefix}Errors`;

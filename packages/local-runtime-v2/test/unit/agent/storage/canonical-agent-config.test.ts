@@ -939,19 +939,20 @@ describe("canonical Agent directory safety", () => {
     const warnSpy = vi.spyOn(logger, "warn");
 
     const alranRoot = join(parentDir, ".alran-profile");
-    const mavisRoot = join(parentDir, ".mavis-profile");
+    // legacy-brand-compat: the symlink the data-dir migration leaves at the old name. TODO: remove after 2027-Q1.
+    const legacyRoot = join(parentDir, ".mavis-profile");
     await mkdir(join(alranRoot, "agents", "researcher"), { recursive: true });
     await writeFile(
       join(alranRoot, "agents", "researcher", "agent.md"),
       markdown,
     );
-    await symlink(alranRoot, mavisRoot);
+    await symlink(alranRoot, legacyRoot);
 
     await expect(
       readCanonicalAgentConfig({
-        agentDir: join(mavisRoot, "agents", "researcher"),
+        agentDir: join(legacyRoot, "agents", "researcher"),
         routeName: "researcher",
-        trustedRoot: mavisRoot,
+        trustedRoot: legacyRoot,
       }),
     ).resolves.toMatchObject({ name: "researcher" });
 
@@ -1037,11 +1038,12 @@ describe("canonical Agent directory safety", () => {
         event: "agent_directory_link_followed",
         data_dir_source: "alran_env",
         segment: "data_dir",
-        logical_link_path: mavisRoot,
+        logical_link_path: legacyRoot,
         readlink_raw_target: alranRoot,
         realpath_resolved_target: await realpath(alranRoot),
         resolved_target_kind: "directory",
         target_scope: "expected_default_target",
+        // legacy-brand-compat: TODO: remove after 2027-Q1.
         root_kind: ".mavis",
       },
       "Following linked Agent directory",

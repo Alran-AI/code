@@ -18,7 +18,7 @@ import {
   MAX_H3_REFERENCE_AUDIO_COUNT,
   MAX_H3_REFERENCE_MEDIA_COUNT,
   MAX_VIDEO_GENERATION_PROMPT_LENGTH,
-  HAILUO_23_MODEL,
+  VIDEO_23_MODEL,
   isH3VideoModel,
   MATRIX_TOOL_PATHS,
   ALRAN_H3_MODEL,
@@ -38,7 +38,7 @@ const VIDEO_MEDIA_UPLOAD_OPTIONS = {
 } as const;
 
 const H3_ALLOWED_IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif']);
-const HAILUO_23_ALLOWED_IMAGE_EXTENSIONS = new Set(['.jpg', '.png', '.webp']);
+const VIDEO_23_ALLOWED_IMAGE_EXTENSIONS = new Set(['.jpg', '.png', '.webp']);
 const ALLOWED_VIDEO_EXTENSIONS = new Set(['.mp4', '.mov']);
 const ALLOWED_AUDIO_EXTENSIONS = new Set(['.wav', '.mp3']);
 const MAX_IMAGE_BYTES = 30 * 1024 * 1024;
@@ -454,8 +454,8 @@ function isPublicIpv6(address: string): boolean {
 }
 
 function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): string | undefined {
-  if (!isH3VideoModel(input.model) && input.model !== HAILUO_23_MODEL) {
-    return `model must be ${ALRAN_H3_MODEL} or ${HAILUO_23_MODEL}`;
+  if (!isH3VideoModel(input.model) && input.model !== VIDEO_23_MODEL) {
+    return `model must be ${ALRAN_H3_MODEL} or ${VIDEO_23_MODEL}`;
   }
   if (!input.prompt?.trim()) return 'prompt is required';
   if (Array.from(input.prompt).length > MAX_VIDEO_GENERATION_PROMPT_LENGTH) {
@@ -521,14 +521,14 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     input.reference_image_paths !== undefined ||
     input.reference_video_paths !== undefined ||
     input.reference_audio_paths !== undefined;
-  if (input.model === HAILUO_23_MODEL && hasCollections) {
+  if (input.model === VIDEO_23_MODEL && hasCollections) {
     return (
-      `${HAILUO_23_MODEL} accepts exactly one input_image_path; ` +
+      `${VIDEO_23_MODEL} accepts exactly one input_image_path; ` +
       `reference collections are supported only by ${ALRAN_H3_MODEL}`
     );
   }
-  if (input.model === HAILUO_23_MODEL && !input.input_image_path?.trim()) {
-    return `${HAILUO_23_MODEL} requires exactly one input_image_path`;
+  if (input.model === VIDEO_23_MODEL && !input.input_image_path?.trim()) {
+    return `${VIDEO_23_MODEL} requires exactly one input_image_path`;
   }
   if (
     hasCollections &&
@@ -568,12 +568,12 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     return `${ALRAN_H3_MODEL} supports first_frame or last_frame keyframe mode`;
   }
   if (
-    input.model === HAILUO_23_MODEL &&
+    input.model === VIDEO_23_MODEL &&
     input.reference_type !== undefined &&
     input.reference_type !== 'first_frame' &&
     input.reference_type !== 'subject'
   ) {
-    return `${HAILUO_23_MODEL} supports first_frame or legacy subject mode`;
+    return `${VIDEO_23_MODEL} supports first_frame or legacy subject mode`;
   }
 
   if (
@@ -585,19 +585,19 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
     return `${ALRAN_H3_MODEL} supports 768P or 2K`;
   }
   if (
-    input.model === HAILUO_23_MODEL &&
+    input.model === VIDEO_23_MODEL &&
     input.resolution !== undefined &&
     input.resolution !== '768P' &&
     input.resolution !== '1080P'
   ) {
-    return `${HAILUO_23_MODEL} supports 768P or 1080P`;
+    return `${VIDEO_23_MODEL} supports 768P or 1080P`;
   }
-  if (input.model === HAILUO_23_MODEL) {
+  if (input.model === VIDEO_23_MODEL) {
     if (input.duration !== 6 && input.duration !== 10) {
-      return `${HAILUO_23_MODEL} supports 6s or 10s`;
+      return `${VIDEO_23_MODEL} supports 6s or 10s`;
     }
     if (input.duration === 10 && input.resolution === '1080P') {
-      return `${HAILUO_23_MODEL} 10s generation requires 768P`;
+      return `${VIDEO_23_MODEL} 10s generation requires 768P`;
     }
   }
   if (isH3VideoModel(input.model) && input.ratio !== undefined && !H3_RATIOS.has(input.ratio)) {
@@ -620,7 +620,7 @@ function validateVideoSubmission(input: MatrixSubmitVideoGenerationInput): strin
       'input_image_path',
       isH3VideoModel(input.model)
         ? H3_ALLOWED_IMAGE_EXTENSIONS
-        : HAILUO_23_ALLOWED_IMAGE_EXTENSIONS,
+        : VIDEO_23_ALLOWED_IMAGE_EXTENSIONS,
     ) ??
     validateFileExtension(
       input.last_frame_image_path,
