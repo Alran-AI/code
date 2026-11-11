@@ -211,6 +211,7 @@ export async function createTuiRuntime(
     ...(routingContext ? { routingContextGetter: () => routingContext } : {}),
     region: authScope.region,
     buildEnv: authScope.buildEnv,
+    dataDir: options.dataDir,
     ...(dependencies.fetchImpl ? { fetchImpl: dependencies.fetchImpl } : {}),
   });
   let sharedAuthCore: CreateTuiRuntimeDependencies['sharedAuthCore'];

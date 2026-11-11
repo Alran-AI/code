@@ -267,9 +267,13 @@ function createTokenPlanQuotaRows(
   }
   const quota = account?.tokenPlanQuota;
   if (!quota) {
-    return account?.tokenPlanQuotaState === 'unavailable'
-      ? [{ label: 'Quota', value: 'Temporarily unavailable', tone: 'warning' }]
-      : [];
+    if (
+      account?.tokenPlanQuotaState === 'unavailable' &&
+      !account?.tokenPlanSummary?.creditBalance
+    ) {
+      return [{ label: 'Quota', value: 'Temporarily unavailable', tone: 'warning' }];
+    }
+    return [];
   }
   return [
     {
@@ -917,11 +921,15 @@ function formatNumber(value: number): string {
 }
 
 function formatCreditAmount(value: string): string {
-  const normalized = value.replace(/,/gu, '').trim();
-  const match = /^(\d+)(?:\.(\d+))?$/u.exec(normalized);
-  if (!match) return '0';
-  const integer = (match[1] ?? '0').replace(/^0+(?=\d)/u, '');
-  return integer.replace(/\B(?=(\d{3})+(?!\d))/gu, ',');
+  const trimmed = value.trim();
+  const normalized = trimmed.replace(/,/gu, '');
+  const match = /^(-?\d+)(?:\.(\d+))?$/u.exec(normalized);
+  if (!match) return trimmed || '0';
+  const sign = match[1]?.startsWith('-') ? '-' : '';
+  const integer = (match[1] ?? '0').replace(/^-?0+(?=\d)/u, '') || '0';
+  const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/gu, ',');
+  const fraction = match[2]?.replace(/0+$/u, '');
+  return fraction ? `${sign}${grouped}.${fraction}` : `${sign}${grouped}`;
 }
 
 function positiveFinite(value: number | undefined): value is number {

@@ -397,11 +397,12 @@ export class TuiRuntimeAdapter implements TuiRuntime {
         ? { ...account, identity: { email: identity.email, name: identity.name } }
         : account;
     };
+    const managedAccessPresent =
+      account.managedTokenPresent === true || account.platformSessionPresent === true;
     if (
       !membershipRequested ||
       (!explicitUsageInspection &&
-        (account.modelSource !== "token-plan" ||
-          account.managedTokenPresent !== true)) ||
+        (account.modelSource !== "token-plan" || !managedAccessPresent)) ||
       !this.tokenPlanAccountStatusGetter
     ) {
       return withIdentity();
@@ -415,16 +416,24 @@ export class TuiRuntimeAdapter implements TuiRuntime {
     ]);
     account = identifiedAccount;
     if (!tokenPlan) return account;
-    return {
+    const next: TuiAccountStatus = {
       ...account,
       ...(tokenPlan.quotaState
         ? { tokenPlanQuotaState: tokenPlan.quotaState }
         : {}),
       ...(tokenPlan.quota ? { tokenPlanQuota: tokenPlan.quota } : {}),
-      ...(explicitUsageInspection && tokenPlan.summary
+      ...((explicitUsageInspection || tokenPlan.summary?.creditBalance) && tokenPlan.summary
         ? { tokenPlanSummary: tokenPlan.summary }
         : {}),
     };
+    if (
+      next.tokenPlanQuotaState === 'unavailable' &&
+      !next.tokenPlanQuota &&
+      next.tokenPlanSummary?.creditBalance
+    ) {
+      delete next.tokenPlanQuotaState;
+    }
+    return next;
   }
   private async resolveAccountIdentity(
     refresh: boolean,

@@ -1,6 +1,12 @@
 import { createHash } from 'node:crypto';
 
-import type { LocalRuntimeAuthContextSnapshot, AlranBuildEnv, AlranRegion } from '@alran/config';
+import {
+  resolvePlatformEnvironmentForBuild,
+  resolveStoredPlatformSession,
+  type AlranBuildEnv,
+  type AlranRegion,
+  type LocalRuntimeAuthContextSnapshot,
+} from '@alran/config';
 
 import type { TuiTokenPlanQuota, TuiTokenPlanSummary } from '../runtime/port.js';
 
@@ -76,6 +82,7 @@ export interface TuiMatrixAccountClientOptions {
   readonly routingContextGetter?: () => { readonly bedrockLane?: string } | undefined;
   readonly region: AlranRegion;
   readonly buildEnv: AlranBuildEnv;
+  readonly dataDir?: string;
   readonly fetchImpl?: typeof fetch;
   readonly timeoutMs?: number;
   readonly membershipCacheTtlMs?: number;
@@ -175,25 +182,83 @@ export class TuiMatrixAccountClient {
       resolved = await this.resolveTokenPlanBillingContext(signal, options.forceRefresh === true);
     } catch (error) {
       if (signal?.aborted) throw error;
-      return signedIn ? { quotaState: 'unavailable' } : {};
+      return this.withPlatformCreditFallback(
+        signedIn ? { quotaState: 'unavailable' } : {},
+        signal,
+      );
     }
     const { membership, accessToken, personalOpGroupId } = resolved;
     if (membership.hasTokenPlan === false) {
       return { ...membership, quotaState: 'not-subscribed' };
     }
-    if (!accessToken) return membership;
-    if (!personalOpGroupId) return { ...membership, quotaState: 'unavailable' };
+    if (!accessToken) {
+      return this.withPlatformCreditFallback(membership, signal);
+    }
+    if (!personalOpGroupId) {
+      return this.withPlatformCreditFallback(
+        { ...membership, quotaState: 'unavailable' },
+        signal,
+      );
+    }
     const quota = await this.getTokenPlanQuota(
       accessToken,
       personalOpGroupId,
       signal,
       options.forceRefresh === true,
     ).catch(() => undefined);
+    if (quota) {
+      return {
+        ...membership,
+        quotaState: 'available',
+        quota,
+      };
+    }
+    return this.withPlatformCreditFallback(
+      { ...membership, quotaState: 'unavailable' },
+      signal,
+    );
+  }
+
+  private async withPlatformCreditFallback(
+    status: TuiTokenPlanAccountStatus,
+    signal?: AbortSignal,
+  ): Promise<TuiTokenPlanAccountStatus> {
+    if (status.quota || status.summary?.creditBalance) return status;
+    const creditBalance = await this.fetchPlatformCreditBalance(signal).catch(() => undefined);
+    if (!creditBalance) return status;
     return {
-      ...membership,
-      quotaState: quota ? 'available' : 'unavailable',
-      ...(quota ? { quota } : {}),
+      ...status,
+      quotaState: status.quotaState === 'unavailable' ? undefined : status.quotaState,
+      summary: compactSummary({ ...status.summary, creditBalance }),
     };
+  }
+
+  private async fetchPlatformCreditBalance(signal?: AbortSignal): Promise<string | undefined> {
+    const dataDir = this.options.dataDir;
+    if (!dataDir) return undefined;
+    const preferred = resolvePlatformEnvironmentForBuild(this.options.buildEnv);
+    const session = resolveStoredPlatformSession(dataDir, preferred);
+    if (!session?.sessionId || !session.companyId || !session.baseUrl) return undefined;
+
+    const scopedSignal = createScopedSignal(signal, this.timeoutMs);
+    try {
+      const response = await this.fetchImpl(new URL('/v2/credits/balance', session.baseUrl), {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'x-ottili-session': session.sessionId,
+          'x-ottili-company': session.companyId,
+        },
+        signal: scopedSignal.signal,
+      });
+      if (!response.ok) return undefined;
+      const body = asRecord(await response.json().catch(() => undefined));
+      if (!body) return undefined;
+      const data = (asRecord(body.data) ?? body) as Record<string, unknown>;
+      return formatPlatformCreditBalance(data);
+    } finally {
+      scopedSignal.dispose();
+    }
   }
 
   private async resolveTokenPlanBillingContext(
@@ -772,3 +837,54 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     ? (value as Record<string, unknown>)
     : undefined;
 }
+
+function formatPlatformCreditBalance(data: Record<string, unknown>): string | undefined {
+  const available = asRecord(data.available);
+  const amountMinor = finiteNumber(available?.amount_minor);
+  const currency = readTrimmedString(available?.currency);
+  if (amountMinor === undefined) return undefined;
+  const amount = formatMinorAmount(amountMinor, currency);
+  return currency ? `${amount} ${currency}` : amount;
+}
+
+function formatMinorAmount(amountMinor: number, currency: string | undefined): string {
+  const decimals = zeroDecimalCurrencies.has((currency ?? '').toUpperCase()) ? 0 : 2;
+  const sign = amountMinor < 0 ? '-' : '';
+  const absolute = Math.abs(amountMinor);
+  if (decimals === 0) {
+    return `${sign}${formatGroupedInteger(String(Math.round(absolute)))}`;
+  }
+  const factor = 10 ** decimals;
+  const major = Math.trunc(absolute / factor);
+  const minor = Math.round(absolute % factor)
+    .toString()
+    .padStart(decimals, '0');
+  return `${sign}${formatGroupedInteger(String(major))}.${minor}`;
+}
+
+function formatGroupedInteger(value: string): string {
+  return value.replace(/\B(?=(\d{3})+(?!\d))/gu, ',');
+}
+
+function readTrimmedString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim().toUpperCase() : undefined;
+}
+
+const zeroDecimalCurrencies = new Set([
+  'BIF',
+  'CLP',
+  'DJF',
+  'GNF',
+  'JPY',
+  'KMF',
+  'KRW',
+  'MGA',
+  'PYG',
+  'RWF',
+  'UGX',
+  'VND',
+  'VUV',
+  'XAF',
+  'XOF',
+  'XPF',
+]);
