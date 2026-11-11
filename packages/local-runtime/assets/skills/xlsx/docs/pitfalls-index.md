@@ -33,7 +33,6 @@
 | **X5** | multi-year financial analysis / 财务分析 / revenue/margin/growth/segment trends | `COMPANY`, `YEAR_RANGE`, `PDF_PATHS[]`, `METRICS[]`, `OUTPUT_XLSX` | §X5 |
 | **X6** | composite score / index / ranking with stated range / 综合评分 0-100 | `INPUT_XLSX`, `SCORE_COLS[]`, `WEIGHTS[]`, `TARGET_RANGE`, `OUTPUT_XLSX` | §X6 |
 | **X7** | cross-sheet dynamic formulas / Inputs → Summary auto-update / 跨 sheet 引用 | `INPUT_LAYOUT`, `SUMMARY_LAYOUT`, `OUTPUT_XLSX` | §X7 |
-| **X8** | xlsx ↔ csv ↔ json ↔ pdf with print settings / 表格格式转换 / 打印设置 / Superstore | `INPUT_XLSX`, `OUTPUT_FORMATS[]`, `PRINT_SETTINGS`, `OUTPUT_DIR` | §X8 + [Superstore case](superstore-multiformat-conversion-case.md) |
 
 ---
 
@@ -661,7 +660,7 @@ STEP 0 — Strict Superstore / XML-template / HTML→PDF route check
     - PDF: A4 landscape + repeated headers + all columns visible;
     - CSV→Excel via XML template / direct OOXML, not openpyxl full read-write;
     - PDF via HTML→PDF, not screenshot or LibreOffice conversion;
-  then load and follow docs/superstore-multiformat-conversion-case.md.
+  then load and follow (a case study that is no longer shipped).
   That case replaces the simpler pandas/soffice path below.
 
 STEP 1 — Sanity probe
@@ -683,13 +682,13 @@ STEP 2 — Per-format conversion (parallel where independent)
     )
     EOF
     # For strict "data types correct" requirements, prefer the explicit
-    # typed-record pattern in docs/superstore-multiformat-conversion-case.md
+    # typed-record pattern in (a case study that is no longer shipped)
     # instead of relying on default=str for timestamps.
 
   PDF (with print settings → see [pdf] §P9 canonical):
     # Configure print settings via openpyxl, then convert via soffice.
     # If acceptance requires HTML→PDF or all columns visible in a 10k-row
-    # landscape table, use docs/superstore-multiformat-conversion-case.md.
+    # landscape table, use (a case study that is no longer shipped).
     # Verification on PDF is MANDATORY — soffice may ignore some settings.
 
 STEP 3 — Reverse-validation (round-trip integrity)

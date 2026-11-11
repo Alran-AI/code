@@ -231,4 +231,3 @@ pdftotext final.pdf - | head -20
 |---|---|
 | [`templates/latex-academic-thesis/source.tex`](templates/latex-academic-thesis/source.tex) | Compact scaffold — all structural components, minimal content |
 | [`templates/latex-academic-thesis/README.md`](templates/latex-academic-thesis/README.md) | Template usage — fill-in-the-blanks recipe |
-| [`docs/annual-report-financial-digest-latex-case.md`](docs/annual-report-financial-digest-latex-case.md) | Case: long annual-report PDF → compact LaTeX digest (LaTeX compile, tectonic, chart generation) |

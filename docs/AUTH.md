@@ -9,7 +9,7 @@ realm `ottili`). The CLI never sees a password and never holds a Keycloak token:
 
 | Command | What it does |
 |---|---|
-| `alran auth login` | Signs in through the browser (below). Prints "Already logged in as …" when a valid session exists; `--force` signs in again. |
+| `alran auth login` | Signs in through the browser (below) or with a device code (next section). Prints "Already logged in as …" when a valid session exists; `--force` signs in again; `--device` / `--no-device` choose the sign-in. |
 | `alran auth login --api-key` | Asks for an Ottili API key (`sk-ottili-…`, minted at `https://ai.ottili.one/api-keys`) instead. Use it on machines without a browser. |
 | `alran auth status` | Who is signed in, which company, which project. |
 | `alran auth switch-company` | Lists the companies of the account and switches (`POST /v2/auth/company`). |
@@ -30,20 +30,43 @@ realm `ottili`). The CLI never sees a password and never holds a Keycloak token:
 The loopback redirect is the native-app pattern of RFC 8252. The password is entered only in the
 browser, on the Platform's Keycloak page.
 
-## Device flow (RFC 8628) — not yet available
+## Device sign-in (RFC 8628)
 
-The task asks for the device-authorization flow ("open `https://<platform>/device` and enter
-ABCD-EFGH"). Keycloak supports it (`/protocol/openid-connect/auth/device` is advertised), but the CLI
-does not hold Keycloak tokens: the Platform is the OIDC client and issues its own sessions. Device
-flow therefore needs three Platform routes, which do not exist yet:
+For a terminal where the browser is somewhere else — SSH, a container, a machine without a display —
+`alran auth login --device` (the default there; see below) asks the Ottili AI Platform for a code:
 
-- `POST /v2/auth/device` → `{ device_code, user_code, verification_uri, expires_in, interval }`
-- a page at `verification_uri` where a signed-in person enters `user_code` and confirms the device
-- `POST /v2/auth/device/token` (`device_code`) → `authorization_pending` | `slow_down` |
-  `expired_token` | the session handoff the loopback flow already returns
+```text
+$ alran auth login --device
 
-Until they exist, `alran auth login --api-key` is the way to sign in on a machine without a browser
-(SSH, containers). TODO(platform): device authorization for CLI clients.
+To sign in, open this page in a browser on any device:
+  https://ai.ottili.one/device
+
+and enter the code:  BCDF-GHJK
+
+or open it directly:  https://ai.ottili.one/device?user_code=BCDF-GHJK
+
+The code is valid for 10 minutes. Waiting for you to confirm… (Ctrl+C to cancel)
+```
+
+1. `POST https://ai.ottili.one/v1/auth/device` → `device_code` (a secret the terminal polls with; only
+   its hash is stored), `user_code` (`ABCD-EFGH`, eight consonants, so no word can be spelled and
+   nothing is misread), `verification_uri`, `expires_in` (600), `interval` (5).
+2. The person opens the page, sees which device asks and confirms. Confirming runs the Platform's
+   normal sign-in once more in their own browser (one click with single sign-on). The session that
+   creates belongs to the terminal: signing out of the terminal does not sign the browser out.
+3. `POST …/v1/auth/device/token` (every `interval` seconds) answers `authorization_pending`,
+   `slow_down` (wait the `interval` it names, five seconds more by default), `access_denied`,
+   `expired_token`, or the session once. The grant is deleted with it.
+
+Which sign-in runs: `--device` and `--no-device` decide; without either, SSH (`SSH_CONNECTION`,
+`SSH_TTY`, `SSH_CLIENT`) or Linux without `DISPLAY` / `WAYLAND_DISPLAY` use the device sign-in;
+`ALRAN_LOGIN_FLOW=device|browser` decides for a script. The `/login` of the TUI and `alran login`
+follow the same rule.
+
+The confirmation page is a form protected by a token in a cookie and in the form, so another site
+cannot confirm a code for a person; the user code is only useful together with a sign-in of the person
+who confirms it. The server side is `alran-platform/src/device-routes.mjs` and
+`src/core/device-login.mjs`.
 
 ## Session lifetime and refresh
 

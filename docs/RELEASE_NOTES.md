@@ -1,6 +1,8 @@
-# Alran Code — release notes for the first Ottili release
+# Alran Code — release notes
 
-Package `@ottili/alran-code`, binary `alran`. Alran Code is derived from MiniMax Code (MIT); see
+## 0.2.0 — the first Ottili release
+
+Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived from MiniMax Code (MIT); see
 `THIRD_PARTY_NOTICES.md`.
 
 ## New
@@ -15,6 +17,8 @@ Package `@ottili/alran-code`, binary `alran`. Alran Code is derived from MiniMax
   own line.
 - **Usage and billing.** `alran usage` (free and purchased credit, spend this month per model, service
   fee) and `alran billing` (plan, payment method summary, last invoice).
+- **Device sign-in.** `alran auth login --device`: a code you confirm in any browser, the default over
+  SSH or without a display. The session is the terminal's own.
 - **Updates.** `alran update` for npm, pnpm, yarn and bun installs and for managed installs from a
   signed release host (`--source`/`ALRAN_UPDATE_SOURCE` for a mirror); a weekly, non-blocking update
   hint (`ALRAN_NO_UPDATE_CHECK=1` turns it off).
@@ -27,7 +31,7 @@ Package `@ottili/alran-code`, binary `alran`. Alran Code is derived from MiniMax
 
 ## Changed
 
-- Package renamed from `@ottili/code` to `@ottili/alran-code`. The new package ships only the build
+- Package renamed from `@ottili/code` to `alran`. The new package ships only the build
   (about 800 files, 13 MB instead of 7,549 files, 44 MB) and declares its native dependencies, so it
   runs on Node 24 (the old 0.1.4 crashed there).
 - Data directory `~/.alran`; environment variables `ALRAN_*`.
@@ -44,8 +48,6 @@ See `docs/MIGRATION_FROM_MINIMAX.md`.
 
 ## Known limitations
 
-- Sign-in uses the browser loopback flow; the device flow (code entry on another device) needs Platform
-  support first (`docs/AUTH.md`). Use `alran auth login --api-key` on headless machines.
 - No Ottili-hosted Plugin registry yet (`docs/PLUGINS.md`).
 - The managed installer and its release host (`cdn.ottili.one`) are not set up; npm is the install
   and update path (`docs/UPDATE_PIPELINE.md`).
@@ -54,6 +56,6 @@ See `docs/MIGRATION_FROM_MINIMAX.md`.
 
 ```bash
 npm uninstall -g @ottili/code      # if the old package is installed
-npm install -g @ottili/alran-code
+npm install -g alran
 alran auth login
 ```

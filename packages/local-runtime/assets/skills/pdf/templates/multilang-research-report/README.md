@@ -2,7 +2,6 @@
 
 > Multi-country regulatory survey template. Playwright HTML+CSS, A4 portrait, CJK multi-language
 > font cascade, per-country sections + horizontal comparison table + references. For the production
-> AI voice cloning case, read `../../docs/ai-voice-cloning-regulatory-report-case.md`.
 
 ## 1. When to use
 
@@ -135,12 +134,3 @@ specific topic — do not paste it onto every research report. Adapt the primary
 subject domain (privacy: green; chip export: industrial gray; crypto: amber), re-pick the table
 accent, and re-cut the comparison dimensions per topic. Two reports on different subjects should
 read as different publications, not two coats of paint on the same template.
-
-## 8. Production case
-
-- **AI voice cloning regulatory survey** — five-jurisdiction Chinese regulatory PDF with bilingual
-  research prompts, `docs/` + `data/` research artifacts, fact-check report, optimized dark academic
-  cover, KPI cards, compact horizontal comparison table, and source ratings. Read
-  [`../../docs/ai-voice-cloning-regulatory-report-case.md`](../../docs/ai-voice-cloning-regulatory-report-case.md)
-  and regenerate from
-  [`cases/ai-voice-cloning-regulatory/source.html`](cases/ai-voice-cloning-regulatory/source.html).

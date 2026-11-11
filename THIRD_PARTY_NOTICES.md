@@ -72,7 +72,7 @@ because Apache-2.0 components below (Sandbox Runtime) do require one. Main chang
 4. **Telemetry.** All upstream reporting endpoints are removed; usage reporting is opt-in and sends
    nothing unless a deployment names its own endpoint.
 5. **Updates.** The upstream release host is removed; updates follow the npm package
-   `@ottili/alran-code` or a self-hosted signed `latest.json`.
+   `alran` or a self-hosted signed `latest.json`.
 6. **Removed content.** Upstream brand material (a website brand-guide case of the PDF skill) and
    upstream community links.
 7. **Tooling.** Brand gate (`pnpm lint:no-minimax`), license gate (`pnpm license-check`), Ottili

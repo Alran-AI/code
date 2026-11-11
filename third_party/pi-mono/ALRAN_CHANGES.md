@@ -224,7 +224,7 @@ No upstream source files are changed in the baseline import.
 - Affected package: `packages/tui` (`@earendil-works/pi-tui`), `hyperlink()` output in `src/terminal-image.ts` plus regression coverage in `test/terminal-image.test.ts` and `test/wrap-ansi.test.ts`.
 - Change type: generic upstreamable TUI behavior fix. No Alran-specific runtime dependency or adapter workaround is introduced.
 - Upstream PR: not opened.
-- Validation: `node --test --import tsx third_party/pi-mono/packages/tui/test/terminal-image.test.ts third_party/pi-mono/packages/tui/test/wrap-ansi.test.ts`; `pnpm --filter @earendil-works/pi-tui build`; local `@ottili/alran-code` focused Markdown/foundation tests and build.
+- Validation: `node --test --import tsx third_party/pi-mono/packages/tui/test/terminal-image.test.ts third_party/pi-mono/packages/tui/test/wrap-ansi.test.ts`; `pnpm --filter @earendil-works/pi-tui build`; local `alran` focused Markdown/foundation tests and build.
 
 Alran integration files added in this spike:
 

@@ -57,7 +57,6 @@ keywords. Match by user intent first, then by document shape:
 | Brand guide / style guide / 2-page identity | `brand-guide-2page` |
 | Data report / benchmark / 数据可视化 / 评测 | `data-viz-report` |
 | Article digest / blog anthology / newsletter | `multi-article-aggregator` |
-| Multi-country research / regulatory survey | `multilang-research-report` (for AI voice cloning / legal-regulatory surveys, read `docs/ai-voice-cloning-regulatory-report-case.md`) |
 | Plain markdown report (REFORMAT path) | `reformat-default` |
 
 If nothing fits, **adapt the closest** rather than starting from scratch — the

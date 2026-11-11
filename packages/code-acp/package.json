@@ -1,26 +1,26 @@
 {
-  "name": "@ottili/alran-code-acp",
+  "name": "alran-acp",
   "version": "0.0.0-dev",
-  "description": "Agent Client Protocol (ACP) launcher for Alran Code. Runs `alran` from @ottili/alran-code so `npx @ottili/alran-code-acp acp` works. Version is stamped at release to match @ottili/alran-code.",
+  "description": "Agent Client Protocol (ACP) launcher for Alran Code. Runs `alran` from alran so `npx alran-acp acp` works. Version is stamped at release to match alran.",
   "type": "module",
   "bin": {
-    "code-acp": "acp.js"
+    "alran-acp": "acp.js"
   },
   "files": [
     "acp.js",
     "README.md"
   ],
   "dependencies": {
-    "@ottili/alran-code": "0.0.0-dev"
+    "alran": "0.0.0-dev"
   },
   "engines": {
     "node": ">=22.19 <23 || >=24 <27"
   },
   "license": "MIT",
-  "homepage": "https://api.ottili.one",
+  "homepage": "https://ai.ottili.one/settings/cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ottili/alran-code.git"
+    "url": "git+https://github.com/Alran-AI/code.git"
   },
   "keywords": [
     "alran",

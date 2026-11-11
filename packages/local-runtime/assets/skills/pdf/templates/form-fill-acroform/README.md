@@ -27,10 +27,7 @@
 3. Pull the source data (employment letter PDF, itinerary docx, passport photo, financial
    statements, etc.).
 4. Build a field-mapping + transform table: date `DD-MM-YYYY`, name -> uppercase pinyin, phone
-   normalisation, etc. If the task is an Italian / Schengen visa form filled from Chinese employment
-   certificate + itinerary, load the progressive case first:
-   `../../../docs/italy-schengen-visa-acroform-case.md` and copy-edit
-   `cases/italy-schengen-visa-example/field_values.case.json`.
+   normalisation, etc.
 5. Validate: maxlen / required / format constraints.
 6. Write into the AcroForm using **qname for primary lookup + `page_no` for a second check** (do
    **not** match by widget short name only — same-name widgets collide).

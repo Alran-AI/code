@@ -82,7 +82,6 @@ node scripts/render_html.cjs --in /tmp/page.html --out mydoc.pdf
 
 ### Legal contract round-trip case
 
-For Word/DOCX legal contracts that must become a professional A4 PDF plus Markdown/HTML and reverse DOCX verification, do **not** rely on the default prose cover. Read [`../../docs/docx-contract-roundtrip-professional-case.md`](../../docs/docx-contract-roundtrip-professional-case.md) and start from [`cases/pku-contract-roundtrip/source.html`](cases/pku-contract-roundtrip/source.html).
 
 ## 6. Pitfalls
 

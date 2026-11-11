@@ -436,7 +436,7 @@ async function renderBuiltinProfile(
       throw await builtinConfigBrokenError(dependencies, name, error);
     }
     // The file can disappear while the runtime is running: old
-    // `@ottili/alran-code` ACP clients share the data directory and delete
+    // `alran` ACP clients share the data directory and delete
     // `.builtin/<name>/agent.md` on every launch, and startup is the only
     // other place that recreates it. Write it back exactly as startup seeds a
     // missing file (bundled template, never over existing content), then read

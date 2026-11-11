@@ -32,7 +32,7 @@ bring your own provider key.
 Node.js 22.19+ (22.x), 24.2+ (24.x), 25 or 26 is required.
 
 ```bash
-npm install -g @ottili/alran-code
+npm install -g alran
 alran --version
 ```
 
@@ -46,7 +46,8 @@ alran auth login        # opens the Ottili sign-in in your browser
 alran auth status       # who, which company, which project
 ```
 
-On a machine without a browser, create an API key at <https://ai.ottili.one/api-keys> and run
+Over SSH or without a display, `alran auth login` prints a code you confirm in any browser
+(`--device` forces it, `--no-device` the other way). On a machine without a browser at all, create an API key at <https://ai.ottili.one/api-keys> and run
 `alran auth login --api-key`. Switch company with `alran auth switch-company`, choose a project with
 `alran config project`, sign out with `alran auth logout` (the session is revoked at the Platform).
 Details: [docs/AUTH.md](docs/AUTH.md).
@@ -218,7 +219,7 @@ Open **Edit environment variables for your account**, edit the user **Path**, an
 For a global npm installation, use the same npm installation/prefix you used to install Alran:
 
 ```bash
-npm uninstall -g @ottili/alran-code
+npm uninstall -g alran
 ```
 
 For a source build, save any work and remove only the checkout you created; see [Update or remove](docs/installation.md#update-or-remove).

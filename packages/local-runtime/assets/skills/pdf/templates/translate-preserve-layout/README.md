@@ -76,17 +76,6 @@ out_imgs=$(pdfimages -list /tmp/translated/out.pdf | tail -n +3 | wc -l)
 [ "$src_imgs" = "$out_imgs" ] || echo "Warning: image count drift: src=$src_imgs out=$out_imgs"
 ```
 
-## 6. Progressive case
-
-For a full production trace of a rich Goldman Sachs research EML translated to Chinese while
-preserving cid chart images, links, A4 geometry, and CJK typography, load:
-
-- [`../../docs/email-translation-goldman-two-sessions-case.md`](../../docs/email-translation-goldman-two-sessions-case.md)
-- [`cases/goldman-china-two-sessions-cn.html`](cases/goldman-china-two-sessions-cn.html)
-
-Use the case when the source EML has `text/html` plus inline `cid:` images. It contains the
-optimized reusable translation prompt, Doctype-safe segment extraction, and verification gates; do
-not duplicate those details here.
 
 ## 7. Pitfalls (from m09 production)
 

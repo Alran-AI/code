@@ -98,7 +98,7 @@ export function resolveManagedBinDir(dataDir: string): string {
  *
  * `<dataDir>/bin` is prepended on every platform and in every delete mode, so a
  * host-owned command always wins name resolution inside agent bash. `alran-tools`
- * is the case that made this load-bearing: the npm CLI package `@ottili/alran-code`
+ * is the case that made this load-bearing: the npm CLI package `alran`
  * exports a bin of the same name, and npm's global bin directory (nvm,
  * Homebrew, `~/.local/bin`) normally precedes `<dataDir>/bin` on the user's
  * PATH. That copy is the *embedded* CLI, which aborts unless the host injected

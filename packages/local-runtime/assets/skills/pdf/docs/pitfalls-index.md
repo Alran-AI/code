@@ -181,7 +181,7 @@ STEP 2 — Choose template
   # The skeleton.html has KPI grid, chart-card, takeaway-row, conclusion primitives.
   # If acceptance criteria require source hierarchy preservation, print-academic style,
   # and static charts only (no Chart.js/ECharts/D3/Plotly), load:
-  #   <SKILL>/docs/markdown-static-academic-data-viz-case.md
+  #   (a case study that is no longer shipped)
   # and follow that case instead of the Chart.js skeleton path.
 
 STEP 3 — Build content.json (mandatory ensure_ascii=False)
@@ -251,7 +251,7 @@ STEP 0 — Load progressive case when applicable
   If TOPIC is AI voice cloning / synthetic voice / deepfake audio, or the
   acceptance criteria require laws + regulators + cases + self-regulation +
   source reliability ratings, read:
-    <SKILL>/docs/ai-voice-cloning-regulatory-report-case.md
+    (a case study that is no longer shipped)
   Reuse its bounded worker prompts, terminology rules, fact-check table,
   and optimized source HTML.
 
@@ -309,7 +309,7 @@ CONSTRAINTS:
 ### Match signatures
 
 - "把这份 {INPUT_PATH} (.eml/.pdf) 翻译成 {TARGET_LANG}，保留排版"
-- "translate this {Goldman Sachs / formal} report to {lang}, output PDF"
+- "translate this {formal / research} report to {lang}, output PDF"
 - "翻译保版 / preserve-layout translation"
 
 ### Canonical query
@@ -321,7 +321,7 @@ TASK: Translate {INPUT_PATH} into {TARGET_LANG} while preserving the
 STEP 1 — Source parsing
   Case A — INPUT_PATH ends with .eml:
     # Progressive case for rich research-email HTML with optimized translation prompt:
-    #   <SKILL>/docs/email-translation-goldman-two-sessions-case.md
+    #   (a case study that is no longer shipped)
     python3 <<EOF
     import email, re
     msg = email.message_from_file(open("{INPUT_PATH}"))
@@ -335,7 +335,7 @@ STEP 1 — Source parsing
 
 STEP 2 — Translation (call LLM, never hand-write for long inputs)
   Use the llm-call skill, batched per page or per logical block.
-  For rich EML research reports, copy the optimized prompt from the Goldman case;
+  For rich EML research reports, keep the original structure in the prompt;
   it enforces JSON id parity, terminology freeze, numeric preservation, and QA.
   STRICTLY PRESERVE verbatim:
   - Numbers, dates, currency symbols, percentages
@@ -348,7 +348,7 @@ STEP 3 — Use the layout-preserving template
   # The skeleton mirrors the source's page grid; substitute translated
   # blocks into the page-grid slots. Don't author HTML from scratch.
   # For rich EML HTML, prefer mutating the original HTML in place to preserve
-  # table grid, hrefs, and img src (see Goldman case).
+  # table grid, hrefs, and img src (keep them from the source).
 
 STEP 4 — Render
   bash <SKILL>/scripts/make.sh render \
@@ -546,11 +546,6 @@ STEP 2 — Inspect fields (§B path only)
   bash <SKILL>/scripts/make.sh fill inspect "{FORM_PDF}" <TMP>/meta.json
   # Each record: {qname, page_no, type, box, on_value/off_value/choice_options}.
 
-  # Progressive case: if FORM_PDF is an Italian / Schengen visa application and
-  # MATERIALS include Chinese employment certificate + travel itinerary, read:
-  #   <SKILL>/docs/italy-schengen-visa-acroform-case.md
-  # It includes extract_pdfs_key_info, uppercase pinyin/date transforms,
-  # missing-fields report, and exact verification evidence.
 
 STEP 3 — Extract values from MATERIALS[]
   For each material:
@@ -637,7 +632,7 @@ STEP 0 — Strict wide-table / Superstore route check
   PDF + CSV→Excel reverse validation), and the PDF must be HTML→PDF with
   A4 landscape, repeated headers, all columns visible, no truncation, and
   no CSS counters, load:
-    <SKILL_XLSX>/docs/superstore-multiformat-conversion-case.md
+    (a case study that is no longer shipped)
   Follow its HTML-source workflow instead of the LibreOffice path below.
 
 STEP 1 — Sanity probe
@@ -681,7 +676,7 @@ STEP 4 — VERIFY (mandatory because soffice may ignore print settings)
 STEP 5 — Recovery: print settings didn't survive soffice
   Fall back to rendering via the pdf HTML pipeline:
   - For Superstore-like wide data, use the ready workflow and editable HTML
-    artifact pattern in <SKILL_XLSX>/docs/superstore-multiformat-conversion-case.md.
+    artifact pattern in (a case study that is no longer shipped).
   - Convert xlsx → dense HTML table with @page A4 landscape and
     thead { display: table-header-group; }.
   - Use bash <SKILL>/scripts/make.sh render with --format A4 --landscape.
@@ -698,7 +693,6 @@ CONSTRAINTS:
 
 ## P10 — DOCX ↔ PDF / MD / HTML round-trip with fidelity report
 
-> Progressive case: for legal/contract Word templates where the PDF must look professional (formal cover, fill lines, signature/seal tables), read [`docx-contract-roundtrip-professional-case.md`](docx-contract-roundtrip-professional-case.md) before executing the generic P10 steps. Reuse its editable HTML artifact instead of shipping a raw Pandoc/LibreOffice export.
 
 ### Match signatures
 

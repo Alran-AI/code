@@ -7,7 +7,7 @@ an early Alran Code build and wants to know what moved.
 
 | Before | Now |
 |---|---|
-| `mcode` / `mavis` binaries, `@minimax-ai/code` | `alran`, npm package `@ottili/alran-code` |
+| `mcode` / `mavis` binaries, `@minimax-ai/code` | `alran`, npm package `alran` |
 | `~/.mavis` data directory | `~/.alran` |
 | `MAVIS_*` / `MCODE_*` environment variables | `ALRAN_*` |
 | MiniMax account, MiniMax models | Ottili account (`alran auth login`), models through the Ottili AI Gateway (Werk, Claude Sonnet 5.5, Claude Opus 5.5) |

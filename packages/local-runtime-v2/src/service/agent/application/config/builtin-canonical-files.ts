@@ -159,7 +159,7 @@ async function rebuildBuiltinCanonicalFile(
 
 /**
  * Use-time counterpart of the startup "seed when missing" step. Another
- * process sharing the data directory (old `@ottili/alran-code` ACP clients)
+ * process sharing the data directory (old `alran` ACP clients)
  * deletes `.builtin/<name>/agent.md` while this runtime is running, and
  * startup is the only other place that recreates it. This writes the same
  * bundled template with the same freshly resolved model group, and only when

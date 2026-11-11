@@ -6,16 +6,16 @@ Run the release command from a clean checkout of the latest reviewed `origin/mai
 Git and an authenticated `gh-axi` or `gh` are required:
 
 ```bash
-pnpm release:cli --version 0.4.13 --dry-run
-pnpm release:cli --version 0.4.13
+pnpm release:cli --version 0.2.0 --dry-run
+pnpm release:cli --version 0.2.0
 ```
 
 The dry run checks the starting revision, versions and remote refs without changing
 files, creating commits or pushing. The release command then:
 
-1. Creates `release/v0.4.13` from the reviewed starting commit.
+1. Creates `release/v0.2.0` from the reviewed starting commit.
 2. Bumps `package.json` and `packages/tui/package.json` together and commits them.
-3. Creates the annotated `v0.4.13` tag on that version commit.
+3. Creates the annotated `v0.2.0` tag on that version commit.
 4. Atomically pushes the release branch and tag, without pushing `main`.
 5. Opens a version PR back to `main`; merge it through the normal review process.
 
@@ -38,7 +38,7 @@ installation checks the generated `alran` launcher, native SQLite, ripgrep, and
 the offline smoke/BYOK suites. Windows validation remains paused.
 
 Only after every installation succeeds does CI create a GitHub Release with the
-archive and its `.sha256` checksum. Tags such as `v0.4.13-rc.1` create prereleases.
+archive and its `.sha256` checksum. Tags such as `v0.2.0-rc.1` create prereleases.
 Release creation starts as a draft; assets are uploaded before it becomes public.
 Existing releases are never overwritten. If publication fails after draft
 creation, inspect the draft and workflow artifacts before deciding whether to
@@ -70,7 +70,7 @@ This workflow does not publish to the npm registry or change the official instal
 
 ## Source previews
 
-The current source target is Alran Code 0.6.3. Workspace and local-build manifests remain `private: true` to prevent accidental npm publication, except `@ottili/alran-code-sdk`. That package is public. Publish it only as the tarball checked by `packages/code-sdk` `release:check` (see `packages/code-sdk/RELEASING.md`). Its `prepublishOnly` script rejects `npm publish` run in the package directory. A source release, npm package, and installer are separate artifacts with separate verification.
+The current source target is Alran Code 0.2.0. Workspace and local-build manifests remain `private: true` to prevent accidental npm publication, except `@ottili/alran-code-sdk`. That package is public. Publish it only as the tarball checked by `packages/code-sdk` `release:check` (see `packages/code-sdk/RELEASING.md`). Its `prepublishOnly` script rejects `npm publish` run in the package directory. A source release, npm package, and installer are separate artifacts with separate verification.
 
 ## Prepare a release
 

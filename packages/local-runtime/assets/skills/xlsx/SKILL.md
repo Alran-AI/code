@@ -414,7 +414,6 @@ Checklist in [`docs/conventions-guide.md`](docs/conventions-guide.md) §5.
 | File | Purpose |
 |---|---|
 | [`docs/pitfalls-index.md`](docs/pitfalls-index.md) | **Read first when the task matches a known case.** 8 evaluation cases keyed by task signature → past failure → recommended trace |
-| [`docs/superstore-multiformat-conversion-case.md`](docs/superstore-multiformat-conversion-case.md) | X8 progressive case: Superstore Excel → CSV/JSON/HTML→PDF + XML-template CSV→XLSX reverse validation |
 | [`docs/create-edit-guide.md`](docs/create-edit-guide.md) | openpyxl create / edit / chart recipes plus merged-cell and shared-strings gotchas |
 | [`docs/recalc-guide.md`](docs/recalc-guide.md) | `recalc.py` reference — macro path, JSON schema, AF_UNIX shim, timeouts, alternatives |
 | [`docs/conventions-guide.md`](docs/conventions-guide.md) | Color coding, number formats, formula construction, hardcode source documentation |
