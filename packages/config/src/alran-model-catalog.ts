@@ -14,7 +14,7 @@ const ALRAN_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
   max_attachments_count: 4,
 };
 
-/** Capabilities shared by the six external (gateway-routed) models. */
+/** Capabilities shared by the partner models (Claude, routed by the Ottili AI Gateway). */
 const ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
   max_image_bytes_inline: 10_485_760,
   max_video_bytes_inline: 52_428_800,
@@ -23,32 +23,23 @@ const ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
   max_images_per_request: 20,
 };
 
+/**
+ * The three models Alran Code offers through the Ottili AI Gateway.
+ *
+ *   Alran-Werk                     -> ottili/werk-1.1             included: the welcome credit pays
+ *   anthropic/claude-sonnet-5.5    -> anthropic/claude-sonnet-5.5 partner model: paid credit only
+ *   anthropic/claude-opus-5.5      -> anthropic/claude-opus-5.5   partner model: paid credit only
+ *
+ * The gateway serves nothing else today: Fels, Kern and Werk Pro are planned or retired there and
+ * answer `model_not_available`, so they are not offered. A persisted default that names a model no
+ * longer in this catalogue is replaced by the default (`replaceStaleOfficialDefaultModel`).
+ * The partner models' token prices are Anthropic's list prices; the gateway adds a 4.5 % service fee
+ * as a separate line and refuses them with `free_credit_model_restricted` when only the welcome
+ * credit is left. Third-party providers (bring your own key) are configured separately and are
+ * called directly, never through the gateway.
+ */
 export const ALRAN_MODELS: Record<string, ModelConfig> = {
-  // Premium tier -> ottili/werk-1.1-pro
-  "Alran-Werk-Pro": {
-    name: "Ottili Werk 1.1 Pro",
-    family: "premium",
-    attachment: true,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text", "image", "video"], output: ["text"] },
-    limit: { context: 1000000, output: 512000 },
-    contextWindowOptions: [1000000],
-    options: { reasoningSummary: "auto" },
-    thinking: {
-      effortOptions: ["low", "high", "max"],
-      defaultEffort: "high",
-    },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
-      thinking: { thinking: { type: "adaptive" } },
-    },
-    capabilities: ALRAN_ATTACHMENT_CAPABILITIES,
-  },
-
-  // Smart / Coding tier -> ottili/werk-1.1
+  // Werk -> ottili/werk-1.1. The default model, and the one the welcome credit pays for.
   "Alran-Werk": {
     name: "Ottili Werk 1.1",
     family: "coding",
@@ -71,58 +62,8 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     capabilities: ALRAN_ATTACHMENT_CAPABILITIES,
   },
 
-  // Standard tier -> ottili/fels-1.1
-  "Alran-Fels": {
-    name: "Ottili Fels 1.1",
-    family: "standard",
-    attachment: false,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 256000, output: 32000 },
-    thinking: {
-      effortOptions: ["low", "medium", "xhigh"],
-      defaultEffort: "medium",
-    },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
-      thinking: { thinking: { type: "adaptive" } },
-    },
-  },
-
-  // Router tier -> ottili/kern-1.1
-  "Alran-Kern": {
-    name: "Ottili Kern 1.1",
-    family: "standard",
-    attachment: false,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 256000, output: 64000 },
-    thinking: {
-      effortOptions: ["low", "medium", "high"],
-      defaultEffort: "medium",
-    },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
-      thinking: { thinking: { type: "adaptive" } },
-    },
-  },
-
-  // External models, all routed through the Ottili AI Gateway (ottili-gateway)
-  // which forwards to OpenRouter. No direct Anthropic or OpenAI key is used.
-  // All six are public-only (max_data_class: 'public').
-  //
-  // Model ids are the gateway family/id (e.g. `anthropic/sonnet-5.5`); the
-  // wire id resolved by resolveOttiliModelId prefixes them with `ottili/`
-  // (e.g. `ottili/anthropic/sonnet-5.5`).
-
-  // Claude Sonnet 5.5 -> ottili/anthropic/sonnet-5.5
-  "anthropic/sonnet-5.5": {
+  // Claude Sonnet 5.5 (Anthropic, through the Ottili AI Gateway -> OpenRouter)
+  "anthropic/claude-sonnet-5.5": {
     name: "Claude Sonnet 5.5",
     family: "anthropic",
     attachment: true,
@@ -130,7 +71,7 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: false,
     modalities: { input: ["text", "image"], output: ["text"] },
-    limit: { context: 200000, output: 8192 },
+    limit: { context: 1000000, output: 128000 },
     thinking_config: { mode: "always_on" },
     variants: {
       thinking: { thinking: { type: "adaptive" } },
@@ -139,8 +80,8 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
   },
 
-  // Claude Opus 5.5 -> ottili/anthropic/opus-5.5
-  "anthropic/opus-5.5": {
+  // Claude Opus 5.5 (Anthropic, through the Ottili AI Gateway -> OpenRouter)
+  "anthropic/claude-opus-5.5": {
     name: "Claude Opus 5.5",
     family: "anthropic",
     attachment: true,
@@ -148,84 +89,9 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     tool_call: true,
     temperature: false,
     modalities: { input: ["text", "image"], output: ["text"] },
-    limit: { context: 200000, output: 8192 },
+    limit: { context: 1000000, output: 128000 },
     thinking_config: { mode: "always_on" },
     variants: {
-      thinking: { thinking: { type: "adaptive" } },
-    },
-    max_data_class: "public",
-    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
-  },
-
-  // Claude Fable 5.1 -> ottili/anthropic/fable-5.1
-  "anthropic/fable-5.1": {
-    name: "Claude Fable 5.1",
-    family: "anthropic",
-    attachment: true,
-    reasoning: true,
-    tool_call: true,
-    temperature: false,
-    modalities: { input: ["text", "image"], output: ["text"] },
-    limit: { context: 200000, output: 4096 },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
-      thinking: { thinking: { type: "adaptive" } },
-    },
-    max_data_class: "public",
-    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
-  },
-
-  // GPT-6 Astra -> ottili/openai/gpt-6-astra (no none-thinking variant)
-  "openai/gpt-6-astra": {
-    name: "GPT-6 Astra",
-    family: "openai",
-    attachment: true,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text", "image"], output: ["text"] },
-    limit: { context: 200000, output: 8192 },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      thinking: { thinking: { type: "adaptive" } },
-    },
-    max_data_class: "public",
-    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
-  },
-
-  // GPT-6.1 Sol -> ottili/openai/gpt-6.1-sol
-  "openai/gpt-6.1-sol": {
-    name: "GPT-6.1 Sol",
-    family: "openai",
-    attachment: true,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 200000, output: 4096 },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
-      thinking: { thinking: { type: "adaptive" } },
-    },
-    max_data_class: "public",
-    capabilities: ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES,
-  },
-
-  // GPT-6.1 Terra -> ottili/openai/gpt-6.1-terra
-  "openai/gpt-6.1-terra": {
-    name: "GPT-6.1 Terra",
-    family: "openai",
-    attachment: true,
-    reasoning: true,
-    tool_call: true,
-    temperature: true,
-    modalities: { input: ["text"], output: ["text"] },
-    limit: { context: 200000, output: 4096 },
-    thinking_config: { mode: "switchable", default_value: "true" },
-    variants: {
-      "none-thinking": { thinking: { type: "disabled" } },
       thinking: { thinking: { type: "adaptive" } },
     },
     max_data_class: "public",

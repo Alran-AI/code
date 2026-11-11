@@ -2,18 +2,16 @@
 //
 // The CLI keeps its own internal model identities: they own thinking modes,
 // effort levels, context-window selection, and the local catalog that the model
-// picker reads. The Ottili AI Platform only knows platform model ids, so every
-// internal model is translated to a platform model id at the request boundary.
+// picker reads. The Ottili AI Gateway knows its own model ids, so every catalog
+// model is translated to a gateway id at the request boundary.
 //
-// Tier mapping:
-//
-//   Fast / Router  -> ottili/kern-1.1      routing model, not intended for coding work
-//   Standard       -> ottili/fels-1.1
-//   Smart / Coding -> ottili/werk-1.1
-//   Premium        -> ottili/werk-1.1-pro
+//   Alran-Werk                   -> ottili/werk-1.1             (default; welcome credit pays)
+//   anthropic/claude-sonnet-5.5  -> anthropic/claude-sonnet-5.5 (partner; paid credit only)
+//   anthropic/claude-opus-5.5    -> anthropic/claude-opus-5.5   (partner; paid credit only)
 
 export type OttiliModelTier = 'fast' | 'standard' | 'coding' | 'premium';
 
+/** Gateway ids of Ottili's own tiers. Only `coding` (Werk) is served today. */
 export const OTTILI_MODEL_IDS = {
   fast: 'ottili/kern-1.1',
   standard: 'ottili/fels-1.1',
@@ -21,40 +19,61 @@ export const OTTILI_MODEL_IDS = {
   premium: 'ottili/werk-1.1-pro',
 } as const satisfies Record<OttiliModelTier, string>;
 
+/** The partner models the gateway serves, by their gateway id. */
+export const OTTILI_PARTNER_MODEL_IDS = ['anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5'] as const;
+
 /**
- * Internal CLI model id -> Ottili AI Platform gateway model id.
+ * Catalog model id -> Ottili AI Gateway model id.
  *
- * Every internal model in `ALRAN_MODELS` must have an entry here. All traffic
- * (internal and external) goes through the Ottili AI Gateway
- * (`ottili-gateway`), which forwards to OpenRouter — there is no direct
- * Anthropic or OpenAI key.
+ * Every model in `ALRAN_MODELS` has an entry here, and nothing else does. All
+ * of them are served by the Ottili AI Gateway; a third-party provider (bring
+ * your own key) never goes through this map.
  *
  * A missing route is a configuration error: the resolver throws and never
- * silently falls back to Alran-Werk.
+ * silently falls back to Werk.
  */
 export const ALRAN_MODEL_TO_GATEWAY_ID: Readonly<Record<string, string>> = {
-  // Internal Ottili models
-  'Alran-Werk-Pro': 'ottili/werk-1.1-pro',
   'Alran-Werk': 'ottili/werk-1.1',
-  'Alran-Fels': 'ottili/fels-1.1',
-  'Alran-Kern': 'ottili/kern-1.1',
-  // External models routed through the Ottili AI Gateway -> OpenRouter.
-  // Keys are the gateway family/id (e.g. `anthropic/sonnet-5.5`); values are
-  // the full wire id (e.g. `ottili/anthropic/sonnet-5.5`).
-  'anthropic/sonnet-5.5': 'ottili/anthropic/sonnet-5.5',
-  'anthropic/opus-5.5': 'ottili/anthropic/opus-5.5',
-  'anthropic/fable-5.1': 'ottili/anthropic/fable-5.1',
-  'openai/gpt-6-astra': 'ottili/openai/gpt-6-astra',
-  'openai/gpt-6.1-sol': 'ottili/openai/gpt-6.1-sol',
-  'openai/gpt-6.1-terra': 'ottili/openai/gpt-6.1-terra',
+  'anthropic/claude-sonnet-5.5': 'anthropic/claude-sonnet-5.5',
+  'anthropic/claude-opus-5.5': 'anthropic/claude-opus-5.5',
 } as const;
+
+/**
+ * The short names a person types (`alran --model werk`, `alran models --info sonnet`) and the
+ * catalog id they mean.
+ */
+export const OTTILI_MODEL_SHORT_NAMES: Readonly<Record<string, string>> = {
+  werk: 'Alran-Werk',
+  'ottili/werk-1.1': 'Alran-Werk',
+  sonnet: 'anthropic/claude-sonnet-5.5',
+  'claude-sonnet-5.5': 'anthropic/claude-sonnet-5.5',
+  'claude-sonnet-5-5': 'anthropic/claude-sonnet-5.5',
+  opus: 'anthropic/claude-opus-5.5',
+  'claude-opus-5.5': 'anthropic/claude-opus-5.5',
+  'claude-opus-5-5': 'anthropic/claude-opus-5.5',
+} as const;
+
+/** The catalog id of a name a person typed, or the name itself when it already is one. */
+export function resolveOttiliCatalogModelId(name: string): string {
+  const trimmed = name.trim();
+  return OTTILI_MODEL_SHORT_NAMES[trimmed.toLowerCase()] ?? trimmed;
+}
+
+/** True when a catalog model spends paid credit only (a partner model). */
+export function isPaidOnlyOttiliModel(modelId: string): boolean {
+  const gatewayId = ALRAN_MODEL_TO_GATEWAY_ID[resolveOttiliCatalogModelId(modelId)] ?? modelId;
+  return (OTTILI_PARTNER_MODEL_IDS as readonly string[]).includes(gatewayId);
+}
 
 /** Tier used when an internal model has no explicit mapping. */
 export const DEFAULT_OTTILI_MODEL_TIER: OttiliModelTier = 'coding';
 
 /** True when the value already is an Ottili platform model id. */
 export function isOttiliModelId(value: unknown): boolean {
-  return typeof value === 'string' && /^ottili\/[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*$/iu.test(value.trim());
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  return /^ottili\/[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*$/iu.test(trimmed)
+    || (OTTILI_PARTNER_MODEL_IDS as readonly string[]).includes(trimmed);
 }
 
 /**
@@ -69,7 +88,7 @@ export function resolveOttiliModelId(modelId: string | undefined): string {
   const normalized = modelId?.trim();
   if (!normalized) return OTTILI_MODEL_IDS[DEFAULT_OTTILI_MODEL_TIER];
   if (isOttiliModelId(normalized)) return normalized;
-  const gatewayId = ALRAN_MODEL_TO_GATEWAY_ID[normalized];
+  const gatewayId = ALRAN_MODEL_TO_GATEWAY_ID[resolveOttiliCatalogModelId(normalized)];
   if (gatewayId) return gatewayId;
   throw new Error(
     `No Ottili AI Platform gateway route for model "${modelId}". Add it to ALRAN_MODEL_TO_GATEWAY_ID; external models must not silently fall back to Alran-Werk.`,

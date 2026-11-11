@@ -1692,7 +1692,7 @@ function buildPresetEntry(key: PresetKey) {
     baseURL: PRESET_BASE_URLS[key],
   };
 
-  // Internal Ottili models stay under the flagship "Ottili AI Platform" provider.
+  // Ottili's own model (Werk) under the flagship "Ottili AI Platform" provider.
   const internalProvider: ProviderConfig = {
     name: "Ottili AI Platform",
     npm: "@ai-sdk/openai-compatible",
@@ -1702,29 +1702,22 @@ function buildPresetEntry(key: PresetKey) {
         ([id]) => !id.includes("/"),
       ),
     ),
-    model_order: ["Alran-Werk-Pro", "Alran-Werk", "Alran-Fels", "Alran-Kern"],
+    model_order: ["Alran-Werk"],
   };
 
-  // External models (Claude 5.5 / GPT-6 family) are grouped under a separate
-  // "Ottili AI Platform external" provider. Their ids are the gateway family/id
-  // (e.g. `anthropic/sonnet-5.5`); the wire id is resolved via
-  // resolveOttiliModelId to `ottili/anthropic/sonnet-5.5`. All traffic goes
-  // through the Ottili AI Gateway -> OpenRouter — no direct Anthropic or
-  // OpenAI key is used.
+  // Partner models (Claude), served by the same Ottili AI Gateway under their gateway ids
+  // (`anthropic/claude-sonnet-5.5`). They are paid-credit-only; the gateway enforces that.
+  // Third-party providers with the user's own key are a separate, opt-in configuration.
   const externalProvider: ProviderConfig = {
-    name: "Ottili AI Platform external",
+    name: "Ottili AI Platform · Claude",
     npm: "@ai-sdk/openai-compatible",
     options: baseOptions,
     models: Object.fromEntries(
       Object.entries(ALRAN_MODELS).filter(([id]) => id.includes("/")),
     ),
     model_order: [
-      "anthropic/sonnet-5.5",
-      "anthropic/opus-5.5",
-      "anthropic/fable-5.1",
-      "openai/gpt-6-astra",
-      "openai/gpt-6.1-sol",
-      "openai/gpt-6.1-terra",
+      "anthropic/claude-sonnet-5.5",
+      "anthropic/claude-opus-5.5",
     ],
   };
 

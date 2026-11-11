@@ -84,7 +84,11 @@ export {
   ALRAN_MODEL_TO_GATEWAY_ID,
   DEFAULT_OTTILI_MODEL_TIER,
   OTTILI_MODEL_IDS,
+  OTTILI_MODEL_SHORT_NAMES,
+  OTTILI_PARTNER_MODEL_IDS,
   isOttiliModelId,
+  isPaidOnlyOttiliModel,
+  resolveOttiliCatalogModelId,
   resolveOttiliModelId,
 } from './ottili-model-map.js';
 export type { OttiliModelTier } from './ottili-model-map.js';
