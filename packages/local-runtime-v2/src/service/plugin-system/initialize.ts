@@ -211,7 +211,10 @@ export function initializePluginService(
 }
 
 function resolveCloudBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_DOMAIN_URL?.trim();
+  // The Plugin registry, connectors and the skill catalogue are one cloud API. Ottili does not run
+  // it yet (docs/PLUGINS.md), so an operator can point Alran Code at one with ALRAN_PLUGIN_REGISTRY_URL.
+  const configured =
+    process.env.ALRAN_PLUGIN_REGISTRY_URL?.trim() || process.env.NEXT_PUBLIC_DOMAIN_URL?.trim();
   if (configured) return configured;
   const region = getRuntimeRegion();
   const build = getRuntimeBuildEnv();

@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { AlranPluginApplication } from '../plugin/application.js';
+import { AlranPluginApplication, unavailableMessage } from '../plugin/application.js';
 import type {
   AlranPluginCatalog,
   AlranPluginCliRequest,
@@ -66,11 +66,20 @@ export async function runAlranPluginCommand(
         includeAvailable: request.action === 'add',
         marketplace,
       });
-      const plugin = selectPlugin(
-        request.action === 'add' ? [...catalog.installed, ...catalog.available] : catalog.installed,
-        name,
-        marketplace,
-      );
+      const candidates =
+        request.action === 'add' ? [...catalog.installed, ...catalog.available] : catalog.installed;
+      if (
+        catalog.unavailable?.length &&
+        !candidates.some((candidate) => candidate.name === name || candidate.pluginId === name)
+      ) {
+        throw new Error(unavailableMessage(catalog.unavailable[0]!));
+      }
+      const plugin = selectPlugin(candidates, name, marketplace);
+      // A local Plugin is installed by its folder being in the local Plugin directory; there is
+      // nothing to install, and the Runtime refuses the request with a bare error code.
+      if (request.action === 'add' && plugin.marketplace === 'local' && plugin.installed) {
+        return request.json ? JSON.stringify(toCliPlugin(plugin), null, 2) : formatPlugin(plugin);
+      }
       const result =
         request.action === 'add'
           ? await context.application.install(plugin)
@@ -88,12 +97,15 @@ export async function runAlranPluginCommand(
         {
           installed: catalog.installed.map(toCliPlugin),
           available: catalog.available.map(toCliPlugin),
+          ...(catalog.unavailable?.length ? { unavailable: catalog.unavailable } : {}),
         },
         null,
         2,
       );
     }
-    return formatPluginRows(catalog);
+    const rows = formatPluginRows(catalog);
+    const notes = (catalog.unavailable ?? []).map((entry) => `note: ${unavailableMessage(entry)}`);
+    return [rows, ...notes].filter(Boolean).join('\n');
   } finally {
     await context.shutdown();
   }

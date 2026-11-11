@@ -36,6 +36,35 @@ describe('AlranPluginApplication', () => {
     expect(port.listInstalledPlugins).toHaveBeenCalledWith({ marketplace: undefined });
   });
 
+  it('shows the local Plugins and names the source when the registry cannot be reached', async () => {
+    const port = {
+      listInstalledPlugins: vi.fn(async () => []),
+      listMarketplacePlugins: vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Plugin System Cloud request failed'))
+        .mockResolvedValueOnce([plugin('notes', 'local', false)]),
+    };
+    const application = new AlranPluginApplication(port as never);
+
+    await expect(application.catalog({ includeAvailable: true })).resolves.toEqual({
+      installed: [],
+      available: [plugin('notes', 'local', false)],
+      unavailable: [{ marketplace: 'official', reason: 'Plugin System Cloud request failed' }],
+    });
+  });
+
+  it('fails with a clear message when the registry asked for by name cannot be reached', async () => {
+    const port = {
+      listInstalledPlugins: vi.fn(async () => []),
+      listMarketplacePlugins: vi.fn().mockRejectedValue(new Error('Plugin System Cloud request failed')),
+    };
+    const application = new AlranPluginApplication(port as never);
+
+    await expect(
+      application.catalog({ includeAvailable: true, marketplace: 'official' }),
+    ).rejects.toThrow(/Ottili Plugin registry is not reachable.*ALRAN_PLUGIN_REGISTRY_URL.*local Plugin directory/su);
+  });
+
   it('applies mutations through the Runtime owner and returns the committed state', async () => {
     const selected = plugin('docs', 'official', false);
     const port = {

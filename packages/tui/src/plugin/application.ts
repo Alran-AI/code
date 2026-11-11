@@ -23,15 +23,29 @@ export class AlranPluginApplication {
     const marketplaces: readonly AlranPluginMarketplace[] = input.marketplace
       ? [input.marketplace]
       : ['official', 'local'];
-    const [installed, ...marketplaceCatalogs] = await Promise.all([
+    const [installed, settled] = await Promise.all([
       this.access.listInstalledPlugins({ marketplace: input.marketplace }),
-      ...marketplaces.map((marketplace) => this.access.listMarketplacePlugins({ marketplace })),
+      Promise.allSettled(
+        marketplaces.map((marketplace) => this.access.listMarketplacePlugins({ marketplace })),
+      ),
     ]);
+    // One unreachable source (the plugin registry is a network service; the local directory is
+    // not) must not hide what the other offers. A source asked for by name still fails loudly.
+    const unavailable: { marketplace: AlranPluginMarketplace; reason: string }[] = [];
+    const marketplaceCatalogs: (readonly AlranPluginView[])[] = [];
+    settled.forEach((result, index) => {
+      if (result.status === 'fulfilled') marketplaceCatalogs.push(result.value);
+      else unavailable.push({ marketplace: marketplaces[index]!, reason: describeFailure(result.reason) });
+    });
+    if (input.marketplace && unavailable.length > 0) {
+      throw new Error(unavailableMessage(unavailable[0]!));
+    }
     const merged = new Map(
       marketplaceCatalogs.flat().map((plugin) => [plugin.pluginId, plugin] as const),
     );
     for (const plugin of installed) merged.set(plugin.pluginId, plugin);
-    return partitionCatalog([...merged.values()]);
+    const catalog = partitionCatalog([...merged.values()]);
+    return unavailable.length > 0 ? { ...catalog, unavailable } : catalog;
   }
 
   install(plugin: AlranPluginView): Promise<AlranPluginView> {
@@ -69,4 +83,18 @@ function partitionCatalog(plugins: readonly AlranPluginView[]): AlranPluginCatal
     (plugin.installed ? installed : available).push(plugin);
   }
   return { installed, available };
+}
+
+function describeFailure(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/** What a person reads when a Plugin source cannot be reached. */
+export function unavailableMessage(entry: {
+  readonly marketplace: AlranPluginMarketplace;
+  readonly reason: string;
+}): string {
+  return entry.marketplace === 'official'
+    ? `The Ottili Plugin registry is not reachable (${entry.reason}). Set ALRAN_PLUGIN_REGISTRY_URL to a registry you run, or add a Plugin from a directory: copy the Plugin's folder into the local Plugin directory (\`alran plugins marketplace list\` shows where); a Plugin there is installed and enabled.`
+    : `The local Plugin directory could not be read (${entry.reason}).`;
 }

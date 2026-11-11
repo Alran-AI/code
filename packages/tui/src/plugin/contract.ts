@@ -24,6 +24,8 @@ export interface AlranPluginView {
 export interface AlranPluginCatalog {
   readonly installed: readonly AlranPluginView[];
   readonly available: readonly AlranPluginView[];
+  /** Plugin sources that could not be read; the catalog shows what the others offer. */
+  readonly unavailable?: readonly { readonly marketplace: AlranPluginMarketplace; readonly reason: string }[];
 }
 
 export interface AlranPluginRuntimeAccess {
