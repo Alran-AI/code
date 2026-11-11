@@ -41,10 +41,11 @@ function filesIn(directory, prefix = "") {
 }
 const files = filesIn(root).sort();
 const violations = suiteInventoryViolations(files, readSuites(root));
-// Standard MIT text with the reviewed first-party attribution.
+// Standard MIT text with the reviewed first-party attribution, followed by the reference to the
+// MIT-licensed upstream whose full notice is in THIRD_PARTY_NOTICES.md.
 // Source: https://opensource.org/license/mit
 const rootLicenseSha256 =
-  "baf1da741bc1061e1799ffd12bc1293d7294a23df02430243b033cc8b33af9b6";
+  "7454f48be00afbb8e8f992bf4a9b486355ac430b34b20be3153e42371d67f88b";
 if (
   createHash("sha256")
     .update(readFileSync(path.join(root, "LICENSE")))

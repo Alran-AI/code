@@ -40,6 +40,11 @@ const preview = path.join(temporary ?? tmpdir(), "alran-code-source.tar.gz");
 const steps = [
   { name: "check:source", script: "check:source", docs: true, windows: true },
   { name: "check:tsconfig", script: "check:tsconfig", docs: true, windows: true },
+  // No upstream name outside legal attribution and marked compatibility code; legal files and
+  // dependency licenses complete.
+  { name: "lint:no-minimax", script: "lint:no-minimax", docs: true, windows: true },
+  { name: "license-check", script: "license-check", docs: true, windows: true },
+  { name: "test:gates", script: "test:gates", docs: true, windows: true },
   {
     name: "export source preview",
     docs: true,
