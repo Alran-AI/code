@@ -297,3 +297,15 @@ describe('formatting', () => {
     expect(formatMicroUsd(0)).toBe('$0.00');
   });
 });
+
+describe('model availability colours', () => {
+  it('colours the status on a terminal and leaves it plain otherwise', async () => {
+    const { colourAvailability } = await import('../../src/cli/account-commands.js');
+    expect(colourAvailability({ environment: {} }, 'available', true)).toBe('\u001b[32mavailable\u001b[39m');
+    expect(colourAvailability({ environment: {} }, 'requires purchased credit', true)).toContain('\u001b[33m');
+    expect(colourAvailability({ environment: {} }, 'no credit left', true)).toContain('\u001b[31m');
+    expect(colourAvailability({ environment: {} }, 'available', false)).toBe('available');
+    expect(colourAvailability({ environment: { NO_COLOR: '1' } }, 'available', true)).toBe('available');
+    expect(colourAvailability({ environment: { FORCE_COLOR: '1' } }, 'available', false)).toContain('\u001b[32m');
+  });
+});

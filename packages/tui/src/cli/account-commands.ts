@@ -510,6 +510,14 @@ function availability(model: (typeof OTTILI_MODEL_LISTING)[number], credits: Cre
   return entry.reason === 'requires_paid_credit' ? 'requires purchased credit' : 'no credit left';
 }
 
+/** Green: the credit allows it; yellow: it needs purchased credit; red: no credit left. TTY only. */
+export function colourAvailability(io: Pick<AccountCommandIo, 'environment'>, status: string, isTty = Boolean(process.stdout.isTTY)): string {
+  const forced = io.environment.FORCE_COLOR !== undefined && io.environment.FORCE_COLOR !== '0';
+  if (io.environment.NO_COLOR !== undefined || (!isTty && !forced)) return status;
+  const code = status === 'available' ? 32 : status === 'requires purchased credit' ? 33 : status === 'no credit left' ? 31 : null;
+  return code === null ? status : `\u001b[${code}m${status}\u001b[39m`;
+}
+
 export async function runModels(
   io: AccountCommandIo,
   options: { thirdParty?: boolean; info?: string; setDefault?: string; json?: boolean } = {},
@@ -569,7 +577,7 @@ export async function runModels(
     model.name,
     `${formatMicroUsd(model.input)} / ${formatMicroUsd(model.output)}`,
     model.credit,
-    availability(model, credits),
+    colourAvailability(io, availability(model, credits)),
   ]))}
 
 Claude models are billed at Anthropic's token prices plus a 4.5 % service fee, listed as its own line
