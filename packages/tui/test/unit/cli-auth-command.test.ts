@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { runTuiLogin, runTuiLogout } from '../../src/cli/auth-command.js';
 
-const CONSOLE_URL = 'https://api.ottili.one/settings/api-keys';
+const CONSOLE_URL = 'https://ai.ottili.one/api-keys';
 const API_KEY = 'sk-ottili-test-key';
 
 describe('Alran Code auth commands', () => {

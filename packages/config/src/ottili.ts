@@ -12,7 +12,7 @@
 //   OTTILI_PLATFORM_URL  Ottili platform origin used for auth and identity checks.
 
 /** Ottili platform origin: auth, identity, and tenant-scoped APIs. */
-export const OTTILI_PLATFORM_URL = 'https://api.ottili.one';
+export const OTTILI_PLATFORM_URL = 'https://platform.ottili.one';
 
 /**
  * Ottili AI Platform gateway base URL.
@@ -32,8 +32,8 @@ export const OTTILI_PLATFORM_URL_ENV = 'OTTILI_PLATFORM_URL';
 /** Overrides the browser page opened by `alran login`. */
 export const OTTILI_API_KEY_CONSOLE_ENV = 'OTTILI_API_KEY_CONSOLE_URL';
 
-/** Default path on the Ottili platform where a user mints an API key. */
-export const OTTILI_API_KEY_CONSOLE_PATH = '/settings/api-keys';
+/** Path of the API-key page of the Ottili AI Platform (the product that mints `sk-ottili-` keys). */
+export const OTTILI_API_KEY_CONSOLE_PATH = '/api-keys';
 
 export interface OttiliEnvironment {
   /** Platform origin for auth, identity, and tenant-scoped calls. */
@@ -103,16 +103,19 @@ export function isOttiliApiKey(value: unknown): boolean {
 }
 
 /**
- * The browser page that lists and mints Ottili API keys on a given Platform.
- * Development signs in to the local Platform, so the key page must be local too.
+ * The browser page that lists and mints Ottili API keys.
+ *
+ * Keys are minted by the Ottili AI Platform, the product that also serves the gateway, so the page
+ * lives on the gateway's origin (`https://ai.ottili.one/api-keys`; a local gateway gives a local
+ * page). `platformUrl` is kept for callers that still pass it and no longer decides the page.
  */
 export function resolveOttiliApiKeyConsoleUrlFor(
-  platformUrl: string,
+  _platformUrl: string,
   env: NodeJS.ProcessEnv = process.env,
 ): string {
   const configured = env[OTTILI_API_KEY_CONSOLE_ENV]?.trim();
   if (configured) return configured;
-  return `${stripTrailingSlashes(platformUrl)}${OTTILI_API_KEY_CONSOLE_PATH}`;
+  return `${new URL(resolveOttiliApiBaseUrl(env)).origin}${OTTILI_API_KEY_CONSOLE_PATH}`;
 }
 
 /** The browser page that lists and mints Ottili API keys. */
