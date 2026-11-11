@@ -5,7 +5,10 @@
 // and it never publishes. The real archive is built by `scripts/package-cli-release.mjs <tag> <out>`
 // from a tagged, clean, verified commit, and a founder publishes it (docs/UPDATE_PIPELINE.md).
 //
-// Usage: pnpm build && node scripts/npm-publish-dry-run.mjs
+// Usage: pnpm build && node scripts/npm-publish-dry-run.mjs [--pack <dir>]
+//
+// `--pack <dir>` also writes the staged package as a tarball into <dir>, so the exact archive a publish
+// would upload can be installed and tried (`npm install -g <dir>/ottili-alran-code-<version>.tgz`).
 import { cpSync, copyFileSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -18,6 +21,9 @@ import { readExtraction } from './lib/release-metadata.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(root, 'dist');
 if (!existsSync(path.join(dist, 'cli.js'))) throw new Error('Build first: pnpm build');
+const packIndex = process.argv.indexOf('--pack');
+const packDir = packIndex === -1 ? null : path.resolve(process.argv[packIndex + 1] ?? '');
+if (packIndex !== -1 && !process.argv[packIndex + 1]) throw new Error('--pack needs a directory');
 const version = JSON.parse(readFileSync(path.join(dist, 'package.json'), 'utf8')).version;
 const temporary = mkdtempSync(path.join(tmpdir(), 'alran-npm-'));
 try {
@@ -44,6 +50,10 @@ try {
     optionalDependencies: manifest.optionalDependencies,
   }, null, 2)}\n`);
   if (legal.length !== 3) throw new Error('The package must carry LICENSE, NOTICE and THIRD_PARTY_NOTICES.md.');
+  if (packDir) {
+    const packed = execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', packDir], { cwd: stage, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    process.stdout.write(`tarball: ${path.join(packDir, packed.trim().split('\n').at(-1))}\n`);
+  }
 } finally {
   rmSync(temporary, { recursive: true, force: true });
 }
