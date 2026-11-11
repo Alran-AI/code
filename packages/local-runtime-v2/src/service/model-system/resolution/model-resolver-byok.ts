@@ -88,6 +88,8 @@ export function planPlatformSessionResolution(input: {
   readonly session: {
     readonly sessionId: string;
     readonly platformEnv: 'dev' | 'prod';
+    readonly companyId?: string;
+    readonly projectId?: string;
   };
   readonly providerConfig: LocalModelsConfig | undefined;
   readonly byok: LocalByokProviderConfig | undefined;
@@ -102,7 +104,15 @@ export function planPlatformSessionResolution(input: {
     provider: input.providerConfig,
     alran_api: input.byok?.alran_api,
   })[input.modelId];
+  // The gateway attributes a session's request to the company and project the CLI works in: the
+  // company the session acts for, and the project chosen with `alran config project` (else the
+  // company's default project).
+  const sessionHeaders: Record<string, string> = {
+    ...(input.session.companyId ? { 'x-ottili-company': input.session.companyId } : {}),
+    ...(input.session.projectId ? { 'x-ottili-project': input.session.projectId } : {}),
+  };
   return {
+    ...(Object.keys(sessionHeaders).length > 0 ? { configHeaders: sessionHeaders } : {}),
     provider: ALRAN_API_PROVIDER_ID,
     api: 'openai-completions',
     apiKey: input.session.sessionId,

@@ -398,13 +398,16 @@ async function storePlatformSession(
   authDir: string,
   session: { sessionId: string; companyId: string; subjectId: string; baseUrl: string },
 ): Promise<void> {
-  const { writeFile } = await import('node:fs/promises');
+  // The session id is a bearer credential: owner-only file (0600) in an owner-only directory.
+  const { writePrivateConfigFileSync } = await import('@alran/config');
+  const { chmod } = await import('node:fs/promises');
+  if (process.platform !== 'win32') await chmod(authDir, 0o700).catch(() => undefined);
   const stored: StoredPlatformSession = {
     ...session,
     via: 'oidc',
     storedAtMs: Date.now(),
   };
-  await writeFile(`${authDir}/platform-session.json`, JSON.stringify(stored, null, 2));
+  writePrivateConfigFileSync(`${authDir}/platform-session.json`, JSON.stringify(stored, null, 2));
 }
 
 async function readPlatformSession(authDir: string): Promise<StoredPlatformSession | null> {

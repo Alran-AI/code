@@ -308,9 +308,13 @@ async function defaultRunLogin(
   return runTuiLogin({ region, openBrowser, lane, provider, platformEnv });
 }
 
-async function defaultRunLogout(region?: AlranRegion): Promise<string> {
-  const { runTuiLogout } = await import('./auth-command.js');
-  return runTuiLogout({ region });
+async function defaultRunLogout(_region?: AlranRegion): Promise<string> {
+  // The same sign-out as `alran auth logout`: the session is revoked at the Platform first, then
+  // every local credential is removed. The message is printed by the caller.
+  const { defaultAccountCommandIo, runAuthLogout } = await import('./account-commands.js');
+  const io = defaultAccountCommandIo();
+  await runAuthLogout({ ...io, out: () => undefined });
+  return 'Logged out.';
 }
 
 async function defaultRunUpdate(version: string): Promise<void> {

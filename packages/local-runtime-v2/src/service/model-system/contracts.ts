@@ -205,6 +205,10 @@ export interface LocalRuntimeAuthContext {
 export interface LocalPlatformSessionCredential {
   readonly sessionId: string;
   readonly platformEnv: 'dev' | 'prod';
+  /** The company the session acts for; sent as `x-ottili-company`. */
+  readonly companyId?: string;
+  /** The project chosen with `alran config project`; sent as `x-ottili-project`. */
+  readonly projectId?: string;
 }
 
 export interface LocalByokProviderConfig {

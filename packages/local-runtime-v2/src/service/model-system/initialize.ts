@@ -3,6 +3,7 @@ import {
   getConfig,
   getRuntimeBuildEnv,
   removeLocalProviderConfig,
+  readOttiliAccountPreferences,
   resolveStoredPlatformSession,
   updateLocalByokConfig,
   updateLocalModelSelection,
@@ -68,11 +69,18 @@ export function initializeModelSystem(options: InitializeModelSystemOptions): Mo
     // `alran login` stores a Platform session; the Platform gateway accepts it
     // as a bearer credential, so it is the credential model calls use.
     platformSessionGetter: () => {
-      const session = resolveStoredPlatformSession(
-        options.config.read().dataDir,
-        getRuntimeBuildEnv() === 'prod' ? 'prod' : 'dev',
-      );
-      return session ? { sessionId: session.sessionId, platformEnv: session.platformEnv } : undefined;
+      const dataDir = options.config.read().dataDir;
+      const session = resolveStoredPlatformSession(dataDir, getRuntimeBuildEnv() === 'prod' ? 'prod' : 'dev');
+      if (!session) return undefined;
+      const projectId = session.companyId
+        ? readOttiliAccountPreferences(dataDir).projects[session.companyId]
+        : undefined;
+      return {
+        sessionId: session.sessionId,
+        platformEnv: session.platformEnv,
+        ...(session.companyId ? { companyId: session.companyId } : {}),
+        ...(projectId ? { projectId } : {}),
+      };
     },
     ...options.resolverOptions,
     providerConfigGetter: () => options.config.read().provider,

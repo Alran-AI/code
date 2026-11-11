@@ -78,8 +78,12 @@ export {
   readStoredPlatformSession,
   resolvePlatformEnvironmentForBuild,
   resolveStoredPlatformSession,
+  ottiliAccountPreferencesPath,
+  readOttiliAccountPreferences,
+  writeOttiliProjectPreference,
+  writeStoredPlatformSession,
 } from './platform-session.js';
-export type { PlatformEnvironment, StoredPlatformSession } from './platform-session.js';
+export type { OttiliAccountPreferences, PlatformEnvironment, StoredPlatformSession } from './platform-session.js';
 export {
   ALRAN_MODEL_TO_GATEWAY_ID,
   DEFAULT_OTTILI_MODEL_TIER,
@@ -318,3 +322,5 @@ export type {
   ResolveProviderAuthModeInput,
   ResolvedProviderAuthMode,
 } from './provider-auth-mode.js';
+export { PRIVATE_CONFIG_FILE_MODE, writePrivateConfigFileSync } from './private-config-file.js';
+export { ALRAN_MODELS } from './alran-model-catalog.js';

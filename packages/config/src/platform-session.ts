@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { getRuntimeBuildEnv, type AlranBuildEnv } from './config.js';
+import { writePrivateConfigFileSync } from './private-config-file.js';
 
 export type PlatformEnvironment = 'dev' | 'prod';
 
@@ -106,3 +107,70 @@ export function resolveStoredPlatformSession(
   }
   return null;
 }
+
+/**
+ * Write one Platform session, readable by the owner only (0600, in a 0700 directory).
+ *
+ * The session id is a bearer credential for the Platform and for the AI gateway, so it is stored
+ * like one. `extra` keeps fields a writer added (`via`) that this module does not interpret.
+ */
+export function writeStoredPlatformSession(
+  dataDir: string,
+  platformEnv: PlatformEnvironment,
+  session: Omit<StoredPlatformSession, 'platformEnv' | 'storedAtMs'> & { readonly storedAtMs?: number },
+  extra: Record<string, unknown> = {},
+): void {
+  const dir = platformSessionDir(dataDir, platformEnv);
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  if (process.platform !== 'win32') {
+    try { fs.chmodSync(dir, 0o700); } catch { /* a directory we cannot tighten is still written to */ }
+  }
+  const document = {
+    ...extra,
+    sessionId: session.sessionId,
+    companyId: session.companyId,
+    subjectId: session.subjectId,
+    baseUrl: session.baseUrl,
+    storedAtMs: session.storedAtMs ?? Date.now(),
+  };
+  writePrivateConfigFileSync(platformSessionPath(dataDir, platformEnv), `${JSON.stringify(document, null, 2)}\n`);
+}
+
+/** The CLI's per-company choices that are not part of the session: the current project. */
+export interface OttiliAccountPreferences {
+  readonly version: 1;
+  /** company id -> project id the CLI works in (sent as `x-ottili-project`). */
+  readonly projects: Readonly<Record<string, string>>;
+}
+
+export function ottiliAccountPreferencesPath(dataDir: string): string {
+  return path.join(dataDir, 'auth', 'platform', 'account.json');
+}
+
+export function readOttiliAccountPreferences(dataDir: string): OttiliAccountPreferences {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(ottiliAccountPreferencesPath(dataDir), 'utf8')) as Record<string, unknown>;
+    const projects: Record<string, string> = {};
+    const raw = parsed?.projects;
+    if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+      for (const [company, project] of Object.entries(raw as Record<string, unknown>)) {
+        if (typeof project === 'string' && project.trim()) projects[company] = project.trim();
+      }
+    }
+    return { version: 1, projects };
+  } catch {
+    return { version: 1, projects: {} };
+  }
+}
+
+/** Set (or with `null`, clear) the project of one company. */
+export function writeOttiliProjectPreference(dataDir: string, companyId: string, projectId: string | null): void {
+  const current = readOttiliAccountPreferences(dataDir);
+  const projects: Record<string, string> = { ...current.projects };
+  if (projectId) projects[companyId] = projectId;
+  else delete projects[companyId];
+  const file = ottiliAccountPreferencesPath(dataDir);
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  writePrivateConfigFileSync(file, `${JSON.stringify({ version: 1, projects }, null, 2)}\n`);
+}
+

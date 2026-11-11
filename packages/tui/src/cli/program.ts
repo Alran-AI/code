@@ -30,6 +30,7 @@ import {
 } from './system-prompt-options.js';
 import type { AlranTelemetryCliAction } from './telemetry-command.js';
 import { registerMascotCommand } from './mascot-command.js';
+import { registerAccountCommands } from './account-commands.js';
 
 export type { TuiInteractiveLaunchRequest } from './contract.js';
 
@@ -215,13 +216,13 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   program
     .command('logout')
-    .description('Remove the stored Ottili API key')
+    .description('Sign out: revoke the session at the Ottili Platform and remove local credentials')
     .allowExcessArguments(false)
     .action(() => options.runLogout());
 
   program
     .command('update')
-    .description('Check for and install a Alran Code update')
+    .description('Check for and install an Alran Code update')
     .allowExcessArguments(false)
     .action(options.runUpdate);
 
@@ -349,6 +350,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   const plugin = program
     .command('plugin')
+    .alias('plugins')
     .description('Manage Alran Code Plugins')
     .allowExcessArguments(false)
     .action(() => options.launchTui(withLane({ initialPrompt: '/plugins' })));
@@ -374,8 +376,10 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     );
 
   for (const action of ['add', 'remove', 'enable', 'disable'] as const) {
-    plugin
-      .command(action)
+    const actionCommand = plugin.command(action);
+    // `alran plugins install <name>` is the same as `alran plugin add <name>`.
+    if (action === 'add') actionCommand.alias('install');
+    actionCommand
       .description(`${pluginActionLabel(action)} a Plugin`)
       .argument('<plugin[@marketplace]>', 'Plugin selector')
       .option('-m, --marketplace <marketplace>', 'official or local', parsePluginMarketplace)
@@ -427,6 +431,8 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   }
 
   registerMascotCommand(program);
+  // The Ottili account: auth, config, models, usage, billing.
+  registerAccountCommands(program);
 
   return program;
 }
