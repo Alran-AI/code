@@ -5,7 +5,7 @@ description: Navigate and change the Alran Code command tree, interactive TUI, h
 
 # CLI Architecture Guide
 
-Read `docs/architecture.md` and the current command registration before proposing
+Read `docs/ARCHITECTURE.md` and the current command registration before proposing
 a change. The standalone entry point lives in `packages/tui`.
 
 ## Entry points

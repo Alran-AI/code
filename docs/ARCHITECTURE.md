@@ -1,3 +1,59 @@
+# Architecture
+
+Alran Code is Ottili's terminal coding agent. It is derived from MiniMax Code (MIT, see
+`THIRD_PARTY_NOTICES.md`); the agent loop, the tool system and the terminal UI are the upstream's,
+and this document says what Alran Code adds around them and where the boundaries are.
+
+## The three parts and who owns what
+
+| Part | Repository | What it does for Alran Code |
+|---|---|---|
+| Alran Code (this repo) | `alran-code` | The `alran` CLI: terminal UI, `alran exec`, agent loop, tools, Plugins, account commands. |
+| Ottili Platform | `ottili-platform` | Sign-in (Keycloak behind the Platform), sessions, companies, shared projects, the wallet. `https://platform.ottili.one` |
+| Ottili AI Platform | `alran-platform` | The AI Gateway (`https://ai.ottili.one/v1`): models, metering, the credit rule, usage, API keys, the release endpoint. |
+
+Alran Code never talks to a model provider on the user's behalf through Ottili except via the
+gateway, and never meters anything itself. The gateway is the one place that decides whether a
+request may run and what it costs (see `docs/MODELS.md`).
+
+## Request path of a model call
+
+```
+alran (TUI / exec)
+  └─ model resolver (packages/local-runtime-v2/src/service/model-system)
+       ├─ provider "alran"  → Ottili AI Gateway  POST /v1/chat/completions
+       │     Authorization: Bearer <Platform session id | sk-ottili-… key>
+       │     x-ottili-company: <company id>   x-ottili-project: <project id>
+       │     → credit rule, hold on the wallet, upstream (Werk; OpenRouter for Claude), settle
+       └─ bring-your-own-key providers → the provider's own API, directly (not metered by Ottili)
+```
+
+There is no silent fallback from the gateway to a direct provider: if the gateway is unreachable the
+call fails with exit code 4 and says so.
+
+## Account commands
+
+`packages/tui/src/cli/account-commands.ts` implements `alran auth`, `alran config`, `alran models`,
+`alran usage` and `alran billing`. They read and write the same files the runtime uses
+(`packages/config/src/platform-session.ts`), call the Platform for identity, companies and projects,
+and the gateway's `GET /v1/credits` for prices, pools and spend. Exit codes: 0 ok, 1 error,
+2 sign-in needed, 3 rate limited, 4 unreachable, 5 the credit does not allow it. Details in
+`docs/AUTH.md`.
+
+## Data on disk
+
+Everything lives in the data directory, `~/.alran` (override: `ALRAN_DATA_DIR`): `config.yaml`
+(settings, an API key if one was pasted), `auth/platform/<env>/platform-session.json` (the Platform
+session, 0600 in a 0700 directory), `auth/platform/account.json` (selected project per company), session
+history, Plugins (`plugins/`), the weekly update-check stamp. A data directory of a release before the
+rename is moved here once (`docs/MIGRATION_FROM_MINIMAX.md`).
+
+## Gates
+
+`pnpm verify` runs, among others: the typecheck, `check:source` (the published file inventory),
+`lint:no-minimax` (no upstream name or host outside legal attribution and marked compatibility code),
+`license-check` (legal files complete, dependency licenses allowed) and `test:gates`.
+
 # Source boundaries
 
 `TUI / exec / ACP → CliService → local Applications → Session / Turn / Agent services → Pi / model providers / local tools`.

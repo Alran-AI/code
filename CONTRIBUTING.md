@@ -1,6 +1,6 @@
 # Contributing
 
-This repository contains the standalone Alran Code TUI, headless CLI, and ACP source. Start with the [architecture](docs/architecture.md), [capability coverage](docs/tui-capabilities.md), and [installation guide](docs/installation.md).
+This repository contains the standalone Alran Code TUI, headless CLI, and ACP source. Start with the [architecture](docs/ARCHITECTURE.md), [capability coverage](docs/tui-capabilities.md), and [installation guide](docs/installation.md).
 
 Thanks for your interest in contributing. For now, we only accept code and documentation contributions from repository collaborators. If you are not a collaborator but have an idea or proposal, please [open an issue](https://github.com/ottili/alran-code/issues/new/choose) so we can discuss it.
 

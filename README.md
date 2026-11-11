@@ -21,117 +21,94 @@
   <a href="LICENSE-STATUS.md"><img src="docs/assets/license.svg" alt="First-party default license: MIT"></a>
 </p>
 
-Give a blinking pocket pet a focus timer. Then ask: “Make pause a long press, and celebrate when the timer ends.” Watch a request become something you can actually use.
-
-[![Pocket Pet: from a blinking face to a working focus companion](docs/assets/pocket-pet-demo.png)](docs/demo.md)
-
-<p align="center"><a href="docs/demo.md">Watch the build story and browser demo →</a> · <a href="examples/pocket-pet">Build it yourself →</a></p>
-
-**No hardware required.** The example runs locally in your browser, with no frontend dependencies. Asking the CLI to edit code requires an Ottili API key with available credits or your own compatible model API; model calls may incur charges. The finished example runs without a model account.
+Alran Code is Ottili's AI coding agent for the terminal. It reads and edits your code, runs
+commands and tests, and keeps iterating until the task works. By default it runs on **Ottili Werk**
+through the Ottili AI Gateway; Claude Sonnet 5.5 and Claude Opus 5.5 are one switch away, and you can
+bring your own provider key.
 
 ## Quick start
 
-### 1. Install Alran
+### 1. Install
 
-Use the official installer for your platform. It installs the latest CLI, prepares a compatible Node.js runtime when needed, and does not require `sudo` or administrator privileges. Alpine / musl Linux is not supported by the one-command installer.
-
-**macOS / Linux / WSL**
+Node.js 22.19+ (22.x), 24.2+ (24.x), 25 or 26 is required.
 
 ```bash
-curl -fsSL https://cdn.ottili.one/public/install.sh | bash
-```
-
-**Windows (PowerShell)**
-
-```powershell
-irm https://cdn.ottili.one/public/install.ps1 | iex
-```
-
-The scripts install into `~/.alran-code` on macOS / Linux / WSL and `%USERPROFILE%\.alran-code` on Windows. The launchers are `bin/alran` and `bin/alran-tools` on POSIX, or `alran.cmd` / `alran.ps1` and `alran-tools.cmd` / `alran-tools.ps1` on Windows. Set `ALRAN_INSTALL_DIR` before installation to choose a different location. See [Uninstall](#uninstall) to remove the CLI.
-
-**npm** — if you already have **Node.js 22.19+ (22.x), 24.2+ (24.x), 25, or 26**:
-
-```bash
-npm install -g @ottili/alran-code@latest --registry=https://registry.npmjs.org/ --ignore-scripts=false --include=optional --allow-scripts=@ottili/alran-code,better-sqlite3
-```
-
-The npm command uses the public registry, includes the optional SQLite dependency, and permits the package and SQLite installation scripts. See the [installation guide](docs/installation.md) for version pinning and Node.js compatibility.
-
-Reopen your terminal and check the installation:
-
-```bash
+npm install -g @ottili/alran-code
 alran --version
-alran --help
 ```
 
-See the official [quick start](https://api.ottili.one/docs/cli/quick-start), [features](https://api.ottili.one/docs/cli/features), and [troubleshooting](https://api.ottili.one/docs/cli/faq).
+pnpm, yarn and bun global installs work the same way. Update later with `alran update`
+([update pipeline](docs/UPDATE_PIPELINE.md)).
 
-### 2. Connect Alran Code to the Ottili AI Platform
-
-Alran Code has no account of its own. The Ottili platform owns identity, tenant isolation, credits, and metering; the CLI authenticates with an Ottili API key.
+### 2. Sign in with your Ottili account
 
 ```bash
-alran login
+alran auth login        # opens the Ottili sign-in in your browser
+alran auth status       # who, which company, which project
 ```
 
-`alran login` opens the Ottili API key page in your browser. Copy a key — it starts with `sk-ottili-` — paste it at the prompt, and the CLI stores it in `~/.alran/config.yaml` with owner-only permissions. Run `alran logout` to remove the stored key.
+On a machine without a browser, create an API key at <https://ai.ottili.one/api-keys> and run
+`alran auth login --api-key`. Switch company with `alran auth switch-company`, choose a project with
+`alran config project`, sign out with `alran auth logout` (the session is revoked at the Platform).
+Details: [docs/AUTH.md](docs/AUTH.md).
 
-The same key can come from the environment, which overrides the stored key for that run:
+### 3. Pick a model and start
 
 ```bash
-ALRAN_API_KEY=sk-ottili-... alran
+alran models            # Werk, Claude Sonnet 5.5, Claude Opus 5.5 — price and whether your credit covers it
+alran                   # the interactive terminal UI in the current directory
+alran exec "Add a test for the date parser and make it pass"
+alran usage             # credit left, spend this month per model
 ```
 
-Open `alran` and use `/status` to check the connection and `/provider` to choose a model.
-
-### Environment variables
-
-| Variable | What it does | Default |
+| Model | Input / output per 1M tokens | Paid with |
 | --- | --- | --- |
-| `ALRAN_API_KEY` | Ottili API key sent with every request. | — (required) |
-| `ALRAN_API_BASE` | Ottili AI Platform gateway base URL. The gateway is OpenAI-compatible, so a request goes to `<base>/chat/completions`. | `https://ai.ottili.one/v1` |
-| `OTTILI_PLATFORM_URL` | Ottili platform origin used for auth and identity checks, and for the API key page that `alran login` opens. | `https://api.ottili.one` |
-| `ALRAN_DATA_DIR` | Directory holding configuration, sessions, and logs. | `~/.alran` |
+| Ottili Werk 1.1 (default) | $0.50 / $1.50 | free (welcome) or purchased credit |
+| Claude Sonnet 5.5 | $2.00 / $10.00 + 4.5 % service fee | purchased credit |
+| Claude Opus 5.5 | $4.00 / $20.00 + 4.5 % service fee | purchased credit |
 
-### Models
-
-Alran Code keeps its own model identities — they drive thinking modes, effort levels, and context selection — and translates each one to an Ottili AI Platform model id at the request boundary.
-
-| CLI model | Ottili model id | Tier |
-| --- | --- | --- |
-| `Alran-M2.7-highspeed` | `ottili/kern-1.1` | Fast / Router — a routing model, not intended for coding work |
-| `Alran-M2.7` | `ottili/fels-1.1` | Standard |
-| `Alran-M3.1-Flash` | `ottili/werk-1.1` | Smart / Coding (default) |
-| `Alran-M3` | `ottili/werk-1.1-pro` | Premium |
-
-Requests are billed and metered by the Ottili platform against the key that made them. Builds from this repository and the published npm CLI `@ottili/alran-code@0.6.9` default to `~/.alran` for user data (or `~/.alran-<profile>` when a profile is selected). `ALRAN_DATA_DIR` or `ALRAN_DATA_DIR` can override the data directory. The installer's `~/.alran-code` installation directory is separate from this choice. See [Accounts and data](docs/installation.md#accounts-and-data) before locating or removing configuration and sessions.
+The free credit you get on sign-up covers Werk. The gateway enforces this: with free credit only, a
+Claude request is refused with `free_credit_model_restricted`. Set the default with
+`alran config model sonnet`. More in [docs/MODELS.md](docs/MODELS.md).
 
 <details>
-<summary>Use your own API key (BYOK)</summary>
+<summary>Use your own API key (bring your own key)</summary>
 
-BYOK does not require an Ottili API key. Set `ALRAN_PROVIDER_API_KEY` in your current shell, then add a provider. Replace the example URL and model name with your provider's values:
+Your own provider key does not need an Ottili account, and those calls go directly to the provider:
+Ottili does not see, meter or bill them. Set the key in your shell, then add the provider:
 
 ```bash
+export MY_PROVIDER_API_KEY=...
 alran provider add --name my-provider --base-url https://example.com/v1 \
   --api-format openai-completions --model my-model \
-  --api-key-env ALRAN_PROVIDER_API_KEY --use
-alran
+  --api-key-env MY_PROVIDER_API_KEY --use
 ```
 
-`--use` tests the first listed model before saving and selecting it. A failed connection test saves nothing. Omit `--use` to save without testing or changing the default model. For custom/local models, add `--context-limit 32768 --output-limit 4096` (use your server's actual limits). Each value must be a positive safe integer and applies to every repeated `--model`. Inspect configured limits with `alran provider list --json`. Omitting these flags preserves the existing model-limit defaults.
-
-Supported API formats: `openai-completions`, `openai-responses`, and `anthropic-messages`. See the [model examples](docs/examples.md#2-choose-your-own-model) for environment variable setup, connection checks, and model overrides for a single run.
-
-Providers added this way are stored under `custom_provider` in the active profile's `config.yaml`; this is the supported path for third-party or self-hosted endpoints, while `alran_api` stays reserved for the Ottili AI Platform. Relays that require `Authorization: Bearer` on an Anthropic-compatible endpoint can set custom headers in `config.yaml`; see [Third-party relays and custom auth headers](docs/examples.md#third-party-relays-and-custom-auth-headers).
+Supported formats: `openai-completions`, `openai-responses`, `anthropic-messages`.
+`alran models --third-party` explains the catalogue of known providers; see the
+[model examples](docs/examples.md#2-choose-your-own-model).
 
 </details>
 
-### 3. Build the pocket pet
+### Plugins and skills
+
+Bundled skills (code review, deep research, documents, spreadsheets, slides, PDFs …) work out of the
+box. Plugins: `alran plugins list`, `alran plugins install <name>`, `alran plugins remove <name>`.
+Sources and licensing: [docs/PLUGINS.md](docs/PLUGINS.md).
+
+### Data and environment
+
+User data lives in `~/.alran` (`ALRAN_DATA_DIR` overrides it). `ALRAN_API_BASE` (default
+`https://ai.ottili.one/v1`) and `OTTILI_PLATFORM_URL` (default `https://platform.ottili.one`) point
+at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly update hint. Coming
+from the upstream CLI or an early build: [migration guide](docs/MIGRATION_FROM_MINIMAX.md).
+
+### 4. Try it: build the pocket pet
 
 Clone this repository and copy the starter into a separate directory:
 
 ```bash
-git clone https://github.com/ottili/alran-code.git
+git clone https://github.com/Alran-AI/code.git
 cd alran-code
 node examples/pocket-pet/setup.mjs ../my-pocket-pet
 cd ../my-pocket-pet
@@ -282,7 +259,7 @@ Account features, updates, feedback, and diagnostics are also included. Managed 
 
 To develop Alran or run this source checkout, you need Git, **Node.js 22.19+ (22.x), 24.2+ (24.x), 25, or 26**, and **pnpm 9.12.0**. On Windows, keep the checkout on a local NTFS volume and outside cloud-synced folders; the preflight command below checks the volume before pnpm creates workspace links.
 ```bash
-git clone https://github.com/ottili/alran-code.git
+git clone https://github.com/Alran-AI/code.git
 cd alran-code
 node scripts/check-windows-source-location.mjs
 pnpm install --frozen-lockfile
@@ -303,34 +280,24 @@ This repository targets the **0.6.3 source preview**. Installing the published p
 ## Documentation and contributing
 
 - [Installation and updates](docs/installation.md) · [Examples](docs/examples.md) · [TUI status line](packages/tui/docs/status-line-config.md)
-- [Contributor guide](CONTRIBUTING.md) · [Report a bug or propose an idea](https://github.com/ottili/alran-code/issues/new/choose) · [Report a security issue](SECURITY.md)
+- [Contributor guide](CONTRIBUTING.md) · [Report a bug or propose an idea](https://github.com/Alran-AI/code/issues/new/choose) · [Report a security issue](SECURITY.md)
 - [All documentation](docs/README.md): architecture, capability coverage, verification records, source synchronization, and release preparation.
 
 English is the primary documentation language. The [Chinese README](README_ZH.md) mirrors this page.
 
-For now, code and documentation pull requests are accepted only from repository collaborators. If you are not a collaborator but have an idea or proposal, please [open an issue](https://github.com/ottili/alran-code/issues/new/choose) so we can discuss it. Remove secrets, account details, and private project content from reports.
+For now, code and documentation pull requests are accepted only from repository collaborators. If you are not a collaborator but have an idea or proposal, please [open an issue](https://github.com/Alran-AI/code/issues/new/choose) so we can discuss it. Remove secrets, account details, and private project content from reports.
 
-## Desktop app and support
+## Support
 
-<a href="https://api.ottili.one/download" title="Download Alran Code">
-  <img src="https://cdn.ottili.one/public/c3ebbd2e-f55b-48d7-adff-030abb63e06d.png" alt="Alran Code desktop app — click to download" width="100%" />
-</a>
-
-[Download for macOS or Windows](https://api.ottili.one/download) · [Report a problem or ask a question](https://github.com/ottili/alran-code/issues/new/choose)
-
-This repository also hosts issue reporting for the Alran Code desktop app. The published source covers the terminal TUI, headless CLI, and ACP; it does not include the desktop application's source. Select the affected product when filing an issue. For a desktop bug, include the app version, operating system, and a log upload ID if available from **Settings → General → Upload logs**. For a CLI bug, include `alran --version`, your interface, and a minimal reproduction. Remove credentials and private project content from reports.
-
-## Feedback and contact
-
-| Channel | Use it for |
-| --- | --- |
-| [GitHub Issues](https://github.com/ottili/alran-code/issues/new/choose) | Public bug reports, feature requests, and questions about the CLI or desktop app. |
-| [AlranCode@alran.io](mailto:AlranCode@alran.io) | General feedback and support inquiries. |
-| [security.alran@alran.io](mailto:security.alran@alran.io) | Private vulnerability reports. Send reproduction details and redacted evidence here; see [Security](SECURITY.md). |
-| [Discord](https://alran.io/discord) | Community discussion and feedback. |
-
-Follow [Alran on X](https://x.com/AlranAgent) for updates. Keep vulnerability details, credentials, and private project content out of public issues and community chats.
+- Bugs, questions and ideas: [GitHub Issues](https://github.com/Alran-AI/code/issues/new/choose).
+  Include `alran --version`, your interface (TUI, `exec`, ACP) and a minimal reproduction; remove
+  credentials and private project content.
+- Security issues: report privately as described in [SECURITY.md](SECURITY.md).
+- The download page for your account: Ottili Console → Developer → Alran Code, or Ottili AI Platform
+  → Settings → CLI.
 
 ## License
+
+Alran Code is derived from MiniMax Code (mcode). MiniMax Code is © 2026 MiniMax Code and licensed under the MIT License. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 First-party code defaults to [MIT](LICENSE). Existing file-level and package-level licenses remain in place. See [third-party notices](THIRD_PARTY_NOTICES.md) and [license status](LICENSE-STATUS.md) for dependencies, assets, and `alran-tools`.

@@ -2,11 +2,9 @@
 
 This project is a source preview. Maintainers prioritize security issues on the default branch; no support period for older versions or response SLA has been committed.
 
-Report vulnerabilities privately by emailing [security.alran@alran.io](mailto:security.alran@alran.io). You can send reproduction details and redacted evidence directly to this address without opening a public issue first. Do not put credentials, exploit details, or real user data in public issues or community chats.
+Report vulnerabilities privately through GitHub: **Security → Advisories → Report a vulnerability** on <https://github.com/Alran-AI/code>. You can send reproduction details and redacted evidence there without opening a public issue first. Do not put credentials, exploit details, or real user data in public issues or community chats.
 
-If **Security → Advisories → Report a vulnerability** is available on GitHub, you can also use that private reporting channel. If it is unavailable, use the security email above.
-
-The release coordinator, @hetaoBackend, coordinates security triage; see [Maintainers](docs/maintainers.md). No response SLA is currently promised.
+The Ottili maintainers of this repository coordinate security triage. No response SLA is currently promised. (A dedicated Ottili security mailbox will be listed here once it exists.)
 
 Include the affected version, operating system and Node.js version, a minimal reproduction, expected and actual permission boundaries, and necessary redacted evidence. Use synthetic files and dedicated test accounts; do not test other people's accounts or infrastructure.
 
