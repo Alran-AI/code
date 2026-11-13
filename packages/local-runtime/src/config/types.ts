@@ -77,6 +77,8 @@ export interface LocalRuntimeConfig {
   /** Permission policy rollout; omitted local views inherit the config default. */
   permission?: Partial<Config['permission']>;
   skipWindowsHardSafetyChecks?: Config['skipWindowsHardSafetyChecks'];
+  /** The commit / pull request attribution lines — see `AttributionConfig`. */
+  attribution?: Config['attribution'];
   dataDir: string;
   /**
    * Directory that startup seeds bundled builtin skills into. Defaults to

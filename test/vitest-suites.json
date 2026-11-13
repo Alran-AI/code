@@ -294,7 +294,11 @@
       "packages/local-runtime/test/unit/remote-token-counter-fallback.test.ts",
       "packages/local-runtime/test/unit/local-matrix-client-401-recovery.test.ts",
       "packages/agent-tools/test/desktop/ptc-child-uncapped.test.ts",
-      "packages/agent-tools/test/desktop/local-alran-session-messages.test.ts"
+      "packages/agent-tools/test/desktop/local-alran-session-messages.test.ts",
+      "packages/config/test/attribution.test.ts",
+      "packages/local-runtime-v2/src/application/agent/attribution-reminder.test.ts",
+      "packages/local-runtime/test/unit/ensure-git-shim.test.ts",
+      "packages/agent-tools/test/desktop/local-bash-commit-trailer.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"

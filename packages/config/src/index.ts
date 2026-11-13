@@ -276,6 +276,7 @@ export type {
   AsrProviderName,
   AskUserConfig,
   SessionTitleConfig,
+  AttributionConfig,
   ContextManagementConfig,
   OpenCodeAdapterConfig,
   OpenCodeKeepAliveConfig,
@@ -324,3 +325,16 @@ export type {
 } from './provider-auth-mode.js';
 export { PRIVATE_CONFIG_FILE_MODE, writePrivateConfigFileSync } from './private-config-file.js';
 export { ALRAN_MODELS } from './alran-model-catalog.js';
+export {
+  ATTRIBUTION_DEFAULTS,
+  ATTRIBUTION_EMAIL,
+  ATTRIBUTION_NAME,
+  ATTRIBUTION_URL,
+  COMMIT_TRAILER_ENV,
+  PULL_REQUEST_ATTRIBUTION,
+  attributionModelLabel,
+  buildAttributionReminder,
+  commitTrailer,
+  commitTrailerFor,
+  parseAttributionConfig,
+} from './attribution.js';

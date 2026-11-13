@@ -37,10 +37,14 @@
  *
  * Idempotent: only rewrites when the on-disk content differs.
  */
-import { accessSync, chmodSync, constants, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, mkdirSync } from 'node:fs';
 import path from 'node:path';
 
 import { resolveBashEnvPolicy, type BashEnvPolicy } from '@alran/agent-core/bash-subprocess-env';
+import { COMMIT_TRAILER_ENV } from '@alran/config';
+
+import { ensureGitShim, resolveGitShimDir } from './ensure-git-shim.js';
+import { seedFileIfChanged } from './seed-file.js';
 
 /**
  * Delegates to the sibling `../bin/alran-trash` rather than an absolute path so
@@ -91,8 +95,11 @@ export function resolveManagedBinDir(dataDir: string): string {
  * missing or lost its execute bit (cache cleaner, restored backup, chmod), the
  * preflight first re-seeds it in place — `ensureRmShim` is idempotent — and
  * only refuses the spawn when that repair also fails (e.g. read-only dataDir).
- * Native deletion removes this profile's inherited shim path and skips the
- * preflight entirely; the recoverable scripts on disk are left unchanged.
+ * Native deletion removes this profile's inherited `rm` shim path and skips the
+ * `rm` preflight entirely; the recoverable scripts on disk are left unchanged.
+ * The commit-attribution `git` shim lives in its own directory and stays on PATH
+ * in both modes (see `ensure-git-shim.ts`); only its re-seeding preflight runs,
+ * and it never refuses a spawn.
  * Without a dataDir there is no shim to install, and Windows never injects
  * the shim (see `ensureRmShim`).
  *
@@ -116,18 +123,46 @@ export function resolveAgentBashEnvPolicy(
   dataDir?: string,
   platform: NodeJS.Platform = process.platform,
   nativeDelete = false,
+  /**
+   * The whole `Co-Authored-By` line a `git commit` of this call carries (see `ensure-git-shim.ts`);
+   * `undefined` when commits are not to carry one. The git shim is on PATH either way and passes
+   * through without it.
+   */
+  commitTrailer?: string,
 ): BashEnvPolicy {
   if (!dataDir) return resolveBashEnvPolicy({});
   const managedBinDir = resolveManagedBinDir(dataDir);
   const shimDir = resolveRmShimDir(dataDir);
-  if (nativeDelete) {
-    return resolveBashEnvPolicy({ prependPath: [managedBinDir], removePath: [shimDir] });
+  if (platform === 'win32') {
+    return resolveBashEnvPolicy(
+      nativeDelete
+        ? { prependPath: [managedBinDir], removePath: [shimDir] }
+        : { prependPath: [managedBinDir] },
+    );
   }
-  if (platform === 'win32') return resolveBashEnvPolicy({ prependPath: [managedBinDir] });
+  const gitShimDir = resolveGitShimDir(dataDir);
+  const commitEnv = commitTrailer ? { extraEnv: { [COMMIT_TRAILER_ENV]: commitTrailer } } : {};
+  const ensureGit = () => {
+    try {
+      ensureGitShim(dataDir, platform);
+    } catch {
+      // Best effort: without the shim the reminder still asks for the trailer.
+    }
+  };
+  if (nativeDelete) {
+    return resolveBashEnvPolicy({
+      prependPath: [managedBinDir, gitShimDir],
+      removePath: [shimDir],
+      ...commitEnv,
+      spawnPreflight: ensureGit,
+    });
+  }
   const shimPath = path.join(shimDir, 'rm');
   return resolveBashEnvPolicy({
-    prependPath: [managedBinDir, shimDir],
+    prependPath: [managedBinDir, shimDir, gitShimDir],
+    ...commitEnv,
     spawnPreflight: () => {
+      ensureGit();
       try {
         accessSync(shimPath, constants.X_OK);
         return;
@@ -165,23 +200,3 @@ export function ensureRmShim(
   return shimDir;
 }
 
-function seedFileIfChanged(filePath: string, content: string, mode?: number): void {
-  let existing: string | undefined;
-  try {
-    existing = readFileSync(filePath, 'utf8');
-  } catch {
-    existing = undefined;
-  }
-  if (existing !== content) {
-    writeFileSync(filePath, content, mode === undefined ? undefined : { mode });
-  }
-  if (mode !== undefined) {
-    // Repair the execute bit even when the content already matched: a shim that
-    // is present but not executable would make bash fall through to /bin/rm.
-    try {
-      chmodSync(filePath, mode);
-    } catch {
-      // Best effort — a read-only dataDir surfaces at spawn time instead.
-    }
-  }
-}

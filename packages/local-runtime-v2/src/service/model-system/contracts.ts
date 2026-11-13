@@ -120,6 +120,8 @@ export interface LocalRuntimeConfig {
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'auto' | 'off';
   dataDir: string;
   beta?: LocalBetaConfig;
+  /** The commit / pull request attribution lines — see `AttributionConfig`. */
+  attribution?: Config['attribution'];
 }
 
 /** Conversation-owned read model of the process config. */

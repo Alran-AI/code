@@ -4,6 +4,7 @@ export {
   isTaskDeliverySuppressed,
   type UserStopCascade,
 } from "./background-task/index.js";
+export { ensureGitShim, resolveGitShimDir } from "./infra/ensure-git-shim.js";
 export {
   ensureRmShim,
   resolveAgentBashEnvPolicy,

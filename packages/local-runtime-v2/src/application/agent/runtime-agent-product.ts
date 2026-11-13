@@ -1,5 +1,6 @@
 import type { InternalTurnPromptReadRegistry } from '@alran/agent-runtime';
 
+import { createAttributionReminder } from './attribution-reminder.js';
 import { createV2AgentExecutionSource } from './execution-source.js';
 import { createV2AgentProfileSource } from './profile-source.js';
 import type { SessionAgentDefinition } from '../../service/session-system/index.js';
@@ -64,6 +65,7 @@ export function createRuntimeAgentProduct(
     globalInstructions,
   } = options;
   const baseSkills = baseProduct.preparation.configBuilder.skills;
+  const attributionReminder = createAttributionReminder({ readConfig: modelConfig.read });
   return {
     ...baseProduct,
     toolSources: {
@@ -107,8 +109,16 @@ export function createRuntimeAgentProduct(
               : {}),
           });
           const diagnostic = mergeReminderDiagnostic(base.diagnostic, browser.diagnostic);
+          const attribution = attributionReminder.build({
+            sessionId: input.session.sessionId,
+            agentConfig: input.agentConfig,
+            ...(input.sessionIdInContext ? { sessionIdInContext: true } : {}),
+          });
           return {
-            content: combineSystemReminderContent(base.content, browser.content),
+            content: combineSystemReminderContent(
+              combineSystemReminderContent(base.content, browser.content),
+              attribution,
+            ),
             ...diagnostic,
             ...(base.finalizeTelemetry ? { finalizeTelemetry: base.finalizeTelemetry } : {}),
           };

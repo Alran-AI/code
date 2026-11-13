@@ -22,6 +22,7 @@ import {
 } from "@alran/agent-tools/desktop";
 import { MatrixWebSearchToolDef } from "@alran/agent-tools";
 import {
+  commitTrailerFor,
   getConfig,
   resolveAgentCapabilities,
   type AgentBuiltinMcpToolId,
@@ -209,7 +210,12 @@ export function buildLocalNativeRuntimeTools(input: {
           process.platform,
           plan?.nativeDelete ??
             (input.configGetter ?? getConfig)().permission?.nativeDelete === true,
+          plan?.commitTrailer,
         ),
+      // The Co-Authored-By line of a `git commit` this turn runs: the turn's model, unless the
+      // user switched commit attribution off. Asked for every Bash call, with the call's turn.
+      commitTrailerFor: (ctx) =>
+        commitTrailerFor(ctx.parentAgentConfig?.model, (input.configGetter ?? getConfig)().attribution),
       webFetchAdapter,
       webSearchAdapter,
       taskAdapter: input.taskAdapter,

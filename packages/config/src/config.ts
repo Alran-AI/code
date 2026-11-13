@@ -785,6 +785,8 @@ function isInsideBuild(env: NodeJS.ProcessEnv = process.env): boolean {
 }
 
 export type { AskUserConfig } from "./ask-user-config.js";
+import { ATTRIBUTION_DEFAULTS, parseAttributionConfig, type AttributionConfig } from "./attribution.js";
+export type { AttributionConfig } from "./attribution.js";
 
 // ── Session Title Generation ──────────────────────────────────────
 
@@ -1031,6 +1033,8 @@ export interface Config {
   askUser: AskUserConfig;
   /** Session title auto-generation feature flag — see `SessionTitleConfig`. */
   sessionTitle: SessionTitleConfig;
+  /** The "made with Alran Code" lines on commits and pull requests — see `AttributionConfig`. */
+  attribution: AttributionConfig;
   /** Post-turn next-user-prompt suggestion — see `PromptSuggestionConfig`. */
   promptSuggestion: PromptSuggestionConfig;
   /** CLI feature flags. */
@@ -1802,6 +1806,8 @@ const DEFAULTS: Omit<
     // Default ON. See `SessionTitleConfig`.
     enabled: true,
   },
+  // Default ON for both lines. See `AttributionConfig`.
+  attribution: { ...ATTRIBUTION_DEFAULTS },
   promptSuggestion: {
     // Unset: the effective default is resolved with the remote policy.
   },
@@ -2177,6 +2183,7 @@ export function resolveConfigFromRaw(
     skills: parseSkillsConfig(raw),
     askUser: parseAskUserConfig(raw, DEFAULTS.askUser),
     sessionTitle: parseSessionTitleConfig(raw),
+    attribution: parseAttributionConfig(raw),
     promptSuggestion: parsePromptSuggestionConfig(raw),
     cli: parseCliConfig(raw),
     browser: parseBrowserConfig(raw.browser),

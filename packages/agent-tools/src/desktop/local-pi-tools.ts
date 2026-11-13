@@ -64,6 +64,7 @@ import {
 import {
   copyWithPermissionExecutionPlan,
   readPermissionExecutionPlan,
+  withCommitTrailer,
   resolvePermissionBashEnvPolicy,
   type LocalBashEnvPolicySource,
 } from './permission-execution.js';
@@ -676,6 +677,11 @@ export class LocalBashTool implements ToolImpl<
     envPolicy: LocalBashEnvPolicySource,
     private readonly hostTrashRuntime?: LocalHostTrashRuntime,
     private readonly sandboxOperationsFactory?: LocalSandboxBashOperationsFactory,
+    /**
+     * The `Co-Authored-By` line a `git commit` of this call carries, from the turn's model and the
+     * user's attribution setting; `undefined` for none. It rides on the execution plan to the spawn.
+     */
+    private readonly commitTrailerFor?: (ctx: LocalRuntimeToolContext) => string | undefined,
   ) {
     this.envPolicy = envPolicy;
   }
@@ -713,13 +719,11 @@ export class LocalBashTool implements ToolImpl<
       });
     }
     try {
+      const plan = withCommitTrailer(readPermissionExecutionPlan(input), this.commitTrailerFor?.(ctx));
       const result = await this.executeValidated(
         ctx,
-        readPermissionExecutionPlan(input)
-          ? copyWithPermissionExecutionPlan(
-              { ...input, description },
-              readPermissionExecutionPlan(input),
-            )
+        plan
+          ? copyWithPermissionExecutionPlan({ ...input, description }, plan)
           : { ...input, description },
         timing,
         signal,

@@ -135,6 +135,7 @@ async function createLocalRuntimeHostV2Internal(
         options.dataDir,
         process.platform,
         plan?.nativeDelete ?? getConfig()?.permission?.nativeDelete === true,
+        plan?.commitTrailer,
       ),
   );
   const agentTelemetry = createDeferredAgentRuntimeTelemetry();

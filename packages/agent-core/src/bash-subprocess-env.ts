@@ -47,6 +47,12 @@ export interface BashEnvPolicy {
   /** Absolute runtime-managed directories to remove from inherited PATH. */
   removePath?: readonly string[];
   /**
+   * Variables the host sets for this spawn, after both layers ran (so neither can strip them). The
+   * desktop runtime uses it to tell its `git` shim which trailer a commit of this turn carries.
+   * Values are the host's own text, never the model's.
+   */
+  extraEnv?: Readonly<Record<string, string>>;
+  /**
    * Host-injected gate that runs before every bash subprocess launch; throwing
    * blocks the spawn. The desktop runtime uses it to verify — and re-seed when
    * possible — the recoverable-delete `rm` shim, so a lost shim fails the
@@ -190,6 +196,7 @@ export function resolveBashEnvPolicy(
     ...(overrides?.allowlist ? { allowlist: overrides.allowlist } : {}),
     ...(overrides?.prependPath ? { prependPath: overrides.prependPath } : {}),
     ...(overrides?.removePath ? { removePath: overrides.removePath } : {}),
+    ...(overrides?.extraEnv ? { extraEnv: overrides.extraEnv } : {}),
     ...(overrides?.spawnPreflight ? { spawnPreflight: overrides.spawnPreflight } : {}),
   };
 }
@@ -228,6 +235,7 @@ export function sanitizeBashSubprocessEnv(
   removed.sort();
   removePathEntries(out, policy.removePath);
   applyPathPrefix(out, policy.prependPath);
+  for (const [name, value] of Object.entries(policy.extraEnv ?? {})) out[name] = value;
   return { env: out, removed };
 }
 

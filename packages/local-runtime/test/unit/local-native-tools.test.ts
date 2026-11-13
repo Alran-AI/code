@@ -55,7 +55,9 @@ describe('local native turn tools', () => {
       expect(environments[0]!.PATH?.split(delimiter)).toContain(shim);
       expect(environments[1]!.PATH?.split(delimiter)).not.toContain(shim);
       expect(environments[2]!.PATH).toBe(environments[0]!.PATH);
-      expect(configGetter).toHaveBeenCalledTimes(3);
+      // Read live, per call, and never when the tool is built: once for the delete policy and once for
+      // the commit-attribution setting.
+      expect(configGetter).toHaveBeenCalledTimes(6);
     } finally {
       vi.unstubAllEnvs();
       await rm(dataDir, { recursive: true, force: true });

@@ -67,6 +67,7 @@ import {
 import { createLocalFileApiGitChangesCoordinator } from "../files/api.js";
 import { LocalHookService } from "../hooks/api.js";
 import { ensureBinInProcessPath } from "../infra/ensure-bin-in-path.js";
+import { ensureGitShim } from "../infra/ensure-git-shim.js";
 import { ensureRmShim } from "../infra/ensure-rm-shim.js";
 import {
   ensureTrashScript,
@@ -528,6 +529,8 @@ export class LocalRuntimeApiHost {
       // Keep explicit alran-trash available in either mode.
       ensureTrashScript(runtimeDataDir);
       if (!nativeDelete) ensureRmShim(runtimeDataDir);
+      // The commit-attribution `git` shim is independent of the delete mode.
+      ensureGitShim(runtimeDataDir);
     } catch (error) {
       const nodeError =
         error instanceof Error ? (error as NodeJS.ErrnoException) : undefined;

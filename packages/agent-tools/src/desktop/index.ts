@@ -41,6 +41,7 @@ import type {
   LocalAlranMcpAdapter,
   LocalAlranSessionAdapter,
   LocalSandboxBashOperationsFactory,
+  LocalRuntimeToolContext,
 } from './types.js';
 
 export * from './builtin-defs.js';
@@ -108,6 +109,8 @@ export interface LocalToolRegistryDeps {
    * design/tools-optimize/bash-tool-optimization.md.
    */
   bashEnvPolicy: LocalBashEnvPolicySource;
+  /** The `Co-Authored-By` line a `git commit` of a Bash call carries; see `LocalBashTool`. */
+  commitTrailerFor?: (ctx: LocalRuntimeToolContext) => string | undefined;
   webFetchAdapter?: LocalWebFetchAdapter;
   webSearchAdapter?: LocalWebSearchAdapter;
   taskAdapter?: LocalTaskAdapter;
@@ -134,6 +137,7 @@ export function buildLocalToolRegistry(deps: LocalToolRegistryDeps): Map<string,
         deps.bashEnvPolicy,
         deps.hostTrashRuntime,
         deps.sandboxOperationsFactory,
+        deps.commitTrailerFor,
       ),
     ),
     toRuntimeTool(new LocalGrepTool(deps.workspaceRoot)),
