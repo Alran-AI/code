@@ -28,7 +28,7 @@ Inside the TUI, `/plugin` opens the Store and `/skills library` opens it on the 
 | View | Shows |
 | --- | --- |
 | **Plugins** | Every Plugin the stores offer, with its state |
-| **Skill Library** | Every Skill the stores offer, grouped by their store's own groups |
+| **Skill Library** | Every Skill the stores offer, grouped by their store's own groups, and the Skills that ship with Alran Code (group *Built in*, always available, not installable or removable) |
 | **Installed** | What is installed: from a store, from a folder, or from the Runtime registry |
 | **Stores** | Each store, how many packages it lists, and why it could not be read if it could not |
 
@@ -64,7 +64,7 @@ that only holds Skills installs at once.
 | `alran plugin marketplace list` | The stores and the local Plugin folder |
 | `alran plugin marketplace add <url> [--name n]` | Add a store |
 | `alran plugin marketplace remove <name>` | Remove a store you added |
-| `alran skills list [--installed]` | The Library, by group |
+| `alran skills list [--installed]` | The Library, by group (built-in Skills included; `--installed` leaves them out) |
 | `alran skills search\|info\|install\|update\|remove …` | The same verbs for Skills |
 
 `--json` prints a document for scripts, and `--refresh` on `search` ignores the cache. When a name is
@@ -143,9 +143,12 @@ node tools/store/build-store.mjs --source <skills-repo> --check    # exit 1 if t
 ```
 
 It reads `<skills-repo>/store/store.config.json` (`alran.store.build/v1`): the store's name, Skills to
-leave out and their reasons, titles and group names, and the Plugins. A Plugin is either a **bundle**,
-a list of Skills (`skills`) or whole library groups (`packages`) assembled into a package, or a ready
-package directory (`directory`). Every assembled Plugin passes the public Plugin validator before it is
+leave out and their reasons, titles, group names and versions, and the Plugins. A Plugin is either a **bundle**,
+a list of Skills (`skills`) or whole library groups (`packages`) assembled into a package (plus `directories`
+and `files` that the package needs, such as checklists its Skills link to), or a ready package directory
+(`directory`). `skills.pluginOnly` keeps Skills out of the Library when they only work inside their Plugin, and
+`skills.versions` gives every Skill of a group one version (for example `<commit date>+<short commit>` for a
+vendored group). Every assembled Plugin passes the public Plugin validator before it is
 archived. The output is a pure function of the inputs, so the same repository always gives the same
 bytes and `--check` can gate a CI run. Publish the resulting folder on any static host. Whoever publishes a
 store is responsible for the licence of every Skill and Plugin in it.

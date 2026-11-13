@@ -103,6 +103,7 @@ export function readSkills(sourceRoot, options = {}) {
   const exclude = new Set(options.exclude ?? []);
   const titles = options.titles ?? {};
   const groups = options.groups ?? {};
+  const versions = options.versions ?? {};
   const problems = [];
   const candidates = [];
   const catalogPath = join(sourceRoot, "catalog.json");
@@ -149,11 +150,17 @@ export function readSkills(sourceRoot, options = {}) {
       continue;
     }
     const declared = front.get("version");
+    // A version the config names for the whole group wins: a vendored group has one upstream commit.
+    const version = versions[candidate.package] ?? (declared && SEMVER.test(declared) ? declared : "1.0.0");
+    if (!SEMVER.test(version)) {
+      problems.push(`${candidate.name}: version "${version}" is not SemVer`);
+      continue;
+    }
     skills.push({
       name: candidate.name,
       title: titles[candidate.name] ?? (candidate.title && candidate.title !== titleCase(candidate.name) ? candidate.title : titleCase(candidate.name)),
       description: front.get("description").replace(/\s+/gu, " ").trim(),
-      version: declared && SEMVER.test(declared) ? declared : "1.0.0",
+      version,
       group: groups[candidate.package] ?? titleCase(candidate.package),
       package: candidate.package,
       license: front.get("license") || undefined,

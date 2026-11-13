@@ -149,6 +149,7 @@ describe('store builder', () => {
     mkdirSync(data);
     const app = new AlranStoreApplication({
       dataDir: data,
+      bundledSkills: async () => [],
       environment: { ALRAN_STORE_URL: pathToFileURL(path.join(out, 'index.json')).toString() },
     });
     const catalog = await app.catalog();
@@ -178,6 +179,61 @@ describe('store builder', () => {
   ])('refuses %s', (_label, override, message) => {
     write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config(override)));
     expect(buildError()).toMatch(message);
+  });
+
+  describe('shared files, plugin-only Skills and group versions', () => {
+    const skillsConfig = (extra: Record<string, unknown>) => ({
+      exclude: [{ name: 'ref-alpha', reason: 'wrapper' }],
+      groups: { one: 'Group One' },
+      ...extra,
+    });
+
+    it('keeps plugin-only Skills out of the Library but inside their Plugin', () => {
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ skills: skillsConfig({ pluginOnly: ['one'] }) })));
+      const { files } = build();
+      const index = JSON.parse(files.get('index.json')?.toString('utf8') ?? '{}');
+      expect(index.skills.map((entry: { name: string }) => entry.name)).toEqual(['gamma']);
+      expect([...files.keys()].some((name) => name.includes('skill-alpha'))).toBe(false);
+      const plugin = parsePluginArchive(files.get('archives/plugin-bundle-one-1.0.0.zip') as Buffer);
+      expect(plugin.entries.map((entry) => entry.path)).toContain('skills/alpha/SKILL.md');
+      expect(plugin.entries.map((entry) => entry.path)).toContain('skills/beta/SKILL.md');
+    });
+
+    it('copies shared directories and files into the Plugin at the paths its Skills link to', () => {
+      write(path.join(source, 'shared', 'checklists', 'security.md'), 'check');
+      write(path.join(source, 'shared', 'LICENSE.txt'), 'licence text');
+      const plugin = {
+        ...config().plugins[0],
+        directories: [{ from: 'shared/checklists', to: 'references' }],
+        files: [{ from: 'shared/LICENSE.txt', to: 'LICENSE.txt' }],
+      };
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ plugins: [plugin] })));
+      const archive = parsePluginArchive(build().files.get('archives/plugin-bundle-one-1.0.0.zip') as Buffer);
+      const paths = archive.entries.map((entry) => entry.path);
+      expect(paths).toContain('references/security.md');
+      expect(paths).toContain('LICENSE.txt');
+      expect(archive.entries.find((entry) => entry.path === 'references/security.md')?.content.toString()).toBe('check');
+    });
+
+    it('refuses a missing shared directory or file and a path that collides', () => {
+      const base = config().plugins[0];
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ plugins: [{ ...base, directories: [{ from: 'nope', to: 'references' }] }] })));
+      expect(buildError()).toMatch(/directory "nope" does not exist/u);
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ plugins: [{ ...base, files: [{ from: 'nope.txt', to: 'x.txt' }] }] })));
+      expect(buildError()).toMatch(/file "nope.txt" does not exist/u);
+      write(path.join(source, 'shared', 'a.md'), 'a');
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ plugins: [{ ...base, directories: [{ from: 'shared', to: 'skills/alpha' }, { from: 'shared', to: 'skills/alpha' }] }] })));
+      expect(buildError()).toMatch(/is listed twice/u);
+    });
+
+    it('lets the config set one version for every Skill of a group', () => {
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ skills: skillsConfig({ versions: { one: '2026.11.13+abc1234' } }) })));
+      const index = JSON.parse(build().files.get('index.json')?.toString('utf8') ?? '{}');
+      const versions = Object.fromEntries(index.skills.map((entry: { name: string; version: string }) => [entry.name, entry.version]));
+      expect(versions).toEqual({ alpha: '2026.11.13+abc1234', beta: '2026.11.13+abc1234', gamma: '1.0.0' });
+      write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ skills: skillsConfig({ versions: { one: 'latest' } }) })));
+      expect(buildError()).toMatch(/version "latest" is not SemVer/u);
+    });
   });
 
   it('refuses a Skill whose SKILL.md names another skill or has no description', () => {

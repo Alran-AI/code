@@ -26,6 +26,7 @@ const fakeRuntime = (seed: AlranPluginView[] = []) => createFakeRuntime(data, se
 function application(storeUrl: string, runtime = fakeRuntime(), environment: NodeJS.ProcessEnv = {}) {
   return new AlranStoreApplication({
     dataDir: data,
+    bundledSkills: async () => [],
     plugins: runtime.access,
     environment: { ALRAN_STORE_URL: storeUrl, ...environment },
   });
@@ -80,7 +81,7 @@ describe('AlranStoreApplication', () => {
     const environment = { ALRAN_STORE_URL: store.url };
     const withRuntime = application(store.url);
     await withRuntime.commit(await withRuntime.stage(item(await withRuntime.catalog(), 'plugin:p@ottili')), { consent: false });
-    const alone = new AlranStoreApplication({ dataDir: data, environment });
+    const alone = new AlranStoreApplication({ dataDir: data, bundledSkills: async () => [], environment });
     expect(item(await alone.catalog(), 'plugin:p@ottili')).toMatchObject({ installed: true, enabled: true });
   });
 

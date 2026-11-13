@@ -80,7 +80,7 @@ function materialize(files, directory) {
 }
 
 /** Assembles a bundle definition into the files of a Plugin package. */
-function assembleBundle(definition, skillsByName, skillsByPackage, configDirectory) {
+function assembleBundle(definition, skillsByName, skillsByPackage, configDirectory, sourceRoot) {
   const names = new Set(definition.skills ?? []);
   for (const pkg of definition.packages ?? []) {
     const members = skillsByPackage.get(pkg);
@@ -94,6 +94,21 @@ function assembleBundle(definition, skillsByName, skillsByPackage, configDirecto
     const skill = skillsByName.get(name);
     if (!skill) throw fail(`plugin "${definition.name}": Skill "${name}" is not in the library`);
     for (const file of skill.files) files.push({ path: `skills/${name}/${file.path}`, content: file.content });
+  }
+  // Files a package needs beyond its Skills, for example checklists its Skills link to.
+  for (const entry of definition.directories ?? []) {
+    const directory = resolve(sourceRoot, entry.from ?? "");
+    if (!entry.to || !existsSync(directory) || !statSync(directory).isDirectory()) {
+      throw fail(`plugin "${definition.name}": directory "${entry.from}" does not exist in the source`);
+    }
+    for (const file of listTree(directory)) files.push({ path: `${entry.to}/${file.path}`, content: file.content });
+  }
+  for (const entry of definition.files ?? []) {
+    const file = resolve(sourceRoot, entry.from ?? "");
+    if (!entry.to || !existsSync(file) || !statSync(file).isFile()) {
+      throw fail(`plugin "${definition.name}": file "${entry.from}" does not exist in the source`);
+    }
+    files.push({ path: entry.to, content: readFileSync(file) });
   }
   const iconSource = resolve(configDirectory, definition.icon ?? "");
   if (!definition.icon || !existsSync(iconSource)) {
@@ -116,6 +131,11 @@ function assembleBundle(definition, skillsByName, skillsByPackage, configDirecto
     skills: chosen.map((name) => `skills/${name}/SKILL.md`),
   };
   files.push({ path: ".alran-plugin/plugin.json", content: jsonBytes(manifest) });
+  const seen = new Set();
+  for (const file of files) {
+    if (seen.has(file.path)) throw fail(`plugin "${definition.name}": ${file.path} is listed twice`);
+    seen.add(file.path);
+  }
   return { files, manifest };
 }
 
@@ -199,15 +219,19 @@ export function buildStore({ source, config: configPath }) {
     exclude: (config.skills?.exclude ?? []).map((entry) => (typeof entry === "string" ? entry : entry.name)),
     titles: config.skills?.titles,
     groups: config.skills?.groups,
+    versions: config.skills?.versions,
   });
   if (problems.length > 0) throw fail(`The Skills have problems:\n${problems.map((line) => `  ${line}`).join("\n")}`);
   const skillsByName = new Map(skills.map((skill) => [skill.name, skill]));
   const skillsByPackage = new Map();
   for (const skill of skills) skillsByPackage.set(skill.package, [...(skillsByPackage.get(skill.package) ?? []), skill]);
 
+  // Skills that exist only inside Plugins (their files link to shared files the Plugin carries).
+  const pluginOnly = new Set(config.skills?.pluginOnly ?? []);
   const output = new Map();
   const skillEntries = [];
   for (const skill of skills) {
+    if (pluginOnly.has(skill.name) || pluginOnly.has(skill.package)) continue;
     const { bytes, ref } = archiveRef(skill.files, `skill-${skill.name}-${skill.version}.zip`);
     output.set(ref.url, bytes);
     skillEntries.push({
@@ -239,7 +263,7 @@ export function buildStore({ source, config: configPath }) {
         throw fail(`plugin "${definition.name}": its manifest names ${manifest.name}@${manifest.version}`);
       }
     } else {
-      ({ files, manifest } = assembleBundle(definition, skillsByName, skillsByPackage, configDirectory));
+      ({ files, manifest } = assembleBundle(definition, skillsByName, skillsByPackage, configDirectory, sourceRoot));
     }
     validateAssembled(definition, files);
     const { bytes, ref } = archiveRef(files, `plugin-${definition.name}-${definition.version}.zip`);

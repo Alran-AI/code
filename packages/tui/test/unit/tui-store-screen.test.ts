@@ -354,6 +354,38 @@ describe('TuiStoreScreen', () => {
     expect(rendered).not.toContain('Space on/off');
   });
 
+  it('shows built-in Skills in the Library only, and refuses to install or remove them', () => {
+    const builtin = item({
+      kind: 'skill',
+      name: 'pdf',
+      displayName: 'pdf',
+      description: 'Read, create and edit PDF files.',
+      origin: 'built-in',
+      group: 'Built in',
+      installed: true,
+      enabled: true,
+      version: undefined,
+      summary: '',
+      entry: undefined,
+    });
+    const { screen, actions, text } = createScreen({ tab: 'skills', catalog: { items: [builtin], sources: [] } });
+    let rendered = text(100);
+    expect(rendered).toMatch(/\[\*\] pdf\s+Built in · built in/u);
+    expect(rendered).toContain('Built in to Alran Code · always available');
+    // Not "installed by someone": not in the count and not on the Installed tab.
+    expect(rendered).toContain('0 installed');
+    screen.handleInput(ENTER);
+    expect(text(100)).toContain('pdf is built in to Alran Code; there is nothing to install.');
+    screen.handleInput(DELETE);
+    expect(text(100)).toContain('pdf is built in to Alran Code and cannot be removed.');
+    expect(actions.stage).not.toHaveBeenCalled();
+    expect(actions.remove).not.toHaveBeenCalled();
+    screen.handleInput(TAB);
+    rendered = text(100);
+    expect(rendered).toContain('[Installed (0)]');
+    expect(rendered).toContain('Nothing installed yet.');
+  });
+
   it('says how to add a store when none is configured', () => {
     for (const tab of ['plugins', 'skills'] as const) {
       const { text } = createScreen({ tab, catalog: { items: [], sources: [] } });

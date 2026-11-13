@@ -1,5 +1,5 @@
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
-import type { StoreCatalog, StoreItem } from '../../../store/application.js';
+import { isBuiltIn, type StoreCatalog, type StoreItem } from '../../../store/application.js';
 import type { StoreSourceStatus } from '../../../store/contract.js';
 import { itemMarker, searchItems } from '../../../store/format.js';
 import type { StagedInstall } from '../../../store/installer.js';
@@ -123,7 +123,10 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
       (matchesKey(data, 'delete') || matchesKey(data, 'ctrl+d'))
     ) {
       const item = this.selected();
-      if (item?.installed) void this.remove(item);
+      if (item && isBuiltIn(item)) {
+        this.status = `${item.displayName} is built in to Alran Code and cannot be removed.`;
+        this.requestRender();
+      } else if (item?.installed) void this.remove(item);
       return;
     }
     if (matchesKey(data, 'ctrl+r')) {
@@ -268,7 +271,8 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
       return all.filter((item) => item.kind === 'plugin' && (item.entry !== undefined || item.origin === 'official'));
     }
     if (tab === 'skills') return all.filter((item) => item.kind === 'skill');
-    if (tab === 'installed') return all.filter((item) => item.installed);
+    // Built-in Skills ship with Alran Code; they are in the Library, not among what someone installed.
+    if (tab === 'installed') return all.filter((item) => item.installed && !isBuiltIn(item));
     return [];
   }
 
@@ -309,6 +313,11 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
   // ----------------------------------------------------------------- actions
 
   private async install(item: StoreItem): Promise<void> {
+    if (isBuiltIn(item)) {
+      this.status = `${item.displayName} is built in to Alran Code; there is nothing to install.`;
+      this.requestRender();
+      return;
+    }
     if (item.conflict) {
       this.status = `${item.displayName}: a ${item.kind} with this name is already installed outside the Store; it is left alone.`;
       this.requestRender();
@@ -424,6 +433,7 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
 // ------------------------------------------------------------------- rows
 
 function rowState(item: StoreItem): string {
+  if (isBuiltIn(item)) return 'built in';
   if (item.conflict) return 'local copy';
   if (!item.installed) return '';
   if (item.updateAvailable) return 'update ↑';
@@ -479,7 +489,7 @@ function itemDetail(item: StoreItem | undefined, width: number): string[] {
     item.author ? `by ${clean(item.author)}` : '',
     clean(item.group ?? ''),
     clean(item.license ?? ''),
-    item.origin === 'ottili' ? '' : `from ${item.origin}`,
+    item.origin === 'ottili' || isBuiltIn(item) ? '' : `from ${item.origin}`,
   ].filter(Boolean);
   const lines = [
     `${chalk.bold.hex(colors.text)(clean(item.displayName))}${facts.length ? chalk.hex(colors.muted)(`  ${facts.join(' · ')}`) : ''}`,
@@ -500,6 +510,7 @@ function itemDetail(item: StoreItem | undefined, width: number): string[] {
 }
 
 function actionLine(item: StoreItem): string {
+  if (isBuiltIn(item)) return chalk.hex(colors.muted)('Built in to Alran Code · always available');
   if (item.conflict) {
     return chalk.hex(colors.warning)(`A ${item.kind} with this name is installed outside the Store; the Store leaves it alone.`);
   }

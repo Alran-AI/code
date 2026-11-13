@@ -1,4 +1,4 @@
-import type { AlranStoreApplication, StoreCatalog, StoreItem } from '../store/application.js';
+import { isBuiltIn, type AlranStoreApplication, type StoreCatalog, type StoreItem } from '../store/application.js';
 import { StoreError, type StoreEntryKind } from '../store/contract.js';
 import {
   formatConsent,
@@ -82,7 +82,8 @@ export async function listItems(
   options: { readonly installed?: boolean; readonly json?: boolean },
 ): Promise<string> {
   const catalog = await host.store.catalog({ offline: options.installed === true });
-  const items = ofKind(catalog, kind).filter((item) => !options.installed || item.installed);
+  // A built-in Skill is not "installed" by anyone: it only appears in the full library.
+  const items = ofKind(catalog, kind).filter((item) => !options.installed || (item.installed && !isBuiltIn(item)));
   if (options.json) {
     return JSON.stringify(
       { items: items.map(toCliItem), ...(sourceNotes(catalog).length ? { notes: sourceNotes(catalog) } : {}) },
@@ -174,6 +175,11 @@ export async function installItem(
 ): Promise<string> {
   const catalog = await host.store.catalog();
   const item = host.store.resolve(catalog, kind, selector);
+  if (isBuiltIn(item)) {
+    return options.json
+      ? JSON.stringify({ ...toCliItem(item), changed: false }, null, 2)
+      : `${WORD[kind]} ${item.name} is built in to Alran Code; there is nothing to install.`;
+  }
   if (item.installed && !item.updateAvailable) {
     return options.json
       ? JSON.stringify({ ...toCliItem(item), changed: false }, null, 2)
@@ -250,6 +256,9 @@ export async function removeItem(
       throw new StoreError('NOT_FOUND', `${WORD[kind]} ${selector} is not installed.`);
     }
     throw error;
+  }
+  if (isBuiltIn(item)) {
+    throw new StoreError('INSTALL_FAILED', `${WORD[kind]} ${item.name} is built in to Alran Code and cannot be removed.`);
   }
   if (!item.installed) throw new StoreError('NOT_FOUND', `${WORD[kind]} ${itemSelector(item)} is not installed.`);
   const warnings = await host.store.remove(item);

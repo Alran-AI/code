@@ -232,7 +232,7 @@ alran plugin marketplace list
 
 Name a package `<name>@<store>` when several stores offer it. `--json` is supported by the list, search, info and mutation commands, and `--yes` approves a Plugin that runs commands when nobody can be asked.
 
-Skills have their own commands (`alran skills search|info|install|update|remove`) and live in the **Skill Library** view; `/skills library` opens it directly.
+Skills have their own commands (`alran skills search|info|install|update|remove`) and live in the **Skill Library** view; `/skills library` opens it directly. The Skills that ship with Alran Code appear there too, as *built in*.
 
 For a local plugin, run `alran plugin marketplace list` to find the active profile's local directory. Place a supported plugin package in a direct child directory there, with its manifest at the package's expected location, then refresh `/plugin`. Copy the individual plugin package, not an entire marketplace repository. Discovered local packages already count as installed:
 

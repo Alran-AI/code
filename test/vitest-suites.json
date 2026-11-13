@@ -40,6 +40,7 @@
       "packages/tui/test/unit/store-installer.test.ts",
       "packages/tui/test/unit/store-application.test.ts",
       "packages/tui/test/unit/store-builder.test.ts",
+      "packages/tui/test/unit/store-bundled-skills.test.ts",
       "packages/tui/test/unit/store-cli.test.ts",
       "packages/tui/test/unit/tui-welcome-design.test.ts",
       "packages/tui/test/unit/tui-welcome-layouts.test.ts",

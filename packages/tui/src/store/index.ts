@@ -1,4 +1,4 @@
-export { AlranStoreApplication } from './application.js';
+export { AlranStoreApplication, BUILT_IN_ORIGIN, isBuiltIn } from './application.js';
 export type {
   InstallOutcome,
   StoreApplicationOptions,

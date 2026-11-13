@@ -111,6 +111,7 @@ function createHarness(
   const transcript = new TranscriptStore();
   const store = new AlranStoreApplication({
     dataDir,
+    bundledSkills: async () => [],
     plugins: runtime as never,
     environment: {
       ALRAN_STORE_URL: path.join(dataDir, "no-such-store"),

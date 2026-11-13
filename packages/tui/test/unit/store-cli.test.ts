@@ -40,6 +40,7 @@ function hostFor(access?: ReturnType<typeof createFakeRuntime>['access'], answer
   const questions: string[] = [];
   const store = new AlranStoreApplication({
     dataDir: data,
+    bundledSkills: async () => [],
     ...(access ? { plugins: access } : {}),
     environment: { ALRAN_STORE_URL: storeUrl },
   });
@@ -257,6 +258,7 @@ describe('commands about what is installed stay off the network', () => {
     const requests: string[] = [];
     const store = new AlranStoreApplication({
       dataDir: data,
+      bundledSkills: async () => [],
       plugins: runtime.access,
       environment: { ALRAN_STORE_URL: 'https://store.example/alran' },
       transport: {
@@ -305,7 +307,7 @@ describe('commands about what is installed stay off the network', () => {
 
 describe('without any store', () => {
   function bareHost() {
-    const store = new AlranStoreApplication({ dataDir: data, environment: {} });
+    const store = new AlranStoreApplication({ dataDir: data, bundledSkills: async () => [], environment: {} });
     const host: StoreCliHost = { store, notify: () => undefined, confirm: async () => undefined };
     return host;
   }

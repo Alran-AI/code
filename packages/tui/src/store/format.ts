@@ -1,4 +1,4 @@
-import type { StoreItem } from './application.js';
+import { isBuiltIn, type StoreItem } from './application.js';
 import type { PluginInspection, SkillInspection } from './inspect.js';
 
 /** `[*]` on, `[-]` installed but off, `[ ]` not installed, `[!]` the name is taken by something else. */
@@ -9,6 +9,7 @@ export function itemMarker(item: StoreItem): string {
 }
 
 export function itemState(item: StoreItem): string {
+  if (isBuiltIn(item)) return 'built in';
   if (item.conflict) return 'installed outside the Store';
   if (!item.installed) return 'available';
   if (item.updateAvailable) return `update available (${item.installedVersion ?? '?'} → ${item.version ?? '?'})`;
@@ -18,7 +19,7 @@ export function itemState(item: StoreItem): string {
 
 /** The name as typed to select it: `name`, or `name@origin` when the origin is not the default. */
 export function itemSelector(item: StoreItem): string {
-  return item.origin === 'ottili' ? item.name : `${item.name}@${item.origin}`;
+  return item.origin === 'ottili' || isBuiltIn(item) ? item.name : `${item.name}@${item.origin}`;
 }
 
 /** Breaks `text` at spaces into lines of at most `width` columns, each starting with `indent`. */

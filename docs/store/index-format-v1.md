@@ -103,7 +103,9 @@ or an entry that breaks a rule is refused with the path of the offending field.
   "name": "Example Store",
   "skills": {
     "exclude": [{ "name": "internal-skill", "reason": "Not for people." }],
+    "pluginOnly": ["shared-checklist-skills"],
     "groups": { "code": "Code" },
+    "versions": { "code": "2026.11.1+301b02b" },
     "titles": { "review-changes": "Review Changes" }
   },
   "plugins": [
@@ -116,6 +118,8 @@ or an entry that breaks a rule is refused with the path of the offending field.
       "category": "Code",
       "icon": "icons/plugin.png",
       "packages": ["code"],
+      "directories": [{ "from": "shared/code/references", "to": "references" }],
+      "files": [{ "from": "shared/code/LICENSE.txt", "to": "LICENSE.txt" }],
       "exampleQueries": ["…"]
     }
   ]
@@ -123,6 +127,10 @@ or an entry that breaks a rule is refused with the path of the offending field.
 ```
 
 A bundle names its Skills in `skills` (by name), `packages` (every Skill of a library group), or both.
+`directories` and `files` (paths relative to the source repository) are copied into the package; a Skill that
+links to shared files outside its own folder works only if the Plugin carries them at the path it expects.
+`skills.pluginOnly` lists Skills or groups that are packaged but not offered on their own, and
+`skills.versions` maps a group to the version of all its Skills (SemVer, so no zero padding in dates).
 `icon` is a PNG, JPEG or WebP path relative to the config. `directory` instead of `skills`/`packages`
 points at a ready Plugin package folder. The builder refuses a Skill whose frontmatter does not match
 its folder, a file name a portable archive cannot hold, a bundle that names a Skill the library does not

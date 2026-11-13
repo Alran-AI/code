@@ -11,14 +11,25 @@ import {
   type StoreSourceStatus,
 } from './contract.js';
 import { pathExists, readTextIfExists } from './fs-util.js';
+import { locateBundledSkillsDirectory, readBundledSkills, type BundledSkill } from './bundled-skills.js';
 import { readSkillFrontmatter } from './inspect.js';
 import { StoreInstaller, type StagedInstall } from './installer.js';
 import { StoreIndexLoader } from './loader.js';
 import { StoreSourceRegistry } from './sources.js';
 import { createStoreTransport, type StoreTransport } from './transport.js';
 
-/** Where a Plugin or Skill comes from: a store's id, `local` (a folder) or `official` (registry). */
+/**
+ * Where a Plugin or Skill comes from: a store's id, `local` (a folder), `official` (registry) or
+ * `built-in` (a Skill that ships inside Alran Code).
+ */
 export type StoreOrigin = string;
+
+export const BUILT_IN_ORIGIN = 'built-in';
+
+/** A Skill that ships with Alran Code: always there, not installed by anyone, not removable. */
+export function isBuiltIn(item: Pick<StoreItem, 'origin'>): boolean {
+  return item.origin === BUILT_IN_ORIGIN;
+}
 
 export interface StoreItem {
   readonly id: string;
@@ -63,6 +74,11 @@ export interface StoreApplicationOptions {
   /** The Runtime's Plugin access. Without it only Skills and the Store's own records are shown. */
   readonly plugins?: PluginAccess;
   readonly transport?: StoreTransport;
+  /**
+   * The Skills that ship inside Alran Code, shown in the Library as built in. By default they are read
+   * from the bundled Skills folder next to the CLI (or the source tree); pass `() => []` for none.
+   */
+  readonly bundledSkills?: () => Promise<readonly BundledSkill[]>;
   readonly environment?: NodeJS.ProcessEnv;
   readonly now?: () => number;
   readonly freshForMs?: number;
@@ -80,6 +96,8 @@ export class AlranStoreApplication {
   private readonly installer: StoreInstaller;
   private readonly plugins: PluginAccess | undefined;
   private readonly environment: NodeJS.ProcessEnv;
+  private readonly bundledSkills: () => Promise<readonly BundledSkill[]>;
+  private bundledSkillsCache: Promise<readonly BundledSkill[]> | undefined;
 
   constructor(private readonly options: StoreApplicationOptions) {
     const transport = options.transport ?? createStoreTransport();
@@ -93,6 +111,12 @@ export class AlranStoreApplication {
     });
     this.installer = new StoreInstaller({ dataDir: options.dataDir, transport });
     this.plugins = options.plugins;
+    this.bundledSkills =
+      options.bundledSkills ??
+      (async () => {
+        const directory = locateBundledSkillsDirectory(import.meta.url);
+        return directory ? readBundledSkills(directory) : [];
+      });
   }
 
   /**
@@ -128,6 +152,7 @@ export class AlranStoreApplication {
     }
     items.push(...this.itemsWithoutEntry(items, ledger, installedPlugins, officialPlugins));
     items.push(...(await this.orphanedSkills(items, ledger)));
+    items.push(...(await this.builtInItems(items)));
     return { items, sources: statuses };
   }
 
@@ -175,6 +200,9 @@ export class AlranStoreApplication {
   }
 
   async remove(item: StoreItem): Promise<InstallOutcome['warnings']> {
+    if (isBuiltIn(item)) {
+      throw new StoreError('INSTALL_FAILED', `${item.name} is built in to Alran Code and cannot be removed.`);
+    }
     const warnings: string[] = [];
     if (item.kind === 'skill') {
       await this.installer.remove('skill', item.name);
@@ -338,6 +366,27 @@ export class AlranStoreApplication {
       });
     }
     return result;
+  }
+
+  /** The Skills that ship inside Alran Code, unless a Skill of that name is already listed. */
+  private async builtInItems(existing: readonly StoreItem[]): Promise<StoreItem[]> {
+    this.bundledSkillsCache ??= this.bundledSkills().catch(() => []);
+    const taken = new Set(existing.filter((item) => item.kind === 'skill').map((item) => item.name));
+    return (await this.bundledSkillsCache)
+      .filter((skill) => !taken.has(skill.name))
+      .map((skill) => ({
+        id: `skill:${skill.name}@${BUILT_IN_ORIGIN}`,
+        kind: 'skill' as const,
+        name: skill.name,
+        displayName: skill.name,
+        description: skill.description,
+        group: 'Built in',
+        origin: BUILT_IN_ORIGIN,
+        installed: true,
+        enabled: true,
+        updateAvailable: false,
+        summary: '',
+      }));
   }
 
   /** Skills the ledger knows whose store cannot be read right now. */
