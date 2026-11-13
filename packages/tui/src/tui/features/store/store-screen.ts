@@ -319,7 +319,10 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
       return;
     }
     if (item.conflict) {
-      this.status = `${item.displayName}: a ${item.kind} with this name is already installed outside the Store; it is left alone.`;
+      this.status =
+        item.conflict === 'built-in'
+          ? `${item.displayName}: a Skill with this name is built in to Alran Code; the Store does not replace it.`
+          : `${item.displayName}: a ${item.kind} with this name is already installed outside the Store; it is left alone.`;
       this.requestRender();
       return;
     }
@@ -434,7 +437,7 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
 
 function rowState(item: StoreItem): string {
   if (isBuiltIn(item)) return 'built in';
-  if (item.conflict) return 'local copy';
+  if (item.conflict) return item.conflict === 'built-in' ? 'name taken' : 'local copy';
   if (!item.installed) return '';
   if (item.updateAvailable) return 'update ↑';
   if (item.kind === 'plugin' && !item.enabled) return 'disabled';
@@ -511,6 +514,9 @@ function itemDetail(item: StoreItem | undefined, width: number): string[] {
 
 function actionLine(item: StoreItem): string {
   if (isBuiltIn(item)) return chalk.hex(colors.muted)('Built in to Alran Code · always available');
+  if (item.conflict === 'built-in') {
+    return chalk.hex(colors.warning)('A Skill with this name is built in to Alran Code; the Store does not replace it.');
+  }
   if (item.conflict) {
     return chalk.hex(colors.warning)(`A ${item.kind} with this name is installed outside the Store; the Store leaves it alone.`);
   }

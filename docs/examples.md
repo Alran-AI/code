@@ -220,7 +220,6 @@ The same operations are available from the shell:
 
 ```bash
 alran plugin --help
-alran plugin marketplace add https://plugins.example.com/alran --name acme
 alran plugin search <words>
 alran plugin info <name>
 alran plugin install <name>
@@ -228,6 +227,7 @@ alran plugin update
 alran plugin disable <name>
 alran plugin remove <name>
 alran plugin marketplace list
+alran plugin marketplace add https://plugins.example.com/alran --name acme
 ```
 
 Name a package `<name>@<store>` when several stores offer it. `--json` is supported by the list, search, info and mutation commands, and `--yes` approves a Plugin that runs commands when nobody can be asked.

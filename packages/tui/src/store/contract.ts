@@ -13,11 +13,13 @@ export const STORE_SOURCES_SCHEMA = 'alran.store.sources/v1';
 
 export const DEFAULT_STORE_SOURCE_ID = 'ottili';
 /**
- * Alran Code ships without a catalogue: until Ottili publishes a store of its own there is no
- * default address (set it here then). `ALRAN_STORE_URL` fills the same slot, under the name
- * `ottili`; stores a person adds are separate.
+ * The store Ottili hosts, served by the AI platform next to the model gateway. `ALRAN_STORE_URL`
+ * replaces it (the slot keeps the name `ottili`); `ALRAN_STORE_URL=off` leaves the slot empty.
+ * Stores a person adds are separate.
  */
-export const DEFAULT_STORE_INDEX_URL: string | undefined = undefined;
+export const DEFAULT_STORE_INDEX_URL = 'https://ai.ottili.one/v1/store/index.json';
+/** The value of `ALRAN_STORE_URL` that switches the default store off. */
+export const STORE_URL_OFF = 'off';
 /** Environment variable that replaces the URL of the default store source. */
 export const STORE_URL_ENVIRONMENT_VARIABLE = 'ALRAN_STORE_URL';
 

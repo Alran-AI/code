@@ -231,6 +231,8 @@ describe('store builder', () => {
       const index = JSON.parse(build().files.get('index.json')?.toString('utf8') ?? '{}');
       const versions = Object.fromEntries(index.skills.map((entry: { name: string; version: string }) => [entry.name, entry.version]));
       expect(versions).toEqual({ alpha: '2026.11.13+abc1234', beta: '2026.11.13+abc1234', gamma: '1.0.0' });
+      // The archive file name carries the version without the "+" of its build metadata.
+      expect(index.skills[0].archive.url).toBe('archives/skill-alpha-2026.11.13-abc1234.zip');
       write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ skills: skillsConfig({ versions: { one: 'latest' } }) })));
       expect(buildError()).toMatch(/version "latest" is not SemVer/u);
     });

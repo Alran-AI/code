@@ -386,6 +386,16 @@ describe('TuiStoreScreen', () => {
     expect(rendered).toContain('Nothing installed yet.');
   });
 
+  it('says a store Skill with the name of a built-in one is not installed over it', () => {
+    const clash = item({ kind: 'skill', name: 'pdf', displayName: 'PDF (store)', conflict: 'built-in', group: 'Docs' });
+    const { screen, actions, text } = createScreen({ tab: 'skills', catalog: { items: [clash], sources: [] } });
+    expect(text(100)).toMatch(/\[!\] PDF \(store\).*name taken/u);
+    expect(text(100)).toContain('A Skill with this name is built in to Alran Code; the Store does not replace it.');
+    screen.handleInput(ENTER);
+    expect(text(100)).toContain('a Skill with this name is built in to Alran Code; the Store does not replace it.');
+    expect(actions.stage).not.toHaveBeenCalled();
+  });
+
   it('says how to add a store when none is configured', () => {
     for (const tab of ['plugins', 'skills'] as const) {
       const { text } = createScreen({ tab, catalog: { items: [], sources: [] } });

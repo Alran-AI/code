@@ -79,21 +79,26 @@ describe('bundled Skills', () => {
     expect((await app.catalog({ offline: true })).items.map((item) => item.name).sort()).toEqual(['code-review', 'pdf']);
   });
 
-  it('lets a store Skill of the same name win over the built-in one', async () => {
+  it('never lets a store Skill replace a built-in one of the same name', async () => {
     const store = writeStore(path.join(root, 's'), [{ kind: 'skill', name: 'pdf', files: skillFiles('pdf') }]);
     const app = new AlranStoreApplication({
       dataDir: data,
       environment: { ALRAN_STORE_URL: store.url },
       bundledSkills: async () => readBundledSkills(bundledFolder()),
     });
-    const pdfs = (await app.catalog()).items.filter((item) => item.name === 'pdf');
-    expect(pdfs.map((item) => item.origin)).toEqual(['ottili']);
+    const catalog = await app.catalog();
+    const fromStore = catalog.items.find((item) => item.id === 'skill:pdf@ottili');
+    expect(fromStore).toMatchObject({ installed: false, conflict: 'built-in' });
+    expect(catalog.items.find((item) => item.id === 'skill:pdf@built-in')).toBeDefined();
+    expect(() => app.stage(fromStore as never)).toThrow(/built in to Alran Code; installing this one would replace it/u);
+    // A plain `pdf` means the built-in one: it is the installed copy.
+    expect(app.resolve(catalog, 'skill', 'pdf').origin).toBe('built-in');
   });
 
   it('keeps working when reading the bundled Skills fails', async () => {
     const app = new AlranStoreApplication({
       dataDir: data,
-      environment: {},
+      environment: { ALRAN_STORE_URL: 'off' },
       bundledSkills: async () => {
         throw new Error('disk gone');
       },
@@ -105,7 +110,7 @@ describe('bundled Skills', () => {
 describe('built-in Skills on the command line', () => {
   function host(): StoreCliHost {
     return {
-      store: new AlranStoreApplication({ dataDir: data, environment: {}, bundledSkills: async () => readBundledSkills(bundledFolder()) }),
+      store: new AlranStoreApplication({ dataDir: data, environment: { ALRAN_STORE_URL: 'off' }, bundledSkills: async () => readBundledSkills(bundledFolder()) }),
       notify: () => undefined,
       confirm: async () => undefined,
     };

@@ -50,9 +50,10 @@ export interface StoreItem {
   readonly updateAvailable: boolean;
   /**
    * `local`: something that is not the Store's is already installed under this name, so the Store
-   * will not install or replace it.
+   * will not install or replace it. `built-in`: a Skill that ships with Alran Code has this name and
+   * always wins; installing the store's one would replace it.
    */
-  readonly conflict?: 'local';
+  readonly conflict?: 'local' | 'built-in';
   /** One line on what the package holds, for example `10 skills`. */
   readonly summary: string;
   readonly entry?: StoreEntry;
@@ -144,15 +145,16 @@ export class AlranStoreApplication {
         .filter((plugin) => plugin.marketplace === 'local')
         .map((plugin) => [plugin.name, plugin] as const),
     );
+    const builtInNames = new Set((await this.readBundledSkills()).map((skill) => skill.name));
     for (const status of statuses) {
       if (!status.index) continue;
       for (const entry of [...status.index.plugins, ...status.index.skills]) {
-        items.push(await this.itemFor(entry, status.source, ledger, localByName));
+        items.push(await this.itemFor(entry, status.source, ledger, localByName, builtInNames));
       }
     }
     items.push(...this.itemsWithoutEntry(items, ledger, installedPlugins, officialPlugins));
     items.push(...(await this.orphanedSkills(items, ledger)));
-    items.push(...(await this.builtInItems(items)));
+    items.push(...(await this.builtInItems()));
     return { items, sources: statuses };
   }
 
@@ -182,6 +184,12 @@ export class AlranStoreApplication {
   stage(item: StoreItem, options: { readonly signal?: AbortSignal } = {}): Promise<StagedInstall> {
     if (!item.entry) {
       throw new StoreError('NOT_FOUND', `${item.name} has no store entry to install from.`);
+    }
+    if (item.conflict === 'built-in') {
+      throw new StoreError(
+        'CONFLICT',
+        `A Skill named "${item.name}" is built in to Alran Code; installing this one would replace it, so the Store does not.`,
+      );
     }
     if (item.conflict) {
       throw new StoreError(
@@ -280,6 +288,7 @@ export class AlranStoreApplication {
     source: StoreSource,
     ledger: StoreLedger,
     localByName: ReadonlyMap<string, AlranPluginView>,
+    builtInNames: ReadonlySet<string>,
   ): Promise<StoreItem> {
     const table = entry.kind === 'plugin' ? ledger.plugins : ledger.skills;
     const record = table[entry.name];
@@ -288,7 +297,12 @@ export class AlranStoreApplication {
     const directory = this.installer.installDirectory(entry.kind, entry.name);
     const present = runtimePlugin !== undefined || (await pathExists(directory));
     // Something sits under this name and no store recorded it: it is the person's own.
-    const conflict = present && !record ? ('local' as const) : undefined;
+    const conflict =
+      entry.kind === 'skill' && builtInNames.has(entry.name)
+        ? ('built-in' as const)
+        : present && !record
+          ? ('local' as const)
+          : undefined;
     const installed = owned !== undefined && present;
     const common = {
       id: `${entry.kind}:${entry.name}@${source.id}`,
@@ -368,12 +382,14 @@ export class AlranStoreApplication {
     return result;
   }
 
-  /** The Skills that ship inside Alran Code, unless a Skill of that name is already listed. */
-  private async builtInItems(existing: readonly StoreItem[]): Promise<StoreItem[]> {
+  private readBundledSkills(): Promise<readonly BundledSkill[]> {
     this.bundledSkillsCache ??= this.bundledSkills().catch(() => []);
-    const taken = new Set(existing.filter((item) => item.kind === 'skill').map((item) => item.name));
-    return (await this.bundledSkillsCache)
-      .filter((skill) => !taken.has(skill.name))
+    return this.bundledSkillsCache;
+  }
+
+  /** The Skills that ship inside Alran Code. They always win over a store Skill of the same name. */
+  private async builtInItems(): Promise<StoreItem[]> {
+    return (await this.readBundledSkills())
       .map((skill) => ({
         id: `skill:${skill.name}@${BUILT_IN_ORIGIN}`,
         kind: 'skill' as const,

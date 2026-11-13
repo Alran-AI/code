@@ -194,6 +194,9 @@ function validateAssembled(definition, files) {
   }
 }
 
+/** A version as it appears in a file name: build metadata's "+" is not friendly to every proxy. */
+const inFileName = (version) => version.replaceAll("+", "-");
+
 function archiveRef(files, fileName) {
   const archive = buildArchive(files);
   if (archive.length > MAX_ARCHIVE_BYTES) throw fail(`${fileName} is larger than the 64 MiB archive limit`);
@@ -232,7 +235,7 @@ export function buildStore({ source, config: configPath }) {
   const skillEntries = [];
   for (const skill of skills) {
     if (pluginOnly.has(skill.name) || pluginOnly.has(skill.package)) continue;
-    const { bytes, ref } = archiveRef(skill.files, `skill-${skill.name}-${skill.version}.zip`);
+    const { bytes, ref } = archiveRef(skill.files, `skill-${skill.name}-${inFileName(skill.version)}.zip`);
     output.set(ref.url, bytes);
     skillEntries.push({
       name: skill.name,
@@ -266,7 +269,7 @@ export function buildStore({ source, config: configPath }) {
       ({ files, manifest } = assembleBundle(definition, skillsByName, skillsByPackage, configDirectory, sourceRoot));
     }
     validateAssembled(definition, files);
-    const { bytes, ref } = archiveRef(files, `plugin-${definition.name}-${definition.version}.zip`);
+    const { bytes, ref } = archiveRef(files, `plugin-${definition.name}-${inFileName(definition.version)}.zip`);
     output.set(ref.url, bytes);
     pluginEntries.push({
       name: definition.name,

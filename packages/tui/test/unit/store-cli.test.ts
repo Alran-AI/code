@@ -307,7 +307,7 @@ describe('commands about what is installed stay off the network', () => {
 
 describe('without any store', () => {
   function bareHost() {
-    const store = new AlranStoreApplication({ dataDir: data, bundledSkills: async () => [], environment: {} });
+    const store = new AlranStoreApplication({ dataDir: data, bundledSkills: async () => [], environment: { ALRAN_STORE_URL: 'off' } });
     const host: StoreCliHost = { store, notify: () => undefined, confirm: async () => undefined };
     return host;
   }

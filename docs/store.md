@@ -11,12 +11,12 @@ package archives it lists, and it can be hosted anywhere that serves files.
   already looks for your own Skills.
 
 ```bash
-alran plugin marketplace add <url>  # add a store (there is no built-in one yet)
 alran plugin search <words>         # find a Plugin
 alran plugin info <name>            # what is in it, before you install it
 alran plugin install <name>
 alran skills search <words>         # find a Skill
 alran skills install <name>
+alran plugin marketplace add <url>  # read another store as well
 ```
 
 Inside the TUI, `/plugin` opens the Store and `/skills library` opens it on the Skill Library.
@@ -114,13 +114,17 @@ later step.
 
 ## Stores
 
-Alran Code ships **without a catalogue**: no store is built in yet, so a fresh install shows an empty
-Store and says how to add one. Until Ottili publishes a store of its own, use one you trust:
+Alran Code reads the store Ottili hosts, `https://ai.ottili.one/v1/store/index.json`, served by the AI
+platform (its content comes from open-source projects and platform vendors, unmodified and with their
+licences; the sources are listed in `/v1/store/THIRD_PARTY_NOTICES.md`). It is the store named `ottili`.
 
-- `alran plugin marketplace add <url>` adds a store. A URL that names a directory means
+- `ALRAN_STORE_URL` replaces it (an `https` URL, a `file:` URL or a path); `ALRAN_STORE_URL=off` leaves it out,
+  for a machine that must not make this request.
+- `alran plugin marketplace add <url>` adds further stores. A URL that names a directory means
   `<url>/index.json`; a path to a folder on disk or a mounted share works the same way.
-- `ALRAN_STORE_URL` sets a default store (an `https` URL, a `file:` URL or a path), named `ottili`; unset
-  it to drop it.
+
+Opening the Store, searching and installing contact the store's host (and only that); commands about what is
+installed never do.
 
 A remote index is cached under the data directory: used without a request for ten minutes, then
 revalidated with its ETag, and used as it was when the network is down (the Store says so). A store that
@@ -128,7 +132,7 @@ cannot be read never hides the others.
 
 | Variable | Meaning |
 | --- | --- |
-| `ALRAN_STORE_URL` | Address of the default store (named `ottili`); none when unset |
+| `ALRAN_STORE_URL` | Address of the default store (named `ottili`); `off` switches it off |
 | `ALRAN_PLUGIN_REGISTRY_URL` | A Runtime registry (the older `official` source); only asked when set |
 | `ALRAN_DATA_DIR` | The data directory everything above lives under |
 

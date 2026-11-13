@@ -10,6 +10,7 @@ export {
   DEFAULT_STORE_INDEX_URL,
   DEFAULT_STORE_SOURCE_ID,
   STORE_URL_ENVIRONMENT_VARIABLE,
+  STORE_URL_OFF,
   StoreError,
 } from './contract.js';
 export type {

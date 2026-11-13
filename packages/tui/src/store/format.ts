@@ -10,6 +10,7 @@ export function itemMarker(item: StoreItem): string {
 
 export function itemState(item: StoreItem): string {
   if (isBuiltIn(item)) return 'built in';
+  if (item.conflict === 'built-in') return 'same name as a built-in skill';
   if (item.conflict) return 'installed outside the Store';
   if (!item.installed) return 'available';
   if (item.updateAvailable) return `update available (${item.installedVersion ?? '?'} → ${item.version ?? '?'})`;

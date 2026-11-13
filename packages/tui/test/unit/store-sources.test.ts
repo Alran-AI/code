@@ -66,29 +66,35 @@ describe('store source URLs', () => {
 });
 
 describe('store source registry', () => {
-  it('has no store of its own, and ALRAN_STORE_URL provides the default one', async () => {
-    expect(await new StoreSourceRegistry(dir, {}).list()).toEqual([]);
-    expect(await new StoreSourceRegistry(dir, { ALRAN_STORE_URL: '  ' }).list()).toEqual([]);
-    const configured = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'https://mirror.example/alran' });
-    expect(await configured.list()).toEqual([
-      { id: 'ottili', url: 'https://mirror.example/alran/index.json', label: 'Default store', builtin: true },
+  it('reads the store Ottili hosts, unless ALRAN_STORE_URL replaces it or switches it off', async () => {
+    const hosted = [
+      { id: 'ottili', url: 'https://ai.ottili.one/v1/store/index.json', label: 'Alran store', builtin: true },
+    ];
+    expect(await new StoreSourceRegistry(dir, {}).list()).toEqual(hosted);
+    expect(await new StoreSourceRegistry(dir, { ALRAN_STORE_URL: '  ' }).list()).toEqual(hosted);
+    const mirror = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'https://mirror.example/alran' });
+    expect(await mirror.list()).toEqual([
+      { id: 'ottili', url: 'https://mirror.example/alran/index.json', label: 'Alran store', builtin: true },
     ]);
+    for (const off of ['off', 'OFF', ' Off ']) {
+      expect(await new StoreSourceRegistry(dir, { ALRAN_STORE_URL: off }).list()).toEqual([]);
+    }
   });
 
   it('adds, names and removes sources and keeps them across instances', async () => {
-    const registry = new StoreSourceRegistry(dir, {});
+    const registry = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'off' });
     const added = await registry.add({ url: 'https://plugins.acme.example/alran' });
     expect(added.id).toBe('plugins-acme-example-alran');
     const named = await registry.add({ url: '/srv/team-store', id: 'team', label: 'Team' });
     expect(named).toEqual({ id: 'team', url: 'file:///srv/team-store/index.json', label: 'Team' });
-    const again = new StoreSourceRegistry(dir, {});
+    const again = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'off' });
     expect((await again.list()).map((source) => source.id)).toEqual(['plugins-acme-example-alran', 'team']);
     await again.remove('team');
     expect((await again.list()).map((source) => source.id)).toEqual(['plugins-acme-example-alran']);
   });
 
   it('refuses duplicates, bad ids, the built-in id and unknown removals', async () => {
-    const registry = new StoreSourceRegistry(dir, {});
+    const registry = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'off' });
     await registry.add({ url: 'https://a.example/s', id: 'alpha' });
     expect(await codeAsync(() => registry.add({ url: 'https://a.example/s', id: 'beta' }))).toBe('SOURCE_EXISTS');
     expect(await codeAsync(() => registry.add({ url: 'https://b.example/s', id: 'alpha' }))).toBe('SOURCE_EXISTS');
@@ -99,7 +105,7 @@ describe('store source registry', () => {
   });
 
   it('survives concurrent additions without losing one', async () => {
-    const registry = new StoreSourceRegistry(dir, {});
+    const registry = new StoreSourceRegistry(dir, { ALRAN_STORE_URL: 'off' });
     await Promise.all(
       ['a', 'b', 'c', 'd'].map((letter) => registry.add({ url: `https://${letter}.example/s`, id: `s-${letter}` })),
     );

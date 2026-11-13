@@ -33,8 +33,10 @@ Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived 
   every download is checked against a pinned SHA-256 and content digest by a strict archive reader, a
   Plugin that runs commands is shown to you before it installs, and the Store never overwrites a
   Plugin or Skill you put there yourself. `tools/store/build-store.mjs` builds a store from a skills
-  repository. No store is built in yet: add one with `alran plugin marketplace add <url>` (or set
-  `ALRAN_STORE_URL`). See `docs/store.md`.
+  repository. Alran Code reads the store Ottili hosts at `https://ai.ottili.one/v1/store/index.json` (open-source
+  Skills and Plugins from platform vendors and projects, unmodified, with their licences);
+  `ALRAN_STORE_URL` replaces it and `ALRAN_STORE_URL=off` switches it off. Built-in Skills show up in the
+  Library as "Built in". See `docs/store.md`.
 - **Plugins** keep working when the Plugin registry is unreachable; `alran plugins install` is an alias
   of `alran plugin add`; `ALRAN_PLUGIN_REGISTRY_URL` points at a registry you run.
 

@@ -7,6 +7,7 @@ import {
   SOURCE_ID_PATTERN,
   STORE_SOURCES_SCHEMA,
   STORE_URL_ENVIRONMENT_VARIABLE,
+  STORE_URL_OFF,
   StoreError,
   type StoreSource,
 } from './contract.js';
@@ -25,9 +26,9 @@ export class StoreSourceRegistry {
 
   async list(): Promise<readonly StoreSource[]> {
     const override = this.environment[STORE_URL_ENVIRONMENT_VARIABLE]?.trim();
-    const url = override || DEFAULT_STORE_INDEX_URL;
+    const url = override?.toLowerCase() === STORE_URL_OFF ? undefined : override || DEFAULT_STORE_INDEX_URL;
     const defaultStore: StoreSource[] = url
-      ? [{ id: DEFAULT_STORE_SOURCE_ID, url: normalizeSourceUrl(url), label: 'Default store', builtin: true }]
+      ? [{ id: DEFAULT_STORE_SOURCE_ID, url: normalizeSourceUrl(url), label: 'Alran store', builtin: true }]
       : [];
     return [...defaultStore, ...(await this.readAdded())];
   }
@@ -66,8 +67,7 @@ export class StoreSourceRegistry {
     if (id === DEFAULT_STORE_SOURCE_ID) {
       throw new StoreError(
         'SOURCE_INVALID',
-        `"${DEFAULT_STORE_SOURCE_ID}" is the default store, set by ${STORE_URL_ENVIRONMENT_VARIABLE}; ` +
-          `unset that variable to drop it.`,
+        `"${DEFAULT_STORE_SOURCE_ID}" is the default store; set ${STORE_URL_ENVIRONMENT_VARIABLE}=${STORE_URL_OFF} to drop it.`,
       );
     }
     return withStoreLock(this.dataDir, async () => {
