@@ -1429,7 +1429,7 @@ export class TuiCommandFlow {
       },
       model: async ({ args }) => this.options.featureFlow.showModelPicker(args),
       provider: async () => this.options.featureFlow.showProviderManager(),
-      plugins: async ({ args }) => this.options.featureFlow.showPlugins(args),
+      plugin: async ({ args }) => this.options.featureFlow.showPlugins(args),
       skills: async ({ args }) => this.options.featureFlow.showSkills(args),
       mcp: async ({ args }) => this.options.featureFlow.showMcpServers(args),
       'add-dir': async ({ args }) => {

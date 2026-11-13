@@ -430,15 +430,16 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     category: 'Runtime',
   },
   {
-    name: 'plugins',
-    description: 'Browse, install, enable, and remove Plugins',
+    name: 'plugin',
+    aliases: ['plugins', 'store'],
+    description: 'Plugin Store: browse, install, update and manage Plugins and Skills',
     category: 'Capability',
     argumentHint: '[filter]',
   },
   {
     ...TUI_COMMAND_DESCRIPTORS.skills,
     category: 'Capability',
-    argumentHint: '[filter]',
+    argumentHint: '[filter|library [filter]]',
     discoverability: 'search-only',
   },
   {

@@ -1,4 +1,13 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { AlranStoreApplication } from "../../../../../src/store/application.js";
+import {
+  pluginFiles,
+  skillFiles,
+  writeStore,
+} from "../../../../helpers/store-fixtures.js";
 import type { TuiModel } from "../../../../../src/runtime/port.js";
 import type { TuiMessage } from "../../../../../src/runtime/stream-events.js";
 import type { AlranProviderTemplate } from "../../../../../src/provider/contract.js";
@@ -22,8 +31,11 @@ function createHarness(
       readonly AlranProviderTemplate[]
     >;
     readonly hasLiveRun?: () => boolean;
+    /** Environment of the Store; the default points the Store at a store that does not exist. */
+    readonly storeEnvironment?: Record<string, string>;
   } = {},
 ) {
+  const dataDir = mkdtempSync(path.join(tmpdir(), "alran-feature-flow-"));
   let activeSessionId: string | undefined = "session-a";
   const shown: unknown[] = [];
   const closed: unknown[] = [];
@@ -97,8 +109,18 @@ function createHarness(
     deleteUserModelProvider: vi.fn(async () => undefined),
   };
   const transcript = new TranscriptStore();
+  const store = new AlranStoreApplication({
+    dataDir,
+    plugins: runtime as never,
+    environment: {
+      ALRAN_STORE_URL: path.join(dataDir, "no-such-store"),
+      ...options.storeEnvironment,
+    },
+  });
   const flow = new TuiFeatureFlow({
     runtime: runtime as never,
+    store,
+    dataDir,
     controller: {
       snapshot: () => ({
         sessions: [],
@@ -162,6 +184,7 @@ function createHarness(
       : {}),
   });
   return {
+    dataDir,
     append,
     closed,
     exportTranscript,
@@ -355,8 +378,48 @@ describe("TuiFeatureFlow", () => {
     );
   });
 
-  it("opens /plugins as a Runtime-backed feature screen and installs from the catalog", async () => {
-    const harness = createHarness();
+  it("opens /plugin as the Store and installs a Plugin from a store, then refreshes Skills", async () => {
+    const storeDir = mkdtempSync(path.join(tmpdir(), "alran-feature-flow-store-"));
+    const store = writeStore(storeDir, [
+      {
+        kind: "plugin",
+        name: "office-tools",
+        description: "Office tools for agents.",
+        files: pluginFiles({ name: "office-tools", skills: ["compose"] }),
+      },
+    ]);
+    const harness = createHarness({ storeEnvironment: { ALRAN_STORE_URL: store.url } });
+
+    await harness.flow.showPlugins("office");
+
+    const screen = harness.shown[0] as {
+      id: string;
+      handleInput(data: string): void;
+      render(width: number): string[];
+    };
+    expect(screen.id).toBe("plugins");
+    expect(stripAnsi(screen.render(100).join("\n"))).toContain("Office Tools");
+    screen.handleInput("\r");
+    await vi.waitFor(() => expect(harness.runtime.refreshPlugins).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(harness.runtime.listSkills).toHaveBeenCalledWith("alran"),
+    );
+    await vi.waitFor(() =>
+      expect(stripAnsi(screen.render(100).join("\n"))).toContain(
+        "Installed Office Tools 1.0.0",
+      ),
+    );
+    expect(harness.flow.skillCommands()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "office-tools:compose" }),
+      ]),
+    );
+  });
+
+  it("still installs from the Runtime's own registry when one is configured", async () => {
+    const harness = createHarness({
+      storeEnvironment: { ALRAN_PLUGIN_REGISTRY_URL: "https://registry.example" },
+    });
     harness.runtime.listMarketplacePlugins.mockImplementation(
       async ({ marketplace }: { marketplace: "official" | "local" }) =>
         marketplace === "official"
@@ -384,7 +447,6 @@ describe("TuiFeatureFlow", () => {
       id: string;
       handleInput(data: string): void;
     };
-    expect(manager.id).toBe("plugins");
     manager.handleInput("\r");
     await vi.waitFor(() =>
       expect(harness.runtime.mutatePlugin).toHaveBeenCalledWith({
@@ -395,11 +457,33 @@ describe("TuiFeatureFlow", () => {
     await vi.waitFor(() =>
       expect(harness.runtime.listSkills).toHaveBeenCalledWith("alran"),
     );
-    expect(harness.flow.skillCommands()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "office-tools:compose" }),
-      ]),
-    );
+  });
+
+  it("opens the Skill Library for /skills library and keeps /skills as the list of active Skills", async () => {
+    const storeDir = mkdtempSync(path.join(tmpdir(), "alran-feature-flow-lib-"));
+    const store = writeStore(storeDir, [
+      { kind: "skill", name: "pg-rls", description: "Row level security.", files: skillFiles("pg-rls") },
+      { kind: "skill", name: "honest-status", description: "Honest status.", files: skillFiles("honest-status") },
+    ]);
+    const harness = createHarness({ storeEnvironment: { ALRAN_STORE_URL: store.url } });
+
+    await harness.flow.showSkills("library honest");
+
+    const screen = harness.shown[0] as { id: string; render(width: number): string[] };
+    const rendered = stripAnsi(screen.render(100).join("\n"));
+    expect(rendered).toContain("[Skill Library]");
+    expect(rendered).toContain("honest-status");
+    expect(rendered).not.toContain("pg-rls");
+    expect(harness.runtime.listSkills).not.toHaveBeenCalledWith("alran", "library honest");
+  });
+
+  it("reports a store that cannot be read inside the Store instead of failing to open it", async () => {
+    const harness = createHarness();
+
+    await harness.flow.showPlugins();
+
+    const screen = harness.shown[0] as { render(width: number): string[] };
+    expect(stripAnsi(screen.render(100).join("\n"))).toContain("The store could not be read");
   });
 
   it("keeps compaction activity visible until the Runtime request settles", async () => {

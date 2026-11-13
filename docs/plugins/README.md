@@ -78,6 +78,9 @@ Copy the package directory into the local Plugin directory (`alran plugins marke
 where it is). A Plugin in that directory is installed; `alran plugins list` shows it, and
 `alran plugins enable|disable|remove <name>` manage it.
 
+To offer a Plugin to other people, put it in a store ([Plugin Store](../store.md#run-your-own-store)): the store
+builder runs this same validator on every Plugin it archives.
+
 To contribute a Plugin to this repository, open an issue that describes the Plugin and the change,
 then send a pull request from a fork with the real output of `validate-plugin.mjs` in its description.
 

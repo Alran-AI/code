@@ -300,6 +300,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     openExternalTarget,
     exportTranscript,
     workspaceDir: options.workspaceDir,
+    ...(options.dataDir ? { dataDir: options.dataDir } : {}),
     defaultAgentName,
     terminalRows: () => terminal.rows,
     append: appendLocalCell,

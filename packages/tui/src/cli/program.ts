@@ -17,7 +17,11 @@ import {
   ALRAN_PROVIDER_API_FORMATS,
   type AlranProviderApiFormat,
 } from '../provider/contract.js';
-import type { AlranPluginCliRequest, AlranPluginMarketplace } from '../plugin/contract.js';
+import type {
+  AlranPluginCliRequest,
+  AlranPluginMarketplace,
+  AlranSkillCliRequest,
+} from '../plugin/contract.js';
 import { resolveTuiManagedBackendLane } from './environment.js';
 import {
   applySystemPromptCliOptions,
@@ -61,6 +65,7 @@ export interface CreateTuiProgramOptions {
   runUpdate: () => Promise<void>;
   runProvider?: (request: AlranProviderCliRequest, lane?: string) => Promise<void>;
   runPlugin?: (request: AlranPluginCliRequest, lane?: string) => Promise<void>;
+  runSkills?: (request: AlranSkillCliRequest, lane?: string) => Promise<void>;
   runTelemetry?: (action: AlranTelemetryCliAction) => Promise<void>;
   resolveLane?: typeof resolveTuiManagedBackendLane;
   allowStartupEnvironmentSelection?: boolean;
@@ -81,6 +86,10 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     activeLane
       ? requirePluginRunner(options)(request, activeLane)
       : requirePluginRunner(options)(request);
+  const runSkills = (request: AlranSkillCliRequest) =>
+    activeLane
+      ? requireSkillsRunner(options)(request, activeLane)
+      : requireSkillsRunner(options)(request);
   const program = applyInteractiveCliContract(
     new Command()
       .name('alran')
@@ -356,9 +365,48 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   const plugin = program
     .command('plugin')
     .alias('plugins')
-    .description('Manage Alran Code Plugins')
+    .description('Browse, install and manage Alran Code Plugins (the Plugin Store)')
     .allowExcessArguments(false)
-    .action(() => options.launchTui(withLane({ initialPrompt: '/plugins' })));
+    .action(() => options.launchTui(withLane({ initialPrompt: '/plugin' })));
+
+  plugin
+    .command('search')
+    .description('Search the Plugin Store')
+    .argument('[query...]', 'words to look for in names and descriptions')
+    .option('--refresh', 'ask the stores again instead of using the cached index')
+    .option('--json', 'print a JSON document')
+    .action((query: string[], commandOptions: { refresh?: boolean; json?: boolean }) =>
+      runPlugin({
+        action: 'search',
+        ...(query.length ? { query: query.join(' ') } : {}),
+        refresh: commandOptions.refresh,
+        json: commandOptions.json,
+      }),
+    );
+
+  plugin
+    .command('info')
+    .description('Show what a Plugin contains before installing it')
+    .argument('<plugin[@store]>', 'Plugin name')
+    .option('--json', 'print a JSON document')
+    .action((selector: string, commandOptions: { json?: boolean }) =>
+      runPlugin({ action: 'info', selector, json: commandOptions.json }),
+    );
+
+  plugin
+    .command('update')
+    .description('Update installed Plugins from their store')
+    .argument('[plugin[@store]]', 'Plugin name (default: every Plugin with an update)')
+    .option('-y, --yes', 'approve Plugins that run commands without asking')
+    .option('--json', 'print a JSON document')
+    .action((selector: string | undefined, commandOptions: { yes?: boolean; json?: boolean }) =>
+      runPlugin({
+        action: 'update',
+        ...(selector ? { selector } : {}),
+        yes: commandOptions.yes,
+        json: commandOptions.json,
+      }),
+    );
 
   plugin
     .command('list')
@@ -386,18 +434,20 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     if (action === 'add') actionCommand.alias('install');
     actionCommand
       .description(`${pluginActionLabel(action)} a Plugin`)
-      .argument('<plugin[@marketplace]>', 'Plugin selector')
+      .argument('<plugin[@store|@official|@local]>', 'Plugin selector')
       .option('-m, --marketplace <marketplace>', 'official or local', parsePluginMarketplace)
+      .option('-y, --yes', 'approve a Plugin that runs commands without asking (install)')
       .option('--json', 'print a JSON document')
       .action(
         (
           selector: string,
-          commandOptions: { marketplace?: AlranPluginMarketplace; json?: boolean },
+          commandOptions: { marketplace?: AlranPluginMarketplace; yes?: boolean; json?: boolean },
         ) =>
           runPlugin({
             action,
             selector,
             marketplace: commandOptions.marketplace,
+            yes: commandOptions.yes,
             json: commandOptions.json,
           }),
       );
@@ -405,7 +455,31 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
 
   const marketplace = plugin
     .command('marketplace')
-    .description('List or refresh Alran Code Plugin sources');
+    .description('List, add, remove or refresh the stores and folders Plugins come from');
+
+  marketplace
+    .command('add')
+    .description('Add a store (an https URL, a file path or a Git-hosted index.json)')
+    .argument('<url>', 'location of the store (a directory or index.json URL)')
+    .option('--name <name>', 'short name to select its packages with, e.g. name@store')
+    .option('--json', 'print a JSON document')
+    .action((url: string, commandOptions: { name?: string; json?: boolean }) =>
+      runPlugin({
+        action: 'marketplace-add',
+        url,
+        ...(commandOptions.name ? { name: commandOptions.name } : {}),
+        json: commandOptions.json,
+      }),
+    );
+
+  marketplace
+    .command('remove')
+    .description('Remove a store you added; its installed packages stay')
+    .argument('<name>', 'store name from `alran plugin marketplace list`')
+    .option('--json', 'print a JSON document')
+    .action((name: string, commandOptions: { json?: boolean }) =>
+      runPlugin({ action: 'marketplace-remove', name, json: commandOptions.json }),
+    );
 
   marketplace
     .command('list')
@@ -424,6 +498,79 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
         action: 'marketplace-upgrade',
         json: commandOptions.json,
       }),
+    );
+
+  const skills = program
+    .command('skills')
+    .alias('skill')
+    .description('Browse, install and update Skills (the Skill Library)')
+    .allowExcessArguments(false)
+    .action(() => options.launchTui(withLane({ initialPrompt: '/skills library' })));
+
+  skills
+    .command('list')
+    .description('List the Skills of the library, by group')
+    .option('--installed', 'only Skills that are installed')
+    .option('--json', 'print a JSON document')
+    .action((commandOptions: { installed?: boolean; json?: boolean }) =>
+      runSkills({ action: 'list', installed: commandOptions.installed, json: commandOptions.json }),
+    );
+
+  skills
+    .command('search')
+    .description('Search the Skill Library')
+    .argument('[query...]', 'words to look for in names and descriptions')
+    .option('--refresh', 'ask the stores again instead of using the cached index')
+    .option('--json', 'print a JSON document')
+    .action((query: string[], commandOptions: { refresh?: boolean; json?: boolean }) =>
+      runSkills({
+        action: 'search',
+        ...(query.length ? { query: query.join(' ') } : {}),
+        refresh: commandOptions.refresh,
+        json: commandOptions.json,
+      }),
+    );
+
+  skills
+    .command('info')
+    .description('Show what a Skill is for before installing it')
+    .argument('<skill[@store]>', 'Skill name')
+    .option('--json', 'print a JSON document')
+    .action((selector: string, commandOptions: { json?: boolean }) =>
+      runSkills({ action: 'info', selector, json: commandOptions.json }),
+    );
+
+  skills
+    .command('add')
+    .alias('install')
+    .description('Install a Skill from the library')
+    .argument('<skill[@store]>', 'Skill name')
+    .option('--json', 'print a JSON document')
+    .action((selector: string, commandOptions: { json?: boolean }) =>
+      runSkills({ action: 'add', selector, json: commandOptions.json }),
+    );
+
+  skills
+    .command('update')
+    .description('Update installed Skills from their store')
+    .argument('[skill[@store]]', 'Skill name (default: every Skill with an update)')
+    .option('--json', 'print a JSON document')
+    .action((selector: string | undefined, commandOptions: { json?: boolean }) =>
+      runSkills({
+        action: 'update',
+        ...(selector ? { selector } : {}),
+        json: commandOptions.json,
+      }),
+    );
+
+  skills
+    .command('remove')
+    .alias('uninstall')
+    .description('Remove a Skill the library installed')
+    .argument('<skill[@store]>', 'Skill name')
+    .option('--json', 'print a JSON document')
+    .action((selector: string, commandOptions: { json?: boolean }) =>
+      runSkills({ action: 'remove', selector, json: commandOptions.json }),
     );
 
   const contributionRegistry = new TuiContributionRegistry<TuiCliCommandContribution>();
@@ -504,6 +651,11 @@ function requireProviderRunner(options: CreateTuiProgramOptions) {
 function requirePluginRunner(options: CreateTuiProgramOptions) {
   if (!options.runPlugin) throw new Error('Plugin management is unavailable.');
   return options.runPlugin;
+}
+
+function requireSkillsRunner(options: CreateTuiProgramOptions) {
+  if (!options.runSkills) throw new Error('Skill management is unavailable.');
+  return options.runSkills;
 }
 
 function requireAcpRunner(options: CreateTuiProgramOptions) {

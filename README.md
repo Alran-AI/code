@@ -93,8 +93,9 @@ Supported formats: `openai-completions`, `openai-responses`, `anthropic-messages
 ### Plugins and skills
 
 Bundled skills (code review, deep research, documents, spreadsheets, slides, PDFs …) work out of the
-box. Plugins: `alran plugins list`, `alran plugins install <name>`, `alran plugins remove <name>`.
-Sources and licensing: [docs/PLUGINS.md](docs/PLUGINS.md).
+box. The **Plugin Store** (`/plugin`, `alran plugin search|install`) and the **Skill Library**
+(`/skills library`, `alran skills search|install`) add more from stores you choose; see
+[docs/store.md](docs/store.md). Sources and licensing: [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ### Data and environment
 
@@ -249,7 +250,7 @@ A profile uses `~/.alran-<profile>`; `ALRAN_DATA_DIR` or `ALRAN_DATA_DIR` can se
 | **Edit and verify code** | Read files, inspect diffs, run shell commands and tests, and control tool execution with permissions and sandboxing. |
 | **Choose your model** | Use the Ottili AI Platform with an Ottili API key, or custom providers with OpenAI- or Anthropic-compatible API formats. |
 | **Search and work with media** | Use built-in search, `alran-tools` media tools, MCP, and managed connectors, subject to account access and service credits. |
-| **Keep work moving** | Resume sessions, plan tasks, use subagents, and extend the agent with official, local, or GitHub plugins and built-in skills. |
+| **Keep work moving** | Resume sessions, plan tasks, use subagents, and extend the agent from the Plugin Store, local plugins, the Skill Library and built-in skills. |
 | **Connect your workflow** | Run scripted tasks with the headless CLI, or connect compatible editors and clients through ACP. |
 
 Account features, updates, feedback, and diagnostics are also included. Managed tools require network access and the relevant authorization. See [capabilities and service boundaries](docs/tui-capabilities.md) for details.

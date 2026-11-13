@@ -53,10 +53,57 @@ export type AlranPluginCliRequest =
       readonly action: 'add' | 'remove' | 'enable' | 'disable';
       readonly selector: string;
       readonly marketplace?: AlranPluginMarketplace;
+      /** Approve a package that runs commands without asking (installing from a store). */
+      readonly yes?: boolean;
+      readonly json?: boolean;
+    }
+  | {
+      readonly action: 'search';
+      readonly query?: string;
+      readonly refresh?: boolean;
+      readonly json?: boolean;
+    }
+  | { readonly action: 'info'; readonly selector: string; readonly json?: boolean }
+  | {
+      readonly action: 'update';
+      /** Absent: every installed Plugin that has an update. */
+      readonly selector?: string;
+      readonly yes?: boolean;
       readonly json?: boolean;
     }
   | { readonly action: 'marketplace-list'; readonly json?: boolean }
   | {
+      readonly action: 'marketplace-add';
+      readonly url: string;
+      readonly name?: string;
+      readonly json?: boolean;
+    }
+  | { readonly action: 'marketplace-remove'; readonly name: string; readonly json?: boolean }
+  | {
       readonly action: 'marketplace-upgrade';
       readonly json?: boolean;
     };
+
+/** `alran skills …`: the Skill Library of the Store. */
+export type AlranSkillCliRequest =
+  | { readonly action: 'list'; readonly installed?: boolean; readonly json?: boolean }
+  | {
+      readonly action: 'search';
+      readonly query?: string;
+      readonly refresh?: boolean;
+      readonly json?: boolean;
+    }
+  | { readonly action: 'info'; readonly selector: string; readonly json?: boolean }
+  | {
+      readonly action: 'add';
+      readonly selector: string;
+      readonly yes?: boolean;
+      readonly json?: boolean;
+    }
+  | {
+      readonly action: 'update';
+      readonly selector?: string;
+      readonly yes?: boolean;
+      readonly json?: boolean;
+    }
+  | { readonly action: 'remove'; readonly selector: string; readonly json?: boolean };

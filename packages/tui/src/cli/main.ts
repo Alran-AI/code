@@ -7,7 +7,7 @@ import type { RawTuiExecOptions } from '../headless/invocation.js';
 import type { AlranRegion } from '@alran/config';
 import { createTuiProgram, type TuiInteractiveLaunchRequest } from './program.js';
 import type { AlranProviderCliRequest } from './provider-command.js';
-import type { AlranPluginCliRequest } from '../plugin/contract.js';
+import type { AlranPluginCliRequest, AlranSkillCliRequest } from '../plugin/contract.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import { configureTuiNetworkProxy } from './network-proxy.js';
 import { consumeLoginRestartHandoff } from '../tui/login-restart-handoff.js';
@@ -75,6 +75,7 @@ export interface RunTuiCliDependencies {
     version: string,
     lane?: string,
   ) => Promise<string>;
+  readonly runSkills?: (request: AlranSkillCliRequest) => Promise<string>;
   readonly runTelemetry?: (
     action: AlranTelemetryCliAction,
     version: string,
@@ -179,6 +180,11 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
       runPlugin: async (request, lane) => {
         const runPlugin = dependencies.runPlugin ?? defaultRunPlugin;
         processRef.stdout.write(`${await runPlugin(request, ALRAN_CODE_VERSION, lane)}\n`);
+        completedCommandExitMode = 'natural';
+      },
+      runSkills: async (request) => {
+        const runSkills = dependencies.runSkills ?? defaultRunSkills;
+        processRef.stdout.write(`${await runSkills(request)}\n`);
         completedCommandExitMode = 'natural';
       },
       runTelemetry: async (action) => {
@@ -338,6 +344,11 @@ async function defaultRunPlugin(
 ): Promise<string> {
   const { runAlranPluginCommand } = await import('./plugin-command.js');
   return runAlranPluginCommand({ request, version, lane });
+}
+
+async function defaultRunSkills(request: AlranSkillCliRequest): Promise<string> {
+  const { runAlranSkillCommand } = await import('./skills-command.js');
+  return runAlranSkillCommand({ request });
 }
 
 async function defaultRunTelemetry(

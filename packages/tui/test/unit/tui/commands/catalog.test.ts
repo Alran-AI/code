@@ -51,3 +51,30 @@ describe("Alran Code TUI command catalog in side conversations", () => {
     expect(sessionsHandler).not.toHaveBeenCalled();
   });
 });
+
+describe("Alran Code Plugin Store command", () => {
+  const context: TuiCommandContext = {
+    hasSession: true,
+    hasParentSession: false,
+    managedTokenPresent: true,
+    queueEnabled: true,
+    hasLiveRun: false,
+    hasPendingInteraction: false,
+    queuedCount: 0,
+    canRetry: false,
+  };
+
+  it.each(["/plugin", "/plugins", "/store", "/PLUGIN"])("opens the Store for %s", async (input) => {
+    const plugin = vi.fn();
+    const catalog = createTuiCommandCatalog([], { plugin }, () => context);
+    await expect(catalog.dispatch(`${input} office`)).resolves.toMatchObject({ status: "handled" });
+    expect(plugin).toHaveBeenCalledWith(expect.objectContaining({ args: "office" }));
+  });
+
+  it("passes `/skills library` through to the Skills command", async () => {
+    const skills = vi.fn();
+    const catalog = createTuiCommandCatalog([], { skills }, () => context);
+    await catalog.dispatch("/skills library pg");
+    expect(skills).toHaveBeenCalledWith(expect.objectContaining({ args: "library pg" }));
+  });
+});

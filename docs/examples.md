@@ -203,35 +203,38 @@ See [capability coverage](tui-capabilities.md) for custom MCP, managed connector
 
 Synchronous Hooks can show [TUI-only messages](hooks.md) with `systemMessage`, including notices after a normal Stop.
 
-Open `/plugins` inside the TUI, or run `alran plugin` from a shell to open that panel. For a source build, use `pnpm alran plugin` from the source root instead; the commands below use the installed `alran` executable.
+Open `/plugin` inside the TUI, or run `alran plugin` from a shell to open that panel. For a source build, use `pnpm alran plugin` from the source root instead; the commands below use the installed `alran` executable. The panel is the **Plugin Store**; [store.md](store.md) describes it in full.
 
-The panel combines the **official** catalog and **local** plugin directories. Use `Tab` / `Shift+Tab` to switch between All Plugins, Installed, Official, and Local; type to search and use the arrow keys to select a row.
+It has four views: **Plugins** (what the stores offer), **Skill Library**, **Installed** (from a store, from a folder, or from a Runtime registry) and **Stores**. Use `Tab` / `Shift+Tab` to switch, type to search and use the arrow keys to select a row. The panel under the list says what the selected item is for and what `Enter` will do.
 
 | Action | Key | Scope |
 | --- | --- | --- |
-| Install an available plugin | `Enter` | Official catalog; requires Alran login |
-| Enable or disable an installed plugin | `Space` | Official and local |
-| Remove an installed plugin | `Delete` or `Ctrl+D` | Official and local; clear the search first with `Esc`, then reselect the plugin |
-| Refresh the catalogs | `Ctrl+R` | Official and local |
+| Install or update | `Enter` | Store packages; a Plugin that runs commands asks for approval first |
+| Enable or disable an installed plugin | `Space` | Store, local and Runtime-registry Plugins |
+| Remove an installed package | `Delete` or `Ctrl+D` | Clear the search first with `Esc`, then reselect |
+| Ask the stores again | `Ctrl+R` | Stores and the Runtime |
 
-With a nonempty search, `Delete` / `Ctrl+D` edit the search instead of removing a plugin. `Esc` clears the search, or closes the panel when the search is already empty. Removing a local plugin deletes its installed directory; keep a separate source copy if you need to restore it.
+With a nonempty search, `Delete` / `Ctrl+D` edit the search instead of removing a package. `Esc` clears the search, or closes the panel when the search is already empty. Removing a Plugin deletes its installed directory; the store (or your own source copy) is where to get it back.
 
 The same operations are available from the shell:
 
 ```bash
 alran plugin --help
+alran plugin marketplace add https://plugins.example.com/alran --name acme
+alran plugin search <words>
+alran plugin info <name>
+alran plugin install <name>
+alran plugin update
+alran plugin disable <name>
+alran plugin remove <name>
 alran plugin marketplace list
-alran plugin list --available --marketplace official
-alran plugin add <name>@official
-alran plugin disable <name>@official
-alran plugin enable <name>@official
-alran plugin remove <name>@official
-alran plugin marketplace upgrade
 ```
 
-Replace `<name>` with a plugin name returned by `list`. Use `@official` or `@local` to disambiguate names shared by both sources; `--marketplace official` / `--marketplace local` are equivalent source selectors. The list and mutation commands support `--json`. `marketplace upgrade` refreshes source snapshots; it does not register a new marketplace.
+Name a package `<name>@<store>` when several stores offer it. `--json` is supported by the list, search, info and mutation commands, and `--yes` approves a Plugin that runs commands when nobody can be asked.
 
-For a local plugin, run `alran plugin marketplace list` to find the active profile's local directory. Place a supported plugin package in a direct child directory there, with its manifest at the package's expected location, then refresh `/plugins`. Copy the individual plugin package, not an entire marketplace repository. Discovered local packages already count as installed:
+Skills have their own commands (`alran skills search|info|install|update|remove`) and live in the **Skill Library** view; `/skills library` opens it directly.
+
+For a local plugin, run `alran plugin marketplace list` to find the active profile's local directory. Place a supported plugin package in a direct child directory there, with its manifest at the package's expected location, then refresh `/plugin`. Copy the individual plugin package, not an entire marketplace repository. Discovered local packages already count as installed:
 
 ```bash
 alran plugin list --available --marketplace local
@@ -240,7 +243,7 @@ alran plugin enable <name>@local
 alran plugin remove <name>@local
 ```
 
-`alran plugin add <name>@local` is not a local import command and is unsupported. Neither `plugin add` nor `/plugins` currently accepts a GitHub URL, local path, or arbitrary third-party marketplace registration. Compatible package readers and a GitHub importer exist in the runtime, but the CLI/TUI do not expose that importer. Managing arbitrary marketplaces from the panel remains a separate feature request; the current source selectors are only `official` and `local`.
+`alran plugin add <name>@local` is not a local import command and is unsupported. Neither `plugin add` nor `/plugin` accepts a GitHub URL or a local path as a Plugin to import; to offer your own Plugins, [run a store](store.md#run-your-own-store). Compatible package readers and a GitHub importer exist in the runtime, but the CLI/TUI do not expose that importer. The Runtime's own `@official` registry is only asked when `ALRAN_PLUGIN_REGISTRY_URL` is set.
 
 ## 5. Connect an authenticated project MCP server
 

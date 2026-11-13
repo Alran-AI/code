@@ -38,9 +38,9 @@ const TUI_TIP_DEFINITIONS: readonly TuiTipDefinition[] = [
   },
   {
     id: 'plugins',
-    command: 'plugins',
-    text: 'Tip: /plugins manages installed capabilities',
-    shortText: 'Tip: /plugins manages Plugins',
+    command: 'plugin',
+    text: 'Tip: /plugin opens the Store for Plugins and Skills',
+    shortText: 'Tip: /plugin opens the Store',
     weight: 2,
   },
   {

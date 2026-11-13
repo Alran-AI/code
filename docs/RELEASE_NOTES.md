@@ -26,6 +26,15 @@ Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived 
   (Settings → CLI), fed by `GET https://ai.ottili.one/v1/products/alran-code/version`.
 - **Ottili look.** The terminal theme uses the Ottili Foundation colours (violet accent, zinc
   neutrals); ANSI-16 terminals get magenta for the brand roles.
+- **Plugin Store and Skill Library.** `/plugin` opens the Store (Plugins, Skill Library, Installed,
+  Stores); `/skills library` opens it on the Library. `alran plugin search|info|install|update` and
+  `alran skills list|search|info|install|update|remove` do the same from a shell, and
+  `alran plugin marketplace add|remove` manage stores. A store is a static `index.json` plus archives;
+  every download is checked against a pinned SHA-256 and content digest by a strict archive reader, a
+  Plugin that runs commands is shown to you before it installs, and the Store never overwrites a
+  Plugin or Skill you put there yourself. `tools/store/build-store.mjs` builds a store from a skills
+  repository. No store is built in yet: add one with `alran plugin marketplace add <url>` (or set
+  `ALRAN_STORE_URL`). See `docs/store.md`.
 - **Plugins** keep working when the Plugin registry is unreachable; `alran plugins install` is an alias
   of `alran plugin add`; `ALRAN_PLUGIN_REGISTRY_URL` points at a registry you run.
 

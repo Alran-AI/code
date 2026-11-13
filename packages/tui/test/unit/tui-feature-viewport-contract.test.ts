@@ -6,7 +6,7 @@ import { TuiBackgroundWorkPanel } from '../../src/tui/background-work/panel.js';
 import { TuiSessionMutationForkConfirmation } from '../../src/tui/controller/product/session-mutation-flow.js';
 import { TuiAltScreen } from '../../src/tui/engine/tui-alt-screen.js';
 import { TuiMainScreen } from '../../src/tui/engine/tui-main-screen.js';
-import { TuiPluginManager } from '../../src/tui/features/plugin/manager.js';
+import { TuiStoreScreen } from '../../src/tui/features/store/store-screen.js';
 import { TuiSessionHistoryExplorer } from '../../src/tui/features/session-mutation/history-explorer.js';
 import { TuiSessionMutationHistoryPicker } from '../../src/tui/features/session-mutation/history-picker.js';
 import { TuiSessionMutationRewindPreviewPanel } from '../../src/tui/features/session-mutation/rewind-preview-panel.js';
@@ -62,21 +62,31 @@ const factories: Record<string, Factory> = {
       requestRender,
     }),
   plugins: (count, onCancel, requestRender) => {
-    const plugins = Array.from({ length: count }, (_, index) => ({
-      pluginId: `plugin-${index}`,
-      name: `Plugin ${index}`,
+    const items = Array.from({ length: count }, (_, index) => ({
+      id: `plugin:plugin-${index}@official`,
+      kind: 'plugin' as const,
+      name: `plugin-${index}`,
       displayName: `Plugin ${index}`,
-      marketplace: 'official' as const,
+      description: 'A plugin of the Runtime registry.',
+      origin: 'official',
       installed: false,
       enabled: false,
-      capabilities: { appCount: 0, mcpServerCount: 0, skillCount: 1 },
+      updateAvailable: false,
+      summary: '1 skill',
     }));
-    return new TuiPluginManager({
-      plugins,
-      onInstall: async (plugin) => plugin,
-      onRemove: async (plugin) => plugin,
-      onSetEnabled: async (plugin) => plugin,
-      onRefresh: async () => plugins,
+    const catalog = { items, sources: [] };
+    return new TuiStoreScreen({
+      catalog,
+      actions: {
+        stage: async () => {
+          throw new Error('not used');
+        },
+        commit: async () => ({ warnings: [] }),
+        installOfficial: async () => undefined,
+        remove: async () => [],
+        setEnabled: async () => undefined,
+        reload: async () => catalog,
+      },
       onCancel,
       requestRender,
     });

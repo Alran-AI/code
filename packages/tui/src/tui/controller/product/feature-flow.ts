@@ -24,7 +24,7 @@ import {
   TuiProviderOnboarding,
   type TuiProviderOnboardingResult,
 } from '../../features/provider/onboarding.js';
-import { TuiPluginManager } from '../../features/plugin/manager.js';
+import { TuiStoreScreen, type StoreTab } from '../../features/store/store-screen.js';
 import { TuiSessionManager } from '../../features/session/manager.js';
 import { TuiTranscriptPanel } from '../../features/transcript/panel.js';
 import { TuiChangelogPanel } from '../../features/changelog/panel.js';
@@ -69,8 +69,9 @@ import { isRuntimeErrorCode, isRuntimeMethodNotImplemented } from '../support.js
 import { resolveTuiThinkingChoice } from '../../features/model/thinking.js';
 import { AlranProviderApplication } from '../../../provider/application.js';
 import type { AlranCodexOAuthStatus, AlranProviderTemplate } from '../../../provider/contract.js';
-import { AlranPluginApplication } from '../../../plugin/application.js';
-import type { AlranPluginRuntimeAccess, AlranPluginView } from '../../../plugin/contract.js';
+import type { AlranPluginRuntimeAccess } from '../../../plugin/contract.js';
+import { resolveTuiDataDir } from '../../../runtime/data-dir.js';
+import { AlranStoreApplication, type StoreCatalog } from '../../../store/application.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import type { TuiTranscriptExporter } from '../../../host/transcript-export.js';
 import { TuiSessionForkFlow } from '../session-fork-flow.js';
@@ -119,6 +120,10 @@ export interface TuiFeatureFlowOptions {
   readonly openExternalTarget?: TuiExternalTargetOpener;
   readonly exportTranscript?: TuiTranscriptExporter;
   readonly workspaceDir: string;
+  /** The data directory the Store keeps its ledger and caches in; defaults to the Alran one. */
+  readonly dataDir?: string;
+  /** The Plugin Store and Skill Library; tests replace it. */
+  readonly store?: AlranStoreApplication;
   readonly version?: string;
   readonly planMode?: () => TuiPlanModeSnapshot;
   readonly defaultAgentName: string;
@@ -146,7 +151,7 @@ export interface TuiSessionManagerOpenOptions {
 export class TuiFeatureFlow {
   private readonly modelState: TuiModelState;
   private readonly providerApplication: AlranProviderApplication;
-  private readonly pluginApplication: AlranPluginApplication;
+  private readonly store: AlranStoreApplication;
   private readonly sessionForkFlow: TuiSessionForkFlow;
   private skillCommandsValue: TuiCommand[] = [];
   private inspectionPanel: Component | undefined;
@@ -180,7 +185,12 @@ export class TuiFeatureFlow {
       isStopped: () => this.isStopped(),
     });
     this.providerApplication = new AlranProviderApplication(options.runtime);
-    this.pluginApplication = new AlranPluginApplication(options.runtime);
+    this.store =
+      options.store ??
+      new AlranStoreApplication({
+        dataDir: options.dataDir ?? resolveTuiDataDir(),
+        plugins: options.runtime,
+      });
     this.sessionForkFlow = new TuiSessionForkFlow({
       runtime: options.runtime,
       currentSession: () => options.controller.snapshot().session,
@@ -990,19 +1000,29 @@ export class TuiFeatureFlow {
     }
   }
 
-  async showPlugins(initialQuery = ''): Promise<void> {
+  /** `/plugin`: the Plugin Store. */
+  showPlugins(initialQuery = ''): Promise<void> {
+    return this.showStore({ tab: 'plugins', query: initialQuery });
+  }
+
+  /** `/skills library`: the Skill Library tab of the Store. */
+  showSkillLibrary(initialQuery = ''): Promise<void> {
+    return this.showStore({ tab: 'skills', query: initialQuery });
+  }
+
+  private async showStore(input: { readonly tab: StoreTab; readonly query: string }): Promise<void> {
     if (this.isStopped() || this.pluginScreen?.isActive()) return;
     this.closePlugins();
     const loadSequence = ++this.pluginLoadSequence;
-    let catalog;
+    let catalog: StoreCatalog;
     try {
-      catalog = await this.pluginApplication.catalog({ includeAvailable: true });
+      catalog = await this.store.catalog();
     } catch (error) {
       if (!this.isStopped() && loadSequence === this.pluginLoadSequence) {
         this.options.append(
           formatTuiActionFailure(error, {
-            summary: "Couldn't load Plugins.",
-            nextStep: 'Retry /plugins.',
+            summary: "Couldn't open the Store.",
+            nextStep: 'Retry /plugin.',
           }),
           'warning',
         );
@@ -1011,10 +1031,6 @@ export class TuiFeatureFlow {
     }
     if (this.isStopped() || loadSequence !== this.pluginLoadSequence) return;
     let handle: TuiFeatureScreenHandle | undefined;
-    const loadAll = async () => {
-      const next = await this.pluginApplication.catalog({ includeAvailable: true });
-      return [...next.installed, ...next.available];
-    };
     const refreshSkills = async (): Promise<void> => {
       try {
         await this.refreshSkillCommands();
@@ -1022,40 +1038,52 @@ export class TuiFeatureFlow {
         if (!this.isStopped()) {
           this.options.append(
             formatTuiActionFailure(error, {
-              summary: 'Plugin updated, but its Skills could not be refreshed.',
-              nextStep: 'Restart Alran or retry /plugins.',
+              summary: 'Installed, but the Skills could not be refreshed.',
+              nextStep: 'Restart Alran or run /reload.',
             }),
             'warning',
           );
         }
       }
     };
-    const refreshSkillsAfterMutation = async (
-      operation: () => Promise<AlranPluginView>,
-    ): Promise<AlranPluginView> => {
-      const plugin = await operation();
-      await refreshSkills();
-      return plugin;
-    };
-    const manager = new TuiPluginManager({
-      plugins: [...catalog.installed, ...catalog.available],
-      initialQuery,
-      onInstall: (plugin) =>
-        refreshSkillsAfterMutation(() => this.pluginApplication.install(plugin)),
-      onRemove: (plugin) => refreshSkillsAfterMutation(() => this.pluginApplication.remove(plugin)),
-      onSetEnabled: (plugin, enabled) =>
-        refreshSkillsAfterMutation(() => this.pluginApplication.setEnabled(plugin, enabled)),
-      onRefresh: async () => {
-        await this.pluginApplication.refresh();
-        await refreshSkills();
-        return loadAll();
+    const screen = new TuiStoreScreen({
+      catalog,
+      initialTab: input.tab,
+      initialQuery: input.query,
+      actions: {
+        stage: (item) => this.store.stage(item),
+        commit: async (staged, consent) => {
+          const outcome = await this.store.commit(staged, { consent });
+          await refreshSkills();
+          return outcome;
+        },
+        installOfficial: async (item) => {
+          await this.store.installOfficial(item);
+          await refreshSkills();
+        },
+        remove: async (item) => {
+          const warnings = await this.store.remove(item);
+          await refreshSkills();
+          return warnings;
+        },
+        setEnabled: async (item, enabled) => {
+          await this.store.setEnabled(item, enabled);
+          await refreshSkills();
+        },
+        reload: async ({ refresh }) => {
+          if (refresh) {
+            await this.store.refreshRuntime();
+            await refreshSkills();
+          }
+          return this.store.catalog({ refresh });
+        },
       },
       onCancel: () => {
         if (handle?.close()) this.pluginScreen = undefined;
       },
       requestRender: this.options.onChanged,
     });
-    handle = this.options.surfaceHost.pushFeature({ screen: manager, focus: manager });
+    handle = this.options.surfaceHost.pushFeature({ screen, focus: screen });
     this.pluginScreen = handle;
   }
 
@@ -1241,6 +1269,9 @@ export class TuiFeatureFlow {
 
   async showSkills(filter: string): Promise<void> {
     if (this.isStopped()) return;
+    // `/skills library [words]` and `/skills browse [words]` open the Skill Library of the Store.
+    const library = /^(?:library|browse)(?:\s+(.*))?$/iu.exec(filter.trim());
+    if (library) return this.showSkillLibrary(library[1]?.trim() ?? '');
     const sessionId = this.options.controller.snapshot().session?.sessionId;
     const sessionGeneration = this.sessionGeneration;
     const agentName =
