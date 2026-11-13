@@ -1,32 +1,61 @@
-# Alran account, models, and media reference
+# Accounts, credit and models
 
-Use this reference for Alran Code or Alran Open Platform accounts, Token Plan, subscription keys, credits/points/Credit, plans, usage, quotas, API keys, BYOK, providers, model catalogs and access, context windows, image/audio/music/video or multimodal entitlements, and why a model or media task is unavailable.
+Use this reference for signing in, companies and projects, API keys, credit (free and purchased),
+models and their prices, `alran usage`, bring-your-own-key providers, and why a model or a sign-in is
+refused.
 
 ## Stable boundaries
 
-- A Token Plan/subscription resource and pay-as-you-go API balance/API key are different resource paths; never assume their keys, quotas, or model access are interchangeable.
-- Model availability depends on product surface, key/provider type, account, region, plan, version, and current service rollout—not the model name alone.
-- Media support and credit eligibility are separate questions: a model may exist in the catalog without being enabled for the user's product, plan, or requested operation.
-- The Agent cannot change balance, entitlement, quota, permissions, or server-side validation.
+- The account is an Ottili account. The CLI never sees a password: it holds a Platform session
+  (`~/.alran/auth/platform/<env>/platform-session.json`, mode 0600). Signing out revokes it at the
+  Platform.
+- Credit is one wallet that the gateway splits into two pools: **free** (the welcome credit, spent
+  only on Werk) and **paid** (top-ups, spent on any model). Werk spends the free pool first. A Claude
+  model spends only the paid pool.
+- The gateway enforces the rule, not the CLI. With free credit only, a Claude request is refused
+  with the code `free_credit_model_restricted` (HTTP 403) before it reaches the provider. The way
+  out is to add credit in the AI Platform (Billing) or to use Werk.
+- The Claude models carry a 4.5 % service fee that shows as its own line in `alran usage` and in the
+  request log of the AI Platform.
+- Your own provider key is a different path: calls go directly to the provider, and Ottili does not
+  see, meter or bill them. The free credit does not apply to them.
+- The agent cannot change a balance, a limit, a company or a permission.
 
-## Official source discovery
+## Commands
 
-Use only the current region's sources:
+| Need | Command |
+| --- | --- |
+| Sign in | `alran auth login` (browser) · `--device` (a code you confirm in any browser; the default over SSH or without a display) · `--api-key` (an Ottili API key from `https://ai.ottili.one/api-keys`, for machines without a browser) |
+| Who is signed in | `alran auth status` |
+| Another company | `alran auth switch-company` |
+| Company and project | `alran config company`, `alran config project [<id>]` |
+| Sign out | `alran auth logout` |
+| Models, prices, what the credit allows | `alran models`, `alran models --info <model>` |
+| Default model | `alran config model <werk\|sonnet\|opus\|full id>` |
+| Credit and spend | `alran usage`, `alran billing` |
+| Bring your own key | `alran models --third-party`, `alran provider add … --api-key-env <VAR>`, `/provider` in the TUI |
 
-- `region: cn` → Alran Code `https://api.ottili.one/docs/llms.txt`; Open Platform `https://api.ottili.one/docs/llms.txt`
-- `region: en` → Alran Code `https://api.ottili.one/docs/llms.txt`; Open Platform `https://platform.alran.io/docs/llms.txt`
+Prices change: read them from `alran models` or from Models in the AI Platform, never from memory.
 
-Alran Code docs are authoritative for product-surface behavior. Open Platform docs are authoritative for API models and underlying billing rules. Prefer `.md` pages discovered from the matching index. Never query both regional indexes for an ordinary current-region question.
+## Exit codes of the account commands
 
-## Verification workflow
+0 success · 1 error · 2 sign-in needed · 3 rate limited (the reset time is printed) · 4 Platform or
+gateway not reachable (nothing falls back to a provider on its own) · 5 the credit does not allow the
+request.
 
-1. Identify resource: subscription/Token Plan, purchased credits, pay-as-you-go balance, or BYOK provider.
-2. Identify surface, region, model, media type, and requested operation.
-3. Read the current regional official pages and specific model/API documentation; do not rely on historical model names, prices, quotas, or UI paths.
-4. For account-specific state, tell the user where to inspect the console and mark balance/entitlement as unverified unless runtime/account evidence exists.
-5. For “can credits generate video?” or similar, verify model operation support, product/plan eligibility, and current billing/credit rule.
-6. Report the conclusion first, source links next, and unresolved account or rollout conditions last.
+## Diagnostic workflow
+
+1. `alran auth status`: signed in? which company and project? A 401 or exit code 2 means
+   `alran auth login`.
+2. `alran usage` and `alran models`: is there credit, and does it cover the chosen model? Exit code 5
+   or `free_credit_model_restricted` is a credit answer, not a fault.
+3. Exit code 4 is a reachability problem: check `ALRAN_API_BASE` (default
+   `https://ai.ottili.one/v1`) and `OTTILI_PLATFORM_URL` (default `https://platform.ottili.one`).
+4. Report the conclusion first, then the command or page it came from, then what only the user can
+   check (for example the balance in Billing).
 
 ## Safety
 
-Never expose or ask the user to paste API keys, subscription keys, passwords, OAuth secrets, or verification codes. Never promise that every model/media operation is covered by credits, or that a plan bypasses API billing. Do not bypass region, plan, account, or permission restrictions.
+Never ask the user to paste an API key, a session file, a password or a sign-in code. Never promise
+that a model is covered by the free credit without `alran models` saying so. Do not bypass the
+gateway or suggest a client change as a way around a credit rule.

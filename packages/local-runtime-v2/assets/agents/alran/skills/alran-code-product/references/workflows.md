@@ -1,30 +1,56 @@
-# Alran Code workflows reference
+# Install, update, entry points and shortcuts
 
-Use this reference for Coding/Work modes, workspace, tasks/history, conversation collaboration, code review, permissions, Browser, Files/Changes/Terminal panels, shortcuts, Goal, schedules, Remote Control, and IM.
+Use this reference for installing, updating and uninstalling, the ways to start Alran Code,
+configuration paths, environment variables and shortcuts.
 
-## Stable model
+## Install, update, uninstall
 
-Treat a workflow as the combination of product surface, workspace/project context, Agent capabilities, permissions, account/provider state, and task/session state. Desktop, Web, and `alran` can expose different controls; absence in one surface is not proof that the capability does not exist.
+- **npm:** `npm install -g alran`, then `alran --version`. pnpm, yarn and bun global installs work
+  the same way. An installer script installs into `~/.alran-code` (or `ALRAN_INSTALL_DIR`) without
+  administrator rights: the exact command is shown in the AI Platform under Settings → Alran Code,
+  and it needs an installed Node.js. `ALRAN_NO_MODIFY_PATH` keeps it from editing shell files.
+- **Update:** `alran update` detects how Alran Code was installed and either runs the package
+  manager's global install after a confirmation, updates an installer-managed prefix, or prints the
+  command. The plain commands (`alran usage`, `alran models`, …) print a one-line hint at most once
+  a week when a newer version exists; `ALRAN_NO_UPDATE_CHECK=1` and `CI` switch it off.
+- **Uninstall:** `npm uninstall -g alran` for a global npm install. For an installer-managed prefix
+  remove the install directory and the `# Alran Code CLI` PATH line the installer added; the README
+  lists the exact steps. User data in `~/.alran` stays unless the user deletes it.
+- A package called `@ottili/alran-code` or `@ottili/code` from earlier builds is not updated in place:
+  `alran update` says to uninstall it and install `alran`.
 
-## Official source discovery
+## Entry points
 
-Use only the current region's Alran Code index:
+| Command | Use |
+| --- | --- |
+| `alran [prompt]` | The interactive TUI in the current directory |
+| `alran exec [prompt]` | Headless runs: scripts, CI, batch work |
+| `alran acp` | Editors and clients that speak the Agent Client Protocol |
 
-- `region: cn` → `https://api.ottili.one/docs/llms.txt`
-- `region: en` → `https://api.ottili.one/docs/llms.txt`
+## Environment
 
-Open the matching `.md` page. Relevant page families include `/docs/code/workflows/modes`, `/workspace`, `/tasks`, `/conversation-collaboration`, `/code-review`, `/permissions`, `/docs/code/desktop/browser`, `/panels`, `/shortcuts`, `/updates-feedback`, `/goal`, and `/docs/code/automation/schedules`, `/remote-control`, `/im`.
+`ALRAN_API_KEY` (an API key for scripted use), `ALRAN_API_BASE` (the gateway),
+`OTTILI_PLATFORM_URL` (the Platform), `ALRAN_LOGIN_FLOW` (`device` or `browser`), `ALRAN_DATA_DIR`
+(default `~/.alran`), `ALRAN_NO_UPDATE_CHECK`.
 
-Do not hard-code labels, button locations, shortcuts, limits, or availability. Never query both regional indexes for an ordinary current-region question.
+## Shortcuts
+
+`Enter` sends or steers the running task · `Alt+Enter` queues a follow-up · `Shift+Enter` inserts a
+newline · `@` references a file or directory · `Shift+Tab` toggles Plan mode · `Alt+M` cycles the
+permission modes · `Esc` closes a panel or interrupts a running task. `/help` lists every command and
+shortcut and `/hotkeys` shows and edits the bindings. If `Option+M` types `µ` in a terminal, the
+terminal is not forwarding the modifier (Ghostty: `macos-option-as-alt`).
 
 ## Diagnostic workflow
 
-1. Identify Desktop, Web/H5, or `alran`, plus OS and version.
-2. Establish whether the user means a project/workspace, task/session, or automation.
-3. Check login, selected Agent/model/provider, permissions, and account entitlement.
-4. Compare the current-region official surface documentation with the observed UI.
-5. Give the shortest concrete next action and separate documented behavior from account- or rollout-dependent state.
+1. Identify the operating system, the installation method and `alran --version`.
+2. Compare with the latest release from the public version endpoint named in `SKILL.md`; say "not
+   released yet" when it reports `published: false`.
+3. Check the documented behavior against what the user sees, and give the shortest concrete next
+   action. Separate documented behavior from the state of their account.
 
 ## Boundaries
 
-Explain observable user behavior only. Do not bypass permission prompts, claim a schedule or remote action was created without runtime evidence, or expose internal routing, credentials, or service endpoints.
+Explain what the user can observe. Do not bypass a permission prompt, and do not claim that an
+update, an installation or a configuration change happened without the output of the command that did
+it.

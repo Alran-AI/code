@@ -1,11 +1,3 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/wordmark-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/wordmark-light.svg">
-    <img src="docs/assets/wordmark-light.svg" alt="Alran Code" width="760">
-  </picture>
-</p>
-
 <h1 align="center">Alran Code</h1>
 <p align="center">Turn a prompt into something that works. Build, test, and keep iterating from your terminal—with Alran or your own model.</p>
 <p align="center">
@@ -21,9 +13,7 @@
 </p>
 
 Alran Code is Ottili's AI coding agent for the terminal. It reads and edits your code, runs
-commands and tests, and keeps iterating until the task works. By default it runs on **Ottili Werk**
-through the Ottili AI Gateway; Claude Sonnet 5.5 and Claude Opus 5.5 are one switch away, and you can
-bring your own provider key.
+commands and tests, and keeps iterating until the task works. By default it runs on **Ottili Werk** through the Ottili AI Gateway; Claude Sonnet 5.5 and Claude Opus 5.5 are one switch away, and you can bring your own provider key.
 
 ## Quick start
 
@@ -92,9 +82,7 @@ Supported formats: `openai-completions`, `openai-responses`, `anthropic-messages
 
 ### Plugins and skills
 
-Bundled skills (code review, deep research, documents, spreadsheets, slides, PDFs …) work out of the
-box. The **Plugin Store** (`/plugin`, `alran plugin search|install`) and the **Skill Library**
-(`/skills library`, `alran skills search|install`) add more from stores you choose; see
+Bundled skills (code review, deep research, documents, spreadsheets, slides, PDFs …) work out of the box. The **Plugin Store** (`/plugin`, `alran plugin search|install`) and the **Skill Library** (`/skills library`, `alran skills search|install`) add more from stores you choose; see
 [docs/store.md](docs/store.md). Sources and licensing: [docs/PLUGINS.md](docs/PLUGINS.md).
 
 ### Data and environment
