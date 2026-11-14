@@ -15,7 +15,11 @@ import type {
   PluginHookRunDiagnostic,
   PluginHookRunResult,
 } from './contracts.js';
-import { resolveHookCommandInvocation } from './command-invocation.js';
+import {
+  expandHookPlaceholders,
+  hookShellDialect,
+  resolveHookCommandInvocation,
+} from './command-invocation.js';
 import { isSafePluginHookMatcher } from './parser.js';
 import { boundHandlerDecision } from './output-artifacts.js';
 import {
@@ -250,8 +254,17 @@ export class PluginHookRunner {
           ? { CLAUDE_EFFORT: handlerInput.effort.level }
           : {}),
       };
-      const command = expandHookPlaceholders(handler.command, env);
-      const args = handler.args?.map((value) => expandHookPlaceholders(value, env));
+      // What parses the command decides how a placeholder may be filled: see expandHookPlaceholders.
+      const dialect = hookShellDialect(
+        resolveHookCommandInvocation({
+          command: handler.command,
+          ...(handler.args ? { args: handler.args } : {}),
+          ...(handler.shell ? { shell: handler.shell } : {}),
+          sourceFormat: handler.sourceFormat,
+        }),
+      );
+      const command = expandHookPlaceholders(handler.command, env, dialect);
+      const args = handler.args?.map((value) => expandHookPlaceholders(value, env, 'none'));
       const invocation = resolveHookCommandInvocation({
         command,
         ...(args ? { args } : {}),
@@ -1912,13 +1925,6 @@ function globMatches(pattern: string, value: string): boolean {
   } catch {
     return false;
   }
-}
-
-function expandHookPlaceholders(value: string, env: NodeJS.ProcessEnv): string {
-  return value.replace(/\$\{([A-Z][A-Z0-9_]*)\}/gu, (placeholder, name: string) => {
-    const replacement = env[name];
-    return replacement === undefined ? placeholder : replacement;
-  });
 }
 
 function adaptVendorInput(

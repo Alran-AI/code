@@ -189,7 +189,9 @@ export abstract class BrowserActionSupport extends BrowserActionTargetSupport {
   ): Promise<unknown> {
     const url = asString(input.url);
     if (!isSupportedBrowserUrl(url)) {
-      throw new Error('Unsupported Browser URL: expected http(s), file, data, or about URL');
+      throw new Error(
+        `Unsupported Browser URL: expected an http(s) or about URL (${LOCAL_BROWSER_URLS_ENV}=1 also allows file and data URLs)`,
+      );
     }
     const startedAt = Date.now();
     const before = await this.readPageSummary(session);
@@ -1577,8 +1579,20 @@ export abstract class BrowserActionSupport extends BrowserActionTargetSupport {
   }
 }
 
-function isSupportedBrowserUrl(url: string): boolean {
-  return /^(?:https?|file|data|about):/iu.test(url.trim());
+/**
+ * Opt-in for pages that live on this machine. A `file:` URL lets the model read any file the user
+ * can read (`~/.ssh/id_rsa`, the Alran config with its API key) into its context, so the default is
+ * the web only.
+ */
+export const LOCAL_BROWSER_URLS_ENV = 'ALRAN_BROWSER_ALLOW_LOCAL_URLS';
+
+export function isSupportedBrowserUrl(
+  url: string,
+  env: NodeJS.ProcessEnv = process.env,
+): boolean {
+  const scheme = /^(?:https?|file|data|about):/iu.exec(url.trim())?.[0].slice(0, -1).toLowerCase();
+  if (scheme === 'http' || scheme === 'https' || scheme === 'about') return true;
+  return (scheme === 'file' || scheme === 'data') && env[LOCAL_BROWSER_URLS_ENV] === '1';
 }
 
 const VALUE_CONTROL_FORMATS = {

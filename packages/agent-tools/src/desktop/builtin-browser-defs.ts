@@ -965,7 +965,7 @@ export const LocalBrowserNavigateToolDef = {
   description: 'Navigate the active session-scoped Browser tab to a URL.',
   schema: Type.Object({
     ...BrowserTargetProps,
-    url: Type.String({ description: 'URL to open in the embedded browser.' }),
+    url: Type.String({ description: 'http(s) URL to open in the embedded browser.' }),
     replaceCurrentTab: Type.Optional(
       Type.Boolean({
         description:
