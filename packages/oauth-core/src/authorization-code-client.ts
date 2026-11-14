@@ -97,7 +97,9 @@ export class AuthorizationCodeClient {
     expectedState?: string,
     state?: string,
   ): Promise<AuthorizationCodeTokenGrant> {
-    if (expectedState !== undefined && state !== undefined && state !== expectedState) {
+    // Fail closed: a callback that carries no `state` at all is as unbound as one with the wrong
+    // `state`. Only a caller that expects none (no `expectedState`) skips the check.
+    if (expectedState !== undefined && state !== expectedState) {
       throw new OAuthProtocolError('state_mismatch');
     }
 

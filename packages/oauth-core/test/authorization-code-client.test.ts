@@ -76,6 +76,19 @@ describe('AuthorizationCodeClient', () => {
     ).rejects.toThrow(/state_mismatch/);
   });
 
+  it('rejects a callback that carries no state when one was expected', async () => {
+    const client = new AuthorizationCodeClient(BASE_OPTIONS);
+    await expect(
+      client.exchangeCodeForToken('test-code', 'verifier', 'expected-state', undefined),
+    ).rejects.toThrow(/state_mismatch/);
+  });
+
+  it('accepts the matching state, and skips the check only when none was expected', async () => {
+    const client = new AuthorizationCodeClient(BASE_OPTIONS);
+    await expect(client.exchangeCodeForToken('c', 'v', 'same', 'same')).resolves.toMatchObject({ accessToken: 'test-access-token' });
+    await expect(client.exchangeCodeForToken('c', 'v')).resolves.toMatchObject({ accessToken: 'test-access-token' });
+  });
+
   it('refreshes tokens', async () => {
     const client = new AuthorizationCodeClient(BASE_OPTIONS);
     const grant = await client.refreshToken('test-refresh-token');

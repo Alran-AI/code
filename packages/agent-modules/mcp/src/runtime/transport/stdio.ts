@@ -62,7 +62,14 @@ class SafeStdioClientTransport extends StdioClientTransport {
   }
 }
 
-function buildProcessEnv(
+/**
+ * Alran's own account credential. An MCP server (a Store plugin may bring one) is another program's code:
+ * it inherits the user's environment, as every MCP client's does, but not the key that bills the user's
+ * account. A server that is meant to have it names it in its own `env`.
+ */
+const INHERITED_ENV_WITHHELD = new Set(['ALRAN_API_KEY']);
+
+export function buildProcessEnv(
   configEnv?: Record<string, string>,
   injectedEnv?: Record<string, string>,
 ): Record<string, string> {
@@ -76,7 +83,7 @@ function buildProcessEnv(
 function getProcessEnv(): Record<string, string> {
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (typeof value === 'string') env[key] = value;
+    if (typeof value === 'string' && !INHERITED_ENV_WITHHELD.has(key)) env[key] = value;
   }
   return env;
 }

@@ -159,6 +159,8 @@ const PROTECTED_ENV_NAMES: ReadonlySet<string> = new Set([
   'LOCALAPPDATA',
 ]);
 
+const ALRAN_ACCOUNT_CREDENTIAL_NAMES = ['ALRAN_API_KEY'] as const;
+
 function isProtectedName(name: string): boolean {
   const upper = name.toUpperCase();
   return PROTECTED_ENV_NAMES.has(upper) || upper.startsWith('LC_');
@@ -212,6 +214,13 @@ export function sanitizeBashSubprocessEnv(
 
   // Layer A — Alran boundary strip. Always on; allowlist deliberately ignored.
   removed.push(...stripRuntimeBoundaryKeysFrom(out, 'agent-runtime'));
+  // Alran's own account credential is never for the commands the model runs: `printenv ALRAN_API_KEY`
+  // would hand it to the transcript. The provider and integration secrets of Layer B stay the user's
+  // choice (interactive default `off`); this one is ours, so it is not.
+  for (const name of ALRAN_ACCOUNT_CREDENTIAL_NAMES) {
+    if (out[name] !== undefined) removed.push(name);
+    delete out[name];
+  }
 
   // Layer B — provider and integration secret scrub, gated by mode.
   if (policy.mode === 'scrub') {

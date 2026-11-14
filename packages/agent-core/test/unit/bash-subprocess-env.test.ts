@@ -69,3 +69,20 @@ describe('bash subprocess default provider credentials', () => {
     expect(env.INPUT_ALRAN_PROVIDER_API_KEY).toBe(providerEnv.INPUT_ALRAN_PROVIDER_API_KEY);
   });
 });
+
+describe('bash subprocess and the Alran account credential', () => {
+  it.each(['off', 'scrub', 'strict'] as const)('never hands ALRAN_API_KEY to a command, in mode %s', (mode) => {
+    const original = { PATH: '/usr/bin', HOME: '/home/x', ALRAN_API_KEY: 'sk-ottili-synthetic', GH_TOKEN: 'synthetic-gh-value' };
+    const { env, removed } = sanitizeBashSubprocessEnv(original, { mode });
+    expect(env).not.toHaveProperty('ALRAN_API_KEY');
+    expect(removed).toContain('ALRAN_API_KEY');
+    expect(original.ALRAN_API_KEY).toBe('sk-ottili-synthetic');
+  });
+
+  it('leaves the user\'s own provider credentials alone in the default interactive mode', () => {
+    const original = { PATH: '/usr/bin', GH_TOKEN: 'synthetic-gh-value', ALRAN_API_KEY: 'sk-ottili-synthetic' };
+    const policy = resolveBashEnvPolicy(undefined, {});
+    expect(policy.mode).toBe('off');
+    expect(sanitizeBashSubprocessEnv(original, policy).env).toEqual({ PATH: '/usr/bin', GH_TOKEN: 'synthetic-gh-value' });
+  });
+});

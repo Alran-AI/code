@@ -74,8 +74,41 @@ export function resolveOttiliPlatformUrl(env: NodeJS.ProcessEnv = process.env): 
  */
 export function resolveOttiliApiBaseUrl(env: NodeJS.ProcessEnv = process.env): string {
   const configured = env[OTTILI_API_BASE_ENV]?.trim();
-  if (configured) return normalizeOttiliApiBaseUrl(configured);
+  if (configured) return assertSafeOttiliApiBaseUrl(normalizeOttiliApiBaseUrl(configured), env);
   return OTTILI_AI_PLATFORM_BASE_URL;
+}
+
+/** Lets a self-hosted gateway on a trusted network use plain `http`. */
+export const OTTILI_API_BASE_ALLOW_HTTP_ENV = 'ALRAN_API_BASE_ALLOW_HTTP';
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+/**
+ * The model calls carry `Authorization: Bearer <the Ottili API key or Platform session>` to this URL, so
+ * where it points decides who receives the credential. A value that is not an `https` URL (plain `http` is
+ * accepted for a loopback gateway, or when `ALRAN_API_BASE_ALLOW_HTTP=1` says the network is trusted), or
+ * that carries a user name or password, is refused instead of being sent a credential.
+ */
+export function assertSafeOttiliApiBaseUrl(value: string, env: NodeJS.ProcessEnv = process.env): string {
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error(`${OTTILI_API_BASE_ENV} must be an absolute https URL; got ${JSON.stringify(value)}.`);
+  }
+  if (parsed.username !== '' || parsed.password !== '') {
+    throw new Error(`${OTTILI_API_BASE_ENV} must not carry a user name or password.`);
+  }
+  const secure = parsed.protocol === 'https:';
+  const plainAllowed =
+    parsed.protocol === 'http:' &&
+    (LOOPBACK_HOSTS.has(parsed.hostname) || env[OTTILI_API_BASE_ALLOW_HTTP_ENV] === '1');
+  if (!secure && !plainAllowed) {
+    throw new Error(
+      `${OTTILI_API_BASE_ENV} must be an https URL, so the API key is not sent in the clear (http is accepted for localhost, or with ${OTTILI_API_BASE_ALLOW_HTTP_ENV}=1); got ${JSON.stringify(value)}.`,
+    );
+  }
+  return value;
 }
 
 /**

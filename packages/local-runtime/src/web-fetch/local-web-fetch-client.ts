@@ -58,12 +58,37 @@ export class LocalWebFetchClient implements LocalWebFetchAdapter {
     const method = input.method ?? 'GET';
     const scoped = createScopedAbortSignal(signal, this.timeoutMs);
     try {
-      const res = await this.fetchImpl(url.href, {
-        method,
-        headers: { 'User-Agent': WEB_FETCH_USER_AGENT },
-        redirect: 'follow',
-        signal: scoped.signal,
-      });
+      // Redirects are followed here, one hop at a time, so every destination is checked and not only the
+      // address the model asked for: a public page may answer 302 to the cloud metadata service.
+      let current = url;
+      let res: Response | undefined;
+      for (let hops = 0; ; hops += 1) {
+        if (isCloudMetadataHost(current)) {
+          return failure(
+            'web_fetch does not fetch cloud instance-metadata addresses.',
+            undefined,
+            undefined,
+            'invalid_request',
+          );
+        }
+        res = await this.fetchImpl(current.href, {
+          method,
+          headers: { 'User-Agent': WEB_FETCH_USER_AGENT },
+          redirect: 'manual',
+          signal: scoped.signal,
+        });
+        const location = REDIRECT_STATUSES.has(res.status) ? res.headers.get('location') : null;
+        if (!location) break;
+        if (hops >= MAX_REDIRECTS) {
+          return failure('web_fetch followed too many redirects.', undefined, undefined, 'network_error');
+        }
+        const next = normalizeHttpUrl(new URL(location, current).href);
+        if (!next) {
+          return failure('web_fetch only follows redirects to http:// or https:// URLs.', undefined, undefined, 'invalid_request');
+        }
+        await res.body?.cancel().catch(() => undefined);
+        current = next;
+      }
       const contentType = res.headers.get('content-type') ?? undefined;
       const retryAfter = res.headers.get('retry-after') ?? undefined;
       if (method === 'HEAD') {
@@ -72,7 +97,7 @@ export class LocalWebFetchClient implements LocalWebFetchAdapter {
           content: `HTTP ${res.status} ${res.statusText}`,
           status: res.status,
           statusText: res.statusText,
-          finalUrl: res.url || url.href,
+          finalUrl: current.href,
           ...(contentType ? { contentType } : {}),
           ...(retryAfter ? { retryAfter } : {}),
           bytes: 0,
@@ -97,7 +122,7 @@ export class LocalWebFetchClient implements LocalWebFetchAdapter {
           content: body.text,
           status: res.status,
           statusText: res.statusText,
-          finalUrl: res.url || url.href,
+          finalUrl: current.href,
           ...(contentType ? { contentType } : {}),
           ...(retryAfter ? { retryAfter } : {}),
           bytes: body.bytes,
@@ -110,7 +135,7 @@ export class LocalWebFetchClient implements LocalWebFetchAdapter {
         content: body.text,
         status: res.status,
         statusText: res.statusText,
-        finalUrl: res.url || url.href,
+        finalUrl: current.href,
         ...(contentType ? { contentType } : {}),
         ...(retryAfter ? { retryAfter } : {}),
         bytes: body.bytes,
@@ -326,6 +351,25 @@ function createScopedAbortSignal(
       upstream?.removeEventListener('abort', abort);
     },
   };
+}
+
+const REDIRECT_STATUSES: ReadonlySet<number> = new Set([301, 302, 303, 307, 308]);
+const MAX_REDIRECTS = 10;
+
+/**
+ * The addresses where a cloud provider hands out the credentials of the machine. `web_fetch` reaches
+ * localhost and the intranet on purpose, but a page that bounces the model to these would read the
+ * instance's role credentials into its context. (A name that merely resolves here is not caught.)
+ */
+export function isCloudMetadataHost(url: URL): boolean {
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/gu, '');
+  return (
+    /^169\.254\.\d{1,3}\.\d{1,3}$/u.test(host) ||
+    host === 'fd00:ec2::254' ||
+    host === 'metadata.google.internal' ||
+    host === 'metadata.goog' ||
+    host === '100.100.100.200'
+  );
 }
 
 function normalizeHttpUrl(value: string): URL | undefined {
