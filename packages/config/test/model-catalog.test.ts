@@ -28,6 +28,20 @@ describe("ALRAN_MODELS catalog", () => {
     for (const id of Object.keys(ALRAN_MODELS)) expect(ALRAN_MODEL_TO_GATEWAY_ID).toHaveProperty(id);
     for (const id of Object.keys(ALRAN_MODEL_TO_GATEWAY_ID)) expect(ALRAN_MODELS).toHaveProperty(id);
   });
+
+  it("offers a reasoning level for the models that reason, and none the gateway would refuse", () => {
+    // The gateway accepts exactly these levels for the Claude models and always reasons. "none" is
+    // not offered, because the upstream rejects it; "minimal"/"max" are Werk's vocabulary, not
+    // Anthropic's.
+    for (const id of ["anthropic/claude-sonnet-5.5", "anthropic/claude-opus-5.5"]) {
+      expect(ALRAN_MODELS[id]!.thinking?.effortOptions).toEqual(["low", "medium", "high", "xhigh"]);
+      expect(ALRAN_MODELS[id]!.thinking?.defaultEffort).toBe("medium");
+      expect(ALRAN_MODELS[id]!.thinking_config?.mode).toBe("always_on");
+    }
+    expect(ALRAN_MODELS["Alran-Werk"]!.thinking?.effortOptions).toContain("minimal");
+    // Werk can also be told not to think at all — as a variant, not as an effort level.
+    expect(ALRAN_MODELS["Alran-Werk"]!.variants?.["none-thinking"]).toBeDefined();
+  });
 });
 
 describe("gateway routing", () => {

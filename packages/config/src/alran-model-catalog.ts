@@ -72,6 +72,14 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     temperature: false,
     modalities: { input: ["text", "image"], output: ["text"] },
     limit: { context: 1000000, output: 128000 },
+    // Claude 5.5 always reasons — the upstream refuses `effort: none` ("Reasoning is mandatory for
+    // this endpoint") — but the *level* is the customer's choice: the gateway maps low/medium/high/
+    // xhigh onto the levels Anthropic's API takes. Without these options the CLI showed no reasoning
+    // selector for the two partner models at all, while the gateway was accepting an effort for them.
+    thinking: {
+      effortOptions: ["low", "medium", "high", "xhigh"],
+      defaultEffort: "medium",
+    },
     thinking_config: { mode: "always_on" },
     variants: {
       thinking: { thinking: { type: "adaptive" } },
@@ -90,6 +98,14 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     temperature: false,
     modalities: { input: ["text", "image"], output: ["text"] },
     limit: { context: 1000000, output: 128000 },
+    // Claude 5.5 always reasons — the upstream refuses `effort: none` ("Reasoning is mandatory for
+    // this endpoint") — but the *level* is the customer's choice: the gateway maps low/medium/high/
+    // xhigh onto the levels Anthropic's API takes. Without these options the CLI showed no reasoning
+    // selector for the two partner models at all, while the gateway was accepting an effort for them.
+    thinking: {
+      effortOptions: ["low", "medium", "high", "xhigh"],
+      defaultEffort: "medium",
+    },
     thinking_config: { mode: "always_on" },
     variants: {
       thinking: { thinking: { type: "adaptive" } },
