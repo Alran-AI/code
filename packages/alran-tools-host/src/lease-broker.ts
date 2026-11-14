@@ -91,7 +91,10 @@ export async function startAlranToolsAuthLeaseBroker(
       return cachedLease;
     }
 
-    for (;;) {
+    // Every pass that reaches the network can rotate the refresh token, so the passes are bounded:
+    // a token the issuer makes shorter-lived than `minValidityMs` is never going to satisfy the
+    // request, and asking again would only churn the token endpoint.
+    for (let attempt = 0; attempt < MAX_LEASE_ATTEMPTS; attempt += 1) {
       if (inFlight) {
         const lease = await inFlight.promise;
         if (
@@ -117,10 +120,15 @@ export async function startAlranToolsAuthLeaseBroker(
         ) {
           return lease;
         }
+        // Freshly loaded for exactly this request and still too short-lived: retrying cannot help.
+        if (admissionOpen && lease.generation >= minimumGeneration) {
+          throw new AuthLeaseProtocolError('INTERNAL_ERROR');
+        }
       } finally {
         if (inFlight === current) inFlight = undefined;
       }
     }
+    throw new AuthLeaseProtocolError('BROKER_UNAVAILABLE');
   }
 
   async function handleRequest(request: AuthLeaseRequest): Promise<AuthLeaseSuccessResult> {
@@ -214,6 +222,9 @@ async function loadLease(
     throw error;
   }
 }
+
+/** Lease loads one request may trigger before it is refused (see acquireLease). */
+const MAX_LEASE_ATTEMPTS = 3;
 
 async function readStatusAfterLeaseFailure(
   session: AlranToolsHostAuthSession,

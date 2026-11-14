@@ -1,4 +1,4 @@
-import type { AlranRegion } from '@alran/config';
+import type { AlranBuildEnv, AlranRegion } from '@alran/config';
 // The data directory of the running CLI (ALRAN_DATA_DIR, else the profile's default): the same one
 // the model resolver reads the session from, so a sign-in is found where it is used.
 import { getTuiDataDirPath } from '../runtime/data-dir.js';
@@ -8,6 +8,7 @@ import {
   resolveOttiliGatewayBaseUrl,
   resolveOttiliApiKeyConsoleUrlFor,
   resolvePlatformEnvironmentForBuild,
+  getRuntimeRegion,
 } from '@alran/config';
 
 import { randomBytes } from 'node:crypto';
@@ -18,6 +19,7 @@ import {
   type OttiliApiKeyLoginOptions,
 } from '../auth/ottili-api-key.js';
 import { resolveAlranAuthEnvironment } from '../auth/environment.js';
+import { createAlranSharedAuthSession } from '../runtime/auth-session.js';
 import {
   runDeviceAuthorization,
   shouldUseDeviceFlow,
@@ -31,6 +33,10 @@ import {
   type CallbackLoginResult,
   createAuthNamespace,
   createCredentialStore,
+  AlranOAuthCore,
+  HttpOAuthClient,
+  migrateLegacyAuthNamespace,
+  resolveAlranOAuthEndpointConfig,
   ALRAN_KEYCLOAK_AUTH_HOST,
   ALRAN_KEYCLOAK_AUDIENCE,
   ALRAN_KEYCLOAK_CLIENT_ID,
@@ -39,11 +45,8 @@ import {
   parsePlatformOidcCallbackUri,
   resolvePlatformBaseUrl,
   resolvePlatformOidcCallbackUri,
-  AuthStateStore,
   type AuthBuildEnv,
   type AuthRegion,
-  type AuthState,
-  type CredentialKey,
   type StoredCredential,
   CREDENTIAL_SCHEMA_VERSION,
   PlatformApiClient,
@@ -72,6 +75,11 @@ export interface RunTuiAuthCommandOptions
   readonly device?: boolean;
   /** Replaces the device authorization's network and clock in tests. */
   readonly deviceAuthorization?: Partial<DeviceAuthorizationOptions>;
+  /** Opens the OAuth core of one namespace for sign-out; replaced in tests. */
+  readonly sharedAuthLogoutFor?: (scope: {
+    buildEnv: AlranBuildEnv;
+    region: AlranRegion;
+  }) => SharedAuthLogout;
 }
 
 /**
@@ -140,20 +148,91 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
   return result.message;
 }
 
+/** What the sign-out needs from the shared OAuth core of one namespace. */
+export type SharedAuthLogout = Pick<AlranOAuthCore, 'logout'>;
+
+/** The OAuth namespaces a sign-in can have written to: the build's own and the Keycloak login's. */
+function oauthLogoutScopes(): Array<{ buildEnv: AlranBuildEnv; region: AlranRegion }> {
+  const environment = resolveAlranAuthEnvironment({ runtimeRegion: getRuntimeRegion() });
+  const scopes = [
+    { buildEnv: environment.buildEnv, region: environment.region },
+    { buildEnv: 'prod' as const, region: environment.region },
+    { buildEnv: 'prod' as const, region: 'en' as const },
+  ];
+  const seen = new Set<string>();
+  return scopes.filter((scope) => {
+    const key = `${scope.buildEnv}/${scope.region}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function defaultSharedAuthLogout(
+  dataDir: string,
+  scope: { buildEnv: AlranBuildEnv; region: AlranRegion },
+): SharedAuthLogout {
+  return createAlranSharedAuthSession({
+    dataDir,
+    ...scope,
+    oauthEndpoints: resolveAlranOAuthEndpointConfig(process.env, scope),
+  });
+}
+
+/**
+ * Remove the OAuth credential of one namespace, from disk and (best effort) from the server.
+ *
+ * Revocation needs the network and must not keep you signed in: when it cannot be completed the
+ * token is still removed from this machine and the returned warning says the grant is unrevoked.
+ */
+async function logoutOfOAuth(
+  core: SharedAuthLogout,
+  scope: { buildEnv: AlranBuildEnv; region: AlranRegion },
+): Promise<string | undefined> {
+  const where = `${scope.buildEnv}/${scope.region}`;
+  try {
+    const revoked = await core.logout({ revoke: true });
+    if (revoked.status === 'anonymous') return undefined;
+    // `logout_pending` keeps the token file for a later retry; an explicit sign-out removes it now.
+    const removed = await core.logout({ revoke: false });
+    return removed.status === 'anonymous'
+      ? `Could not revoke the ${where} OAuth grant at the server; the token was removed from this machine and expires on its own.`
+      : `Could not remove the ${where} OAuth credential from this machine.`;
+  } catch (error) {
+    return `Could not clear the ${where} OAuth credential (${error instanceof Error ? error.message : String(error)}).`;
+  }
+}
+
 /**
  * Sign out by removing the stored credentials.
  *
- * Both credential kinds are cleared: the Ottili API key and any stored Platform
- * session. Clearing both environments is deliberate — a sign-out must not leave
- * a session behind that the model calls would keep using.
+ * Every credential kind is cleared: the Ottili API key, any stored Platform session and the OAuth
+ * credential (access and refresh token, the refresh journal and the auth state). Clearing every
+ * environment is deliberate: a sign-out must not leave a session behind that the model calls would
+ * keep using. Problems that leave something behind are written to `writeError`.
  */
 export async function runTuiLogout(options: RunTuiAuthCommandOptions = {}): Promise<string> {
   const dataDir = getTuiDataDirPath();
+  const writeError = options.writeError ?? ((value: string) => process.stderr.write(value));
   for (const platformEnv of platformEnvironmentOrder(
     resolvePlatformEnvironmentForBuild(),
   )) {
     clearStoredPlatformSession(dataDir, platformEnv);
   }
+  const forScope = options.sharedAuthLogoutFor ?? ((scope) => defaultSharedAuthLogout(dataDir, scope));
+  const warnings: string[] = [];
+  for (const scope of oauthLogoutScopes()) {
+    let core: SharedAuthLogout;
+    try {
+      core = forScope(scope);
+    } catch (error) {
+      warnings.push(`Could not open the ${scope.buildEnv}/${scope.region} OAuth credential (${error instanceof Error ? error.message : String(error)}).`);
+      continue;
+    }
+    const warning = await logoutOfOAuth(core, scope);
+    if (warning) warnings.push(warning);
+  }
+  for (const warning of warnings) writeError(`${warning}\n`);
   return logoutOfOttiliApiKey({
     ...(options.clearKey ? { clearKey: options.clearKey } : {}),
   });
@@ -226,8 +305,19 @@ async function loginWithKeycloak(options: LoginWithKeycloakOptions): Promise<str
     buildEnv,
     region,
   });
-  const credentialStore = createCredentialStore({ authHome: namespace.namespaceHome });
-  const stateStore = new AuthStateStore(namespace.statePath);
+  // The same core every other writer of this namespace uses: the commit takes the cross-process
+  // lock and the core allocates the generation, so this sign-in cannot race a refresh in another
+  // process or move the refresh fence backwards.
+  const core = new AlranOAuthCore({
+    namespace,
+    credentialStore: createCredentialStore({ authHome: namespace.namespaceHome }),
+    oauthClient: new HttpOAuthClient({
+      deviceAuthorizationEndpoint: `https://${ALRAN_KEYCLOAK_AUTH_HOST}/realms/alran/protocol/openid-connect/auth/device`,
+      tokenEndpoint,
+      revocationEndpoint,
+    }),
+    initialize: () => migrateLegacyAuthNamespace(namespace),
+  });
 
   let server: CallbackServer | undefined;
   try {
@@ -238,14 +328,7 @@ async function loginWithKeycloak(options: LoginWithKeycloakOptions): Promise<str
       baseUrl: 'http://127.0.0.1',
       expectedState: state,
       onLogin: async (result: CallbackLoginResult) => {
-        await storeKeycloakCredential(
-          namespace,
-          credentialStore,
-          stateStore,
-          result,
-          buildEnv,
-          region,
-        );
+        await storeKeycloakCredential(core, result);
       },
     });
 
@@ -283,8 +366,7 @@ async function loginWithKeycloak(options: LoginWithKeycloakOptions): Promise<str
 
     await server.waitForLogin();
 
-    const credential = await credentialStore.get(namespace.credentialKey);
-    if (!credential) {
+    if ((await core.getStatus()).status !== 'authenticated') {
       throw new Error('Keycloak login succeeded but no credential was stored.');
     }
 
@@ -400,16 +482,11 @@ function resolveKeycloakEndpoint(envVar: string, fallback: string): string {
 }
 
 async function storeKeycloakCredential(
-  namespace: { credentialKey: CredentialKey; buildEnv: AuthBuildEnv; region: AuthRegion },
-  credentialStore: { put: (key: CredentialKey, credential: StoredCredential) => Promise<void> },
-  stateStore: { write: (state: AuthState) => Promise<void> },
+  core: Pick<AlranOAuthCore, 'commitExternalLogin'>,
   result: CallbackLoginResult,
-  buildEnv: AuthBuildEnv,
-  region: AuthRegion,
 ): Promise<void> {
   const now = Date.now();
-  const generation = 1;
-  const credential: StoredCredential = {
+  await core.commitExternalLogin(({ generation, loginEpoch }): StoredCredential => ({
     schemaVersion: CREDENTIAL_SCHEMA_VERSION,
     accessToken: result.accessToken ?? '',
     refreshToken: result.refreshToken ?? '',
@@ -419,22 +496,10 @@ async function storeKeycloakCredential(
     audience: ALRAN_KEYCLOAK_AUDIENCE,
     expiresAtMs: now + (result.expiresInSec ?? 3600) * 1_000,
     generation,
+    loginEpoch,
     ...(result.subject ? { subject: result.subject } : {}),
     ...(result.accountId ? { accountId: result.accountId } : {}),
-  };
-  await credentialStore.put(namespace.credentialKey, credential);
-  await stateStore.write({
-    schemaVersion: 2,
-    status: 'authenticated',
-    storeKind: 'file',
-    clientId: ALRAN_KEYCLOAK_CLIENT_ID,
-    scopes: result.scopes ?? [],
-    audience: ALRAN_KEYCLOAK_AUDIENCE,
-    buildEnv,
-    region,
-    expiresAtMs: now + (result.expiresInSec ?? 3600) * 1_000,
-    generation,
-  });
+  }));
 }
 
 interface StoredPlatformSession {

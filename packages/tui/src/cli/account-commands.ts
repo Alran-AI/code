@@ -70,8 +70,11 @@ export interface AccountCommandIo {
   readonly now: () => Date;
   /** The interactive Platform sign-in (OIDC in the browser); returns the message to print. */
   readonly login: (options: { openBrowser: boolean; apiKey: boolean; device?: boolean }) => Promise<string>;
-  /** Remove every local credential (session files and a stored API key). */
-  readonly clearLocalCredentials: () => Promise<void>;
+  /**
+   * Remove every local credential (session files, a stored API key and the OAuth token). Returns
+   * the problems that left something behind; they are printed after the sign-out.
+   */
+  readonly clearLocalCredentials: () => Promise<readonly string[] | void>;
   /** Persist the default model (`provider/model`). */
   readonly setDefaultModel: (modelKey: string) => Promise<void>;
   /** The persisted default model (`provider/model`), if any. */
@@ -97,7 +100,9 @@ export function defaultAccountCommandIo(): AccountCommandIo {
     },
     clearLocalCredentials: async () => {
       const { runTuiLogout } = await import('./auth-command.js');
-      await runTuiLogout({});
+      const problems: string[] = [];
+      await runTuiLogout({ writeError: (text) => problems.push(text.trimEnd()) });
+      return problems;
     },
     setDefaultModel: async (modelKey) => {
       await updateLocalModelSelection({ modelKey });
@@ -348,7 +353,7 @@ export async function runAuthLogout(io: AccountCommandIo): Promise<void> {
     }
     clearStoredPlatformSession(io.dataDir, platformEnv);
   }
-  await io.clearLocalCredentials();
+  warnings.push(...((await io.clearLocalCredentials()) ?? []));
   for (const warning of warnings) io.err(`${warning}\n`);
   io.out('Logged out.\n');
 }

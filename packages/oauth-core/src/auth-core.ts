@@ -349,6 +349,48 @@ export class AlranOAuthCore {
     }
   }
 
+  /**
+   * Commit a credential that an interactive flow outside the device grant obtained (the loopback
+   * authorization-code login). The caller never sets the generation: it is allocated here, under the
+   * shared lock, from the higher of the state and the stored credential, so a sign-in can neither
+   * race a refresh in another process nor move the refresh fence backwards. The state is first put
+   * into `authorizing` so a crash between the two writes is recovered like any other login.
+   */
+  async commitExternalLogin(
+    build: (allocation: { generation: number; loginEpoch: string }) => StoredCredential,
+  ): Promise<LoginResult> {
+    await this.initialize();
+    return this.lock.withLock(async () => {
+      const state = await this.stateStore.read();
+      assertLoginStateDomain(state, this.options.namespace);
+      const credential = await this.options.credentialStore.get(
+        this.options.namespace.credentialKey,
+      );
+      const floor = Math.max(state?.generation ?? 0, credential?.generation ?? 0);
+      await this.stateStore.write({
+        ...baseState(
+          { status: 'authorizing', generation: floor, storeKind: this.options.credentialStore.kind },
+          this.options.namespace,
+        ),
+        authorization: {
+          leaseId: this.createLeaseId(),
+          leaseExpiresAtMs: this.now() + this.authorizationLeaseMs,
+        },
+      });
+      await this.clearPendingRefresh();
+      const generation = floor + 1;
+      const stored = build({ generation, loginEpoch: randomUUID() });
+      if (stored.generation !== generation) {
+        throw new TypeError('The credential must carry the generation the core allocated.');
+      }
+      await this.options.credentialStore.put(this.options.namespace.credentialKey, stored);
+      await this.stateStore.write(
+        authenticatedState(stored, this.options.credentialStore.kind, this.options.namespace),
+      );
+      return { status: 'authenticated', generation };
+    });
+  }
+
   async logout(options: { revoke: boolean }): Promise<LogoutResult> {
     await this.initialize();
     return this.lock.withLock(async () => {

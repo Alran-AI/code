@@ -81,4 +81,35 @@ describe('alran-tools auth lease broker', () => {
 
     await expect(client.getLease(30_000)).rejects.toMatchObject({ code: 'INTERNAL_ERROR' });
   });
+
+  it('asks the token endpoint once, not in a loop, for a token shorter-lived than requested', async () => {
+    const dataDir = await mkdtemp(path.join(tmpdir(), 'mtb-'));
+    const getAccessToken = vi.fn(async () => ({
+      accessToken: 'short-at',
+      expiresAtMs: Date.now() + 5_000,
+      generation: 2,
+      audience: 'agent-backend' as const,
+      scopes: ['agent.default'] as ['agent.default'],
+    }));
+    const broker = await startAlranToolsAuthLeaseBroker({
+      dataDir,
+      session: {
+        getStatus: async () => ({ status: 'authenticated', generation: 2 }),
+        getAccessToken,
+        handleUnauthorized: async () => 'retry',
+        watch: () => () => undefined,
+      },
+    });
+    cleanups.push(() => broker.dispose());
+    const client = createNodeAuthLeaseClient({
+      endpoint: broker.endpoint,
+      capabilityFile: broker.capabilityFile,
+    });
+    cleanups.push(async () => client.close());
+
+    await expect(client.getLease(60_000)).rejects.toMatchObject({ code: 'INTERNAL_ERROR' });
+    expect(getAccessToken).toHaveBeenCalledTimes(1);
+    // A request the same token does satisfy still works.
+    await expect(client.getLease(1_000)).resolves.toMatchObject({ accessToken: 'short-at' });
+  });
 });
