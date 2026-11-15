@@ -353,6 +353,37 @@ describe('models.dev Provider Presets', () => {
     ]);
   });
 
+  // Founder's audit §3.4: "OpenRouter is not an option in Third Party". models.dev names OpenRouter by its own SDK
+  // package, which the transport switch did not know, so the provider was dropped from the list although its
+  // endpoint is a plain OpenAI-compatible /chat/completions.
+  it('lists OpenRouter as an OpenAI-compatible provider', async () => {
+    const presets = await parsePresetsForTest({
+      openrouter: {
+        name: 'OpenRouter',
+        npm: '@openrouter/ai-sdk-provider',
+        api: 'https://openrouter.ai/api/v1',
+        models: { 'anthropic/claude-sonnet-5.5': { name: 'Claude Sonnet 5.5', tool_call: true, reasoning: true } },
+      },
+      'openrouter-no-api': {
+        name: 'OpenRouter (no api field)',
+        npm: '@openrouter/ai-sdk-provider',
+        models: { 'deepseek/deepseek-chat': { name: 'DeepSeek Chat', tool_call: true } },
+      },
+    });
+    const byId = Object.fromEntries(presets.map((preset) => [preset.providerId, preset]));
+    expect(byId.openrouter).toMatchObject({
+      name: 'OpenRouter',
+      baseUrl: 'https://openrouter.ai/api/v1',
+      apiFormat: 'openai-completions',
+    });
+    expect(byId.openrouter?.models.map((model) => model.modelId)).toEqual(['anthropic/claude-sonnet-5.5']);
+    // A catalog entry without an `api` field falls back to the public endpoint rather than being dropped.
+    expect(byId['openrouter-no-api']).toMatchObject({
+      baseUrl: 'https://openrouter.ai/api/v1',
+      apiFormat: 'openai-completions',
+    });
+  });
+
   it('keeps opaque Provider IDs and only complete tool-capable presets', async () => {
     const presets = await parsePresetsForTest({
       'vendor.with.dots': {

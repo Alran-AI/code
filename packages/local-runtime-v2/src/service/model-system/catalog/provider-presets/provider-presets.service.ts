@@ -16,6 +16,7 @@ import {
 } from './provider-presets.repository.js';
 
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const MESSAGES_API_BASE_URL = 'https://api.anthropic.com';
 const DISABLED_PROVIDER_IDS = new Set([
   'alran',
@@ -23,9 +24,11 @@ const DISABLED_PROVIDER_IDS = new Set([
   'alran-coding-plan',
   'alran-cn-coding-plan',
 ]);
+// OpenRouter leads both lists: it is the one connection that reaches every other model, so it is the first thing
+// a person without a key of their own looks for.
 const REGION_PINNED_PROVIDER_IDS = {
-  cn: ['zhipuai-coding-plan', 'zhipuai', 'deepseek', 'moonshotai-cn', 'openai', 'anthropic'],
-  en: ['zai-coding-plan', 'zai', 'deepseek', 'moonshotai', 'openai', 'anthropic'],
+  cn: ['openrouter', 'zhipuai-coding-plan', 'zhipuai', 'deepseek', 'moonshotai-cn', 'openai', 'anthropic'],
+  en: ['openrouter', 'zai-coding-plan', 'zai', 'deepseek', 'moonshotai', 'openai', 'anthropic'],
 } as const;
 // These IDs belong to models.dev, not the bundled inference registry. Keep their
 // URLs and IDs intact, and make the billing plan explicit at selection time.
@@ -158,6 +161,11 @@ function resolveTransport(
   } else if (npm === '@ai-sdk/openai-compatible') {
     apiFormat = 'openai-completions';
     baseUrl = stringValue(provider.api);
+  } else if (npm === '@openrouter/ai-sdk-provider' || providerId === 'openrouter') {
+    // models.dev names OpenRouter by its own SDK package, which this switch used to drop: OpenRouter was missing
+    // from "Known providers" although its endpoint is a plain OpenAI-compatible /chat/completions.
+    apiFormat = 'openai-completions';
+    baseUrl = stringValue(provider.api) ?? OPENROUTER_BASE_URL;
   } else if (npm === '@ai-sdk/anthropic') {
     apiFormat = 'anthropic-messages';
     baseUrl =

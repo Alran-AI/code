@@ -305,6 +305,7 @@ describe("TuiProviderOnboarding", () => {
     expect(stripAnsi(onboarding.render(90).join("\n"))).toContain(
       "Custom provider",
     );
+    onboarding.handleInput("custom");
     onboarding.handleInput("\r");
     onboarding.handleInput("Team Gateway");
     onboarding.handleInput("\r");
@@ -349,6 +350,7 @@ describe("TuiProviderOnboarding", () => {
       requestRender: vi.fn(),
     });
 
+    onboarding.handleInput("custom");
     onboarding.handleInput("\r");
     onboarding.handleInput("Gateway");
     onboarding.handleInput("\r");
@@ -594,7 +596,8 @@ describe("preset endpoint editing", () => {
 });
 
 function enterCustomCredentials(onboarding: TuiProviderOnboarding): void {
-  for (const input of ["\r", "Gateway", "\r", "https://gateway.example/v1", "\r", "\r"])
+  // "custom" filters the provider list down to the manual entry: the list also offers the built-in OpenRouter shortcut.
+  for (const input of ["custom", "\r", "Gateway", "\r", "https://gateway.example/v1", "\r", "\r"])
     onboarding.handleInput(input);
   expect(stripAnsi(onboarding.render(100).join("\n"))).toContain("API Key");
   onboarding.handleInput("synthetic-discovery-key");
@@ -773,4 +776,93 @@ it("keeps the imported list after a failed connection test and saves only once w
       ],
     }),
   );
+});
+
+describe("OpenRouter is a first-class provider", () => {
+  it("is offered even when the provider catalog is unavailable, and asks only for the key", async () => {
+    const onDiscover = vi.fn(async () => [
+      { modelId: "anthropic/claude-sonnet-5.5", displayName: "Claude Sonnet 5.5" },
+      { modelId: "deepseek/deepseek-chat" },
+    ]);
+    const onSave = vi.fn(async () => ({ success: true }));
+    const onComplete = vi.fn();
+    const onboarding = new TuiProviderOnboarding({
+      templates: [],
+      catalogWarning: "Known providers unavailable; Custom remains available.",
+      onDiscover,
+      onSave,
+      onComplete,
+      onCancel: vi.fn(),
+      requestRender: vi.fn(),
+    });
+    const first = stripAnsi(onboarding.render(120).join("\n"));
+    expect(first).toContain("OpenRouter");
+    expect(first).toContain("Custom provider");
+
+    // Selecting it skips the name, the URL and the format: the key is the first and only question.
+    onboarding.handleInput("\r");
+    const keyStep = stripAnsi(onboarding.render(120).join("\n"));
+    expect(keyStep).toContain("https://openrouter.ai/keys");
+    onboarding.handleInput("sk-or-synthetic-key");
+    expect(stripAnsi(onboarding.render(120).join("\n"))).not.toContain("sk-or-synthetic-key");
+    onboarding.handleInput("\r");
+    expect(stripAnsi(onboarding.render(120).join("\n"))).toContain("Import models from /models");
+    onboarding.handleInput("\r");
+    await vi.waitFor(() =>
+      expect(stripAnsi(onboarding.render(120).join("\n"))).toContain("Import 2 models"),
+    );
+    expect(onDiscover).toHaveBeenCalledWith({
+      name: "OpenRouter",
+      baseUrl: "https://openrouter.ai/api/v1",
+      apiKey: "sk-or-synthetic-key",
+      apiFormat: "openai-completions",
+    });
+    onboarding.handleInput("claude");
+    onboarding.handleInput("\r");
+    await vi.waitFor(() => expect(onComplete).toHaveBeenCalledOnce());
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiKey: "sk-or-synthetic-key",
+        modelId: "anthropic/claude-sonnet-5.5",
+        saveAndUse: true,
+      }),
+    );
+  });
+
+  it("goes back from the key step to the provider list, not into the custom form", () => {
+    const onboarding = new TuiProviderOnboarding({
+      templates: [],
+      onSave: vi.fn(),
+      onComplete: vi.fn(),
+      onCancel: vi.fn(),
+      requestRender: vi.fn(),
+    });
+    onboarding.handleInput("\r");
+    expect(stripAnsi(onboarding.render(120).join("\n"))).toContain("openrouter.ai/keys");
+    onboarding.handleInput("\u001b");
+    const back = stripAnsi(onboarding.render(120).join("\n"));
+    expect(back).toContain("Choose a known provider");
+    expect(back).toContain("OpenRouter");
+  });
+
+  it("is not offered twice when the catalog already lists it", () => {
+    const onboarding = new TuiProviderOnboarding({
+      templates: [
+        {
+          providerId: "openrouter",
+          name: "OpenRouter",
+          baseUrl: "https://openrouter.ai/api/v1",
+          apiFormat: "openai-completions",
+          models: [{ modelId: "anthropic/claude-sonnet-5.5", configurationSource: "discovered", toolCall: true }],
+        },
+      ],
+      onSave: vi.fn(),
+      onComplete: vi.fn(),
+      onCancel: vi.fn(),
+      requestRender: vi.fn(),
+    });
+    const rendered = stripAnsi(onboarding.render(120).join("\n"));
+    expect(rendered.match(/OpenRouter/g)?.length).toBe(1);
+    expect(rendered).toContain("openai-completions · 1 models");
+  });
 });

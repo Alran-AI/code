@@ -18,6 +18,8 @@ import { tuiChalk as chalk, tuiColors as colors, tuiSelectListTheme } from '../.
 import { SelectList } from '../../widgets/select-list.js';
 
 const CUSTOM_PROVIDER_VALUE = '\u0000custom-provider';
+const OPENROUTER_PROVIDER_VALUE = '\u0000openrouter-provider';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 const CUSTOM_FORMATS: readonly {
   readonly value: AlranProviderApiFormat;
   readonly label: string;
@@ -85,6 +87,8 @@ export class TuiProviderOnboarding implements Component, Focusable {
   private editingModelApiKey = false;
   private modelApiKeyDraft = '';
   private presetBaseUrl = '';
+  /** The provider came from a built-in shortcut (OpenRouter): its name, URL and format are not asked for. */
+  private shortcutProvider = false;
   private customName = '';
   private customBaseUrl = '';
   private customApiFormat: AlranProviderApiFormat = 'openai-completions';
@@ -356,6 +360,19 @@ export class TuiProviderOnboarding implements Component, Focusable {
       description: `${sanitizeTerminalText(template.apiFormat)} · ${template.models.length} models`,
       groupLabel: 'Known providers',
     }));
+    // OpenRouter never depends on the catalog: when the catalog is unreachable, filtered, or does not list it, the
+    // shortcut below stays — a first-class provider, not a hand-typed "Custom" one (founder's audit, §3.4).
+    if (
+      !templates.some((template) => template.providerId === 'openrouter') &&
+      (!query || 'openrouter'.includes(query))
+    ) {
+      items.push({
+        value: OPENROUTER_PROVIDER_VALUE,
+        label: 'OpenRouter',
+        description: 'openai-completions · every OpenRouter model, imported after your key',
+        groupLabel: 'Known providers',
+      });
+    }
     if (!query || 'custom provider'.includes(query)) {
       items.push({
         value: CUSTOM_PROVIDER_VALUE,
@@ -511,6 +528,18 @@ export class TuiProviderOnboarding implements Component, Focusable {
 
   private selectProvider(value: string): void {
     this.status = '';
+    this.shortcutProvider = false;
+    if (value === OPENROUTER_PROVIDER_VALUE) {
+      this.resetKnownProviderDraft();
+      this.template = undefined;
+      this.customName = 'OpenRouter';
+      this.customBaseUrl = OPENROUTER_BASE_URL;
+      this.customApiFormat = 'openai-completions';
+      this.shortcutProvider = true;
+      // Only the key is left to ask for; the models are imported from the provider's own list afterwards.
+      this.enterMode('api-key');
+      return;
+    }
     if (value === CUSTOM_PROVIDER_VALUE) {
       this.resetKnownProviderDraft();
       this.template = undefined;
@@ -820,7 +849,7 @@ export class TuiProviderOnboarding implements Component, Focusable {
     if (this.mode === 'custom-model' || this.mode === 'custom-discovered')
       return this.enterMode('custom-model-source');
     if (this.mode === 'custom-model-source') return this.enterMode('api-key');
-    if (this.mode === 'api-key') return this.enterMode('custom-format');
+    if (this.mode === 'api-key') return this.enterMode(this.shortcutProvider ? 'provider' : 'custom-format');
     if (this.template) return this.enterMode('model');
     this.enterTextMode('custom-model', this.customModelId);
   }
@@ -836,7 +865,10 @@ export class TuiProviderOnboarding implements Component, Focusable {
     if (this.mode === 'custom-model-source') return 'Import the model list or enter a model ID';
     if (this.mode === 'custom-discovered')
       return `Import ${this.discoveredModels.length} models · choose one to test and use`;
-    if (this.mode === 'api-key') return 'The key is stored locally and never shown in output';
+    if (this.mode === 'api-key')
+      return this.shortcutProvider
+        ? 'Paste your OpenRouter key (create one at https://openrouter.ai/keys). It is stored locally and never shown in output'
+        : 'The key is stored locally and never shown in output';
     return 'Custom provider';
   }
 
