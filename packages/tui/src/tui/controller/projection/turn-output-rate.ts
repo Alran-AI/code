@@ -71,12 +71,19 @@ export class TuiTurnOutputRate {
 /** Buffered upstream output arrives in one burst; its decode window says nothing about model speed. */
 const BURST_MIN_TOKENS_PER_SECOND = 1_000;
 const BURST_MAX_DECODE_SHARE = 0.1;
+/**
+ * No model decodes faster than this; a higher figure means the output was buffered upstream and
+ * arrived at once. It holds without the request duration, which only a runtime with a metrics
+ * client reports.
+ */
+const MAX_PLAUSIBLE_TOKENS_PER_SECOND = 4_000;
 
 function bufferedBurst(
   tokens: number,
   decodeMs: number,
   requestMs: number | undefined,
 ): boolean {
+  if (decodeMs > 0 && tokens / (decodeMs / 1_000) > MAX_PLAUSIBLE_TOKENS_PER_SECOND) return true;
   if (!nonnegativeFinite(requestMs) || decodeMs >= requestMs * BURST_MAX_DECODE_SHARE)
     return false;
   return tokens > (decodeMs / 1_000) * BURST_MIN_TOKENS_PER_SECOND;
