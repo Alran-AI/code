@@ -40,7 +40,10 @@ export class TuiWelcome implements Component {
     const safeWidth = normalizeWidth(width);
     const message = resolveWelcomeAccountNotice(this.state);
     if (!message || safeWidth === 0) return [];
-    return [fitLine(`  ${renderWelcomeAccountNotice(message)}`, safeWidth)];
+    return [
+      fitLine(`  ${renderWelcomeAccountNotice(message)}`, safeWidth),
+      ...renderWelcomeGettingStarted(this.state).map((line) => fitLine(`  ${line}`, safeWidth)),
+    ];
   }
 
   private renderFrame(width: number, height: number, staticBanner: boolean): string[] {
@@ -143,7 +146,25 @@ function renderWelcomeAccountNotice(message: string): string {
 function renderWelcomeAccountNoticeRows(state: TuiShellState): string[] {
   const message = resolveWelcomeAccountNotice(state);
   if (!message) return [];
-  return [renderWelcomeAccountNotice(message)];
+  return [renderWelcomeAccountNotice(message), ...renderWelcomeGettingStarted(state)];
+}
+
+/**
+ * The first start, without a tutorial: while nobody is signed in and no provider is connected, the notice that
+ * says "Sign in with /login" also says what that gets you and where the other ways in are. It is four lines of
+ * text under the notice — nothing to dismiss, nothing blocks the composer (/login can be typed at once) — and it
+ * disappears as soon as an account or a provider is connected.
+ */
+function renderWelcomeGettingStarted(state: TuiShellState): string[] {
+  if (state.accountStatus !== 'Sign in with /login') return [];
+  const dim = chalk.hex(colors.muted);
+  const key = (command: string): string => chalk.bold.hex(colors.signal)(command.padEnd(10));
+  return [
+    dim('Alran Code runs on the Ottili AI Platform, on your own provider, or on both.'),
+    `${key('/login')}${dim('sign in with your Ottili account (browser or device code), or paste an API key')}`,
+    `${key('/provider')}${dim('connect OpenRouter, another provider, or any OpenAI-compatible endpoint')}`,
+    dim('Then describe your task. /help lists every command.'),
+  ];
 }
 
 function renderActivity(state: TuiShellState): string {

@@ -81,3 +81,37 @@ describe("TuiWelcome layouts", () => {
     }
   });
 });
+
+describe("TuiWelcome first start", () => {
+  const signedOut = { ...shell, accountStatus: "Sign in with /login" as const };
+  const signedIn = { ...shell, accountStatus: "Connected" as const };
+
+  it("says what /login and /provider are for when nobody is signed in, without blocking anything", () => {
+    for (const width of [60, 100]) {
+      const banner = stripAnsi(new TuiWelcome(signedOut).render(width).join("\n"));
+      expect(banner).toContain("Sign in with /login");
+      expect(banner).toContain("Ottili AI Platform");
+      expect(banner).toContain("/login");
+      expect(banner).toContain("/provider");
+      expect(banner).toContain("OpenRouter");
+      expect(banner).toContain("/help");
+    }
+    // In the regular (scrollback) mode the same guidance sits in the live footer notice, below the static banner.
+    const notice = stripAnsi(new TuiWelcome(signedOut).renderPreludeNotice(100).join("\n"));
+    expect(notice).toContain("Sign in with /login");
+    expect(notice).toContain("/provider");
+  });
+
+  it("is gone as soon as an account or a provider is connected", () => {
+    const banner = stripAnsi(new TuiWelcome(signedIn).render(100).join("\n"));
+    expect(banner).not.toContain("/provider");
+    expect(banner).not.toContain("OpenRouter");
+    expect(new TuiWelcome(signedIn).renderPreludeNotice(100)).toEqual([]);
+  });
+
+  it("fits narrow terminals", () => {
+    for (const line of new TuiWelcome(signedOut).renderPreludeNotice(40)) {
+      expect(stripAnsi(line).length).toBeLessThanOrEqual(40);
+    }
+  });
+});
