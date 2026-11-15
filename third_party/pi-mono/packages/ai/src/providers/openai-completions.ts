@@ -31,6 +31,7 @@ import type {
 } from "../types.ts";
 import { AssistantMessageEventStream } from "../utils/event-stream.ts";
 import { headersToRecord } from "../utils/headers.ts";
+import { withNullableTypeArrays } from "../utils/json-schema.ts";
 import { parseStreamingJson } from "../utils/json-parse.ts";
 import { notifyProviderError, withProviderEventObserver } from "../utils/provider-error.ts";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.ts";
@@ -1026,7 +1027,8 @@ function convertTools(
 		function: {
 			name: tool.name,
 			description: tool.description,
-			parameters: tool.parameters as any, // TypeBox already generates JSON Schema
+			// TypeBox already generates JSON Schema; nullable unions get a type array for Gemini-style validators.
+			parameters: withNullableTypeArrays(tool.parameters) as any,
 			// Only include strict if provider supports it. Some reject unknown fields.
 			...(compat.supportsStrictMode !== false && { strict: false }),
 		},
