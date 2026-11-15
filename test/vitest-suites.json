@@ -212,6 +212,7 @@
       "packages/agent-modules/context-manager/test/compaction-usage.test.ts",
       "packages/agent-modules/context-manager/test/token-estimator-oversized-run.test.ts",
       "packages/local-runtime/test/unit/session-diff-fallback.test.ts",
+      "packages/local-runtime/test/unit/v2-migration-corrupt-database.test.ts",
       "packages/local-runtime/test/unit/turn-file-changes-symlink.test.ts",
       "test/history-processing.test.ts",
       "test/sqlite-message-contention.test.ts",
