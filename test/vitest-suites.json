@@ -208,6 +208,7 @@
       "packages/config/test/model-catalog.test.ts",
       "packages/config/test/retry-config.test.ts",
       "packages/agent-modules/context-manager/test/compaction-usage.test.ts",
+      "packages/agent-modules/context-manager/test/token-estimator-oversized-run.test.ts",
       "packages/local-runtime/test/unit/session-diff-fallback.test.ts",
       "packages/local-runtime/test/unit/turn-file-changes-symlink.test.ts",
       "test/history-processing.test.ts",
