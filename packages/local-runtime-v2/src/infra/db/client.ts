@@ -46,6 +46,11 @@ export type BetterSqlite3Constructor = new (
 ) => BetterSqlite3Instance;
 
 const DB_FILE = 'runtime-state.sqlite';
+const BUSY_TIMEOUT_MS = 5000;
+/** A checkpoint is housekeeping: it must not hold up start-up or exit while another process writes. */
+const CHECKPOINT_BUSY_TIMEOUT_MS = 250;
+
+export type WalCheckpointMode = 'PASSIVE' | 'FULL' | 'RESTART' | 'TRUNCATE';
 const DB_RELATIVE_PATH = join('v2', 'sqlite', DB_FILE);
 
 export interface DatabaseClientOptions {
@@ -99,9 +104,32 @@ export class DatabaseClient {
     }
   }
 
+  /**
+   * Copy the write-ahead log into the database file and, for TRUNCATE, reset it to
+   * zero bytes. SQLite only does this by itself when the last connection closes,
+   * and a process that exits with another connection open leaves the whole log
+   * behind. Best effort: a contended or failing checkpoint never throws, it only
+   * leaves the log for the next one.
+   */
+  checkpoint(mode: WalCheckpointMode = 'PASSIVE'): void {
+    const sqlite = this.rawDb_;
+    if (!sqlite) return;
+    try {
+      sqlite.exec(`PRAGMA busy_timeout = ${CHECKPOINT_BUSY_TIMEOUT_MS}`);
+      try {
+        sqlite.exec(`PRAGMA wal_checkpoint(${mode})`);
+      } finally {
+        sqlite.exec(`PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS}`);
+      }
+    } catch {
+      // Contended by another writer or the connection is unusable: not worth failing for.
+    }
+  }
+
   /** Close the connection and release resources. */
   close(): void {
     if (this.rawDb_) {
+      this.checkpoint('TRUNCATE');
       this.rawDb_.close();
       this.rawDb_ = null;
       this.drizzleDb = null;
@@ -116,7 +144,7 @@ export class DatabaseClient {
       // v1 and v2 temporarily access the same database through separate connections; keep PRAGMAs aligned.
       sqlite.exec(`
         PRAGMA journal_mode = WAL;
-        PRAGMA busy_timeout = 5000;
+        PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS};
         PRAGMA foreign_keys = ON;
       `);
       const drizzleDb = drizzle({ client: sqlite as never });

@@ -201,6 +201,8 @@ async function createLocalRuntimeHostV2Internal(
         onMigration: options.onDatabaseMigration,
       }),
     );
+    // Reclaim a write-ahead log left by a crashed run or a very long session.
+    measureStage("db_checkpoint_ms", () => resolvedDatabase.checkpoint("TRUNCATE"));
     reportLegacySessionRecovery({
       recoveredLegacySessionCount: initialization.recoveredLegacySessionCount,
       degradedLegacySessionCount: initialization.degradedLegacySessionCount,
