@@ -565,10 +565,12 @@ describe("withLLMRetry", () => {
   });
 
   it("limits BYOK errors to five retries regardless of error classification", async () => {
+    // A gateway that fails in a way nobody can classify is retried within the budget: custom gateways report
+    // their errors inconsistently (see `failureResult`).
     let attempts = 0;
     const inner = (async () => {
       attempts += 1;
-      return errorStream("[Error] 401 invalid api key");
+      return errorStream("[Error] gateway hiccup, no status, no code");
     }) as StreamFn;
     const wrapped = withLLMRetry(
       inner,
@@ -579,6 +581,95 @@ describe("withLLMRetry", () => {
     await collectEvents(result);
 
     expect(attempts).toBe(6);
+  });
+
+  // Founder's brief §3.6: "Never retry invalid API keys, insufficient quota or other permanent errors". The BYOK
+  // retry-all rule retried them for the whole backoff window (six requests) before the person saw "invalid key".
+  it.each([
+    ["alran_api", "[Error] 401 invalid api key"],
+    ["custom_provider:work", "401 Unauthorized: Incorrect API key provided"],
+    ["custom_provider:work", "403 Forbidden"],
+    ["alran_api", "402 Payment Required: insufficient quota"],
+    ["custom_provider:work", '429 {"error":{"code":"insufficient_quota","message":"You exceeded your current quota"}}'],
+    ["alran_api", "[Error] 402 insufficient_quota: your organization has no credit left"],
+  ])("does not retry a permanent failure from %s: %s", async (provider, message) => {
+    let attempts = 0;
+    const sleep = vi.fn(async () => {});
+    const inner = (async () => {
+      attempts += 1;
+      return errorStream(message);
+    }) as StreamFn;
+    const wrapped = withLLMRetry(inner, retryOptions({ sleep }));
+
+    const events = await collectEvents(await wrapped(fakeModel(provider), CONTEXT, {}));
+
+    expect(attempts).toBe(1);
+    expect(sleep).not.toHaveBeenCalled();
+    const error = events.find((event) => event.type === "error");
+    expect(error?.type === "error" ? error.error.errorMessage : undefined).toBe(message);
+  });
+
+  it("honours a policy that retries nothing (maxRetries: 0)", async () => {
+    let attempts = 0;
+    const sleep = vi.fn(async () => {});
+    const inner = (async () => {
+      attempts += 1;
+      return errorStream("[Error] 529 overloaded");
+    }) as StreamFn;
+    const wrapped = withLLMRetry(inner, retryOptions({ sleep, policy: { maxRetries: 0 } }));
+
+    await collectEvents(await wrapped(fakeModel(), CONTEXT, {}));
+
+    expect(attempts).toBe(1);
+    expect(sleep).not.toHaveBeenCalled();
+  });
+
+  it("uses the delays the person configured, and never waits longer than maxDelayMs", async () => {
+    const sleep = vi.fn(async () => {});
+    const inner = (async () => errorStream("[Error] 529 overloaded")) as StreamFn;
+    const wrapped = withLLMRetry(
+      inner,
+      retryOptions({
+        sleep,
+        random: () => 1,
+        policy: { maxRetries: 4, baseDelayMs: 2_000, maxDelayMs: 5_000, maxRetryElapsedMs: 600_000 },
+      }),
+    );
+
+    await collectEvents(await wrapped(fakeModel(), CONTEXT, {}));
+
+    // random() = 1 is the top of the jitter band: 2000, 4000, then capped at 5000 twice.
+    expect(sleep.mock.calls.map(([delayMs]) => delayMs)).toEqual([2_000, 4_000, 5_000, 5_000]);
+  });
+
+  describe("which failures are worth a retry (retryReasons)", () => {
+    const run = async (message: string, retryReasons: readonly string[]) => {
+      let attempts = 0;
+      const inner = (async () => {
+        attempts += 1;
+        return errorStream(message);
+      }) as StreamFn;
+      const wrapped = withLLMRetry(
+        inner,
+        retryOptions({ policy: { maxRetries: 2, retryReasons } }),
+      );
+      await collectEvents(await wrapped(fakeModel(), CONTEXT, {}));
+      return attempts;
+    };
+
+    it("retries a category on the list", async () => {
+      expect(await run("[Error] 429 Too Many Requests", ["rate_limited", "tpm_rate_limited"])).toBe(3);
+      expect(await run("[Error] 529 overloaded", ["overloaded"])).toBe(3);
+    });
+
+    it("ends the call at once for a category that is not on the list", async () => {
+      expect(await run("[Error] 429 Too Many Requests", ["network", "timeout"])).toBe(1);
+      expect(await run("[Error] 529 overloaded", ["rate_limited"])).toBe(1);
+    });
+
+    it("cannot make a permanent failure retryable, whatever the list says", async () => {
+      expect(await run("[Error] 401 invalid api key", ["network", "timeout", "rate_limited", "tpm_rate_limited", "overloaded"])).toBe(1);
+    });
   });
 
   // #425: a request the provider deterministically rejects (too many images,

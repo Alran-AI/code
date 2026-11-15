@@ -338,3 +338,17 @@ export {
   commitTrailerFor,
   parseAttributionConfig,
 } from './attribution.js';
+export {
+  RETRY_CONFIG_DEFAULTS,
+  RETRY_CONFIG_LIMITS,
+  RETRY_REASONS,
+  parseRetryConfig,
+  retryPolicyFromConfig,
+} from './retry-config.js';
+export type {
+  PartialRetryConfig,
+  RetryConfig,
+  RetryConfigParseResult,
+  RetryPolicyForRuntime,
+  RetryReason,
+} from './retry-config.js';

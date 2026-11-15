@@ -9,6 +9,7 @@ import {
 } from '@earendil-works/pi-ai';
 import {
   isLLMDeterministicRequestRejection,
+  isLLMPermanentFailure,
   normalizeLLMError,
   toLLMMetricErrorKind,
   toLLMProtocolClassification,
@@ -40,6 +41,12 @@ export interface LLMRetryPolicy {
   baseDelayMs: number;
   maxDelayMs: number;
   maxRetryElapsedMs: number;
+  /**
+   * The error categories that may be retried. Absent means all five (`LLM_RETRY_REASONS`). It can only narrow:
+   * a permanent failure (invalid key, empty balance, usage limit, content filter) is never retryable, whatever
+   * this list says.
+   */
+  retryReasons?: readonly LLMRetryReason[];
 }
 
 export const DEFAULT_LLM_RETRY_POLICY: Readonly<LLMRetryPolicy> = {
@@ -280,7 +287,11 @@ export function withLLMRetry(inner: StreamFn, input: LLMRetryOptions): StreamFn 
       retryStartedAtMs ??= failureAtMs;
       const retryDeadlineExceeded =
         failureAtMs + delayMs - retryStartedAtMs > policy.maxRetryElapsedMs;
-      if (requestAttempt > policy.maxRetries || retryDeadlineExceeded) {
+      // The person may narrow what is worth retrying (`retry.retryOn`): a category outside the list ends the
+      // call at once, with the error it had, exactly like an exhausted budget.
+      const reasonNotRetried =
+        policy.retryReasons !== undefined && !policy.retryReasons.includes(lastFailure.retryReason);
+      if (requestAttempt > policy.maxRetries || retryDeadlineExceeded || reasonNotRetried) {
         await notify(input.observer, {
           sessionId: input.sessionId,
           turnId: input.turnId,
@@ -600,6 +611,7 @@ function failureResult(input: {
   const decision =
     input.retryAllErrors &&
     !normalized.facts.explicitAbort &&
+    !isLLMPermanentFailure(normalized) &&
     !normalized.facts.signals.has('refusal') &&
     !isLLMDeterministicRequestRejection(normalized) &&
     !(input.final && isContextOverflow(input.final))

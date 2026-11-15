@@ -130,6 +130,8 @@ export interface LocalConversationRuntimeConfig extends LocalRuntimeConfig {
   readonly defaultLightModel?: string;
   /** Goal verifier policy consumed by process-local auxiliary model calls. */
   readonly goal?: Config['goal'];
+  /** How a model request that failed before the first token is retried (`retry:` in config.yaml). */
+  readonly retry?: Config['retry'];
   readonly memory?: Partial<Config['memory']>;
   /** Session title auto-generation flag — see @alran/config SessionTitleConfig. */
   readonly sessionTitle?: Config['sessionTitle'];

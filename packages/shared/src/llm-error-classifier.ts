@@ -321,6 +321,24 @@ export function isLLMDeterministicRequestRejection(normalized: NormalizedLLMErro
 }
 
 /**
+ * A failure no retry can cure: the key is wrong or revoked (401/403), the balance is empty (402, an exhausted
+ * quota) or the plan's usage is used up. A custom or BYOK route retries every other failure before the first
+ * token because gateways report their errors inconsistently — but a gateway that answers "no, this key is
+ * invalid" is not being inconsistent, and retrying it only delays the one message the person needs, and may
+ * bill the same rejected request again.
+ */
+export function isLLMPermanentFailure(normalized: NormalizedLLMError): boolean {
+  const { facts } = normalized;
+  if (facts.explicitAbort) return false;
+  const status = effectiveHttpStatus(facts);
+  if (status === 401 || status === 402 || status === 403) return true;
+  if (facts.existingProtocolCode === LLM_ERROR_CODES.LLM_AUTH_ERROR) return true;
+  if (facts.signals.has('credits_exhausted') || facts.signals.has('usage_limit')) return true;
+  const kind = toLLMMetricErrorKind(facts);
+  return kind === 'auth' || kind === 'credits_exhausted' || kind === 'usage_limit';
+}
+
+/**
  * The request is too big to be accepted as sent: an HTTP 413, a size-limit
  * rejection (`isLLMRequestTooLargeMessage`) or a context window overflow. Resending the same request fails again, so it must not be
  * retried.
@@ -622,7 +640,12 @@ function applyMessageSignals(
     signals.add('usage_limit');
   if (
     /\b(?:1400010161|1008)\b/u.test(message) ||
-    /credits?\s+exhausted|insufficient\s+balance/i.test(message)
+    /credits?\s+exhausted|insufficient\s+balance/i.test(message) ||
+    // The spellings of the OpenAI-compatible world and of the Ottili gateway ("insufficient_quota", also behind a
+    // 429): a request that fails because there is no money cannot be cured by sending it again.
+    /insufficient[_\s-]?(?:quota|credits?|funds)|exceeded your current quota|out of credits?|no credits? left|payment required/i.test(
+      message,
+    )
   )
     signals.add('credits_exhausted');
   if (

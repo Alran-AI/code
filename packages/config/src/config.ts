@@ -61,6 +61,11 @@ import {
   type GoalConfig,
 } from "./goal-config.js";
 import {
+  RETRY_CONFIG_DEFAULTS,
+  parseRetryConfig,
+  type RetryConfig,
+} from "./retry-config.js";
+import {
   TOOL_RESULT_COMPACTION_DEFAULTS,
   parseToolResultCompactionConfig,
   type ToolResultCompactionSettings,
@@ -1076,6 +1081,10 @@ export interface Config {
   promptConfig: PromptConfig;
   /** Durable Goal policy, budgets, breaker, and verifier defaults. */
   goal: GoalConfig;
+  /** How a model request that failed before the first token is retried (`retry:` in config.yaml). */
+  retry: RetryConfig;
+  /** Non-fatal corrections made while parsing the retry policy. */
+  retryWarnings: readonly string[];
   /** Process sandbox product policy. Runtime-only fields are derived elsewhere. */
   sandbox: SandboxConfig;
   /** Non-fatal corrections made while parsing Goal policy. */
@@ -1854,6 +1863,8 @@ const DEFAULTS: Omit<
     modeSource: "default",
   },
   goal: structuredClone(GOAL_CONFIG_DEFAULTS),
+  retry: structuredClone(RETRY_CONFIG_DEFAULTS) as RetryConfig,
+  retryWarnings: [],
   sandbox: structuredClone(SANDBOX_CONFIG_DEFAULTS),
   goalWarnings: [],
 };
@@ -2044,6 +2055,7 @@ export function resolveConfigFromRaw(
     }
   }
   const goalParsed = parseGoalConfig(raw.goal);
+  const retryParsed = parseRetryConfig(raw.retry);
   const managedProvider = applyRequiredProviderOverrides(
     {
       provider:
@@ -2206,6 +2218,8 @@ export function resolveConfigFromRaw(
     promptConfig: resolvePromptConfig(raw.promptConfig),
     goal: goalParsed.config,
     goalWarnings: goalParsed.warnings,
+    retry: retryParsed.config,
+    retryWarnings: retryParsed.warnings,
     sandbox: parseSandboxConfig(raw.sandbox),
   };
 }

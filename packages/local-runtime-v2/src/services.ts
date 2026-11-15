@@ -10,6 +10,7 @@ import type {
 import {
   getRuntimeRegion,
   isLocalSourceProvenanceEnabled,
+  retryPolicyFromConfig,
 } from "@alran/config";
 import type { RuntimeConversation } from "@alran/conversation-contract";
 import type {
@@ -999,7 +1000,14 @@ async function initializeRuntimeTurnSystem(
           createGoalBudgetToolPolicyGuard(),
         ),
         outputTokenCap: goalVerifierOutputTokenCap,
-        resolveLlmRetry: () => ({ observer: llmRetryObserver }),
+        // The person's retry settings (`retry:` in config.yaml) are read for every call, so a change in the file
+        // takes effect on the next request without a restart.
+        resolveLlmRetry: () => ({
+          observer: llmRetryObserver,
+          policy: retryPolicyFromConfig(
+            input.product.preparation.configBuilder.config().retry,
+          ),
+        }),
         normalExtensions: [
           ...(!isLocalSourceProvenanceEnabled(input.options.runtimeOwnerKind)
             ? []
