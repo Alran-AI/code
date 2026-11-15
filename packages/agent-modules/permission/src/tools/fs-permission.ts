@@ -536,6 +536,47 @@ export function pathInWorkingPath(filePath: string, workingDirectory: string): b
 }
 
 /**
+ * Whether `filePath`, with every symlink on its way resolved, still lies inside one of `roots`
+ * (themselves resolved). A link in the workspace is the workspace's own path only while it
+ * points inside it: `link -> /elsewhere/file` is not, and neither is a not-yet-existing file
+ * under `shared -> /elsewhere`. A path that does not exist yet is judged by its nearest existing
+ * parent, so a dangling link is followed to where a write would land.
+ */
+function staysWithinAfterSymlinks(filePath: string, roots: readonly string[]): boolean {
+  const canonical = resolveThroughLinks(path.resolve(filePath));
+  return roots.some((root) => isPathWithin(canonical, resolveExistingPath(path.resolve(root))));
+}
+
+const MAX_LINK_HOPS = 16;
+
+/**
+ * Where an access to `filePath` would land: symlinks resolved like `realpath`, a link whose target
+ * does not exist yet (a dangling link) followed by hand, and the part that does not exist yet
+ * appended to its nearest existing parent.
+ */
+function resolveThroughLinks(filePath: string, hops = 0): string {
+  try {
+    return fs.realpathSync(filePath);
+  } catch {
+    // Missing, or a link that leads nowhere yet.
+  }
+  try {
+    if (hops < MAX_LINK_HOPS && fs.lstatSync(filePath).isSymbolicLink()) {
+      return resolveThroughLinks(
+        path.resolve(path.dirname(filePath), fs.readlinkSync(filePath)),
+        hops + 1,
+      );
+    }
+  } catch {
+    // Not a link either: fall through to the parent.
+  }
+  const parent = path.dirname(filePath);
+  return parent === filePath
+    ? filePath
+    : path.join(resolveThroughLinks(parent, hops), path.basename(filePath));
+}
+
+/**
  * Check if a path is within any of the allowed working paths.
  */
 export function pathInAllowedWorkingPath(
@@ -1129,16 +1170,24 @@ export function isPathAllowed(
   //     remain safe positive controls (excluded by isEnvFile / handled by
   //     isPublicKeyFile callers).
   const isReadOnlyTool = READ_ONLY_TOOLS.has(toolName);
+  const workRoots = [context.workingDirectory, ...(context.allowedWorkingPaths ?? [])];
   const isInWorkDir =
-    pathInWorkingPath(resolved, context.workingDirectory) ||
-    (context.allowedWorkingPaths != null &&
-      pathInAllowedWorkingPath(resolved, context.allowedWorkingPaths));
+    (pathInWorkingPath(resolved, context.workingDirectory) ||
+      (context.allowedWorkingPaths != null &&
+        pathInAllowedWorkingPath(resolved, context.allowedWorkingPaths))) &&
+    staysWithinAfterSymlinks(resolved, workRoots);
   const skipDangerousCheck = isReadOnlyTool && isInWorkDir;
 
   // Critical: never skipped — system secrets, credential / private-key files,
   // .env files and sensitive git metadata (see `criticalSafetyReason`).
   const criticalReason = criticalSafetyReason(resolved);
   if (criticalReason) return { allowed: false, reason: criticalReason };
+  // A link is judged by what it points at: `notes.txt -> .env` is an .env file.
+  const realPath = resolveThroughLinks(resolved);
+  if (realPath !== resolved) {
+    const realReason = criticalSafetyReason(realPath);
+    if (realReason) return { allowed: false, reason: realReason };
+  }
 
   if (!skipDangerousCheck && isDangerousFile(resolved)) {
     return {
@@ -1260,16 +1309,14 @@ export function isPathAllowed(
   }
 
   // Step 4: Working directory boundary check
-  if (pathInWorkingPath(resolved, context.workingDirectory)) {
-    return {
-      allowed: true,
-      reason: { type: 'workingDirectory', path: resolved },
-    };
-  }
-
+  //
+  // The spelling of the path is not enough: a symlink inside the workspace can lead out of it,
+  // and such a path must be reviewed like any other path outside the workspace.
   if (
-    context.allowedWorkingPaths &&
-    pathInAllowedWorkingPath(resolved, context.allowedWorkingPaths)
+    (pathInWorkingPath(resolved, context.workingDirectory) ||
+      (context.allowedWorkingPaths != null &&
+        pathInAllowedWorkingPath(resolved, context.allowedWorkingPaths))) &&
+    staysWithinAfterSymlinks(resolved, workRoots)
   ) {
     return {
       allowed: true,
