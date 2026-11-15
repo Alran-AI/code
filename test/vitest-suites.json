@@ -16,6 +16,7 @@
       "packages/agent-modules/permission/test/unit/permission/tools/rm-rewrite-execution.test.ts",
       "packages/agent-modules/permission/test/unit/permission/tools/bash-safety-scan.test.ts",
       "packages/agent-tools/src/shared/replace-all-edit.test.ts",
+      "packages/agent-tools/src/shared/edit-encoding.test.ts",
       "packages/agent-tools/src/shared/cron-schedule-input.test.ts",
       "packages/agent-tools/src/desktop/edit-diff-bounds.test.ts",
       "packages/tui/test/unit/tui-tool-preview-diff-omitted.test.ts",

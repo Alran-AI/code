@@ -15,6 +15,8 @@ import { normalizeToLF, stripBom } from '@earendil-works/pi-coding-agent/tools';
 
 import { readFile as fsReadFile } from 'fs/promises';
 
+import { assertEditableUtf8 } from './edit-encoding.js';
+
 export interface ReplaceAllEditInput {
   path: string;
   edits: Array<{ oldText: string; newText: string }>;
@@ -57,10 +59,9 @@ export async function buildReplaceAllEdit(
     );
   }
 
-  let rawContent: string;
+  let buffer: Buffer;
   try {
-    const buffer = await fsReadFile(absolutePath);
-    rawContent = buffer.toString('utf-8');
+    buffer = await fsReadFile(absolutePath);
   } catch (err) {
     const code = (err as { code?: unknown })?.code;
     throw new ReplaceAllError(
@@ -68,6 +69,8 @@ export async function buildReplaceAllEdit(
       'READ_FAILED',
     );
   }
+  assertEditableUtf8(buffer, absolutePath);
+  const rawContent = buffer.toString('utf-8');
 
   const content = normalizeToLF(stripBom(rawContent).text);
   const needle = normalizeToLF(oldString);
