@@ -79,6 +79,11 @@ const SENSITIVE_KEY_SUFFIXES = [
   'passwd',
   'secret',
   'credential',
+  // A bare `token` suffix covers the vendor-named variables a user exports (`GITHUB_TOKEN`,
+  // `MATRIX_TOKEN`, `botToken`) that none of the specific `*token` names above can enumerate.
+  // It is deliberately the singular: the accounting fields users read for throughput
+  // (`max_tokens`, `input_tokens`, `cache_read_tokens`) are plural and stay readable.
+  'token',
 ];
 
 /** True when a structured field name denotes a credential. */

@@ -36,6 +36,8 @@ interface PendingRequest {
   resolve(result: AuthLeaseSuccessResult): void;
   reject(error: AuthLeaseProtocolError): void;
   timer: NodeJS.Timeout;
+  /** The connection the request was written to; only that connection's failure may reject it. */
+  socket: net.Socket;
 }
 
 export function createNodeAuthLeaseClient(
@@ -72,6 +74,7 @@ export function createNodeAuthLeaseClient(
         resolve,
         reject,
         timer,
+        socket: connected,
       });
       connected.write(encodeAuthLeaseFrame(requestValue), (error) => {
         if (!error) return;
@@ -169,10 +172,13 @@ function connect(
       socket.destroy();
       reject(new AuthLeaseProtocolError('BROKER_UNAVAILABLE'));
     }, timeoutMs);
+    // A connection's `close` arrives after its `error`, and after a reconnect it can arrive while
+    // requests written to the *new* connection are in flight. Those are not this connection's to
+    // fail: each rejection below is scoped to the requests that were written to `socket`.
     const fail = (): void => {
       clearTimeout(timeout);
       if (!connected) reject(new AuthLeaseProtocolError('BROKER_UNAVAILABLE'));
-      rejectPending(pending, 'BROKER_UNAVAILABLE');
+      rejectPending(pending, 'BROKER_UNAVAILABLE', socket);
     };
     socket.once('connect', () => {
       connected = true;
@@ -185,26 +191,31 @@ function connect(
         frames = decoder.push(chunk);
       } catch {
         socket.destroy();
-        rejectPending(pending, 'INVALID_REQUEST');
+        rejectPending(pending, 'INVALID_REQUEST', socket);
         return;
       }
-      for (const frame of frames) settleResponse(frame, pending);
+      for (const frame of frames) settleResponse(frame, pending, socket);
     });
     socket.on('error', fail);
     socket.on('close', fail);
   });
 }
 
-function settleResponse(frame: unknown, pending: Map<string, PendingRequest>): void {
+function settleResponse(
+  frame: unknown,
+  pending: Map<string, PendingRequest>,
+  from: net.Socket,
+): void {
   let response;
   try {
     response = parseAuthLeaseResponse(frame);
   } catch {
-    rejectPending(pending, 'INVALID_REQUEST');
+    rejectPending(pending, 'INVALID_REQUEST', from);
     return;
   }
   const request = pending.get(response.requestId);
-  if (!request) return;
+  // An answer is only an answer on the connection the request went out on.
+  if (!request || request.socket !== from) return;
   clearTimeout(request.timer);
   pending.delete(response.requestId);
   if (!response.ok) {
@@ -218,15 +229,18 @@ function settleResponse(frame: unknown, pending: Map<string, PendingRequest>): v
   request.resolve(response.result);
 }
 
+/** Rejects the requests written to `only`, or every request when no connection is named. */
 function rejectPending(
   pending: Map<string, PendingRequest>,
   code: ConstructorParameters<typeof AuthLeaseProtocolError>[0],
+  only?: net.Socket,
 ): void {
-  for (const request of pending.values()) {
+  for (const [requestId, request] of pending) {
+    if (only !== undefined && request.socket !== only) continue;
     clearTimeout(request.timer);
+    pending.delete(requestId);
     request.reject(new AuthLeaseProtocolError(code));
   }
-  pending.clear();
 }
 
 async function loadCapability(capabilityFile: string): Promise<string> {
