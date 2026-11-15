@@ -1504,6 +1504,38 @@ describe('LocalPermissionFacade', () => {
     );
 
     it.each(['off', 'default', 'bypassPermissions'] as const)(
+      '%s names the write target it could not verify after a working directory change',
+      async (permissionMode) => {
+        const { facade, dataDir } = freshFacade({
+          permissionMode,
+          platform: 'win32',
+          shellFamily: 'powershell',
+          workspaceDir: String.raw`C:\workspace`,
+        });
+        try {
+          const result = await facade.checkPermission({
+            toolName: 'bash',
+            agentName: 'alran',
+            input: {
+              command: [
+                String.raw`Set-Location 'C:\work\myproject'`,
+                String.raw`python -m pytest -q 2>&1 > "$env:TEMP\pytest.txt"`,
+              ].join('; '),
+            },
+          });
+
+          expect(result).toMatchObject({ behavior: 'deny', denySource: 'safety-immune' });
+          expect(result.reason).toContain('cannot be verified safely');
+          // The agent can only correct what it is told: which target, and what would do.
+          expect(result.reason).toContain(String.raw`$env:TEMP\pytest.txt`);
+          expect(result.reason).toMatch(/literal absolute path/i);
+        } finally {
+          cleanup(dataDir);
+        }
+      },
+    );
+
+    it.each(['off', 'default', 'bypassPermissions'] as const)(
       '%s retains protected-path and recursive workspace boundaries for recoverable PowerShell rm',
       async (permissionMode) => {
         const { facade, dataDir } = freshFacade({
