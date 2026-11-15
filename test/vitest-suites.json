@@ -168,6 +168,7 @@
       "packages/local-runtime-v2/src/application/agent/goal-final-reply.test.ts",
       "packages/local-runtime-v2/src/application/agent/goal-subagent-coordinator.test.ts",
       "packages/local-runtime-v2/src/application/session/process-local-application.test.ts",
+      "packages/local-runtime-v2/src/application/conversation/conversation-application-resume.test.ts",
       "packages/local-runtime-v2/src/compat/v1/agent-host.test.ts",
       "packages/local-runtime-v2/src/service/turn-system/queue.dispatcher.test.ts",
       "packages/local-runtime-v2/test/integration/mcp/project-mcp.integration.test.ts",

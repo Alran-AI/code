@@ -137,6 +137,16 @@ export class ConversationApplication {
     );
   }
 
+  /**
+   * Whether a turn is running now. The stored session status is a projection of state events
+   * and can still read idle while a turn runs (or started after it ended), so the runtime's own
+   * answer decides; the status is only the fallback where the runtime cannot be asked.
+   */
+  private async turnIsRunning(sessionId: string, status: SessionStatus): Promise<boolean> {
+    if (!this.options.turnInspection) return status === "started";
+    return (await this.getActiveTurn(sessionId)) !== undefined;
+  }
+
   steer(input: ConversationSteerInput): Promise<ConversationSteerResult> {
     return this.options.steer(input);
   }
@@ -296,7 +306,7 @@ export class ConversationApplication {
         ...(req.afterCursor ? { afterCursor: req.afterCursor } : {}),
         waitForTerminal: shouldWaitForTerminal(
           req.drainQueued === true || req.continuePausedQueue === true,
-          session.status,
+          await this.turnIsRunning(req.id, session.status),
         ),
       });
       try {
@@ -519,9 +529,9 @@ function queueContinueApplicationError(
 
 function shouldWaitForTerminal(
   drainQueued: boolean | undefined,
-  status: SessionStatus,
+  turnRunning: boolean,
 ): boolean {
-  return drainQueued === true || status === "started";
+  return drainQueued === true || turnRunning;
 }
 
 function turnContinuationStateView(
