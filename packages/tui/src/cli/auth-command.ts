@@ -138,6 +138,7 @@ export async function runTuiLogin(options: RunTuiAuthCommandOptions = {}): Promi
   const result = await loginWithOttiliApiKey({
     ...(options.readApiKey ? { readApiKey: options.readApiKey } : {}),
     ...(options.storeKey ? { storeKey: options.storeKey } : {}),
+    ...(options.verifyKey ? { verifyKey: options.verifyKey } : {}),
     consoleUrl:
       options.consoleUrl ??
       resolveOttiliApiKeyConsoleUrlFor(resolvePlatformBaseUrl(defaultPlatformEnvironment())),

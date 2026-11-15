@@ -160,8 +160,9 @@ export class AlranAuthApplication implements AlranAuthPort {
   /**
    * Sign in with an Ottili API key minted in the Platform console.
    *
-   * Unlike the Platform OIDC flow this needs no network: the key is validated
-   * locally and stored, and the model calls authenticate with it.
+   * Unlike the Platform OIDC flow this opens no browser. The key is checked against the AI Platform
+   * (`GET /v1/models`) before "Signed in" is said: a key the platform refuses is not saved, and a platform
+   * that cannot answer is reported as unconfirmed rather than as success.
    */
   async loginWithApiKey(apiKey: string): Promise<AlranAuthResult> {
     this.track('login_click', {});

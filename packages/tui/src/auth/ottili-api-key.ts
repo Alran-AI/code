@@ -9,6 +9,7 @@ import {
 import {
   isOttiliApiKey,
   OTTILI_API_KEY_PREFIX,
+  resolveOttiliApiBaseUrl,
   resolveOttiliApiKeyConsoleUrl,
   updateLocalByokConfig,
 } from '@alran/config';
@@ -32,6 +33,56 @@ export interface OttiliApiKeyLoginOptions extends OttiliApiKeyStoreOptions {
   readonly writeError?: (value: string) => void;
   /** Override the Ottili API-key page. */
   readonly consoleUrl?: string;
+  /** Ask the AI Platform whether it accepts the key. Replaces the default `GET /v1/models`. */
+  readonly verifyKey?: (apiKey: string) => Promise<OttiliApiKeyVerdict>;
+}
+
+/**
+ * What the AI Platform said about a key.
+ *
+ *   verified    the gateway accepted the key (and said how many models it can use)
+ *   rejected    the gateway refused it as invalid or revoked: nothing is saved
+ *   unconfirmed the gateway could not say (down, unreachable, rate-limited, or a key that may not list models):
+ *               the key is saved and the person is told it was not confirmed — never "Signed in" on a guess
+ */
+export type OttiliApiKeyVerdict =
+  | { readonly kind: 'verified'; readonly models: number }
+  | { readonly kind: 'rejected'; readonly detail: string }
+  | { readonly kind: 'unconfirmed'; readonly detail: string };
+
+/**
+ * Check a key against the gateway with the cheapest authenticated call it has, `GET /v1/models`: it costs no
+ * tokens, needs only the key, and answers 401 for a key it does not know. "Signed in" used to be said after the
+ * key was merely typed in the right shape, so a revoked key or a platform that could not route anything was
+ * discovered by the first model request (the founder's audit, §3.3).
+ */
+export async function verifyOttiliApiKey(
+  apiKey: string,
+  options: { readonly fetchImpl?: typeof fetch; readonly timeoutMs?: number; readonly baseUrl?: string } = {},
+): Promise<OttiliApiKeyVerdict> {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  let base: string;
+  try {
+    base = options.baseUrl ?? resolveOttiliApiBaseUrl();
+  } catch (error) {
+    return { kind: 'unconfirmed', detail: error instanceof Error ? error.message : String(error) };
+  }
+  try {
+    const response = await fetchImpl(`${base.replace(/\/+$/u, '')}/models`, {
+      headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json' },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 8_000),
+    });
+    if (response.status === 401) return { kind: 'rejected', detail: 'HTTP 401: invalid or revoked key' };
+    if (response.ok) {
+      const body = (await response.json().catch(() => null)) as { data?: unknown } | null;
+      return { kind: 'verified', models: Array.isArray(body?.data) ? body.data.length : 0 };
+    }
+    // 403 is a valid key without the scope to list models; 429/5xx is the platform being busy or down.
+    return { kind: 'unconfirmed', detail: `HTTP ${response.status}` };
+  } catch (error) {
+    const name = error instanceof Error ? error.name : '';
+    return { kind: 'unconfirmed', detail: name === 'TimeoutError' ? 'no answer in time' : 'the platform could not be reached' };
+  }
 }
 
 export interface OttiliApiKeyLoginResult {
@@ -122,11 +173,23 @@ export async function loginWithOttiliApiKey(
     );
   }
 
+  const verdict = await (options.verifyKey ?? ((key: string) => verifyOttiliApiKey(key)))(apiKey);
+  if (verdict.kind === 'rejected') {
+    throw new Error(
+      `The Ottili AI Platform rejected this API key (${verdict.detail}). Nothing was saved. Create a new key at ${consoleUrl}.`,
+    );
+  }
+
   await (options.storeKey ?? storeOttiliApiKey)(apiKey);
   return {
     apiKey,
     consoleUrl,
-    message: 'Signed in to the Ottili AI Platform with your Ottili API key.',
+    message:
+      verdict.kind === 'verified'
+        ? `Signed in to the Ottili AI Platform with your Ottili API key. The platform accepted it${
+            verdict.models > 0 ? ` (${verdict.models} model${verdict.models === 1 ? '' : 's'} available)` : ''
+          }.`
+        : `Your Ottili API key was saved, but the platform could not confirm it (${verdict.detail}). It is used for the next request; run \`alran status\` to see whether the platform answers.`,
   };
 }
 

@@ -5,9 +5,11 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { runTuiLogin, runTuiLogout } from '../../src/cli/auth-command.js';
+import { verifyOttiliApiKey } from '../../src/auth/ottili-api-key.js';
 
 const CONSOLE_URL = 'https://ai.ottili.one/api-keys';
 const API_KEY = 'sk-ottili-test-key';
+const accepted = async () => ({ kind: 'verified' as const, models: 3 });
 
 let dataDir: string;
 beforeEach(() => {
@@ -29,6 +31,7 @@ describe('Alran Code auth commands', () => {
       runTuiLogin({
         consoleUrl: CONSOLE_URL,
         storeKey,
+        verifyKey: accepted,
         readApiKey: async () => API_KEY,
         writeError: (value) => stderr.push(value),
         openExternalTarget: async (target) => {
@@ -50,6 +53,7 @@ describe('Alran Code auth commands', () => {
       openBrowser: false,
       consoleUrl: CONSOLE_URL,
       storeKey: async () => {},
+      verifyKey: accepted,
       readApiKey: async () => API_KEY,
       writeError: (value) => stderr.push(value),
       openExternalTarget: async (target) => {
@@ -69,6 +73,7 @@ describe('Alran Code auth commands', () => {
       runTuiLogin({
         consoleUrl: CONSOLE_URL,
         storeKey,
+        verifyKey: accepted,
         readApiKey: async () => API_KEY,
         writeError: (value) => stderr.push(value),
         openExternalTarget: async () => {
@@ -90,6 +95,7 @@ describe('Alran Code auth commands', () => {
       runTuiLogin({
         consoleUrl: CONSOLE_URL,
         storeKey,
+        verifyKey: accepted,
         readApiKey: async () => 'not-an-ottili-key',
         writeError: () => {},
         openExternalTarget: async () => {},
@@ -97,6 +103,53 @@ describe('Alran Code auth commands', () => {
     ).rejects.toThrow(/sk-ottili-/);
 
     expect(storeKey).not.toHaveBeenCalled();
+  });
+
+  it('does not say "Signed in" for a key the platform rejects, and does not save it', async () => {
+    const storeKey = vi.fn(async () => {});
+
+    await expect(
+      runTuiLogin({
+        consoleUrl: CONSOLE_URL,
+        storeKey,
+        verifyKey: async () => ({ kind: 'rejected', detail: 'HTTP 401: invalid or revoked key' }),
+        readApiKey: async () => API_KEY,
+        writeError: () => {},
+        openExternalTarget: async () => {},
+      }),
+    ).rejects.toThrow(/rejected this API key.*Nothing was saved.*Create a new key at https:\/\/ai\.ottili\.one\/api-keys/);
+
+    expect(storeKey).not.toHaveBeenCalled();
+  });
+
+  it('saves the key but says so when the platform cannot confirm it', async () => {
+    const storeKey = vi.fn(async () => {});
+
+    const message = await runTuiLogin({
+      consoleUrl: CONSOLE_URL,
+      storeKey,
+      verifyKey: async () => ({ kind: 'unconfirmed', detail: 'HTTP 502' }),
+      readApiKey: async () => API_KEY,
+      writeError: () => {},
+      openExternalTarget: async () => {},
+    });
+
+    expect(storeKey).toHaveBeenCalledWith(API_KEY);
+    expect(message).not.toMatch(/^Signed in/);
+    expect(message).toMatch(/saved, but the platform could not confirm it \(HTTP 502\)/);
+  });
+
+  it('reports how many models a verified key can use', async () => {
+    const message = await runTuiLogin({
+      consoleUrl: CONSOLE_URL,
+      storeKey: async () => {},
+      verifyKey: accepted,
+      readApiKey: async () => API_KEY,
+      writeError: () => {},
+      openExternalTarget: async () => {},
+    });
+    expect(message).toMatch(/^Signed in to the Ottili AI Platform/);
+    expect(message).toContain('(3 models available)');
   });
 
   it('removes the stored key on logout', async () => {
@@ -155,5 +208,32 @@ describe('Alran Code auth commands', () => {
       }),
     });
     expect(stderr.join('')).toContain('disk is read-only');
+  });
+});
+
+describe('verifyOttiliApiKey (what the gateway says about a key)', () => {
+  const answer = (status: number, body: unknown = {}) =>
+    (async () => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })) as typeof fetch;
+
+  it('verifies a key the gateway accepts and counts its models, sending the key only as a bearer token', async () => {
+    const seen: { url: string; auth: string | null }[] = [];
+    const fetchImpl = (async (url: string, init?: RequestInit) => {
+      seen.push({ url, auth: new Headers(init?.headers).get('authorization') });
+      return new Response(JSON.stringify({ data: [{ id: 'a' }, { id: 'b' }] }), { status: 200 });
+    }) as unknown as typeof fetch;
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl, baseUrl: 'https://ai.example/v1/' })).resolves.toEqual({ kind: 'verified', models: 2 });
+    expect(seen).toEqual([{ url: 'https://ai.example/v1/models', auth: `Bearer ${API_KEY}` }]);
+  });
+
+  it('rejects only on 401; a 403 (a key that may not list models) is unconfirmed, not rejected', async () => {
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl: answer(401), baseUrl: 'https://ai.example/v1' })).resolves.toMatchObject({ kind: 'rejected' });
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl: answer(403), baseUrl: 'https://ai.example/v1' })).resolves.toEqual({ kind: 'unconfirmed', detail: 'HTTP 403' });
+  });
+
+  it('calls an outage an outage: 502, 429 and a dead connection are unconfirmed', async () => {
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl: answer(502), baseUrl: 'https://ai.example/v1' })).resolves.toEqual({ kind: 'unconfirmed', detail: 'HTTP 502' });
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl: answer(429), baseUrl: 'https://ai.example/v1' })).resolves.toEqual({ kind: 'unconfirmed', detail: 'HTTP 429' });
+    const dead = (async () => { throw new TypeError('fetch failed'); }) as typeof fetch;
+    await expect(verifyOttiliApiKey(API_KEY, { fetchImpl: dead, baseUrl: 'https://ai.example/v1' })).resolves.toEqual({ kind: 'unconfirmed', detail: 'the platform could not be reached' });
   });
 });
