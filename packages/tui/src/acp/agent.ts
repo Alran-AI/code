@@ -1092,12 +1092,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       if (!active) {
         throw acp.RequestError.resourceNotFound(context.params.sessionId);
       }
-      if (active.activePrompt) {
-        throw acp.RequestError.invalidParams(
-          undefined,
-          'A prompt is already active for this session.',
-        );
-      }
+      if (active.activePrompt) throw sessionBusyError();
 
       const command = await executeTuiAcpCommand({
         runtime: options.runtime,
@@ -1225,6 +1220,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       if (result.status === 'succeeded') return { stopReason: 'end_turn' };
       if (result.status === 'cancelled') return { stopReason: 'cancelled' };
       if (result.status === 'limit_exceeded') return { stopReason: 'max_turn_requests' };
+      if (result.outcome.error?.code === 'local_session_busy') throw sessionBusyError();
       throw acp.RequestError.internalError(
         undefined,
         result.error
@@ -2164,4 +2160,19 @@ async function awaitCancellation(settled: Promise<void> | undefined): Promise<vo
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** The extension method that delivers a message to a session after its current turn. */
+const ACP_QUEUE_ENQUEUE_METHOD = 'alran/session/queue/enqueue';
+
+/**
+ * One rejection for every way a prompt can find its session busy: the same code and message, and
+ * a `data` a client can branch on without reading prose.
+ */
+function sessionBusyError(): acp.RequestError {
+  return acp.RequestError.invalidParams(
+    { reason: 'session_busy', queueMethod: ACP_QUEUE_ENQUEUE_METHOD },
+    // Clients already recognise a busy session by this sentence; it stays at the start.
+    `Session already has an active Turn. Send the message with ${ACP_QUEUE_ENQUEUE_METHOD} to deliver it after the current turn.`,
+  );
 }

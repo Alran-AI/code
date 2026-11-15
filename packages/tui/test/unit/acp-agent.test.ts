@@ -3495,6 +3495,79 @@ describe('Alran Code ACP agent', () => {
     });
   });
 
+  it('tells a prompt sent to a busy session how to queue it, in a form a client can branch on', async () => {
+    const { runtime, sendMessage } = createRuntime([], { holdRunUntilAbort: true });
+    const agent = createTuiAcpAgent({ runtime, version: '1.2.3', createTurnId: () => 'turn-1' });
+    const client = acp.client({ name: 'test-client' });
+
+    await client.connectWith(agent, async (connection) => {
+      await connection.request(acp.methods.agent.initialize, {
+        protocolVersion: acp.PROTOCOL_VERSION,
+        clientCapabilities: {},
+      });
+      const session = await connection.request(acp.methods.agent.session.new, {
+        cwd: '/workspace',
+        mcpServers: [],
+      });
+      const first = connection.request(acp.methods.agent.session.prompt, {
+        sessionId: session.sessionId,
+        prompt: [{ type: 'text', text: 'Keep running' }],
+      });
+      await vi.waitFor(() => expect(sendMessage).toHaveBeenCalledOnce());
+
+      const rejected = await connection
+        .request(acp.methods.agent.session.prompt, {
+          sessionId: session.sessionId,
+          prompt: [{ type: 'text', text: 'Second' }],
+        })
+        .catch((error: unknown) => error);
+
+      expect(rejected).toMatchObject({
+        data: { reason: 'session_busy', queueMethod: 'alran/session/queue/enqueue' },
+      });
+      expect(String((rejected as Error).message)).toContain('alran/session/queue/enqueue');
+      // The editor extension recognises a busy session by this sentence and retries.
+      expect(String((rejected as Error).message)).toMatch(/already has an active Turn/u);
+      await connection.notify(acp.methods.agent.session.cancel, { sessionId: session.sessionId });
+      await first;
+    });
+  });
+
+  it('reports a runtime that refuses a turn because the session is busy the same way', async () => {
+    const { runtime } = createRuntime([]);
+    (runtime as { sendMessage: unknown }).sendMessage = async function* busy() {
+      yield* [];
+      throw new TuiFailure('runtime', 'Session already has an active Turn. Use queue send.', {
+        code: 'local_session_busy',
+      });
+    };
+    const agent = createTuiAcpAgent({ runtime, version: '1.2.3' });
+    const client = acp.client({ name: 'test-client' });
+
+    await client.connectWith(agent, async (connection) => {
+      await connection.request(acp.methods.agent.initialize, {
+        protocolVersion: acp.PROTOCOL_VERSION,
+        clientCapabilities: {},
+      });
+      const session = await connection.request(acp.methods.agent.session.new, {
+        cwd: '/workspace',
+        mcpServers: [],
+      });
+
+      const rejected = await connection
+        .request(acp.methods.agent.session.prompt, {
+          sessionId: session.sessionId,
+          prompt: [{ type: 'text', text: 'Hello' }],
+        })
+        .catch((error: unknown) => error);
+
+      expect(rejected).toMatchObject({
+        data: { reason: 'session_busy', queueMethod: 'alran/session/queue/enqueue' },
+      });
+      expect(String((rejected as Error).message)).toMatch(/already has an active Turn/u);
+    });
+  });
+
   it('accepts the next prompt as soon as the cancelled prompt has been answered', async () => {
     const {
       runtime,
