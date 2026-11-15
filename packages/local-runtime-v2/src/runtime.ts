@@ -188,6 +188,8 @@ async function createLocalRuntimeHostV2Internal(
       () =>
         new DatabaseClient({
           dataDir: options.dataDir,
+          // Other Alran processes (an editor's agent, a second terminal) write the same file.
+          retryBusyAdmission: true,
           ...(overrides.database?.sqlite3ModulePath
             ? { sqlite3ModulePath: overrides.database.sqlite3ModulePath }
             : {}),

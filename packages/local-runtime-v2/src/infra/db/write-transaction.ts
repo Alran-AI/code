@@ -5,6 +5,46 @@ import type { AppDb } from './client.js';
 const WRITE_LOCK_BUDGET_MS = 10_000;
 const WRITE_LOCK_ATTEMPT_MS = 50;
 
+const BUSY_ADMISSION_BUDGET_MS = 15_000;
+
+/** Depth of the short, bounded admission attempts `runWithWriteLock` makes itself. */
+let boundedAdmissionDepth = 0;
+
+/** Whether the caller is inside one of `runWithWriteLock`'s own bounded admission attempts. */
+export function inBoundedAdmissionAttempt(): boolean {
+  return boundedAdmissionDepth > 0;
+}
+
+/**
+ * Retries a write transaction that was refused its lock, for callers that cannot wait
+ * asynchronously (the transaction API of the database driver is synchronous).
+ *
+ * Only admission is replayed: once `entered()` reports that the mutation callback has run, a
+ * failure, whatever it is, belongs to the caller and nothing is replayed. Each attempt already
+ * waits the connection's native busy timeout; between attempts the thread sleeps briefly with
+ * jitter. After `budgetMs` in total the last busy error is thrown, exactly as without retry.
+ */
+export function retryBusyAdmission<T>(
+  attempt: () => T,
+  entered: () => boolean,
+  budgetMs: number = BUSY_ADMISSION_BUDGET_MS,
+): T {
+  const deadline = performance.now() + budgetMs;
+  for (let tries = 0; ; tries += 1) {
+    try {
+      return attempt();
+    } catch (error) {
+      const remaining = deadline - performance.now();
+      if (entered() || !isBusy(error) || remaining <= 0) throw error;
+      sleepSync(Math.min(remaining, 25 * 2 ** Math.min(tries, 4) + Math.random() * 25));
+    }
+  }
+}
+
+function sleepSync(delayMs: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Math.max(1, Math.ceil(delayMs)));
+}
+
 /** Cancellation before the mutation callback starts; no write needs to be replayed. */
 export class WriteLockWaitAbortedError extends Error {
   override readonly name = 'WriteLockWaitAbortedError';
@@ -42,16 +82,21 @@ export async function runWithWriteLock<T>(
         ? 0
         : Math.ceil(Math.min(WRITE_LOCK_ATTEMPT_MS, remaining));
       db.run(sql.raw(`PRAGMA busy_timeout = ${nativeWaitMs}`));
-      return db.transaction(
-        (tx) => {
-          entered = true;
-          // Only lock acquisition gets a short timeout. Restore the connection's
-          // policy before callbacks (including nested transactions) can use it.
-          db.run(sql.raw(`PRAGMA busy_timeout = ${previous}`));
-          return mutation(tx);
-        },
-        { behavior: 'immediate' },
-      );
+      boundedAdmissionDepth += 1;
+      try {
+        return db.transaction(
+          (tx) => {
+            entered = true;
+            // Only lock acquisition gets a short timeout. Restore the connection's
+            // policy before callbacks (including nested transactions) can use it.
+            db.run(sql.raw(`PRAGMA busy_timeout = ${previous}`));
+            return mutation(tx);
+          },
+          { behavior: 'immediate' },
+        );
+      } finally {
+        boundedAdmissionDepth -= 1;
+      }
     } catch (error) {
       if (entered || !isBusy(error)) throw error;
       lastBusy = error;

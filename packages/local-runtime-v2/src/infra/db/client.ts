@@ -4,6 +4,8 @@ import { dirname, join } from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
+import { inBoundedAdmissionAttempt, retryBusyAdmission } from './write-transaction.js';
+
 export type AppDb = BetterSQLite3Database;
 
 interface BetterSqlite3Statement {
@@ -57,6 +59,12 @@ export interface DatabaseClientOptions {
   readonly dataDir: string;
   /** Override the better-sqlite3 load path for Electron native rebuilds. */
   readonly sqlite3ModulePath?: string;
+  /**
+   * Retry a transaction that takes the write lock at its start (`immediate`) when another
+   * process holds it past the native busy timeout, instead of failing the caller's turn.
+   * Several Alran processes share one database file; see `retryBusyAdmission`.
+   */
+  readonly retryBusyAdmission?: boolean;
 }
 
 export class DatabaseClient {
@@ -148,6 +156,7 @@ export class DatabaseClient {
         PRAGMA foreign_keys = ON;
       `);
       const drizzleDb = drizzle({ client: sqlite as never });
+      if (this.options.retryBusyAdmission === true) retryBusyImmediateTransactions(drizzleDb);
       this.rawDb_ = sqlite;
       this.drizzleDb = drizzleDb;
       return sqlite;
@@ -160,6 +169,36 @@ export class DatabaseClient {
       throw error;
     }
   }
+}
+
+/**
+ * Makes `db.transaction(fn, { behavior: 'immediate' })` retry a refused lock (see
+ * `retryBusyAdmission`). Other transactions and the bounded attempts `runWithWriteLock` makes
+ * by itself keep their own behaviour.
+ */
+function retryBusyImmediateTransactions(db: AppDb): void {
+  const transaction = db.transaction.bind(db) as (
+    fn: (tx: AppDb) => unknown,
+    config?: { behavior?: string },
+  ) => unknown;
+  Object.defineProperty(db, 'transaction', {
+    configurable: true,
+    writable: true,
+    value: (fn: (tx: AppDb) => unknown, config?: { behavior?: string }) => {
+      if (config?.behavior !== 'immediate' || inBoundedAdmissionAttempt()) {
+        return transaction(fn, config);
+      }
+      let entered = false;
+      return retryBusyAdmission(
+        () =>
+          transaction((tx) => {
+            entered = true;
+            return fn(tx);
+          }, config),
+        () => entered,
+      );
+    },
+  });
 }
 
 /** Resolve the native SQLite constructor for target and read-only source connections. */

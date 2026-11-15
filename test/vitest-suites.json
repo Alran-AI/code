@@ -212,6 +212,7 @@
       "packages/local-runtime/test/unit/turn-file-changes-symlink.test.ts",
       "test/history-processing.test.ts",
       "test/sqlite-message-contention.test.ts",
+      "test/sqlite-immediate-retry.test.ts",
       "packages/tui/test/unit/tui-feature-viewport-contract.test.ts",
       "packages/tui/test/unit/tui-session-history-flow.test.ts",
       "packages/tui/test/unit/tui-session-mutation-panels.test.ts",
