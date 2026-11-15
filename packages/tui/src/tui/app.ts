@@ -649,6 +649,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
   commandFlow = new TuiCommandFlow({
     bashFlow,
     workspaceDir: options.workspaceDir,
+    ...(options.dataDir ? { dataDir: options.dataDir } : {}),
     ...(options.commandContributions ? { contributions: options.commandContributions } : {}),
     controller,
     activeRunFlow,
@@ -1041,6 +1042,12 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
       void activeRunFlow.refresh().catch(() => undefined);
       void goalFlow?.refresh().catch(() => undefined);
       checkTuiApplicationUpdate(options, updateNotice, () => stopped, tui);
+      // The first start without an account or a provider opens a short, optional welcome (once).
+      void ready
+        .then(() => {
+          if (!stopped) commandFlow.maybeShowFirstRunWelcome(controller.snapshot().account);
+        })
+        .catch(() => undefined);
     },
     suspend,
     resume,

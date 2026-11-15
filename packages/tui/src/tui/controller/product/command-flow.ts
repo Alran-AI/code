@@ -10,6 +10,8 @@ import {
 import type { TuiComposerDraft } from '../../features/composer/draft.js';
 import type { TuiWorkspaceRoots } from '../../features/composer/workspace-roots.js';
 import { TuiApiKeyInput } from '../../features/auth/api-key-input.js';
+import { firstRunWelcomeSeen, markFirstRunWelcomeSeen } from '../../features/auth/first-run.js';
+import { TuiWelcomePicker } from '../../features/auth/welcome-picker.js';
 import {
   TuiLoginMethodPicker,
   type TuiLoginMethod,
@@ -47,7 +49,10 @@ import {
   createTuiExternalTargetOpener,
   type TuiExternalTargetOpener,
 } from '../../../host/open-external.js';
-import { TuiLoginRequiredError } from '../../../application/login-gate.js';
+import {
+  TuiLoginRequiredError,
+  tuiAccountNeedsLoginPrompt,
+} from '../../../application/login-gate.js';
 import { TuiFailure } from '../../../failure.js';
 import { formatTuiActionFailure } from '../../../user-facing-failure.js';
 import {
@@ -58,7 +63,12 @@ import {
 import { rebuildSessionMutationTransport } from '../../features/session-mutation/transport.js';
 import { toTuiTranscriptAttachments } from '../../features/composer/attachments.js';
 import { resolveTuiRuntimeFailure } from '../runtime/runtime-error-presentation.js';
-import type { TuiEditMessageAttachment, TuiPtcSetting, TuiSession } from '../../../runtime/port.js';
+import type {
+  TuiAccountStatus,
+  TuiEditMessageAttachment,
+  TuiPtcSetting,
+  TuiSession,
+} from '../../../runtime/port.js';
 import type { TuiAttachment, TuiTransportAttachment } from '../../../types/invocation.js';
 import { sessionMutationText } from '../../features/session-mutation/copy.js';
 import { parseTuiBashInput } from '../../commands/bash-input.js';
@@ -67,6 +77,8 @@ import type { TuiBashFlow } from './bash-flow.js';
 export interface TuiCommandFlowOptions {
   readonly bashFlow?: TuiBashFlow;
   readonly workspaceDir: string;
+  /** Where Alran keeps its settings; the first-run welcome remembers there that it was shown. */
+  readonly dataDir?: string;
   readonly contributions?: readonly TuiCommandContribution[];
   readonly controller: TuiChatController;
   readonly activeRunFlow: TuiActiveRunFlow;
@@ -188,6 +200,7 @@ export class TuiCommandFlow {
   readonly catalog: TuiCommandCatalog;
   private preparationTail: Promise<void> = Promise.resolve();
   private loginMethodPicker: TuiLoginMethodPicker | undefined;
+  private welcomePicker: TuiWelcomePicker | undefined;
   private apiKeyInput: TuiApiKeyInput | undefined;
   private permissionModePicker: TuiPermissionModePicker | undefined;
   private settingsPicker: TuiSettingsPicker | undefined;
@@ -1653,6 +1666,36 @@ export class TuiCommandFlow {
       },
     );
     this.loginMethodPicker = picker;
+    this.options.surface.show(picker);
+  }
+
+  /**
+   * The first start without an account or a provider: a short, optional welcome that offers the ways in.
+   * It opens once (the mark is written when it opens), never over another surface, and Esc leaves the
+   * composer as it was.
+   */
+  maybeShowFirstRunWelcome(account: TuiAccountStatus | undefined): void {
+    const { dataDir } = this.options;
+    if (!dataDir || !account || !this.options.auth) return;
+    if (!tuiAccountNeedsLoginPrompt(account)) return;
+    if (this.welcomePicker || this.loginMethodPicker || this.apiKeyInput) return;
+    if (firstRunWelcomeSeen(dataDir)) return;
+    markFirstRunWelcomeSeen(dataDir);
+    const close = (picker: TuiWelcomePicker): void => {
+      this.options.surface.close(picker);
+      if (this.welcomePicker === picker) this.welcomePicker = undefined;
+    };
+    const picker = new TuiWelcomePicker(
+      (choice) => {
+        if (this.welcomePicker !== picker) return;
+        close(picker);
+        if (choice === 'platform') void this.runAuthCommand('login', 'platform');
+        else if (choice === 'api-key') this.showApiKeyInput();
+        else if (choice === 'provider') void this.options.featureFlow.showProviderManager();
+      },
+      () => close(picker),
+    );
+    this.welcomePicker = picker;
     this.options.surface.show(picker);
   }
 

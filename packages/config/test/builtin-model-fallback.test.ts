@@ -40,7 +40,7 @@ describe("built-in model fallback", () => {
       attachment: true,
       reasoning: true,
       tool_call: true,
-      modalities: { input: ["text", "image", "video"], output: ["text"] },
+      modalities: { input: ["text", "image"], output: ["text"] },
       limit: { context: 1000000, output: 256000 },
       thinking: {
         effortOptions: ["minimal", "low", "medium", "high", "xhigh", "max"],
