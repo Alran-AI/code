@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
-import { link, mkdir, open, readFile, rename, rm, stat } from 'node:fs/promises';
+import { link, mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 
 const RENAME_RETRY_DELAYS_MS = [50, 100, 150] as const;
@@ -189,6 +189,101 @@ async function recoverAppendFailure(filePath: string, attempt: AppendAttempt): P
   const committed = await recoverFailedAppend(filePath, attempt.preAppendSize, attempt.payload);
   if (committed) return;
   throw attempt.error;
+}
+
+const TORN_TAIL_QUIET_PERIOD_MS = 10_000;
+const TORN_TAIL_MAX_BYTES = 256 * 1024 * 1024;
+const TAIL_SCAN_CHUNK_BYTES = 64 * 1024;
+
+export interface TornJsonlTailRepair {
+  readonly removedBytes: number;
+  /** A copy of the removed bytes, kept so nothing is lost for good. */
+  readonly backupPath: string;
+}
+
+/**
+ * Cuts off the unterminated final line an interrupted append can leave. A record is always
+ * written with its newline in one append, so bytes after the last newline that are not JSON
+ * are a write that never completed: it was never acknowledged, and no later append can repair
+ * it (the next one starts a new line, turning the fragment into a malformed line for good).
+ *
+ * Only that case is touched. A file that ends with a newline, an unterminated final line that
+ * is complete JSON, a malformed line anywhere else, and a tail written within the last
+ * `quietPeriodMs` (another process may still be finishing its append) are all left alone. The
+ * removed bytes are copied to `<file>.torn-<time>` first.
+ */
+export async function repairTornJsonlTail(
+  filePath: string,
+  options: { readonly nowMs?: () => number; readonly quietPeriodMs?: number } = {},
+): Promise<TornJsonlTailRepair | undefined> {
+  const nowMs = options.nowMs ?? Date.now;
+  let handle: Awaited<ReturnType<typeof open>>;
+  try {
+    handle = await open(filePath, 'r+');
+  } catch (error) {
+    if (hasErrorCode(error, 'ENOENT')) return undefined;
+    throw error;
+  }
+  try {
+    const { size, mtimeMs } = await handle.stat();
+    if (size === 0 || (await readByteAt(handle, size - 1)) === 0x0a) return undefined;
+    if (nowMs() - mtimeMs < (options.quietPeriodMs ?? TORN_TAIL_QUIET_PERIOD_MS)) return undefined;
+    const tailStart = await lastLineStart(handle, size);
+    if (size - tailStart > TORN_TAIL_MAX_BYTES) return undefined;
+    const tail = Buffer.alloc(size - tailStart);
+    await readFully(handle, tail, tailStart);
+    if (tail.toString('utf8').trim() !== '' && isJsonText(tail.toString('utf8'))) return undefined;
+    const backupPath = `${filePath}.torn-${String(nowMs())}`;
+    await writeFile(backupPath, tail, { flag: 'wx', mode: 0o600 });
+    await handle.truncate(tailStart);
+    await handle.sync();
+    return { removedBytes: tail.length, backupPath };
+  } finally {
+    await closeBestEffort(handle);
+  }
+}
+
+function isJsonText(text: string): boolean {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function readByteAt(handle: Awaited<ReturnType<typeof open>>, position: number): Promise<number> {
+  const byte = Buffer.alloc(1);
+  const { bytesRead } = await handle.read(byte, 0, 1, position);
+  if (bytesRead !== 1) throw new Error('Could not read the JSONL file boundary');
+  return byte[0] ?? 0;
+}
+
+/** The offset just after the last newline, or 0 when the file has none. */
+async function lastLineStart(handle: Awaited<ReturnType<typeof open>>, size: number): Promise<number> {
+  let end = size;
+  while (end > 0) {
+    const start = Math.max(0, end - TAIL_SCAN_CHUNK_BYTES);
+    const chunk = Buffer.alloc(end - start);
+    await readFully(handle, chunk, start);
+    const newline = chunk.lastIndexOf(0x0a);
+    if (newline !== -1) return start + newline + 1;
+    end = start;
+  }
+  return 0;
+}
+
+async function readFully(
+  handle: Awaited<ReturnType<typeof open>>,
+  target: Buffer,
+  position: number,
+): Promise<void> {
+  let offset = 0;
+  while (offset < target.length) {
+    const { bytesRead } = await handle.read(target, offset, target.length - offset, position + offset);
+    if (bytesRead === 0) throw new Error('Could not read the JSONL file tail');
+    offset += bytesRead;
+  }
 }
 
 export async function writeJsonlAtomically(

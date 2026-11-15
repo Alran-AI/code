@@ -294,6 +294,7 @@
       "packages/tui/test/unit/tui-account-status-inspection.test.ts",
       "packages/local-runtime-v2/src/service/turn-system/agent-host/contracts.test.ts",
       "packages/local-runtime-v2/src/service/session-system/messages/history/mutation/canonical-history-scanner.test.ts",
+      "packages/local-runtime-v2/src/service/session-system/messages/history/torn-tail-repair.test.ts",
       "packages/tui/test/unit/tui/transcript/streaming-presentation.test.ts",
       "packages/agent-core/test/unit/tools/input-validation.test.ts",
       "packages/local-runtime-v2/src/service/plugin-system/plugin/package/local-plugin-apps.test.ts",
