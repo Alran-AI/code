@@ -209,6 +209,7 @@
       "packages/config/test/retry-config.test.ts",
       "packages/agent-modules/context-manager/test/compaction-usage.test.ts",
       "packages/local-runtime/test/unit/session-diff-fallback.test.ts",
+      "packages/local-runtime/test/unit/turn-file-changes-symlink.test.ts",
       "test/history-processing.test.ts",
       "test/sqlite-message-contention.test.ts",
       "packages/tui/test/unit/tui-feature-viewport-contract.test.ts",
