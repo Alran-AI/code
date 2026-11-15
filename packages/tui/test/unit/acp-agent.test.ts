@@ -6,6 +6,7 @@ import * as acp from '@agentclientprotocol/sdk';
 import { describe, expect, it, vi } from 'vitest';
 
 import { TUI_ACP_AVAILABLE_COMMANDS } from '../../src/acp/commands.js';
+import { TuiFailure } from '../../src/failure.js';
 import { createTuiAcpAgent } from '../../src/acp/agent.js';
 import { TuiAcpPromptContinuation } from '../../src/acp/prompt-continuation.js';
 import type { TuiAcpRuntime } from '../../src/acp/runtime.js';
@@ -3491,6 +3492,70 @@ describe('Alran Code ACP agent', () => {
       id: 'session-1',
       turnId: 'turn-1',
       reason: 'user_stop',
+    });
+  });
+
+  it('accepts the next prompt as soon as the cancelled prompt has been answered', async () => {
+    const {
+      runtime,
+      abortSession,
+      sendMessage: runStarted,
+    } = createRuntime([], { holdRunUntilAbort: true });
+    // The runtime needs a moment to close the aborted Turn; until then it refuses a new one.
+    let closing = false;
+    const sendMessage = runtime.sendMessage.bind(runtime);
+    const abort = abortSession.getMockImplementation()!;
+    abortSession.mockImplementation(async (request) => {
+      closing = true;
+      const result = await abort(request);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      closing = false;
+      return result;
+    });
+    (runtime as { sendMessage: typeof sendMessage }).sendMessage = async function* (req, signal) {
+      if (closing) {
+        throw new TuiFailure('runtime', 'Session already has an active Turn.', {
+          code: 'local_session_busy',
+        });
+      }
+      yield* sendMessage(req, signal);
+    };
+    let turn = 0;
+    const agent = createTuiAcpAgent({
+      runtime,
+      version: '1.2.3',
+      createTurnId: () => {
+        turn += 1;
+        return `turn-${String(turn)}`;
+      },
+    });
+    const client = acp.client({ name: 'test-client' });
+
+    await client.connectWith(agent, async (connection) => {
+      await connection.request(acp.methods.agent.initialize, {
+        protocolVersion: acp.PROTOCOL_VERSION,
+        clientCapabilities: {},
+      });
+      const session = await connection.request(acp.methods.agent.session.new, {
+        cwd: '/workspace',
+        mcpServers: [],
+      });
+      const first = connection.request(acp.methods.agent.session.prompt, {
+        sessionId: session.sessionId,
+        prompt: [{ type: 'text', text: 'Keep running' }],
+      });
+      await vi.waitFor(() => expect(runStarted).toHaveBeenCalledOnce());
+      await connection.notify(acp.methods.agent.session.cancel, { sessionId: session.sessionId });
+      await expect(first).resolves.toEqual({ stopReason: 'cancelled' });
+
+      // Sent the moment the answer arrives, as a client that waits for it may do.
+      const second = connection.request(acp.methods.agent.session.prompt, {
+        sessionId: session.sessionId,
+        prompt: [{ type: 'text', text: 'Next question' }],
+      });
+      await vi.waitFor(() => expect(runStarted).toHaveBeenCalledTimes(2));
+      await connection.notify(acp.methods.agent.session.cancel, { sessionId: session.sessionId });
+      await expect(second).resolves.toEqual({ stopReason: 'cancelled' });
     });
   });
 

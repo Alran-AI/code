@@ -64,6 +64,11 @@ interface AcpSession {
   coordinator: TuiRunCoordinator;
   readonly attachmentController: AbortController;
   pendingModeIntent?: TuiPlanClientIntent;
+  /**
+   * Settles when the Runtime has acknowledged the last cancellation. A cancelled prompt is not
+   * answered before that: the Runtime refuses a new Turn while it is still closing the old one.
+   */
+  cancellationSettled?: Promise<void>;
   activePrompt?: {
     readonly controller: AbortController;
     readonly continuation: TuiAcpPromptContinuation;
@@ -1151,7 +1156,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
     let modeIntentAccepted = false;
     const cancel = () => {
       promptController.abort(context.signal.reason);
-      void active.coordinator.abort();
+      active.cancellationSettled = settledQuietly(active.coordinator.abort());
     };
     context.signal.addEventListener('abort', cancel, { once: true });
     if (context.signal.aborted) cancel();
@@ -1228,6 +1233,8 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       );
     } finally {
       context.signal.removeEventListener('abort', cancel);
+      // The answer to a cancelled prompt tells the client the session is free again.
+      if (promptController.signal.aborted) await awaitCancellation(active.cancellationSettled);
       if (active.activePrompt === activePrompt) active.activePrompt = undefined;
       if (modeIntentAccepted && active.pendingModeIntent === submittedModeIntent) {
         active.pendingModeIntent = undefined;
@@ -1268,7 +1275,9 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       return;
     }
     active.activePrompt.controller.abort(new Error('ACP session cancelled.'));
-    await active.coordinator.abort();
+    const aborting = active.coordinator.abort();
+    active.cancellationSettled = settledQuietly(aborting);
+    await aborting;
   });
 
   return app;
@@ -2130,5 +2139,29 @@ async function assertAuthenticated(runtime: TuiAcpRuntime): Promise<void> {
       throw acp.RequestError.authRequired(undefined, 'Run `alran login` and try again.');
     }
     throw error;
+  }
+}
+
+/** How long a cancelled prompt waits for the Runtime to close the aborted Turn before it answers. */
+const CANCELLATION_SETTLEMENT_WAIT_MS = 5_000;
+
+function settledQuietly(work: Promise<unknown>): Promise<void> {
+  return work.then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
+async function awaitCancellation(settled: Promise<void> | undefined): Promise<void> {
+  if (!settled) return;
+  let timer: NodeJS.Timeout | undefined;
+  const limit = new Promise<void>((release) => {
+    timer = setTimeout(release, CANCELLATION_SETTLEMENT_WAIT_MS);
+    timer.unref();
+  });
+  try {
+    await Promise.race([settled, limit]);
+  } finally {
+    clearTimeout(timer);
   }
 }
