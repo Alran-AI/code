@@ -47,7 +47,9 @@ export const ALRAN_MODELS: Record<string, ModelConfig> = {
     reasoning: true,
     tool_call: true,
     temperature: true,
-    modalities: { input: ["text", "image", "video"], output: ["text"] },
+    // The upstream model reads text and images. It does not read video, and the CLI must not offer to
+    // send one: the request would be refused after the person attached it.
+    modalities: { input: ["text", "image"], output: ["text"] },
     limit: { context: 1000000, output: 256000 },
     options: { reasoningSummary: "auto" },
     thinking: {

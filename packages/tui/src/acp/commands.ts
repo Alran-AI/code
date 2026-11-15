@@ -1,3 +1,4 @@
+import { displayModelRef } from '../model-display.js';
 import * as acp from '@agentclientprotocol/sdk';
 
 import { TUI_COMMAND_DESCRIPTORS } from '../application/command-descriptors.js';
@@ -325,7 +326,7 @@ function formatStatus(
 ): string {
   const selected = models.find((model) => model.selected);
   const selectedModel = selected
-    ? `${selected.providerId}/${selected.modelId}${selected.displayName ? ` (${selected.displayName})` : ''}`
+    ? `${displayModelRef(selected.providerId, selected.modelId)}${selected.displayName ? ` (${selected.displayName})` : ''}`
     : (account.defaultModel ?? 'not selected');
   return [
     `Account status: ${account.status}`,
@@ -365,7 +366,9 @@ function formatAvailableModels(models: readonly TuiModel[]): string {
     ...models.map((model) => {
       const label = model.displayName ? ` (${model.displayName})` : '';
       const selected = model.selected ? ' [selected]' : '';
-      return `- ${model.providerId}/${model.modelId}${label}${selected}`;
+      const platformId = displayModelRef(model.providerId, model.modelId);
+      const alias = platformId === `${model.providerId}/${model.modelId}` ? '' : ` = ${platformId}`;
+      return `- ${model.providerId}/${model.modelId}${alias}${label}${selected}`;
     }),
     '',
     'Use `/model <provider/model[#variant]>` to switch.',

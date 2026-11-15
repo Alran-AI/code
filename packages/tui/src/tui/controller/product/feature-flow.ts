@@ -1,3 +1,4 @@
+import { displayModelRef } from '../../../model-display.js';
 import { formatContextWindow } from '../../features/model/context-window.js';
 import type {
   TuiConfigurationPort,
@@ -670,7 +671,7 @@ export class TuiFeatureFlow {
             this.pendingSessionModelSelection =
               parked && chosenEffort ? { model: result.model, effort: chosenEffort } : undefined;
             this.options.append(
-              `Model selected: ${model.providerId}/${model.modelId}${variant}${thinkingLabel}${effortLabel}${contextLabel}${
+              `Model selected: ${displayModelRef(model.providerId, model.modelId)}${variant}${thinkingLabel}${effortLabel}${contextLabel}${
                 sessionId ? ' for this session and saved as the default' : ' as the default'
               }.${parked ? ' Think effort applies before the first message is sent.' : ''}`,
             );

@@ -305,7 +305,8 @@
       "packages/config/test/attribution.test.ts",
       "packages/local-runtime-v2/src/application/agent/attribution-reminder.test.ts",
       "packages/local-runtime/test/unit/ensure-git-shim.test.ts",
-      "packages/agent-tools/test/desktop/local-bash-commit-trailer.test.ts"
+      "packages/agent-tools/test/desktop/local-bash-commit-trailer.test.ts",
+      "packages/tui/test/unit/model-display.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"

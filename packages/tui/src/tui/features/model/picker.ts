@@ -1,3 +1,4 @@
+import { displayModelRef } from '../../../model-display.js';
 import { panelLayout } from '../../widgets/panel-frame.js';
 import { getKeybindings, Input, Key, matchesKey } from '../../engine/public.js';
 import type { Component, Focusable } from '../../rendering/component.js';
@@ -560,6 +561,7 @@ function searchableModelText(model: TuiModel): string {
     model.displayName,
     model.variant,
     `${model.providerId}/${model.modelId}`,
+    displayModelRef(model.providerId, model.modelId),
   ]
     .filter((value): value is string => Boolean(value))
     .join(' ')
@@ -580,7 +582,7 @@ function groupModels(models: readonly TuiModel[]): ModelGroup[] {
 function formatModelDescription(model: TuiModel, unavailable: boolean): string {
   const efforts = normalizeTuiEffortOptions(model.effortOptions);
   return [
-    sanitizeTerminalText(`${model.providerId}/${model.modelId}`),
+    sanitizeTerminalText(displayModelRef(model.providerId, model.modelId)),
     unavailable ? 'Login required' : undefined,
     model.variant && model.variant !== 'thinking' ? sanitizeTerminalText(model.variant) : undefined,
     efforts.length > 0 ? `${String(efforts.length)} efforts` : undefined,
