@@ -998,26 +998,20 @@ describe("BuiltinAgentCatalog session surfaces", () => {
         "Do not guess dynamic product facts from model memory.",
       );
     }
-    expect(productSkill).toMatch(/官方|authoritative/i);
-    expect(productSkill).toMatch(
-      /核实顺序|verification workflow|official source discovery/i,
-    );
-    expect(productSkill).toContain("https://api.ottili.one/docs/llms.txt");
+    expect(productSkill).toMatch(/authoritative/i);
+    expect(productSkill).toMatch(/verification workflow|source discovery/i);
+    // The three sources the skill sends a question to: the installed program, the guide that ships
+    // with the source, and the Ottili AI Platform - never the hosts of the upstream product.
+    expect(productSkill).toContain("https://github.com/Alran-AI/code");
+    expect(productSkill).toContain("https://ai.ottili.one");
     expect(productSkill).toContain(
-      "https://api.ottili.one/docs/llms.txt",
+      "https://ai.ottili.one/v1/products/alran-code/version",
     );
-    expect(productSkill).toContain("https://api.ottili.one/docs/llms.txt");
-    expect(productSkill).toContain("https://platform.alran.io/docs/llms.txt");
-    expect(productSkill).toContain(
-      "https://api.ottili.one/docs/changelog.md",
+    expect(productSkill).not.toMatch(
+      /platform\.alran\.io|api\.ottili\.one\/docs|agent\.alran\.(?:cn|io)/i,
     );
-    expect(productSkill).toContain(
-      "https://api.ottili.one/docs/changelog.md",
-    );
-    expect(productSkill).toMatch(
-      /current-region Desktop changelog[\s\S]*latest-version/i,
-    );
-    expect(productSkill).toMatch(/version\/date[\s\S]*download links/i);
+    // A version, a price or a balance is read from a source, never from memory.
+    expect(productSkill).toMatch(/never answer a\s+dynamic fact/i);
     expect(productSkill).not.toMatch(/latest\.yml|latest-mac\.yml/i);
     expect(productSkill).not.toMatch(
       /filecdn\.alran\.chat|file\.cdn\.alran\.io/i,
