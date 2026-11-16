@@ -18,6 +18,7 @@ import type {
 } from '../runtime/port.js';
 import { buildTuiMessageParts } from '../runtime/stream-events.js';
 import type { TuiMessage, TuiStreamEvent } from '../runtime/stream-events.js';
+import { TuiTurnOutputRate } from '../tui/controller/projection/turn-output-rate.js';
 import type { TuiAcpRuntime } from './runtime.js';
 import { availableSkillCommands, executeTuiAcpCommand, TUI_ACP_AVAILABLE_COMMANDS } from './commands.js';
 import {
@@ -1157,6 +1158,12 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
     if (context.signal.aborted) cancel();
     const pendingUpdates: Promise<void>[] = [];
     const projector = new TuiAcpUpdateProjector();
+    // The output speed the provider measured (output tokens over decode time), worked out the way the
+    // terminal UI works it out and sent when it changes. A client that did not ask for extension
+    // notifications is not sent it, and a failure to deliver it never fails the prompt.
+    const outputRate = new TuiTurnOutputRate();
+    outputRate.beginTurn(turnId);
+    let notifiedRate: number | undefined;
     const onSessionEvent = (event: TuiStreamEvent) => {
       for (const update of projector.project(event)) {
         pendingUpdates.push(
@@ -1164,6 +1171,24 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
             sessionId: context.params.sessionId,
             update,
           }),
+        );
+      }
+      const rate = outputRate.apply(turnId, event);
+      if (
+        rate !== undefined &&
+        !Object.is(rate, notifiedRate) &&
+        supportsTuiAcpExtensionNotifications(clientCapabilities)
+      ) {
+        notifiedRate = rate;
+        pendingUpdates.push(
+          context.client
+            .notify('alran/session/output_rate_update', {
+              sessionId: context.params.sessionId,
+              turnId,
+              tokensPerSecond: rate,
+              estimated: outputRate.currentEstimated() === true,
+            })
+            .catch(() => undefined),
         );
       }
     };

@@ -33,6 +33,8 @@ export const TUI_ACP_EXTENSION_NOTIFICATIONS = [
   'alran/session/queue_update',
   'alran/session/goal_update',
   'alran/session/delegation_update',
+  /** The output speed the provider measured for the running turn, as the terminal UI shows it. */
+  'alran/session/output_rate_update',
 ] as const;
 
 export function tuiAcpExtensionCapabilities(runtime: Pick<TuiAcpRuntime, 'isGoalEnabled'>): {

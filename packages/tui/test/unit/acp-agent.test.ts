@@ -1203,6 +1203,7 @@ describe('Alran Code ACP agent', () => {
               'alran/session/queue_update',
               'alran/session/goal_update',
               'alran/session/delegation_update',
+              'alran/session/output_rate_update',
             ],
           },
         },
@@ -1252,6 +1253,104 @@ describe('Alran Code ACP agent', () => {
         },
       },
     ]);
+  });
+
+  describe('output speed', () => {
+    type RateNotification = {
+      sessionId: string;
+      turnId: string;
+      tokensPerSecond: number;
+      estimated: boolean;
+    };
+
+    async function promptAndCollectRates(
+      events: Parameters<typeof createRuntime>[0],
+      options: { askForExtensionNotifications: boolean },
+    ): Promise<RateNotification[]> {
+      const { runtime } = createRuntime(events);
+      const rates: RateNotification[] = [];
+      const agent = createTuiAcpAgent({ runtime, version: '1.2.3', createTurnId: () => 'turn-1' });
+      const client = acp
+        .client({ name: 'test-client' })
+        .onNotification(
+          'alran/session/output_rate_update',
+          (value) => value as RateNotification,
+          ({ params }) => rates.push(params),
+        );
+      await client.connectWith(agent, async (connection) => {
+        await connection.request(acp.methods.agent.initialize, {
+          protocolVersion: acp.PROTOCOL_VERSION,
+          clientCapabilities: options.askForExtensionNotifications
+            ? { _meta: { 'alran-code/extensions': { version: 1, notifications: true } } }
+            : {},
+          clientInfo: { name: 'test-client', version: '0.1.0' },
+        });
+        const session = await connection.request(acp.methods.agent.session.new, {
+          cwd: '/workspace',
+          mcpServers: [],
+        });
+        await connection.request(acp.methods.agent.session.prompt, {
+          sessionId: session.sessionId,
+          prompt: [{ type: 'text', text: 'Go' }],
+        });
+      });
+      return rates;
+    }
+
+    const answer = (id: string, usage: Record<string, number>) => ({
+      type: 'message' as const,
+      message: { id, role: 'assistant' as const, content: 'Text.', usage },
+    });
+
+    it('sends the speed the provider measured, as the terminal UI works it out', async () => {
+      const rates = await promptAndCollectRates(
+        [
+          // 300 tokens in 2 s, then 500 more in 2 s: 150 tok/s after the first call, 200 over both.
+          answer('message-1', { outputTokens: 300, decodeDurationMs: 2_000 }),
+          answer('message-2', { outputTokens: 500, decodeDurationMs: 2_000 }),
+          { type: 'session-status', status: 'finished' },
+        ],
+        { askForExtensionNotifications: true },
+      );
+      expect(rates).toEqual([
+        { sessionId: 'session-1', turnId: 'turn-1', tokensPerSecond: 150, estimated: false },
+        { sessionId: 'session-1', turnId: 'turn-1', tokensPerSecond: 200, estimated: false },
+      ]);
+    });
+
+    it('does not repeat a speed that did not change', async () => {
+      const rates = await promptAndCollectRates(
+        [
+          answer('message-1', { outputTokens: 300, decodeDurationMs: 2_000 }),
+          answer('message-2', { outputTokens: 300, decodeDurationMs: 2_000 }),
+          { type: 'session-status', status: 'finished' },
+        ],
+        { askForExtensionNotifications: true },
+      );
+      expect(rates.map((rate) => rate.tokensPerSecond)).toEqual([150]);
+    });
+
+    it('invents nothing when the provider reported no decode time', async () => {
+      const rates = await promptAndCollectRates(
+        [
+          answer('message-1', { outputTokens: 300 }),
+          { type: 'session-status', status: 'finished' },
+        ],
+        { askForExtensionNotifications: true },
+      );
+      expect(rates).toEqual([]);
+    });
+
+    it('sends nothing to a client that did not ask for extension notifications', async () => {
+      const rates = await promptAndCollectRates(
+        [
+          answer('message-1', { outputTokens: 300, decodeDurationMs: 2_000 }),
+          { type: 'session-status', status: 'finished' },
+        ],
+        { askForExtensionNotifications: false },
+      );
+      expect(rates).toEqual([]);
+    });
   });
 
   it('forwards prompt images to the Runtime as attachments and removes the temporary copies', async () => {
