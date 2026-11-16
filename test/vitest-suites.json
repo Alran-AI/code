@@ -135,6 +135,7 @@
       "packages/tui/test/unit/tui/widgets/editor/editor-behavior.test.ts",
       "packages/agent-core/test/unit/pi-turn-runner/llm-retry.test.ts",
       "packages/agent-core/test/unit/pi-turn-runner/llm-stream-timeout.test.ts",
+      "packages/agent-core/test/unit/pi-turn-runner/degenerate-output-guard.test.ts",
       "packages/agent-core/test/unit/pi-turn-runner/request-image-limit.test.ts",
       "packages/tui/test/unit/runtime-error-presentation-rejection.test.ts",
       "packages/local-runtime-v2/src/service/turn-system/agent-host/assembly/local-turn-payload-transform.test.ts",
