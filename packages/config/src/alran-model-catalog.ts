@@ -26,17 +26,19 @@ const ALRAN_EXTERNAL_ATTACHMENT_CAPABILITIES: ModelCapabilitiesConfig = {
 /**
  * The three models Alran Code offers through the Ottili AI Gateway.
  *
- *   Alran-Werk                     -> ottili/werk-1.1             included: the welcome credit pays
- *   anthropic/claude-sonnet-5.5    -> anthropic/claude-sonnet-5.5 partner model: paid credit only
- *   anthropic/claude-opus-5.5      -> anthropic/claude-opus-5.5   partner model: paid credit only
+ *   Alran-Werk                     -> ottili/werk-1.1             billed by Ottili: the welcome credit pays
+ *   anthropic/claude-sonnet-5.5    -> anthropic/claude-sonnet-5.5 runs on the customer's own Anthropic key (BYOK)
+ *   anthropic/claude-opus-5.5      -> anthropic/claude-opus-5.5   runs on the customer's own Anthropic key (BYOK)
  *
  * The gateway serves nothing else today: Fels, Kern and Werk Pro are planned or retired there and
  * answer `model_not_available`, so they are not offered. A persisted default that names a model no
  * longer in this catalogue is replaced by the default (`replaceStaleOfficialDefaultModel`).
- * The partner models' token prices are Anthropic's list prices; the gateway adds a 4.5 % service fee
- * as a separate line and refuses them with `free_credit_model_restricted` when only the welcome
- * credit is left. Third-party providers (bring your own key) are configured separately and are
- * called directly, never through the gateway.
+ * The Claude models run on the customer's own Anthropic API key: the customer adds it in the Ottili AI
+ * Platform (Settings → Provider keys), the gateway sends their requests to Anthropic with it, and
+ * Anthropic bills the customer. Ottili charges nothing for them — no token price, no service fee. The
+ * gateway refuses them with `byok_key_required` while no working key is stored. Third-party providers
+ * (a key configured in Alran Code itself) are configured separately and are called directly, never
+ * through the gateway.
  */
 export const ALRAN_MODELS: Record<string, ModelConfig> = {
   // Werk -> ottili/werk-1.1. The default model, and the one the welcome credit pays for.

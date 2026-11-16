@@ -83,19 +83,20 @@ const CREDITS = (overrides: Record<string, unknown> = {}): Route => () => plain(
   reserved_microcents: 0,
   free_credit: { granted_microcents: 10_000_000, remaining_microcents: 10_000_000 },
   paid_credit: { available_microcents: 0 },
+  // Claude runs on the customer's own Anthropic key (BYOK): no key stored yet.
   models: [
-    { id: 'ottili/werk-1.1', usable: true, reason: null, credit_class: 'included', service_fee_bps: 0 },
-    { id: 'anthropic/claude-sonnet-5.5', usable: false, reason: 'requires_paid_credit', credit_class: 'paid_only', service_fee_bps: 450 },
-    { id: 'anthropic/claude-opus-5.5', usable: false, reason: 'requires_paid_credit', credit_class: 'paid_only', service_fee_bps: 450 },
+    { id: 'ottili/werk-1.1', usable: true, reason: null, billing: 'platform' },
+    { id: 'anthropic/claude-sonnet-5.5', usable: false, reason: 'requires_byok_key', billing: 'byok' },
+    { id: 'anthropic/claude-opus-5.5', usable: false, reason: 'requires_byok_key', billing: 'byok' },
   ],
+  byok: { anthropic: { configured: false, status: null, hint: null } },
   current_month: {
     from: '2026-11-01T00:00:00.000Z',
     by_model: [
-      { model: 'anthropic/claude-sonnet-5.5', requests: 2, input_tokens: 100, output_tokens: 50, cost_microcents: 1045, service_fee_microcents: 45 },
-      { model: 'ottili/werk-1.1', requests: 5, input_tokens: 900, output_tokens: 300, cost_microcents: 900, service_fee_microcents: 0 },
+      { model: 'anthropic/claude-sonnet-5.5', requests: 2, input_tokens: 100, output_tokens: 50, cost_microcents: 0, billing: 'byok' },
+      { model: 'ottili/werk-1.1', requests: 5, input_tokens: 900, output_tokens: 300, cost_microcents: 900, billing: 'platform' },
     ],
-    total_cost_microcents: 1945,
-    total_service_fee_microcents: 45,
+    total_cost_microcents: 900,
   },
   ...overrides,
 });
@@ -225,9 +226,11 @@ describe('models', () => {
     await runModels(commandIo);
     const text = out.join('');
     expect(text).toMatch(/\*\s+werk\s+Ottili Werk 1\.1\s+\$0\.50 \/ \$1\.50/u);
-    expect(text).toMatch(/sonnet\s+Claude Sonnet 5\.5\s+\$2\.00 \/ \$10\.00\s+purchased credit\s+requires purchased credit/u);
+    expect(text).toMatch(/sonnet\s+Claude Sonnet 5\.5\s+\$2\.00 \/ \$10\.00\s+your Anthropic key\s+needs your Anthropic key/u);
     expect(text).toMatch(/opus\s+Claude Opus 5\.5\s+\$4\.00 \/ \$20\.00/u);
-    expect(text).toContain('4.5 % service fee');
+    // Anthropic bills Claude on the customer's own key: no Ottili fee is named anywhere.
+    expect(text).toContain('Ottili charges nothing for Claude');
+    expect(text).not.toMatch(/service fee|4\.5 %/iu);
     const gateway = calls.find((call) => call.url.endsWith('/v1/credits'))!;
     expect(gateway.headers.authorization).toBe('Bearer sess_1');
   });
@@ -241,27 +244,39 @@ describe('models', () => {
     expect(out.join('')).toContain('Ottili does not see,\nmeter or bill those requests');
   });
 
-  it('sets the default model by short name and warns when only welcome credit is left', async () => {
+  it('sets the default model by short name and says what Claude needs when no Anthropic key is stored', async () => {
     signIn();
     const commandIo = io({ 'GET /v1/credits': CREDITS() });
     await runConfigModel(commandIo, 'sonnet');
     expect(commandIo.setDefaultModel).toHaveBeenCalledWith('alran/anthropic/claude-sonnet-5.5');
-    expect(err.join('')).toContain('uses purchased credits only');
+    expect(err.join('')).toContain('Claude runs on your own Anthropic API key');
+    expect(err.join('')).toContain('Settings → Provider keys');
+    expect(err.join('')).not.toContain('purchased credits');
     expect(modelKeyOf('werk')).toBe('alran/Alran-Werk');
     expect(modelKeyOf('gpt-6')).toBeUndefined();
   });
 });
 
 describe('usage', () => {
-  it('shows the welcome and the purchased credit and the month per model, fee as its own column', async () => {
+  it('shows the credit, the state of the Anthropic key and the month per model — Claude is billed by Anthropic, not here', async () => {
     signIn();
     const commandIo = io({ 'GET /v1/credits': CREDITS() });
     await runUsage(commandIo);
     const text = out.join('');
     expect(text).toContain('Welcome credit   $10.00 left of $10.00 (Werk only)');
-    expect(text).toContain('Purchased credit $0.00 (all models)');
-    expect(text).toMatch(/anthropic\/claude-sonnet-5\.5\s+2\s+150\s+\$0\.0010\s+\$0\.0000|anthropic\/claude-sonnet-5\.5\s+2\s+150/u);
-    expect(text).toContain('Service fee');
+    expect(text).toContain('Purchased credit $0.00 (Werk)');
+    expect(text).toContain('Anthropic key    not added');
+    expect(text).toMatch(/anthropic\/claude-sonnet-5\.5\s+2\s+150\s+billed by Anthropic/u);
+    expect(text).toMatch(/ottili\/werk-1\.1\s+5\s+1200\s+\$0\.0009/u);
+    expect(text).toContain('Charged by Ottili this month: $0.0009');
+    expect(text).not.toMatch(/service fee/iu);
+  });
+
+  it('shows the key of a company that stored one', async () => {
+    signIn();
+    const commandIo = io({ 'GET /v1/credits': CREDITS({ byok: { anthropic: { configured: true, status: 'active', hint: 'sk-ant-…abcd' } } }) });
+    await runUsage(commandIo);
+    expect(out.join('')).toContain('Anthropic key    sk-ant-…abcd (active) — Claude is billed by Anthropic, not by Ottili');
   });
 
   it('maps refusals to exit codes: rate limit 3, unreachable 4, credit 5, session ended 2', async () => {
@@ -269,7 +284,9 @@ describe('usage', () => {
     const cases: [Route, number][] = [
       [() => plain({ error: { code: 'rate_limit_exceeded' } }, 429, { 'retry-after': '7' }), ACCOUNT_EXIT.rateLimited],
       [() => plain({ error: { code: 'credit_service_unavailable' } }, 503), ACCOUNT_EXIT.unreachable],
-      [() => plain({ error: { code: 'free_credit_model_restricted', message: 'Your free credits are restricted to Werk.' } }, 403), ACCOUNT_EXIT.credits],
+      [() => plain({ error: { code: 'byok_key_required', message: 'Anthropic models run on your own Anthropic API key. Add it under Settings → Provider keys.' } }, 403), ACCOUNT_EXIT.credits],
+      [() => plain({ error: { code: 'byok_provider_billing', message: 'Your Anthropic account cannot pay for this request.' } }, 402), ACCOUNT_EXIT.credits],
+      [() => plain({ error: { code: 'insufficient_quota' } }, 402), ACCOUNT_EXIT.credits],
       [() => plain({ error: { code: 'invalid_api_key' } }, 401), ACCOUNT_EXIT.authRequired],
     ];
     for (const [route, code] of cases) {
@@ -302,6 +319,8 @@ describe('model availability colours', () => {
   it('colours the status on a terminal and leaves it plain otherwise', async () => {
     const { colourAvailability } = await import('../../src/cli/account-commands.js');
     expect(colourAvailability({ environment: {} }, 'available', true)).toBe('\u001b[32mavailable\u001b[39m');
+    expect(colourAvailability({ environment: {} }, 'needs your Anthropic key', true)).toContain('\u001b[33m');
+    expect(colourAvailability({ environment: {} }, 'Anthropic rejected your key', true)).toContain('\u001b[31m');
     expect(colourAvailability({ environment: {} }, 'requires purchased credit', true)).toContain('\u001b[33m');
     expect(colourAvailability({ environment: {} }, 'no credit left', true)).toContain('\u001b[31m');
     expect(colourAvailability({ environment: {} }, 'available', false)).toBe('available');

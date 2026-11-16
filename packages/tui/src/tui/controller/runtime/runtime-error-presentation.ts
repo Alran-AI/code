@@ -32,6 +32,10 @@ const FORCE_RETRY_ERROR_CODES = new Set<number>([
 ]);
 const CONTENT_SAFETY_ERROR_CODES = new Set<number>([50_200, 50_201]);
 
+/** The refusals of the Ottili gateway about the customer's own Anthropic key (`byok_*` codes and their sentences). */
+const OTTILI_ANTHROPIC_KEY_RE =
+  /\bbyok_(?:key_required|key_invalid|key_rejected|key_forbidden|provider_billing|unavailable)\b|Anthropic models run on your own Anthropic API key|Anthropic (?:rejected|refused|does not accept) your API key|Anthropic account cannot pay/iu;
+
 export interface TuiRuntimeFailurePresentation {
   readonly content: string;
   readonly retryable: boolean;
@@ -73,6 +77,15 @@ export function resolveTuiRuntimeFailure(
           : 'Lower the effort level before sending the message again.'
       } Your prompt is preserved.`,
       retryable,
+    };
+  }
+  // Claude through the Ottili gateway runs on the customer's OWN Anthropic API key, which the gateway holds
+  // for them. When that key is missing, refused or cannot pay, the gateway says so by name; "Access denied"
+  // or "request authentication" would send the person looking at their Ottili sign-in, which is fine.
+  if (metadata.errorSource !== 'byok_upstream' && message && OTTILI_ANTHROPIC_KEY_RE.test(`${message} ${metadata.errorDetail ?? ''}`)) {
+    return {
+      content: `Claude could not run on your Anthropic key.${diagnostics}${code}\nAdd or replace the key in the Ottili AI Platform under Settings → Provider keys (Anthropic bills it, Ottili does not), or switch to Werk with /model. Your prompt is preserved.`,
+      retryable: false,
     };
   }
   if (errorCode === 403) {

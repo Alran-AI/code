@@ -13,7 +13,8 @@
 //
 // Exit codes (also documented in docs/AUTH.md):
 //   0 success · 1 any other failure · 2 sign-in needed · 3 rate limited · 4 service unreachable ·
-//   5 the credit does not allow it (no credit, or partner model on free credit only)
+//   5 the credit does not allow it: no credit left (Werk), or Claude cannot be paid for — no Anthropic key stored,
+//     the key refused, or the Anthropic account without credit (Claude runs on the customer's own key)
 import { randomUUID } from 'node:crypto';
 import type { Command } from 'commander';
 
@@ -22,7 +23,7 @@ import {
   ALRAN_MODEL_TO_GATEWAY_ID,
   clearStoredPlatformSession,
   getConfig,
-  isPaidOnlyOttiliModel,
+  isByokOttiliModel,
   platformEnvironmentOrder,
   readOttiliAccountPreferences,
   resolveOttiliCatalogModelId,
@@ -152,6 +153,9 @@ async function readJson(response: Response): Promise<Record<string, unknown>> {
   }
 }
 
+/** The refusals of the gateway about the customer's own Anthropic key (BYOK). */
+const BYOK_KEY_CODES = new Set(['byok_key_required', 'byok_key_invalid', 'byok_key_rejected', 'byok_key_forbidden', 'byok_unavailable']);
+
 /** A refusal in the words a person can act on, with the exit code the shell can branch on. */
 function refusal(status: number, body: Record<string, unknown>, service: string, retryAfter: string | null): AlranAccountError {
   const error = (body.error && typeof body.error === 'object' ? body.error : body) as Record<string, unknown>;
@@ -164,7 +168,15 @@ function refusal(status: number, body: Record<string, unknown>, service: string,
     const wait = retryAfter ? ` Try again in ${retryAfter} s.` : '';
     return new AlranAccountError(`${service} is rate limiting this account.${wait}`, ACCOUNT_EXIT.rateLimited, code || 'rate_limited');
   }
-  if (status === 402 || code === 'free_credit_model_restricted' || code === 'insufficient_quota') {
+  // Claude runs on the customer's own Anthropic key. Its refusals are about THAT key and THAT account, and
+  // the way out is not an Ottili top-up: the gateway's sentence names it, and so does this one.
+  if (BYOK_KEY_CODES.has(code)) {
+    return new AlranAccountError(message || 'Claude runs on your own Anthropic API key. Add or replace it in the Ottili AI Platform under Settings → Provider keys.', ACCOUNT_EXIT.credits, code);
+  }
+  if (code === 'byok_provider_billing') {
+    return new AlranAccountError(message || 'Your Anthropic account cannot pay for this request. Anthropic bills it, not Ottili — check your balance in the Anthropic Console.', ACCOUNT_EXIT.credits, code);
+  }
+  if (status === 402 || code === 'insufficient_quota') {
     return new AlranAccountError(message || 'Your credit does not cover this request. Add credits in the Ottili AI Platform.', ACCOUNT_EXIT.credits, code);
   }
   if (status >= 500) {
@@ -463,12 +475,14 @@ interface CreditsAnswer {
   readonly reserved_microcents?: number;
   readonly free_credit?: { readonly granted_microcents?: number; readonly remaining_microcents?: number };
   readonly paid_credit?: { readonly available_microcents?: number };
-  readonly models?: readonly { readonly id: string; readonly usable?: boolean; readonly reason?: string | null; readonly credit_class?: string; readonly service_fee_bps?: number }[];
+  /** `billing`: `platform` (Ottili credit) or `byok` (the customer's own provider key). */
+  readonly models?: readonly { readonly id: string; readonly usable?: boolean; readonly reason?: string | null; readonly billing?: string }[];
+  /** The provider keys of the company, as a standing — never the key. */
+  readonly byok?: Readonly<Record<string, { readonly configured?: boolean; readonly status?: string | null; readonly hint?: string | null }>>;
   readonly current_month?: {
     readonly from?: string;
-    readonly by_model?: readonly { readonly model: string; readonly requests: number; readonly input_tokens?: number; readonly output_tokens?: number; readonly cost_microcents: number; readonly service_fee_microcents?: number }[];
+    readonly by_model?: readonly { readonly model: string; readonly requests: number; readonly input_tokens?: number; readonly output_tokens?: number; readonly cost_microcents: number; readonly billing?: string }[];
     readonly total_cost_microcents?: number;
-    readonly total_service_fee_microcents?: number;
   };
 }
 
@@ -493,22 +507,31 @@ export async function runConfigModel(io: AccountCommandIo, target: string | unde
   }
   await io.setDefaultModel(key);
   io.out(`Default model set to ${ALRAN_MODELS[key.slice(key.indexOf('/') + 1)]?.name ?? key} (${key}).\n`);
-  if (isPaidOnlyOttiliModel(key.slice(key.indexOf('/') + 1))) {
+  if (isByokOttiliModel(key.slice(key.indexOf('/') + 1))) {
     const credits = await creditsIfAvailable(io, resolveStoredPlatformSession(io.dataDir, io.platformEnv));
     const model = credits?.models?.find((entry) => entry.id === ALRAN_MODEL_TO_GATEWAY_ID[key.slice(key.indexOf('/') + 1)]);
     if (model && model.usable === false) {
-      io.err('Note: this model uses purchased credits only. Your current credit is welcome credit, which covers Werk. Add credits in the Ottili AI Platform to use it.\n');
+      io.err(`Note: ${BYOK_NOTES[model.reason ?? ''] ?? BYOK_NOTES.requires_byok_key}\n`);
     }
   }
 }
 
 // --- models ----------------------------------------------------------------------------------------------
 
+/** What to tell someone who picked a Claude model that cannot be used yet, by the reason the gateway gave. */
+const BYOK_NOTES: Readonly<Record<string, string>> = Object.freeze({
+  requires_byok_key: 'Claude runs on your own Anthropic API key, which you have not added yet. Add it in the Ottili AI Platform under Settings → Provider keys; Anthropic bills it directly and Ottili charges nothing for Claude.',
+  byok_key_invalid: 'Anthropic does not accept your stored API key. Replace it in the Ottili AI Platform under Settings → Provider keys.',
+  byok_unavailable: 'This Ottili deployment cannot store provider keys, so Claude is not available here.',
+  // A gateway from before 2026-11-16 still sells Claude for purchased credit.
+  requires_paid_credit: 'this model uses purchased credits only. Your current credit is welcome credit, which covers Werk. Add credits in the Ottili AI Platform to use it.',
+});
+
 /** The Ottili models with their list prices, for a listing that works signed out and offline too. */
 export const OTTILI_MODEL_LISTING = Object.freeze([
-  { key: 'alran/Alran-Werk', id: 'ottili/werk-1.1', short: 'werk', name: 'Ottili Werk 1.1', input: 500_000, output: 1_500_000, feeBps: 0, credit: 'welcome or purchased credit', description: 'Ottili’s own model for coding and agentic work. Default.' },
-  { key: 'alran/anthropic/claude-sonnet-5.5', id: 'anthropic/claude-sonnet-5.5', short: 'sonnet', name: 'Claude Sonnet 5.5', input: 2_000_000, output: 10_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s everyday model for coding and agents.' },
-  { key: 'alran/anthropic/claude-opus-5.5', id: 'anthropic/claude-opus-5.5', short: 'opus', name: 'Claude Opus 5.5', input: 4_000_000, output: 20_000_000, feeBps: 450, credit: 'purchased credit', description: 'Anthropic’s most capable Opus model for hard, long tasks.' },
+  { key: 'alran/Alran-Werk', id: 'ottili/werk-1.1', short: 'werk', name: 'Ottili Werk 1.1', input: 500_000, output: 1_500_000, billing: 'platform', credit: 'welcome or purchased credit', description: 'Ottili’s own model for coding and agentic work. Default.' },
+  { key: 'alran/anthropic/claude-sonnet-5.5', id: 'anthropic/claude-sonnet-5.5', short: 'sonnet', name: 'Claude Sonnet 5.5', input: 2_000_000, output: 10_000_000, billing: 'byok', credit: 'your Anthropic key', description: 'Anthropic’s everyday model for coding and agents.' },
+  { key: 'alran/anthropic/claude-opus-5.5', id: 'anthropic/claude-opus-5.5', short: 'opus', name: 'Claude Opus 5.5', input: 4_000_000, output: 20_000_000, billing: 'byok', credit: 'your Anthropic key', description: 'Anthropic’s most capable Opus model for hard, long tasks.' },
 ]);
 
 function availability(model: (typeof OTTILI_MODEL_LISTING)[number], credits: CreditsAnswer | null): string {
@@ -516,14 +539,25 @@ function availability(model: (typeof OTTILI_MODEL_LISTING)[number], credits: Cre
   const entry = credits.models?.find((candidate) => candidate.id === model.id);
   if (!entry) return 'not offered right now';
   if (entry.usable) return 'available';
-  return entry.reason === 'requires_paid_credit' ? 'requires purchased credit' : 'no credit left';
+  switch (entry.reason) {
+    case 'requires_byok_key': return 'needs your Anthropic key';
+    case 'byok_key_invalid': return 'Anthropic rejected your key';
+    case 'byok_unavailable': return 'keys not available here';
+    // A gateway from before 2026-11-16.
+    case 'requires_paid_credit': return 'requires purchased credit';
+    default: return 'no credit left';
+  }
 }
 
-/** Green: the credit allows it; yellow: it needs purchased credit; red: no credit left. TTY only. */
+/** Green: usable; yellow: it needs something the person can add (an Anthropic key); red: refused or no credit left. TTY only. */
 export function colourAvailability(io: Pick<AccountCommandIo, 'environment'>, status: string, isTty = Boolean(process.stdout.isTTY)): string {
   const forced = io.environment.FORCE_COLOR !== undefined && io.environment.FORCE_COLOR !== '0';
   if (io.environment.NO_COLOR !== undefined || (!isTty && !forced)) return status;
-  const code = status === 'available' ? 32 : status === 'requires purchased credit' ? 33 : status === 'no credit left' ? 31 : null;
+  const code = status === 'available'
+    ? 32
+    : status === 'needs your Anthropic key' || status === 'requires purchased credit' ? 33
+      : status === 'no credit left' || status === 'Anthropic rejected your key' ? 31
+        : null;
   return code === null ? status : `\u001b[${code}m${status}\u001b[39m`;
 }
 
@@ -568,7 +602,7 @@ export async function runModels(
       context_tokens: catalog?.limit?.context ?? null,
       max_output_tokens: catalog?.limit?.output ?? null,
       price_per_million_tokens: { input: formatMicroUsd(model.input), output: formatMicroUsd(model.output) },
-      service_fee: model.feeBps ? `${model.feeBps / 100} % of the token cost, shown as its own line` : null,
+      billed_by: model.billing === 'byok' ? 'Anthropic, to your own account (Ottili charges nothing for this model)' : 'Ottili, from your credit',
       paid_with: model.credit,
       status: availability(model, credits),
     };
@@ -589,8 +623,9 @@ export async function runModels(
     colourAvailability(io, availability(model, credits)),
   ]))}
 
-Claude models are billed at Anthropic's token prices plus a 4.5 % service fee, listed as its own line
-per request. Change the default with \`alran models --set-default <model>\`; details with
+Claude models run on your own Anthropic API key: add it in the Ottili AI Platform under Settings →
+Provider keys. Anthropic bills you directly at the prices above; Ottili charges nothing for Claude and
+adds no fee. Change the default with \`alran models --set-default <model>\`; details with
 \`alran models --info <model>\`; your own providers with \`alran models --third-party\`.
 `);
 }
@@ -605,27 +640,28 @@ export async function runUsage(io: AccountCommandIo, options: { json?: boolean }
     return;
   }
   const month = credits.current_month;
+  // A Claude row is billed by Anthropic on the customer's own key: its tokens count, nothing is charged here.
   const rows = (month?.by_model ?? []).map((row) => [
     row.model,
     String(row.requests),
     String((row.input_tokens ?? 0) + (row.output_tokens ?? 0)),
-    formatMicroUsd(row.cost_microcents - (row.service_fee_microcents ?? 0)),
-    row.service_fee_microcents ? formatMicroUsd(row.service_fee_microcents) : '—',
-    formatMicroUsd(row.cost_microcents),
+    row.billing === 'byok' ? 'billed by Anthropic' : formatMicroUsd(row.cost_microcents),
   ]);
+  const anthropic = credits.byok?.anthropic;
   io.out([
     `Credits (${String(credits.currency ?? 'USD').toUpperCase()})`,
     `  Available        ${formatMicroUsd(credits.available_microcents ?? 0)}`,
     `  Reserved         ${formatMicroUsd(credits.reserved_microcents ?? 0)}`,
     `  Welcome credit   ${formatMicroUsd(credits.free_credit?.remaining_microcents ?? 0)} left of ${formatMicroUsd(credits.free_credit?.granted_microcents ?? 0)} (Werk only)`,
-    `  Purchased credit ${formatMicroUsd(credits.paid_credit?.available_microcents ?? 0)} (all models)`,
+    `  Purchased credit ${formatMicroUsd(credits.paid_credit?.available_microcents ?? 0)} (Werk)`,
+    `  Anthropic key    ${anthropic?.configured ? `${anthropic.hint ?? 'stored'} (${anthropic.status ?? 'active'}) — Claude is billed by Anthropic, not by Ottili` : 'not added — Claude needs your own key (Ottili AI Platform → Settings → Provider keys)'}`,
     '',
     `This month (since ${month?.from?.slice(0, 10) ?? '—'})`,
     rows.length > 0
-      ? formatTable(['Model', 'Requests', 'Tokens', 'Token cost', 'Service fee', 'Total'], rows)
+      ? formatTable(['Model', 'Requests', 'Tokens', 'Charged by Ottili'], rows)
       : '  No requests yet.',
     '',
-    `Total this month: ${formatMicroUsd(month?.total_cost_microcents ?? 0)}`,
+    `Charged by Ottili this month: ${formatMicroUsd(month?.total_cost_microcents ?? 0)}`,
     '',
   ].join('\n'));
 }

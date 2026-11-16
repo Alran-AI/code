@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ALRAN_MODELS } from "../src/alran-model-catalog.js";
 import {
   ALRAN_MODEL_TO_GATEWAY_ID,
-  isPaidOnlyOttiliModel,
+  isByokOttiliModel,
   resolveOttiliCatalogModelId,
   resolveOttiliModelId,
 } from "../src/ottili-model-map.js";
@@ -58,11 +58,11 @@ describe("gateway routing", () => {
     expect(() => resolveOttiliModelId("openai/gpt-6-astra")).toThrow(/No Ottili AI Platform gateway route/u);
   });
 
-  it("knows the short names and which models need paid credit", () => {
+  it("knows the short names and which models run on the customer's own key", () => {
     expect(resolveOttiliCatalogModelId("sonnet")).toBe("anthropic/claude-sonnet-5.5");
     expect(resolveOttiliCatalogModelId("Werk")).toBe("Alran-Werk");
-    expect(isPaidOnlyOttiliModel("anthropic/claude-opus-5.5")).toBe(true);
-    expect(isPaidOnlyOttiliModel("opus")).toBe(true);
-    expect(isPaidOnlyOttiliModel("werk")).toBe(false);
+    expect(isByokOttiliModel("anthropic/claude-opus-5.5")).toBe(true);
+    expect(isByokOttiliModel("opus")).toBe(true);
+    expect(isByokOttiliModel("werk")).toBe(false);
   });
 });

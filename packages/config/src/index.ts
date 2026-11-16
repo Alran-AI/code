@@ -91,7 +91,7 @@ export {
   OTTILI_MODEL_SHORT_NAMES,
   OTTILI_PARTNER_MODEL_IDS,
   isOttiliModelId,
-  isPaidOnlyOttiliModel,
+  isByokOttiliModel,
   resolveOttiliCatalogModelId,
   resolveOttiliModelId,
 } from './ottili-model-map.js';

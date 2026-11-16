@@ -11,12 +11,14 @@ Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived 
   Ottili Platform, or `--api-key` without a browser; logout revokes the session at the Platform.
   `alran config company|project|model`. Model calls carry the selected company and project.
 - **Models through the Ottili AI Gateway.** Ottili Werk 1.1 (default), Claude Sonnet 5.5 and Claude
-  Opus 5.5. `alran models` shows prices and whether your credit covers each model (coloured on a
-  terminal). The free welcome credit covers Werk only; the gateway refuses a Claude request without
-  purchased credit (`free_credit_model_restricted`). Claude carries a 4.5 % service fee, shown as its
-  own line.
-- **Usage and billing.** `alran usage` (free and purchased credit, spend this month per model, service
-  fee) and `alran billing` (plan, payment method summary, last invoice).
+  Opus 5.5. `alran models` shows prices and whether you can use each model now (coloured on a
+  terminal). The free welcome credit covers Werk. Claude runs on your own Anthropic API key, added once
+  in the Ottili AI Platform under Settings → Provider keys: Anthropic bills it directly and Ottili charges
+  nothing for Claude — no service fee. Without a key the gateway refuses a Claude request with
+  `byok_key_required`.
+- **Usage and billing.** `alran usage` (credit left, the state of your Anthropic key, spend this month
+  per model — Claude is "billed by Anthropic") and `alran billing` (plan, payment method summary, last
+  invoice).
 - **Device sign-in.** `alran auth login --device`: a code you confirm in any browser, the default over
   SSH or without a display. The session is the terminal's own.
 - **Updates.** `alran update` for npm, pnpm, yarn and bun installs and for managed installs from a

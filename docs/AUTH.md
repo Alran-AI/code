@@ -85,7 +85,7 @@ overrides both for scripted use.
 ## Exit codes
 
 0 success · 1 error · 2 sign-in needed · 3 rate limited (the reset time is printed) · 4 Platform or
-gateway unreachable (nothing falls back) · 5 the credit does not allow the request.
+gateway unreachable (nothing falls back) · 5 the credit does not allow the request, or Claude cannot be paid for (no Anthropic key stored, the key refused, or the Anthropic account without credit).
 
 ## Environment
 

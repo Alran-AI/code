@@ -12,8 +12,9 @@ The first release as an Ottili product.
 - Sign in with your Ottili account: `alran auth login`, `status`, `switch-company`, `logout`
   (the session is revoked at the Platform), `alran config company|project|model`.
 - Models through the Ottili AI Gateway: Ottili Werk 1.1 (default), Claude Sonnet 5.5 and Claude Opus 5.5.
-  `alran models` shows the price and whether your credit covers each model. Free credit covers Werk;
-  Claude needs purchased credit (the gateway enforces it).
+  `alran models` shows the price and whether you can use each model now. Free credit covers Werk;
+  Claude runs on your own Anthropic API key (added in the Ottili AI Platform under Settings → Provider keys),
+  which Anthropic bills directly — Ottili charges nothing for Claude and adds no service fee.
 - `alran usage` and `alran billing`: credit left, spend this month per model, plan and invoices.
 - `alran update` and a weekly, non-blocking update hint.
 - Plugins keep working when the Plugin registry is not reachable; `alran plugins install` is an alias

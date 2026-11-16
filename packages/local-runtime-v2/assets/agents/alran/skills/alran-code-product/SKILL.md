@@ -4,7 +4,7 @@ description: >-
   Use this skill to answer questions about Alran Code itself, Ottili's AI coding agent for the
   terminal: what it is; installation, update, uninstall, version and supported Node.js; signing in
   with an Ottili account (browser, device code, API key), companies and projects; models, prices,
-  free and purchased credit, `alran usage`; bring-your-own-key providers; sessions, modes,
+  credit (Werk) and the Anthropic key Claude runs on, `alran usage`; bring-your-own-key providers; sessions, modes,
   permissions, Plan mode and shortcuts; Skills, Plugins and MCP; and why a command, a model or a
   sign-in does not work. Treat references such as "Alran Code", "Alran", "alran", "alran tui" or the
   product's commands and settings as product-routing signals even when the user asks for a concrete
@@ -24,8 +24,8 @@ description: >-
 - It is installed from npm as `alran` (`npm install -g alran`), the command is `alran`, and it needs
   Node.js 22.19+ (22.x), 24.2+ (24.x), 25 or 26. Node 24.0 and 24.1 are not supported.
 - The account is the Ottili account. Sign-in goes through the Ottili Platform; model calls go to the
-  Ottili AI Gateway. The default model is Ottili Werk; Claude Sonnet 5.5 and Claude Opus 5.5 are
-  available with purchased credit.
+  Ottili AI Gateway. The default model is Ottili Werk; Claude Sonnet 5.5 and Claude Opus 5.5 run on the
+  customer's own Anthropic API key, which Anthropic bills directly (Ottili charges nothing for Claude).
 - Local state lives in `~/.alran` (`ALRAN_DATA_DIR` overrides it).
 
 ## Source discovery

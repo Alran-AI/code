@@ -1,7 +1,7 @@
 # Accounts, credit and models
 
-Use this reference for signing in, companies and projects, API keys, credit (free and purchased),
-models and their prices, `alran usage`, bring-your-own-key providers, and why a model or a sign-in is
+Use this reference for signing in, companies and projects, API keys, credit (Werk), the Anthropic key
+that Claude runs on, models and their prices, `alran usage`, bring-your-own-key providers, and why a model or a sign-in is
 refused.
 
 ## Stable boundaries
@@ -9,16 +9,18 @@ refused.
 - The account is an Ottili account. The CLI never sees a password: it holds a Platform session
   (`~/.alran/auth/platform/<env>/platform-session.json`, mode 0600). Signing out revokes it at the
   Platform.
-- Credit is one wallet that the gateway splits into two pools: **free** (the welcome credit, spent
-  only on Werk) and **paid** (top-ups, spent on any model). Werk spends the free pool first. A Claude
-  model spends only the paid pool.
-- The gateway enforces the rule, not the CLI. With free credit only, a Claude request is refused
-  with the code `free_credit_model_restricted` (HTTP 403) before it reaches the provider. The way
-  out is to add credit in the AI Platform (Billing) or to use Werk.
-- The Claude models carry a 4.5 % service fee that shows as its own line in `alran usage` and in the
-  request log of the AI Platform.
-- Your own provider key is a different path: calls go directly to the provider, and Ottili does not
-  see, meter or bill them. The free credit does not apply to them.
+- Credit is one wallet. It pays for Werk (the welcome credit covers it). It does **not** pay for Claude.
+- Claude runs on the customer's **own Anthropic API key**: they add it once in the AI Platform under
+  Settings → Provider keys (an admin does; it is checked, stored encrypted, used only for their requests).
+  The gateway sends their request to Anthropic with it and **Anthropic bills their Anthropic account
+  directly**. Ottili charges nothing for Claude: no token price, no service fee, no hold on credit.
+- The gateway enforces this, not the CLI. Without a working key a Claude request is refused with
+  `byok_key_required` (HTTP 403); `byok_key_invalid` / `byok_key_rejected` mean Anthropic does not accept the
+  stored key; `byok_provider_billing` (HTTP 402) means the Anthropic account has no credit left — the money
+  to add is Anthropic's, not Ottili's. The way out is the AI Platform (Settings → Provider keys) or Werk.
+- `alran usage` shows the tokens of Claude requests as "billed by Anthropic" and the state of the key.
+- A provider key you configure in Alran Code itself (`alran provider add`) is a different path: calls go
+  directly to the provider, and Ottili does not see, meter or bill them.
 - The agent cannot change a balance, a limit, a company or a permission.
 
 ## Commands
@@ -47,8 +49,8 @@ request.
 
 1. `alran auth status`: signed in? which company and project? A 401 or exit code 2 means
    `alran auth login`.
-2. `alran usage` and `alran models`: is there credit, and does it cover the chosen model? Exit code 5
-   or `free_credit_model_restricted` is a credit answer, not a fault.
+2. `alran usage` and `alran models`: is there credit (Werk), is an Anthropic key stored and accepted
+   (Claude)? Exit code 5 or a `byok_*` code is an answer about credit or the key, not a fault.
 3. Exit code 4 is a reachability problem: check `ALRAN_API_BASE` (default
    `https://ai.ottili.one/v1`) and `OTTILI_PLATFORM_URL` (default `https://platform.ottili.one`).
 4. Report the conclusion first, then the command or page it came from, then what only the user can
@@ -57,5 +59,6 @@ request.
 ## Safety
 
 Never ask the user to paste an API key, a session file, a password or a sign-in code. Never promise
-that a model is covered by the free credit without `alran models` saying so. Do not bypass the
-gateway or suggest a client change as a way around a credit rule.
+that a model is covered by the free credit without `alran models` saying so, and never say that Ottili
+bills Claude or adds a fee to it. Do not bypass the gateway or suggest a client change as a way around a
+credit or key rule.

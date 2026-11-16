@@ -1708,8 +1708,9 @@ function buildPresetEntry(key: PresetKey) {
   // One provider for every model the Ottili AI Gateway serves: Werk and the partner models (Claude).
   // They share the route — the Platform session (or an Ottili API key) as bearer credential, and the
   // gateway URL — so they must share the provider: a model under another provider id would not get
-  // that route and could never be called. Partner models are paid-credit-only; the gateway enforces
-  // it. Third-party providers with the user's own key are a separate, opt-in configuration.
+  // that route and could never be called. The partner models (Claude) run on the customer's own Anthropic
+  // key, which the gateway holds for them; Ottili does not bill them. Third-party providers with a key
+  // configured in Alran Code itself are a separate, opt-in configuration.
   const internalProvider: ProviderConfig = {
     name: "Ottili AI Platform",
     npm: "@ai-sdk/openai-compatible",

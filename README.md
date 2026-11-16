@@ -39,21 +39,22 @@ Details: [docs/AUTH.md](docs/AUTH.md).
 ### 3. Pick a model and start
 
 ```bash
-alran models            # Werk, Claude Sonnet 5.5, Claude Opus 5.5 — price and whether your credit covers it
+alran models            # Werk, Claude Sonnet 5.5, Claude Opus 5.5 — price and whether you can use them now
 alran                   # the interactive terminal UI in the current directory
 alran exec "Add a test for the date parser and make it pass"
-alran usage             # credit left, spend this month per model
+alran usage             # credit left, your Anthropic key, spend this month per model
 ```
 
-| Model | Input / output per 1M tokens | Paid with |
+| Model | Input / output per 1M tokens | Billed by |
 | --- | --- | --- |
-| Ottili Werk 1.1 (default) | $0.50 / $1.50 | free (welcome) or purchased credit |
-| Claude Sonnet 5.5 | $2.00 / $10.00 + 4.5 % service fee | purchased credit |
-| Claude Opus 5.5 | $4.00 / $20.00 + 4.5 % service fee | purchased credit |
+| Ottili Werk 1.1 (default) | $0.50 / $1.50 | Ottili: free (welcome) or purchased credit |
+| Claude Sonnet 5.5 | $2.00 / $10.00 (Anthropic's price) | Anthropic, on your own API key |
+| Claude Opus 5.5 | $4.00 / $20.00 (Anthropic's price) | Anthropic, on your own API key |
 
-The free credit you get on sign-up covers Werk. The gateway enforces this: with free credit only, a
-Claude request is refused with `free_credit_model_restricted`. Set the default with
-`alran config model sonnet`. More in [docs/MODELS.md](docs/MODELS.md).
+The free credit you get on sign-up covers Werk. Claude runs on **your own Anthropic API key**: add it once in
+the Ottili AI Platform under *Settings → Provider keys*, and Anthropic bills you directly — Ottili charges
+nothing for Claude and adds no fee. Without a key a Claude request is refused with `byok_key_required`. Set
+the default with `alran config model sonnet`. More in [docs/MODELS.md](docs/MODELS.md).
 
 <details>
 <summary>Use your own API key (bring your own key)</summary>

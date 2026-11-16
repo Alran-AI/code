@@ -5,9 +5,9 @@
 // picker reads. The Ottili AI Gateway knows its own model ids, so every catalog
 // model is translated to a gateway id at the request boundary.
 //
-//   Alran-Werk                   -> ottili/werk-1.1             (default; welcome credit pays)
-//   anthropic/claude-sonnet-5.5  -> anthropic/claude-sonnet-5.5 (partner; paid credit only)
-//   anthropic/claude-opus-5.5    -> anthropic/claude-opus-5.5   (partner; paid credit only)
+//   Alran-Werk                   -> ottili/werk-1.1             (default; billed by Ottili, welcome credit pays)
+//   anthropic/claude-sonnet-5.5  -> anthropic/claude-sonnet-5.5 (runs on the customer's own Anthropic key — BYOK)
+//   anthropic/claude-opus-5.5    -> anthropic/claude-opus-5.5   (runs on the customer's own Anthropic key — BYOK)
 
 export type OttiliModelTier = 'fast' | 'standard' | 'coding' | 'premium';
 
@@ -19,7 +19,11 @@ export const OTTILI_MODEL_IDS = {
   premium: 'ottili/werk-1.1-pro',
 } as const satisfies Record<OttiliModelTier, string>;
 
-/** The partner models the gateway serves, by their gateway id. */
+/**
+ * The partner models the gateway serves, by their gateway id. They run on the customer's OWN Anthropic API
+ * key (BYOK): the customer adds it in the Ottili AI Platform, Anthropic bills them directly, and Ottili
+ * charges nothing for these models — no token price, no service fee.
+ */
 export const OTTILI_PARTNER_MODEL_IDS = ['anthropic/claude-sonnet-5.5', 'anthropic/claude-opus-5.5'] as const;
 
 /**
@@ -59,8 +63,8 @@ export function resolveOttiliCatalogModelId(name: string): string {
   return OTTILI_MODEL_SHORT_NAMES[trimmed.toLowerCase()] ?? trimmed;
 }
 
-/** True when a catalog model spends paid credit only (a partner model). */
-export function isPaidOnlyOttiliModel(modelId: string): boolean {
+/** True when a catalog model runs on the customer's own provider key (BYOK) and is billed by its maker. */
+export function isByokOttiliModel(modelId: string): boolean {
   const gatewayId = ALRAN_MODEL_TO_GATEWAY_ID[resolveOttiliCatalogModelId(modelId)] ?? modelId;
   return (OTTILI_PARTNER_MODEL_IDS as readonly string[]).includes(gatewayId);
 }
