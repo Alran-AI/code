@@ -833,14 +833,14 @@ Styles CreateStylesWithDocDefaults()
         // Attribute: what to change (bold, italic, font, color, etc.)
         // The defaults for built-in headings: font=Calibri, size=24, bold
         new LatentStyleException(
-            new Primary烙,
+            new PrimaryStyle(),
             new StyleName { Val = "Normal" },
             new UIPriority { Val = 1 },
             new PrimaryZone(),
             new QuickStyle()
         ),
         new LatentStyleException(
-            new Primary烙,
+            new PrimaryStyle(),
             new StyleName { Val = "heading 1" },
             new UIPriority { Val = 9 },
             new PrimaryZone(),
@@ -1114,7 +1114,7 @@ public static Styles CreateBusinessDocumentStyles()
         new StyleName { Val = "Normal" },
         new PrimaryStyle(),
         new UIPriority { Val = 10 },
-        new Primary烙,
+        new PrimaryStyle(),
         new StyleRunProperties(
             new RunFonts { Ascii = "Calibri", HighAnsi = "Calibri" },
             new FontSize { Val = "22" },
@@ -1247,7 +1247,7 @@ public static Styles CreateBusinessDocumentStyles()
     styles.Append(new Style(
         new StyleName { Val = "TOC 1" },
         new BasedOn { Val = "Normal" },
-        new Primary烙,
+        new PrimaryStyle(),
         new StyleParagraphProperties(
             new SpacingBetweenLines { After = "0" }
         )
@@ -1257,7 +1257,7 @@ public static Styles CreateBusinessDocumentStyles()
     styles.Append(new Style(
         new StyleName { Val = "TOC 2" },
         new BasedOn { Val = "Normal" },
-        new Primary烙,
+        new PrimaryStyle(),
         new StyleParagraphProperties(
             new Indentation { Left = "220" },
             new SpacingBetweenLines { After = "0" }
@@ -1268,7 +1268,7 @@ public static Styles CreateBusinessDocumentStyles()
     styles.Append(new Style(
         new StyleName { Val = "TOC 3" },
         new BasedOn { Val = "Normal" },
-        new Primary烙,
+        new PrimaryStyle(),
         new StyleParagraphProperties(
             new Indentation { Left = "440" },
             new SpacingBetweenLines { After = "0" }
@@ -3189,7 +3189,7 @@ ParagraphProperties baselineAlignExplicit = new ParagraphProperties(
 // ===========================================================================
 // 4.18 DIV ID (divId)
 // ===========================================================================
-// Associates paragraph with a div for HTML/CSS mapping (很少使用)
+// Associates paragraph with a div for HTML/CSS mapping (rarely used)
 // Used when importing/exporting HTML content
 
 ParagraphProperties divIdPara = new ParagraphProperties(

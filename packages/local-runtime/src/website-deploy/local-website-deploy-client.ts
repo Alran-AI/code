@@ -52,7 +52,7 @@ const PUBLISH_ARCHIVE_PATH = '/alran/api/v1/drive/websites/publish_archive';
 const UPDATE_ARCHIVE_PATH = '/alran/api/v1/drive/websites/update_archive';
 // Mirrors IDL WebsiteManagementCode_CONTENT_REJECTED; non-zero base_resp always wins.
 const CONTENT_REJECTED_CODE = 10;
-const CONTENT_REJECTED_MESSAGE = '网站正文未通过审核，未发布';
+const CONTENT_REJECTED_MESSAGE = 'The website content did not pass review and was not published';
 
 const DEFAULT_UPLOAD_TIMEOUT_MS = 1_500_000;
 

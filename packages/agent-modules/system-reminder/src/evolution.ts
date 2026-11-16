@@ -121,19 +121,19 @@ export function getEvolutionReminder(
 
       reminders.push(
         [
-          `已工作 ${turnCount} 轮，检查一下有没有值得记住的东西。`,
+          `You have worked for ${turnCount} turns — check whether there is anything worth remembering.`,
           '',
-          '问自己：这次 session 有没有学到**不看 memory 下次会重蹈覆辙**的教训？',
+          'Ask yourself: did this session teach you a lesson that would be repeated next time **without reading the memory**?',
           '',
-          '写入前用三问法判断归属（写到第一个匹配的层，不要默认 agent memory）：',
-          '  1. 换用户会变？ → **User memory** (例: MR 合入偏好、沟通风格、序号指代习惯)',
-          '  2. 换项目结论仍成立？ → **Agent memory** (例: CI 调试技巧、非交互 shell 用 .zshenv)',
-          '  3. 只在当前项目成立？ → **Project memory** AGENTS.md / topic file (例: MR target dev、飞书群 chat_id)',
+          'Before writing, use the three-question test to decide the layer (write to the first matching layer; do not default to agent memory):',
+          '  1. Would it change with a different user? → **User memory** (e.g. MR merge preferences, communication style, ordinal reference habits)',
+          '  2. Would the conclusion still hold for a different project? → **Agent memory** (e.g. CI debugging tricks, use .zshenv for non-interactive shells)',
+          '  3. Does it only hold for the current project? → **Project memory** AGENTS.md / topic file (e.g. MR target dev, Feishu group chat_id)',
           '',
-          '没有新东西？不写也完全没问题，不是每次都有新知识。',
+          'Nothing new? Writing nothing is completely fine — there is new knowledge in every session.',
           '',
-          '不要写：代码结构、git 历史、API schema、已有文档能查到的信息。',
-          '如果你还没读过 `alran-memory` skill，先 load 它再写——里面有完整的分层规则和排除项。',
+          'Do not write: code structure, git history, API schemas, or information that the existing documentation already covers.',
+          'If you have not read the `alran-memory` skill yet, load it before writing — it contains the complete layering rules and exclusions.',
         ].join('\n'),
       );
     } else {

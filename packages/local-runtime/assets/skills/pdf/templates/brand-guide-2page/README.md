@@ -8,7 +8,8 @@
 
 - **EN keywords**: brand guide, style guide, visual identity, brand
   book, design system, brand standards, 2-page identity
-- **CN keywords**: 品牌指南、风格指南、品牌手册、视觉识别、设计系统、品牌册、2 页品牌
+- **CN keywords**: brand guide, style guide, brand manual, visual identity, design system,
+  brand book, 2-page brand
 - **Sample user asks**:
   - "Generate a 2-page brand style guide for our company in PDF format."
   - "Make a 2-page PDF brand guide with logo, palette, type, do's & don'ts."

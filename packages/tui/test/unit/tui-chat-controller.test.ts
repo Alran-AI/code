@@ -43,8 +43,8 @@ describe('TuiChatController', () => {
   it.each(['display', 'legacy transport'])(
     'reconciles plugin mentions using %s without duplicate user cells',
     async (echo) => {
-      const content = '[@Codex 插件](plugin://codex%40official) 这个插件可以干什么';
-      const displayContent = '@Codex 插件 这个插件可以干什么';
+      const content = '[@Codex Plugin](plugin://codex%40official) what can this plugin do';
+      const displayContent = '@Codex Plugin what can this plugin do';
       let turn = 0;
       const runtime = {
         createSession: vi.fn(async () => ({ sessionId: 'plugin-session' })),
@@ -3187,7 +3187,7 @@ describe('TuiChatController', () => {
           id: 'continuation-final',
           turnId: 'turn-questionnaire-continuation',
           role: 'assistant' as const,
-          content: '好呀，那就随便聊聊。',
+          content: 'Sure, let us just chat.',
           timestamp: 300,
         },
       ]),
@@ -3207,7 +3207,7 @@ describe('TuiChatController', () => {
       expect.objectContaining({
         kind: 'assistant',
         turnId: 'turn-questionnaire-continuation',
-        content: '好呀，那就随便聊聊。',
+        content: 'Sure, let us just chat.',
       }),
     );
   });

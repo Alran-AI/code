@@ -4060,7 +4060,7 @@ describe("runtime services Agent reference projection", () => {
     });
     mocked.agentService.get.mockImplementation(async () => {
       order.push("read");
-      return { displayName: "马来 / 两个圈" } as never;
+      return { displayName: "Malay / Two Circles" } as never;
     });
     const { services, resolve } =
       await composeAgentReferenceResolver(compatibility);
@@ -4068,7 +4068,7 @@ describe("runtime services Agent reference projection", () => {
     try {
       await expect(resolve("agent:9007199254740993123")).resolves.toEqual({
         status: "authorized",
-        trustedDisplayName: "马来 / 两个圈",
+        trustedDisplayName: "Malay / Two Circles",
       });
       expect(order).toEqual(["authorize:agent:9007199254740993123", "read"]);
       expect(mocked.agentService.get).toHaveBeenCalledWith(

@@ -1,57 +1,57 @@
-# Skill Template — Alran 自己的 SKILL.md 骨架
+# Skill Template — the SKILL.md skeleton Alran uses
 
-> 这是一个用于参考的填空模板，不是一份"应当死板套用"的格式。先理解每个章节存在的理由，然后再决定本次 skill 是否需要它。
+> This is a fill-in-the-blank template for reference, not a format to apply rigidly. Understand why each section exists first, then decide whether this skill needs it.
 
 ## Frontmatter
 
 ```yaml
 ---
-name: <kebab-case-name>     # 必填，与目录同名
-description: |              # 必填，触发面，是 LLM 决定要不要打开 skill 的依据
-  一句话能力 + 具体触发场景 + 不该触发的相邻情况
+name: <kebab-case-name>     # required, same as the directory name
+description: |              # required, the trigger surface, what the LLM uses to decide whether to open the skill
+  One-sentence capability + the concrete trigger scenario + the adjacent case that must not trigger
 ---
 ```
 
-`description` 见 `description-rubric.md`。
+`description` — see `description-rubric.md`.
 
-## 正文章节（推荐顺序）
+## Body sections (recommended order)
 
-原则：`description` 负责触发；正文负责执行。不要把同一批触发条件在 body 里再写一遍。
+Principle: `description` handles triggering, the body handles execution. Do not write the same trigger conditions twice in the body.
 
 ```markdown
 # <Skill Name>
 
 ## Inputs to collect
-- 调用 skill 之前 LLM 要先问用户/读上下文确认的信息
-- 没有这一节，模型会用错误假设硬上
+- What the LLM must ask the user or read from context before invoking the skill
+- Without this section the model proceeds on wrong assumptions
 
 ## Procedure
-- 步骤动作（祈使句）
-- 每个步骤说"这样做的原因"，不是只给命令
-- 步骤里禁止写 ALWAYS / NEVER；写"为什么这么做"和"不这么做的后果"
+- Step actions (imperative)
+- Each step says "why this way", not just the command
+- No ALWAYS / NEVER in the steps; write "why this way" and "what happens if you do not"
 
 ## Output contract
-- 这个 skill 应该输出什么形式
-- 文件、消息、还是结构化数据
+- What form this skill should output
+- A file, a message, or structured data
 
 ## Failure handling
-- 失败应该怎么办：放弃、降级、回报用户
-- 容易卡的地方提前打预防针
+- What to do on failure: give up, degrade gracefully, report back to the user
+- Warn about the likely sticking points up front
 
 ## Examples
-- 真实例子（input → output），不是虚构的 placeholder
-- 1-2 个就够，不要写 5 个
+- A real example (input → output), not a fictional placeholder
+- One or two is enough, not five
 ```
 
-可选章节：`Inputs to collect`。如果 skill 输入非常直接，可以省略。
+Optional section: `Inputs to collect`. If the skill inputs are very direct, you can drop it.
 
-可选章节：`## Windows (win32) platform notes`。如果 skill 包含 shell 命令、脚本调用或 `python3` 引用，加一个 Windows 适配段落，提供 PowerShell 等价命令或跨平台替代方案。纯流程 skill（无 shell 命令）可跳过。
+Optional section: `## Windows (win32) platform notes`. If the skill contains shell commands, script invocations, or `python3` references, add a Windows adaptation section with the PowerShell equivalents or a cross-platform alternative. Pure-process skills (no shell commands) can skip it.
 
-不推荐章节：`When to use this skill`。触发条件应放进 frontmatter `description`，避免重复占用 context。
+Not recommended: `When to use this skill`. Trigger conditions belong in the frontmatter `description`, so the context is not spent twice.
 
-## 模板示例：填空版
+## Template example: filled in
 
-下面是一个虚构的 `db-migrator` skill 用本模板填出来的样子：
+Below is what a fictional `db-migrator` skill looks like when filled in with this template:
 
 ```markdown
 ---
@@ -65,37 +65,37 @@ description: |
 # DB Migrator
 
 ## Inputs to collect
-- 目标表名（用户没说就问）
-- 变更类型与具体字段
-- 是否需要在生产环境跑（影响是否要 wrap in transaction）
+- The target table name (ask the user if it was not given)
+- The kind of change and the fields it touches
+- Whether it has to run in production (this decides whether to wrap it in a transaction)
 
 ## Procedure
-1. 读 `migrations/` 目录确认下一个序号
-   原因：避免序号冲突
-2. 用模板生成 up/down SQL
-   原因：down migration 是回滚保险
-3. 在本地 docker postgres 上 dry run
-   原因：catch 语法错误，不污染真实数据库
+1. Read the `migrations/` directory to confirm the next sequence number
+   Reason: avoids a sequence conflict
+2. Generate the up/down SQL with the template
+   Reason: the down migration is the rollback safety net
+3. Dry run it against a local docker postgres
+   Reason: catches syntax errors without touching a real database
 
 ## Output contract
-- 一个文件 `migrations/NNNN_<description>.sql`
-- 包含 `-- up` 和 `-- down` 两段
+- One file `migrations/NNNN_<description>.sql`
+- It contains an `-- up` and a `-- down` section
 
 ## Failure handling
-- dry run 失败 → 报错给用户，不要尝试自动修复 SQL
-- 序号冲突 → 跳号，不要覆盖
+- The dry run fails → report the error to the user, do not try to repair the SQL automatically
+- A sequence conflict → skip the number, do not overwrite
 
 ## Examples
-Input: "给 users 表加一个 last_login_at timestamp"
-Output: 创建 `migrations/0042_add_users_last_login_at.sql`
+Input: "add a last_login_at timestamp to the users table"
+Output: create `migrations/0042_add_users_last_login_at.sql`
 ```
 
-## 写作约束清单
+## Writing constraints checklist
 
-- 正文 ≤ 500 行；超出就拆 `references/<topic>.md` 然后用 `详见 references/...` 引用
-- 正文优先写执行动作、输出约束、失败处理；不要写 README 式背景介绍、功能导览、模块化 API 教程
-- 触发条件和 near misses 放 frontmatter `description`，不要在正文重复列一遍
-- 示例保留 1-2 个 canonical case；其余让模型通过脚本 `--help`、引用文件或代码自查
-- 假设读者是另一个模型，不假设它已知项目背景
-- 如果某段是写给人类看的（教学/历史背景），明确标注，避免污染模型 context
-- 章节顺序可以调，但前几节必须快速回答：要补什么输入、怎么执行、失败怎么办
+- Body ≤ 500 lines; split into `references/<topic>.md` when it grows past that and link with "see references/..."
+- The body leads with execution actions, output constraints, and failure handling; no README-style background, feature tours, or modular API tutorials
+- Trigger conditions and near misses belong in the frontmatter `description`, not in a repeated list in the body
+- Keep one or two canonical examples; let the model self-check the rest through the script `--help`, the reference files, or the code
+- Assume the reader is another model; do not assume it knows the project background
+- If a passage is written for humans (teaching or historical background), mark it clearly so it does not pollute the model context
+- The section order can change, but the first sections must answer quickly: what inputs are missing, how to execute, what to do on failure

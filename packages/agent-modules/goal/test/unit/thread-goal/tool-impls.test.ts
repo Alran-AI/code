@@ -465,7 +465,7 @@ describe("thread-goal tool impls", () => {
       ).execute(ctx, {
         mode: "token_budget",
         status: "complete",
-        summary: "预算更新请求",
+        summary: "budget update request",
         token_budget: 100_000,
         expected_goal_id: goal.goalId,
         expected_updated_at: goal.updatedAt,

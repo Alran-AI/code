@@ -30,58 +30,58 @@ describe('recent conversation rendering', () => {
 
   it('keeps only the last three turns and groups steering messages into their turn', () => {
     const messages = [
-      user('第一轮'),
-      answered('回复一'),
-      user('第二轮'),
-      answered('回复二'),
-      user('第三轮'),
+      user('round one'),
+      answered('reply one'),
+      user('round two'),
+      answered('reply two'),
+      user('round three'),
       reply([{ type: 'toolCall', id: 'c', name: 'bash', arguments: {} }], 'toolUse'),
-      user('插话：顺便看下日志'),
-      answered('回复三'),
-      user('第四轮'),
+      user('interjection: by the way, check the logs'),
+      answered('reply three'),
+      user('round four'),
     ];
-    const prompt = buildRecentConversationPrompt(messages, answered('回复四'), instruction);
-    expect(prompt).not.toContain('第一轮');
+    const prompt = buildRecentConversationPrompt(messages, answered('reply four'), instruction);
+    expect(prompt).not.toContain('round one');
     expect(prompt).toContain(
-      '<turn>\n<user>第三轮</user>\n<user>插话：顺便看下日志</user>\n<assistant>回复三</assistant>\n</turn>',
+      '<turn>\n<user>round three</user>\n<user>interjection: by the way, check the logs</user>\n<assistant>reply three</assistant>\n</turn>',
     );
-    expect(prompt).toContain('<user>第四轮</user>\n<assistant>回复四</assistant>');
+    expect(prompt).toContain('<user>round four</user>\n<assistant>reply four</assistant>');
     expect(prompt.match(/<turn>/g)).toHaveLength(3);
   });
 
   it('keeps the head of long user text and the tail of long replies', () => {
     const prompt = buildRecentConversationPrompt(
-      [user(`需求开头${'甲'.repeat(5000)}需求结尾`)],
-      answered(`回复开头${'乙'.repeat(5000)}下一步：跑测试`),
+      [user(`requirement start${'A'.repeat(5000)}requirement end`)],
+      answered(`reply start${'B'.repeat(5000)}next step: run the tests`),
       instruction,
     );
-    expect(prompt).toContain('需求开头');
-    expect(prompt).toContain('下一步：跑测试');
-    expect(prompt).toContain('…[省略');
+    expect(prompt).toContain('requirement start');
+    expect(prompt).toContain('next step: run the tests');
+    expect(prompt).toContain('characters omitted]');
     expect(prompt.length).toBeLessThan(5_000);
   });
 
   it('reduces a selection-context block to the user comments', () => {
-    const text = `<user-provided-context>\n# Added chat context\n${'boilerplate '.repeat(400)}\nUser comment (requested change):\n这里改成同步调用\n\nQuoted excerpt: "..."\n</user-provided-context>\n\n帮我看看`;
-    const prompt = buildRecentConversationPrompt([user(text)], answered('好的'), instruction);
-    expect(prompt).toContain('[对引用内容的批注] (1) 这里改成同步调用');
+    const text = `<user-provided-context>\n# Added chat context\n${'boilerplate '.repeat(400)}\nUser comment (requested change):\nchange this to a synchronous call\n\nQuoted excerpt: "..."\n</user-provided-context>\n\ntake a look`;
+    const prompt = buildRecentConversationPrompt([user(text)], answered('sure'), instruction);
+    expect(prompt).toContain('[Comments on quoted content] (1) change this to a synchronous call');
     expect(prompt).not.toContain('boilerplate');
-    expect(latestUserText([user(text)])).toContain('帮我看看');
+    expect(latestUserText([user(text)])).toContain('take a look');
   });
 
   it('keeps only the readable Q/A of a questionnaire answer', () => {
-    const answer = `<questionnaire-response>\n  <requestId>ask_1</requestId>\n  <answers><answer><stepId>list_target</stepId></answer></answers>\n</questionnaire-response>\n\nQ: 你想执行哪一种 list？\nA: 列出当前工作区里的仓库/文件夹`;
+    const answer = `<questionnaire-response>\n  <requestId>ask_1</requestId>\n  <answers><answer><stepId>list_target</stepId></answer></answers>\n</questionnaire-response>\n\nQ: Which list do you want to run?\nA: List the repositories/folders in the current workspace`;
     const prompt = buildRecentConversationPrompt(
       [
-        user('执行一下 list'),
+        user('run list'),
         reply([{ type: 'toolCall', id: 'q', name: 'ask_user', arguments: {} }], 'toolUse'),
         user(answer),
       ],
-      answered('当前工作区有 13 个文件夹'),
+      answered('the current workspace has 13 folders'),
       instruction,
     );
     expect(prompt).toContain(
-      '<user>Q: 你想执行哪一种 list？\nA: 列出当前工作区里的仓库/文件夹</user>',
+      '<user>Q: Which list do you want to run?\nA: List the repositories/folders in the current workspace</user>',
     );
     expect(prompt).not.toContain('requestId');
     expect(prompt).not.toContain('questionnaire-response');
@@ -93,13 +93,13 @@ describe('recent conversation rendering', () => {
       42,
       { role: 'system', content: 'x' },
       { role: 'user', content: [{ type: 'image' }] },
-      user('真正的问题'),
+      user('the real question'),
     ];
     expect(() =>
-      buildRecentConversationPrompt(messages, answered('回复'), instruction),
+      buildRecentConversationPrompt(messages, answered('reply'), instruction),
     ).not.toThrow();
-    expect(buildRecentConversationPrompt(messages, answered('回复'), instruction)).toContain(
-      '<user>真正的问题</user>',
+    expect(buildRecentConversationPrompt(messages, answered('reply'), instruction)).toContain(
+      '<user>the real question</user>',
     );
   });
 });

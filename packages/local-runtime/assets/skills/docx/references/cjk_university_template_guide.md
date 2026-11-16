@@ -1,4 +1,4 @@
-# Chinese University Thesis Template Guide (中国高校论文模板指南)
+# Chinese University Thesis Template Guide
 
 ## Why This Guide Exists
 
@@ -14,9 +14,9 @@ fail repeatedly. This guide documents the ACTUAL patterns found in Chinese templ
 |--------------|---------|--------|-----------|
 | Normal body | `a` | "Normal" | — |
 | Default paragraph font | `a0` | "Default Paragraph Font" | — |
-| Heading 1 (章标题) | `1` | "heading 1" | `a` |
-| Heading 2 (节标题) | `2` | "heading 2" | `a` |
-| Heading 3 (小节标题) | `3` | "heading 3" | `a` |
+| Heading 1 (chapter heading) | `1` | "heading 1" | `a` |
+| Heading 2 (section heading) | `2` | "heading 2" | `a` |
+| Heading 3 (subsection heading) | `3` | "heading 3" | `a` |
 | TOC 1 | `11` | "toc 1" | `a` |
 | TOC 2 | `21` | "toc 2" | `a` |
 | TOC 3 | `31` | "toc 3" | `a` |
@@ -31,9 +31,9 @@ Standard Heading1/Heading2/Heading3/Normal — these follow the Western pattern.
 Some templates define custom styles with Chinese names:
 | Style Purpose | styleId | w:name |
 |--------------|---------|--------|
-| 论文标题 | `lunwenbiaoti` | "论文标题" |
-| 章标题 | `zhangbiaoti` | "章标题" |
-| 正文 | `zhengwen` | "正文" |
+| Thesis title | `lunwenbiaoti` | "论文标题" |
+| Chapter heading | `zhangbiaoti` | "章标题" |
+| Body text | `zhengwen` | "正文" |
 
 ### How to Identify Which Pattern
 
@@ -126,15 +126,15 @@ Templates contain EXAMPLE content that must be replaced. Here's how to find the 
 
 | Element | Font | Size (字号) | Size (pt) | w:sz |
 |---------|------|------------|-----------|------|
-| 论文标题 | 华文中宋 or 黑体 | 二号 or 小二 | 22pt or 18pt | 44 or 36 |
-| 章标题 (H1) | 黑体 | 三号 | 16pt | 32 |
-| 节标题 (H2) | 黑体 | 四号 | 14pt | 28 |
-| 小节标题 (H3) | 黑体 | 小四 | 12pt | 24 |
-| 正文 | 宋体 | 小四 | 12pt | 24 |
-| 页眉 | 宋体 | 五号 | 10.5pt | 21 |
-| 页脚/页码 | 宋体 | 五号 | 10.5pt | 21 |
-| 表格内容 | 宋体 | 五号 | 10.5pt | 21 |
-| 参考文献条目 | 宋体 | 五号 | 10.5pt | 21 |
+| Thesis title | 华文中宋 or 黑体 | 二号 or 小二 | 22pt or 18pt | 44 or 36 |
+| Chapter heading (H1) | 黑体 | 三号 | 16pt | 32 |
+| Section heading (H2) | 黑体 | 四号 | 14pt | 28 |
+| Subsection heading (H3) | 黑体 | 小四 | 12pt | 24 |
+| Body text | 宋体 | 小四 | 12pt | 24 |
+| Header | 宋体 | 五号 | 10.5pt | 21 |
+| Footer / page number | 宋体 | 五号 | 10.5pt | 21 |
+| Table content | 宋体 | 五号 | 10.5pt | 21 |
+| Reference entry | 宋体 | 五号 | 10.5pt | 21 |
 
 ## RunFonts for CJK Body Text
 

@@ -9,11 +9,11 @@
 
 - **EN keywords**: reformat, restyle, markdown to PDF, document conversion,
   prose report, make this look good
-- **CN keywords**: 重排版、转 PDF、markdown 转 PDF、把这个文档变好看
+- **CN keywords**: reformat, convert to PDF, markdown to PDF, make this document look better
 - **Sample user asks**:
-  - "把这个 .md 文件转成 PDF。"
+  - "Convert this .md file to PDF."
   - "Reformat my markdown notes into a clean PDF."
-  - "我有一份 PDF 文档，重新排版一下。"
+  - "I have a PDF document — please reformat it."
 
 This template is **automatically selected** when the user runs
 `bash make.sh reformat` without `--template`. Other reformat-* templates can be
@@ -99,9 +99,9 @@ node scripts/render_html.cjs --in /tmp/page.html --out mydoc.pdf
   text-native PDFs but garbles two-column / scanned PDFs. For those, use
   the READ route ([`../../docs/read-guide.md`](../../docs/read-guide.md))
   first to get clean text, then reformat.
-- **CJK punctuation in tables.** Full-width `（）`、`：`、`／` overflow narrow
-  cells. Edit the source markdown to use half-width punctuation inside table
-  rows.
+- **CJK punctuation in tables.** Full-width parentheses, colon and solidus
+  overflow narrow cells. Edit the source markdown to use half-width punctuation
+  inside table rows.
 - **Lazy images / external `<img>` URLs.** `render_html.cjs` waits for
   `networkidle`, but very slow CDNs may still drop. Inline base64 or use
   `file://` paths for reliability.

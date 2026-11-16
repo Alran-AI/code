@@ -17,17 +17,33 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { embeddedCredential, internalSourceReference } from './lib/public-text-policy.mjs';
+import {
+	upstreamName,
+	upstreamReportingAltName,
+	upstreamReportingHost,
+	upstreamReportingName,
+	upstreamReportingService,
+} from './lib/brand-terms.mjs';
 
-/** The addresses of the vendor the code base was derived from. None of them may ship. */
-// legacy-brand-compat:begin
+/**
+ * The addresses of the company the code base was derived from. None of them may ship.
+ *
+ * The reporting endpoints and the host of the company are built from the encoded
+ * names, so this file does not spell them out.
+ */
 export const VENDOR_ADDRESS_PATTERNS = Object.freeze([
-	{ term: 'reporting endpoint', pattern: /data\.hailuo(?:ai)?\.com/giu },
-	{ term: 'reporting endpoint', pattern: /bigdata-test\.(?:xingyeai|talkie-ai)\.com/giu },
-	{ term: 'reporting endpoint', pattern: /meerkat-reporter/giu },
-	{ term: 'host', pattern: /minimaxi\.com/giu },
+	{
+		term: 'reporting endpoint',
+		pattern: new RegExp(`data\\.${upstreamReportingHost}(?:ai)?\\.com`, 'giu'),
+	},
+	{
+		term: 'reporting endpoint',
+		pattern: new RegExp(`bigdata-test\\.(?:${upstreamReportingName}|${upstreamReportingAltName})\\.com`, 'giu'),
+	},
+	{ term: 'reporting endpoint', pattern: new RegExp(upstreamReportingService, 'giu') },
+	{ term: 'host', pattern: new RegExp(`${upstreamName}i\\.com`, 'giu') },
 	{ term: 'internal service address', pattern: /[\w.-]+\.svc\.cluster\.local/giu },
 ]);
-// legacy-brand-compat:end
 
 /** The files of the build output. */
 function artifactFiles(directory, prefix = '') {

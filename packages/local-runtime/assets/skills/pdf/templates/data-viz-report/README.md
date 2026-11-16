@@ -10,9 +10,10 @@
 - **EN keywords**: data report, visualization, dashboard PDF, hardware benchmark, comparison report,
   chart-heavy, infographic report, KPI brief, technical analysis, deep-research summary
 - **CN
-  keywords**: 数据可视化、图文报告、硬件评测、对比分析、跑分报告、基准测试报告、行业洞察、深度分析、可视化简报
+  keywords**: data visualization, illustrated report, hardware review, comparison analysis,
+  benchmark report, benchmark test report, industry insights, deep analysis, visual brief
 - **Sample user asks**:
-  - "把这份 markdown 评测报告做成数据可视化更好的 PDF。"
+  - "Turn this markdown review report into a PDF with better data visualization."
   - "Generate a chart-rich PDF brief for this hardware comparison spreadsheet — I want bars, radar,
     and KPI cards, not just tables."
   - "Turn this benchmark write-up into a designed PDF report with visualizations of the numbers."
@@ -44,9 +45,9 @@ Chart.js loaded from `cdn.jsdelivr.net` → Chrome headless with `--virtual-time
 - **Structure**:
   - **Cover** (full-bleed gradient, hero title, 2-line subtitle, 3 meta-stat chips bottom-left,
     version badge bottom-right).
-  - **Prologue page** (`PROLOGUE · 引言` eyebrow + section-line + lead paragraph + 4 KPI cards
+  - **Prologue page** (`PROLOGUE · Introduction` eyebrow + section-line + lead paragraph + 4 KPI cards
     summarizing the questions answered).
-  - **Part 1 / 2 / 3 …** each starts with `PART NN · 标题` eyebrow. Each part has 2–4 H3
+  - **Part 1 / 2 / 3 …** each starts with `PART NN · Title` eyebrow. Each part has 2–4 H3
     subsections; each subsection mixes:
     - 4-up KPI card row (when there are headline numbers),
     - 1–2 chart cards (each card has its own title strip + sub),
@@ -155,7 +156,7 @@ node packages/local-runtime/assets/skills/pdf/scripts/render_html.cjs \
 
 - **HTML entity superscripts silently break.** Writing `3nm⊃2;` (intent: `3nm²`) renders the literal
   characters `⊃2;` in print. For superscripts, paste the actual unicode (`²`, `⁺`, `™`) or write the
-  word ("二代", "v2"). Do a final search for `⊃` / `&sup` / `&amp;` in the HTML before rendering.
+  word ("second generation", "v2"). Do a final search for `⊃` / `&sup` / `&amp;` in the HTML before rendering.
 - **Chart.js needs explicit render time.** Without `--virtual-time-budget=15000` (or Playwright
   `waitForFunction`), Chrome snapshots the page before charts paint and you get blank boxes. Also
   disable Chart.js animation in JS: `Chart.defaults.animation = false;` — animated charts can also
@@ -176,7 +177,7 @@ node packages/local-runtime/assets/skills/pdf/scripts/render_html.cjs \
   columns force line wrap. Use half-width `()`, `:`, `/` inside table cells; keep full-width in body
   prose.
 - **Last page < 1/3 full.** Same rule as `multilang-research-report`: expand content (add a
-  "三大核心收获" takeaway list, add a footer-meta references block) rather than shrinking margins.
+  "three key takeaways" takeaway list, add a footer-meta references block) rather than shrinking margins.
 - **CDN flakiness.** `cdn.jsdelivr.net` is the default; if the renderer runs offline, vendor
   `chart.umd.min.js` next to the HTML and load it with a relative
   `<script src="chart.umd.min.js"></script>`.

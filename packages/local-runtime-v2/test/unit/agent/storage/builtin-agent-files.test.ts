@@ -130,8 +130,8 @@ describe('BuiltinAgentFiles corrupted Builtin repair', () => {
   }
 
   it.each([
-    ['broken frontmatter', Buffer.from('---\r\nname: alran\r\ntools: [\r\n---\r\n用户提示词\r\n')],
-    ['plain text without frontmatter', Buffer.from('你是我的私人助理。\nKeep answers short.\n')],
+    ['broken frontmatter', Buffer.from('---\r\nname: alran\r\ntools: [\r\n---\r\nuser prompt\r\n')],
+    ['plain text without frontmatter', Buffer.from('You are my personal assistant.\nKeep answers short.\n')],
   ])(
     'archives %s byte-for-byte and rewrites agent.md from the bundled template',
     async (_label, raw) => {

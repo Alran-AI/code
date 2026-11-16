@@ -61,9 +61,10 @@ because Apache-2.0 components below (Sandbox Runtime) do require one. Main chang
 0.7.2:
 
 1. **Identity.** Product name, CLI binary (`mcode` → `alran`), workspace scope (`@mavis/*` →
-   `@alran/*`), environment variables (`MAVIS_*` → `ALRAN_*`, with a read-only compatibility shim
-   until 2027-Q1), data directory (`~/.mavis` → `~/.alran`, migrated once with a compatibility
-   symlink), prompts, UI strings, docs and tests.
+   `@alran/*`), environment variables (`MAVIS_*` → `ALRAN_*`), data directory (`~/.mavis` →
+   `~/.alran`), prompts, UI strings, docs and tests. The product was not released under the old
+   names, so no compatibility shim for them is carried: the data directory is always `~/.alran`
+   and only `ALRAN_*` variables are read.
 2. **Accounts.** The upstream account system is replaced by the Ottili Platform: OpenID Connect
    sign-in (`alran auth login`), Platform sessions, company and project context, session revocation.
 3. **Models.** The upstream model catalogue is replaced by Ottili models served by the Ottili AI
@@ -75,8 +76,9 @@ because Apache-2.0 components below (Sandbox Runtime) do require one. Main chang
    `alran` or a self-hosted signed `latest.json`.
 6. **Removed content.** Upstream brand material (a website brand-guide case of the PDF skill) and
    upstream community links.
-7. **Tooling.** Brand gate (`pnpm lint:no-minimax`), license gate (`pnpm license-check`), Ottili
-   commands (`alran auth`, `alran usage`, `alran billing`, `alran models`, `alran config`).
+7. **Tooling.** Brand gate (`pnpm lint:brand`), license gate (`pnpm license-check`), artifact gate
+   (`pnpm check:artifact`), Ottili commands (`alran auth`, `alran usage`, `alran billing`,
+   `alran models`, `alran config`).
 
 The complete history is the Git history of https://github.com/Alran-AI/code.
 

@@ -1530,7 +1530,7 @@ function isIlinkApiPendingError(err: unknown): boolean {
   );
 }
 
-/** ChannelInboundAttachmentRef.type (image | file | audio | video) → DLQ refKind。 */
+/** ChannelInboundAttachmentRef.type (image | file | audio | video) → DLQ refKind. */
 function mapChannelRefTypeToDlqRefKind(
   type: ChannelInboundAttachmentRef['type'],
 ): DeadLetterRefKind {

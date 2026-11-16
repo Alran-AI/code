@@ -1,6 +1,13 @@
 // Text that must never appear in published source or npm packages. Shared by
 // `check:source` and package release checks so the two cannot drift apart.
-export const internalSourceReference =
-  /(?:[\w.-]+\.xaminim\.com|weaver\/idl|@alran\/thrift-gen|\/Users\/alran(?:\/|\b)|\/archon\/internal\/api\/)/u;
+import { INTERNAL_REFERENCE_SOURCES } from './brand-terms.mjs';
+
+// The internal hosts and paths of the company the code base was derived from are
+// caught by the encoded sources; the own paths that must not leak into a release
+// are spelled out here.
+export const internalSourceReference = new RegExp(
+  `(?:${INTERNAL_REFERENCE_SOURCES.join('|')}|@alran\\/thrift-gen|\\/Users\\/alran(?:\\/|\\b)|\\/archon\\/internal\\/api\\/)`,
+  'u',
+);
 export const embeddedCredential =
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\r?\n[A-Za-z0-9+/=\r\n]{100,}|\b(?:ghp_|github_pat_)[A-Za-z0-9_]{30,}|\bsk-[A-Za-z0-9_-]{32,}/u;

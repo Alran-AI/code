@@ -116,8 +116,10 @@ export interface StreamOptions {
 	 */
 	onResponse?: (response: ProviderResponse, model: Model<Api>) => void | Promise<void>;
 	/**
-	 * Provider 在把原始异常转换为最终错误文本前同步调用。宿主可借此采集异常对象，
-	 * 回调不得改变请求结果，provider 会消化回调自身抛出的异常。
+	 * Called synchronously by the provider before it converts the original exception
+	 * into the final error text. Hosts can use it to collect the exception object;
+	 * the callback must not change the request result, and the provider swallows
+	 * exceptions thrown by the callback itself.
 	 */
 	onProviderError?: (error: unknown, model: Model<Api>) => void;
 	/**

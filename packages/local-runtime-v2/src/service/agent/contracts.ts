@@ -524,7 +524,7 @@ export const FROZEN_SELECTOR_VERSION = 2 as const;
 
 /**
  * Frozen `mcpServers` of a version 2 snapshot whose Agent wrote `mcpServers: []`
- * (no MCP); there an empty list means unrestricted. See README "Desktop Local Agent 定义".
+ * (no MCP); there an empty list means unrestricted. See README "Desktop Local Agent Definition".
  */
 export const FROZEN_MCP_SERVERS_NONE = ':none';
 
@@ -533,7 +533,7 @@ export const FROZEN_MCP_SERVERS_NONE = ':none';
  * `mcp__*` tools but alias rebinding left none (its server published no
  * tools, or a name collides): those tools are unavailable. It names no tool
  * (runtime MCP names never contain `:`); it only keeps the list read as a
- * complete list. See README "Desktop Local Agent 定义".
+ * complete list. See README "Desktop Local Agent Definition".
  */
 export const FROZEN_TOOLS_ALL_SCOPE_MARKER = 'mcp__:none';
 

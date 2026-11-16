@@ -26,7 +26,7 @@ $CLI = "dotnet run --project $env:DOCX_ROOT\scripts\dotnet\AlranAIDocx.Cli --"
 - creating DOCX from structured config
 - editing an existing DOCX while preserving it as the same document
 - placeholder fill, table fill, replace-text, header/footer update
-- applying CJK 公文 / 学位论文 / institutional templates
+- applying CJK official government document / degree thesis / institutional templates
 - running builtin analyze / diff / merge-runs / validate / gate-check
 
 **Hard no**:

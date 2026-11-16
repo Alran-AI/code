@@ -409,7 +409,7 @@ describe("TuiCommandFlow", () => {
 
   it.each([
     {
-      prompt: "/context  这样还是会显示上下文信息",
+      prompt: "/context  it still shows the context information this way",
       stagesOptimistically: true,
     },
     { prompt: "/ALLOW", stagesOptimistically: false },

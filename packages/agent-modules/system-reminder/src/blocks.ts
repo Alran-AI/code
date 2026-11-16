@@ -348,12 +348,12 @@ export function buildMemorySkillReminder(
 
   statusLines.push(
     '  Apply the three-question test. Write to the FIRST matching layer, not the default (agent memory).',
-    `    1. 换用户结论会变？→ User Memory (${dataDirDisplay}/memory/user.md)`,
-    '       Examples: "MR 不可自动 merge", "飞书通知群", "序号指代习惯", "沟通风格"',
-    `    2. 换项目结论仍成立？→ Agent Memory (${dataDirDisplay}/agents/<name>/memory/MEMORY.md)`,
-    '       Examples: "CI failed 先看日志", "vitest CI timeout 配置", "非交互 shell 用 .zshenv"',
-    '    3. 只在当前项目成立？→ Project Memory (AGENTS.md or referenced topic file)',
-    '       Examples: "MR target branch 是 dev", "飞书群 chat_id", "项目级 hook 约定"',
+    `    1. Would the conclusion change with a different user? → User Memory (${dataDirDisplay}/memory/user.md)`,
+    '       Examples: "MR must not be auto-merged", "Feishu notification group", "ordinal reference habits", "communication style"',
+    `    2. Does the conclusion still hold for a different project? → Agent Memory (${dataDirDisplay}/agents/<name>/memory/MEMORY.md)`,
+    '       Examples: "CI failed — check the logs first", "vitest CI timeout configuration", "use .zshenv for non-interactive shells"',
+    '    3. Does it only hold for the current project? → Project Memory (AGENTS.md or referenced topic file)',
+    '       Examples: "MR target branch is dev", "Feishu group chat_id", "project-level hook conventions"',
   );
 
   if (lines > 200 || status.sizeBytes > 5120) {

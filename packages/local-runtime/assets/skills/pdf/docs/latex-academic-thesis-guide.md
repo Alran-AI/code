@@ -1,7 +1,7 @@
 # Guide: LaTeX Academic Thesis → PDF
 
 Use this route when the user asks to generate, compile, or typeset an academic
-thesis / dissertation / 毕业论文 / 学士论文 / 硕士论文 / 博士论文 using LaTeX,
+thesis / dissertation / undergraduate thesis / master's thesis / doctoral thesis using LaTeX,
 especially with a university-provided template or Chinese national standard
 format (GB/T 7714 bibliography, GB/T 7714 title rules, etc.).
 
@@ -86,7 +86,7 @@ school name). Keep all formatting commands — only replace content.
 Key formatting blocks in the scaffold:
 
 ```latex
-% Page geometry (南理工学士论文 spec)
+% Page geometry (NUST bachelor's thesis spec)
 \usepackage[a4paper, top=30mm, bottom=24mm, left=25mm, right=25mm,
   headheight=15pt, headsep=10mm, footskip=20mm]{geometry}
 
@@ -95,7 +95,7 @@ Key formatting blocks in the scaffold:
 \setmainfont{Times New Roman}
 \setCJKmainfont[AutoFakeBold=2.5]{Songti SC}
 
-% Title formatting (南理工 spec)
+% Title formatting (NUST spec)
 \ctexset{
   section = { format = \raggedright\songti\bfseries\zihao{-3},
                beforeskip = 18pt, afterskip = 18pt, break = \clearpage },
@@ -171,11 +171,11 @@ pdftotext main.pdf - | head -50
 ### Step 4 — Merge cover PDF (if external)
 
 ```bash
-# 封面 PDF（1页）在前，正文 PDF（1-z）在后
-# 正确顺序：封面 → 正文
+# Cover PDF (1 page) first, body PDF (1-z) after
+# Correct order: cover → body
 qpdf --empty --pages cover.pdf 1-z body.pdf 1-z -- final.pdf
 
-# 验证合并结果
+# Verify the merge result
 pdfinfo final.pdf | grep Pages
 pdftotext final.pdf - | head -20
 # Also open final.pdf and spot-click TOC entries; ensure cover merge did not

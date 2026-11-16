@@ -8,11 +8,11 @@
     "filled_at": "<!-- YYYY-MM-DDTHH:MM:SS -->",
     "data_sources": [
       {
-        "file": "<!-- 在职证明.pdf -->",
+        "file": "<!-- employment_certificate.pdf -->",
         "fields_supplied": ["<!-- NAME_PINYIN -->", "<!-- PASSPORT_NUM -->", "<!-- DOB -->"]
       },
       {
-        "file": "<!-- 行程单.docx -->",
+        "file": "<!-- travel_itinerary.docx -->",
         "fields_supplied": ["<!-- ENTRY_DATE -->", "<!-- EXIT_DATE -->", "<!-- FIRST_CITY -->"]
       }
     ],
@@ -36,7 +36,7 @@
       "page_no": 1,
       "type": "text",
       "set_to": "<!-- EXAMPLE -->",
-      "source": "<!-- employment_cert.pdf ('示例申请人') -> pinyin uppercase -->",
+      "source": "<!-- employment_cert.pdf ('Sample Applicant') -> pinyin uppercase -->",
       "transform": "uppercase_pinyin",
       "maxlen": 20,
       "validation": "required"
@@ -47,7 +47,7 @@
       "page_no": 1,
       "type": "text",
       "set_to": "<!-- WEI -->",
-      "source": "<!-- employment_cert.pdf ('示例申请人') -> pinyin uppercase -->",
+      "source": "<!-- employment_cert.pdf ('Sample Applicant') -> pinyin uppercase -->",
       "transform": "uppercase_pinyin",
       "maxlen": 20,
       "validation": "required"

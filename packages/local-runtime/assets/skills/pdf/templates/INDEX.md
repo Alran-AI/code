@@ -10,17 +10,17 @@ render.
 > or navy (research report) palette. Each README §7 lists the **structural invariants** you must
 > keep and the **swappables** you should vary.
 
-| Slug                      | Route                | Use case                                         | Trigger keywords                                          |
-| ------------------------- | -------------------- | ------------------------------------------------ | --------------------------------------------------------- |
-| bilingual-menu-premium    | CREATE               | Premium bilingual menus                          | "menu", "bilingual menu", "餐厅菜单"                      |
-| brand-guide-2page         | CREATE               | 2-page brand guide                               | "brand guide", "design system"                            |
-| data-viz-report           | CREATE               | Chart-rich data analysis brief                   | "data report", "可视化", "benchmark", "图文报告"          |
-| multi-article-aggregator  | CREATE               | Article digest / anthology                       | "article digest", "newsletter"                            |
-| multilang-research-report | CREATE               | Multi-country research report                    | "research report", "regulatory survey"                    |
-| reformat-default          | REFORMAT             | Default markdown / text / pdf reformat           | "reformat", "markdown to PDF", "重排版"                   |
-| translate-preserve-layout | REFORMAT             | Translate while preserving layout                | "translate PDF", "翻译保版"                               |
-| form-fill-acroform        | FILL                 | Government / official form fill                  | "fill form", "visa form", "签证表"                        |
-| latex-technical-book      | LATEX_TECHNICAL_BOOK | Chinese technical books / engineering monographs | "技术书", "源码解析书", "LaTeX 技术出版", "O'Reilly 风格" |
+| Slug                      | Route                | Use case                                         | Trigger keywords                                                                             |
+| ------------------------- | -------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| bilingual-menu-premium    | CREATE               | Premium bilingual menus                          | "menu", "bilingual menu", "restaurant menu"                                                  |
+| brand-guide-2page         | CREATE               | 2-page brand guide                               | "brand guide", "design system"                                                               |
+| data-viz-report           | CREATE               | Chart-rich data analysis brief                   | "data report", "visualization", "benchmark", "illustrated report"                            |
+| multi-article-aggregator  | CREATE               | Article digest / anthology                       | "article digest", "newsletter"                                                               |
+| multilang-research-report | CREATE               | Multi-country research report                    | "research report", "regulatory survey"                                                       |
+| reformat-default          | REFORMAT             | Default markdown / text / pdf reformat           | "reformat", "markdown to PDF", "re-layout"                                                   |
+| translate-preserve-layout | REFORMAT             | Translate while preserving layout                | "translate PDF", "layout-preserving translation"                                             |
+| form-fill-acroform        | FILL                 | Government / official form fill                  | "fill form", "visa form", "visa application form"                                            |
+| latex-technical-book      | LATEX_TECHNICAL_BOOK | Chinese technical books / engineering monographs | "technical book", "source-code reading book", "LaTeX technical publishing", "O'Reilly style" |
 
 ## Usage
 

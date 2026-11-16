@@ -4165,9 +4165,9 @@ describe("createTuiApp", () => {
       "/resumex",
       "/renamex Renamed by a typo",
       "/clearx",
-      "/tmp/sample-photo.JPG 用 read 工具直接读这个图片，告诉我是什么",
+      "/tmp/sample-photo.JPG use the read tool to read this image directly and tell me what it is",
       "/not-a-command explain what this text means",
-      "/context  这样还是会显示上下文信息",
+      "/context  it still shows the context information this way",
     ];
 
     try {
@@ -6878,7 +6878,7 @@ describe("createTuiApp", () => {
     terminal.input?.("\x1b[200~/tmp/otty-paste/logo.png\x1b[201~");
     await vi.waitFor(() => expect(resolveAttachment).toHaveBeenCalledTimes(1));
     app.editor.insertTextAtCursor(
-      "logo 不太对还是，还出现了奇怪的--; logo你自己截取把:",
+      "the logo still does not look right, and something strange appeared --; crop the logo yourself:",
     );
 
     const rendered = app.tui.render(80).join("\n");
@@ -14549,7 +14549,7 @@ describe("createTuiApp", () => {
     async (lineCount) => {
       const queuedText = Array.from(
         { length: lineCount },
-        (_, i) => `Queue line ${i}: 合成测试文字`,
+        (_, i) => `Queue line ${i}: synthetic test text`,
       ).join("\n");
       const terminal = new FakeTerminal();
       const runtime = createRuntime();

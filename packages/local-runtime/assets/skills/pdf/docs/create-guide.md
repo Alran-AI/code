@@ -429,7 +429,7 @@ Run before committing the source HTML or reporting "PDF ready":
 | Body text in default sans | Webfont didn't load before snapshot | Use system stack from spec §4, or `@font-face` from local file |
 | Color desaturated in print | Missing `print-color-adjust: exact` | Apply to universal selector `*`, not `body` |
 | Charts split across pages | Missing `.avoid-break` wrapper | Wrap each `.chart-card` |
-| Tables eat too much space | Full-width CJK punctuation | Use half-width `()`、`:`、`/` inside cells |
+| Tables eat too much space | Full-width CJK punctuation | Use half-width `()`, `:`, `/` inside cells |
 | `3nm⊃2;` artifacts | HTML entity typo for `²` | Paste real unicode `²` `⁺` `™` etc |
 | Output PDF is 1 KB | Source HTML had a JS error (404 on Chart.js, etc) | Open the source in a browser, check Console |
 | Cover takes 2 pages | Cover height > 268 mm | Reduce padding or content; do not change `@page` margin |

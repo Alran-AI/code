@@ -1,32 +1,32 @@
-# Anti-Patterns — Alran 实际见过的 skill 反例
+# Anti-Patterns — skill failures seen in real Alran projects
 
-> 这份清单不是从外部抄的，是从 Alran 项目里见过的真实 skill 失败案例提炼的。每条都标注"为什么是反模式 + 该怎么改"。
+> This list was not copied from an outside source. It is distilled from real skill failures seen in Alran projects. Each entry states "why it is an anti-pattern + how to fix it".
 
-## 1. 默认建 `.env` / `.env.example` / `.gitignore`
+## 1. Creating `.env` / `.env.example` / `.gitignore` by default
 
-**反例来源**：旧版 `{{DATA_DIR}}/skills/skill-creator/SKILL.md` 把 `.env.example` 当 default scaffold。
+**Where it comes from**: the old `{{DATA_DIR}}/skills/skill-creator/SKILL.md` treated `.env.example` as the default scaffold.
 
-**为什么是反模式**：
-- 大多数 skill 不需要外部凭证（如 `pdf`、`alran`）
-- 凭空建 `.env` 给用户错觉"必须配置"
-- `.gitignore` 是仓库级关心，不该放进 skill 包
+**Why it is an anti-pattern**:
+- Most skills need no external credentials (for example `pdf`, `alran`)
+- A `.env` created out of thin air gives the user the false impression that configuration is "required"
+- `.gitignore` is a repository-level concern and does not belong in a skill package
 
-**怎么改**：只有 skill 实际需要 API key 等外部凭证时才建。skill 创建时主动确认"需要外部配置吗？"
+**How to fix**: create them only when the skill genuinely needs external credentials such as an API key. When creating a skill, ask up front: "Does this need external configuration?"
 
-## 2. 把 README.md / CHANGELOG.md / INSTALLATION.md 塞进 skill 目录
+## 2. Putting README.md / CHANGELOG.md / INSTALLATION.md into the skill directory
 
-**反例来源**：从外部 marketplace 导入的 skill（如某些 ClawHub skill），同目录有 5 个 `.md` 文件。
+**Where it comes from**: a skill imported from an outside marketplace (such as some ClawHub skills) whose directory holds five `.md` files.
 
-**为什么是反模式**：
-- skill 目录是给 LLM 读的，不是给人看的产品文档
-- README/CHANGELOG/INSTALLATION 是面向人类用户的，挤占模型 context
-- 模型不知道该不该读这些文件，浪费 token
+**Why it is an anti-pattern**:
+- A skill directory is read by an LLM, it is not product documentation for humans
+- README/CHANGELOG/INSTALLATION target human readers and take up model context
+- The model does not know whether it should read these files, so tokens are wasted
 
-**怎么改**：skill 包里只放 LLM 执行需要的文件。版本演进信息放在 git history，使用说明写在 SKILL.md 的 `When to use` 里。
+**How to fix**: keep only the files the LLM needs to execute. Put version history in git history, and put usage notes in the `When to use` section of SKILL.md.
 
-## 3. 用 ALWAYS / NEVER / MUST 把模型限死
+## 3. Locking the model down with ALWAYS / NEVER / MUST
 
-**反例**：
+**Anti-pattern**:
 ```markdown
 ## Procedure
 1. ALWAYS read the entire codebase first
@@ -34,116 +34,116 @@
 3. MUST output JSON
 ```
 
-**为什么是反模式**：
-- 模型读了大量 ALWAYS/NEVER 后会过拟合到字面规则，丢失判断力
-- 不解释 why，模型遇到边界情况只能僵硬执行或直接放弃
-- 遇到合理特例（如"这次需要一个小补丁，不需要读整个 codebase"）模型会卡住
+**Why it is an anti-pattern**:
+- After reading a lot of ALWAYS/NEVER rules the model overfits to the literal rules and loses judgment
+- Without a reason, the model can only execute edge cases rigidly or give up entirely
+- A reasonable exception ("this time I only need a small patch, not the whole codebase") leaves the model stuck
 
-**怎么改**：写"为什么这么做"和"不这么做的后果"。例：
+**How to fix**: write "why this way" and "what happens if you do not". For example:
 ```markdown
-1. 先读 codebase 大致结构（避免凭空假设导致改错文件）
-2. 优先用 Read，必要时也可以用 Grep（Read 慢但准，Grep 快但可能漏匹配）
-3. 输出 JSON 格式，因为下游脚本会解析；如果 JSON 不合适（比如纯叙述性回答），改用 markdown 但要在最后明确说"输出格式：markdown"
+1. Read the rough structure of the codebase first (avoids making assumptions that lead to editing the wrong file)
+2. Prefer Read, and use Grep when needed (Read is slow but accurate, Grep is fast but may miss matches)
+3. Output JSON, because a downstream script parses it; if JSON does not fit (a purely narrative answer, for example), use markdown instead but state "output format: markdown" explicitly at the end
 ```
 
-## 4. description 只堆关键词
+## 4. A description that is only a pile of keywords
 
-**反例**：
+**Anti-pattern**:
 ```yaml
 description: PDF, text, extract, OCR, parse, document, file, read
 ```
 
-**为什么是反模式**：
-- 没说"什么时候用"，LLM 看了关键词命中就触发，不管语境
-- 没说"什么时候不用"，会和近义 skill（如 pdf）冲突触发
+**Why it is an anti-pattern**:
+- It never says "when to use it", so the LLM triggers on a keyword hit regardless of context
+- It never says "when not to use it", so it collides with near-synonym skills (such as `pdf`)
 
-**怎么改**：见 `description-rubric.md`，必须含 What + When + Near misses。
+**How to fix**: see `description-rubric.md`; a description must contain What + When + Near misses.
 
-## 5. 一个 skill 包里塞多个 sub-skill / 多个 sub-agent
+## 5. Packing several sub-skills / sub-agents into one skill package
 
-**反例**：从外部抄来的 skill，目录里有 `agents/`、`sub-skills/`、`commands/`、`hooks/` 全套。
+**Anti-pattern**: a skill copied from an outside source, whose directory ships the full set: `agents/`, `sub-skills/`, `commands/`, `hooks/`.
 
-**为什么是反模式**：
-- skill 是单一能力包，不是 mini-platform
-- 多 sub-skill 增加触发歧义，LLM 不知道该激活哪个
-- Alran 已经有 Team Engine 处理多 agent 协作，skill 内部不需要再造一套
+**Why it is an anti-pattern**:
+- A skill is a single capability package, not a mini-platform
+- Multiple sub-skills make triggering ambiguous; the LLM does not know which one to activate
+- Alran already has the Team Engine for multi-agent collaboration, so a skill does not need to build another one
 
-**怎么改**：一个 skill 一个明确能力。需要协作多 agent 用 Team Engine plan，不要塞进 skill 内部。
+**How to fix**: one skill, one clear capability. When collaboration across agents is needed, use a Team Engine plan instead of pushing it inside the skill.
 
-## 6. SKILL.md 超长（>500 行），全部塞主文件
+## 6. An oversized SKILL.md (>500 lines) with everything in the main file
 
-**反例来源**：一些社区 skill SKILL.md 写到 1000+ 行，包含 11 个思考模型 / 4-tier 复杂度等元理论。
+**Where it comes from**: community skills whose SKILL.md runs to 1000+ lines, with meta-theory such as 11 thinking models / 4-tier complexity.
 
-**为什么是反模式**：
-- 触发 skill 后这 1000 行全进 context，挤压用户对话空间
-- 大量元理论是写给 skill 作者看的，不是给执行的 LLM
+**Why it is an anti-pattern**:
+- After the skill triggers, those 1000 lines all enter context and squeeze the user's conversation space
+- Most of that meta-theory is written for skill authors, not for the LLM that executes the skill
 
-**怎么改**：SKILL.md 主体 ≤ 500 行，把详细参考拆 `references/<topic>.md`，主文件用"详见 references/foo.md"引用。LLM 需要时再读。
+**How to fix**: keep the SKILL.md body at ≤ 500 lines, split detailed references into `references/<topic>.md`, and link them from the main file with "see references/foo.md". The LLM reads them only when it needs them.
 
-## 6.5 把 SKILL.md 写成 README / 教程 / API 文档
+## 6.5 Writing SKILL.md as a README / tutorial / API doc
 
-**反例**：主文件里充满 "What this tool does"、"How it works"、"Command line usage"、"As a Python module"，外加一长串示例命令。
+**Anti-pattern**: a main file full of "What this tool does", "How it works", "Command line usage", "As a Python module", plus a long list of sample commands.
 
-**为什么是反模式**：
-- skill 是给另一个模型执行的，不是给人类读产品说明
-- 背景介绍、功能导览、模块示例会稀释真正重要的执行规约
-- 这类内容最容易和 frontmatter 里的触发信息重复，白白占 context
+**Why it is an anti-pattern**:
+- A skill is for another model to execute, not for humans to read product documentation
+- Background, feature tours, and module examples dilute the execution contract that actually matters
+- This kind of content most easily duplicates the trigger information in the frontmatter and burns context for nothing
 
-**怎么改**：
-- `description` 负责回答 "什么时候触发 / 什么情况别触发"
-- 正文只保留 procedure / output contract / failure handling / 极少量 canonical examples
-- 需要细节时，优先让模型读脚本、`--help` 或 `references/`
+**How to fix**:
+- `description` answers "when to trigger / when not to trigger"
+- The body keeps only procedure / output contract / failure handling / a very small number of canonical examples
+- When details are needed, prefer sending the model to the script, `--help`, or `references/`
 
-## 7. 用 Python 工具链（与 Alran 生态不一致）
+## 7. Using a Python toolchain (inconsistent with the Alran ecosystem)
 
-**反例**：从外部抄来的 skill 自带 `requirements.txt`、Python 脚本、需要 `pip install` 的依赖。
+**Anti-pattern**: a skill copied from an outside source that ships `requirements.txt`, Python scripts, and dependencies that need `pip install`.
 
-**为什么是反模式**：
-- Alran daemon / CLI 是 Node.js / TypeScript ESM
-- 引入 Python 依赖增加用户环境复杂度
-- 大多数 skill 需要的脚本（校验、聚合）用 Node.js + 内置 fs 就够
+**Why it is an anti-pattern**:
+- The Alran daemon / CLI is Node.js / TypeScript ESM
+- Pulling in Python dependencies adds complexity to the user's environment
+- Most scripts a skill needs (validation, aggregation) are fine with Node.js and the built-in fs
 
-**怎么改**：脚本用 Node.js 写，不依赖第三方 npm 包（除非是 Alran 本来就装了的）。
+**How to fix**: write scripts in Node.js without third-party npm packages (unless Alran already installs them).
 
-## 8. 抄外部 skill 的脚本/模板/schema 直接放进 Alran
+## 8. Copying external skill scripts / templates / schemas into Alran
 
-**反例**：把上游 skill-creator 的 `quick_validate.py` / `evals.json` schema 复制改名直接用。
+**Anti-pattern**: copying the upstream skill-creator's `quick_validate.py` / `evals.json` schema, renaming it, and using it as is.
 
-**为什么是反模式**：
-- 外部 schema 是按外部生态设计的（Python/外部 coding agent），可能与 Alran 不兼容
-- 抄过来即使能跑也是"陌生外科器官"——后续维护不知道为什么这么写
-- Alran 自己的语境（Team Engine、scratchpad、agent system）需要不同的设计
+**Why it is an anti-pattern**:
+- An external schema is designed for an external ecosystem (Python / another coding agent) and may not fit Alran
+- Even when it runs, it is a "transplanted organ from a stranger" — later nobody knows why it was written that way
+- Alran's own context (Team Engine, scratchpad, agent system) calls for a different design
 
-**怎么改**：思想可以借鉴，但每个文件都按 Alran 实际需要原创实现。详见 `when-to-bundle-scripts.md`。
+**How to fix**: borrow the idea, but implement every file originally for what Alran actually needs. See `when-to-bundle-scripts.md`.
 
-## 9. 不解释"为什么这个 skill 存在"
+## 9. Not explaining "why this skill exists"
 
-**反例**：frontmatter `description` 很弱，正文也直接进入 `## Procedure`，导致触发边界不清。
+**Anti-pattern**: a weak frontmatter `description`, with the body jumping straight to `## Procedure`, so the trigger boundary stays unclear.
 
-**为什么是反模式**：
-- LLM 是否打开 skill 主要看 `description`
-- 如果 `description` 没讲清能力边界和 near misses，模型可能漏触发或误触发
+**Why it is an anti-pattern**:
+- The LLM mainly decides whether to open a skill by reading `description`
+- If `description` does not spell out the capability boundary and the near misses, the model may miss the trigger or trigger wrongly
 
-**怎么改**：先把 What / When / Near misses 写进 `description`。正文只在确实需要时补充输入要求，不要再复制一遍触发列表。
+**How to fix**: put What / When / Near misses in `description` first. Add input requirements to the body only when they are genuinely needed; do not repeat the trigger list.
 
-## 10. 默认依赖外部安装脚本 / install.sh
+## 10. Depending on an external install script / install.sh by default
 
-**反例**：`install.sh` 自动改用户的 `~/.bashrc` / `~/.zshrc`。
+**Anti-pattern**: an `install.sh` that edits the user's `~/.bashrc` / `~/.zshrc` automatically.
 
-**为什么是反模式**：
-- skill 是协议产物，不该有副作用
-- 用户对修改 shell config 极度敏感
-- Alran 自己会发现并加载 skill，不需要 install 脚本
+**Why it is an anti-pattern**:
+- A skill is a protocol artifact and should have no side effects
+- Users are extremely sensitive about changes to their shell config
+- Alran discovers and loads skills on its own, so no install script is needed
 
-**怎么改**：skill 包里不放 install.sh。如果真需要外部依赖，在 SKILL.md 的 `## Setup`（仅本次需要时才有这一节）里明确写"请手动 X"。
+**How to fix**: keep install.sh out of the skill package. If a skill genuinely needs an external dependency, state "please run X manually" in the `## Setup` section of SKILL.md (only add that section when it is actually needed).
 
-## 11. Shell 命令只写 bash 版本，不做 Windows 适配
+## 11. Shell commands written only for bash, with no Windows adaptation
 
-**反例来源**：早期 skill 只写 `python3 scripts/xxx.sh | grep "Page size"` 这类 bash 命令，Windows 用户跑不起来。
+**Where it comes from**: early skills that only wrote bash commands such as `python3 scripts/xxx.sh | grep "Page size"`, which Windows users cannot run.
 
-**为什么是反模式**：
-- Alran 在 Windows 上直接用 PowerShell 执行命令，没有 Unix 兜底层
-- `python3`（Windows 上通常是 `python`）、`grep`、`sed`、`/tmp/` 等在 PowerShell 里不存在或行为不同
-- 用户不应该为了跑一个 skill 还要自己翻译命令
+**Why it is an anti-pattern**:
+- Alran runs commands directly in PowerShell on Windows, with no Unix fallback layer
+- `python3` (usually `python` on Windows), `grep`, `sed`, `/tmp/` and similar do not exist in PowerShell or behave differently
+- Users should not have to translate commands themselves just to run a skill
 
-**怎么改**：如果 skill 包含 shell 命令、脚本调用或 `python3` 引用，加 `## Windows (win32) platform notes` 段落，提供 PowerShell 等价命令或跨平台替代方案。纯流程 skill 可跳过。
+**How to fix**: if a skill contains shell commands, script invocations, or `python3` references, add a `## Windows (win32) platform notes` section with the PowerShell equivalents or a cross-platform alternative. Pure-process skills can skip it.

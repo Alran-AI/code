@@ -208,7 +208,7 @@ describe("openai-completions provider retries", () => {
 		]);
 	});
 
-	it("把 provider 捕获到的原始异常交给宿主回调", async () => {
+	it("hands the original exception caught by the provider to the host callback", async () => {
 		const cause = Object.assign(new Error("getaddrinfo ENOTFOUND missing.example.com"), {
 			code: "ENOTFOUND",
 			hostname: "missing.example.com",
@@ -225,7 +225,7 @@ describe("openai-completions provider retries", () => {
 		expect(onProviderError).toHaveBeenCalledWith(original, model);
 	});
 
-	it("宿主错误回调抛错时仍保留原 provider 失败", async () => {
+	it("keeps the original provider failure when the host error callback throws", async () => {
 		const original = new Error("provider failed");
 		mockState.terminalError = original;
 

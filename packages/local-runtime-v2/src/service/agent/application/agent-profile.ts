@@ -753,7 +753,7 @@ function frozenConfigSelection(
  * snapshot stores the Agent's own selector in a field releases up to v3.1.4
  * require, so `[]` means unrestricted and `[":none"]` means no MCP. An older
  * snapshot stored the servers ready at capture: it is used as written, so
- * `[]` still means no MCP. See README "Desktop Local Agent 定义".
+ * `[]` still means no MCP. See README "Desktop Local Agent Definition".
  */
 function frozenMcpServers(
   value: readonly string[] | undefined,

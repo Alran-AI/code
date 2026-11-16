@@ -287,7 +287,7 @@ export class LocalPermissionApprovalService {
           toolName: record.toolName,
           ...channelToolDescription(record),
           ...(record.toolInput ? { toolInput: record.toolInput } : {}),
-          reason: record.parentToolCallId ? `来自 PTC：${record.reason}` : record.reason,
+          reason: record.parentToolCallId ? `From PTC: ${record.reason}` : record.reason,
           ruleContents: record.ruleContents,
           createdAt: record.createdAt,
         },

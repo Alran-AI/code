@@ -91,8 +91,8 @@ describe('Plugin mentions from Composer to durable text', () => {
       stream: { reserve: () => ({ discardIfEmpty: vi.fn() }) },
     } as never);
     const application = new ConversationApplication({ directSend } as never);
-    const content = '[@Codex 插件](plugin://codex%40official) hello';
-    const displayContent = '@Codex 插件 hello';
+    const content = '[@Codex Plugin](plugin://codex%40official) hello';
+    const displayContent = '@Codex Plugin hello';
     await application.sendMessage({}, { id: 's1', content, displayContent });
     expect(submit).toHaveBeenCalledWith(expect.objectContaining({
       input: expect.objectContaining({ text: content }),
@@ -104,10 +104,10 @@ describe('Plugin mentions from Composer to durable text', () => {
     const transcript = new TranscriptStore();
     const message = {
       role: 'user' as const,
-      content: '[@Codex 插件](plugin://codex%40official) hello',
+      content: '[@Codex Plugin](plugin://codex%40official) hello',
     };
     new TuiUserProjection(transcript).hydrate(message, 'message-1', 'turn-1', 1);
-    expect(transcript.snapshot()[0]?.content).toBe('@Codex 插件 hello');
+    expect(transcript.snapshot()[0]?.content).toBe('@Codex Plugin hello');
     expect(message.content).toContain('plugin://');
   });
 
@@ -173,14 +173,14 @@ describe('Plugin mentions from Composer to durable text', () => {
   it('renders a label, submits stable identity, and preserves history through multiple recalls', async () => {
     const editor = createEditor();
     await selectPlugin(editor);
-    editor.handleInput('整理笔记');
+    editor.handleInput('take notes');
     const submitted = vi.fn();
     editor.onSubmit = submitted;
     editor.handleInput('\r');
     const [content, draft] = submitted.mock.calls[0]!;
-    expect(content).toBe('@My Notes 整理笔记');
+    expect(content).toBe('@My Notes take notes');
     const transport = submittedEditorTransport(draft);
-    expect(transport).toBe('[@My Notes](plugin://notes%40local) 整理笔记');
+    expect(transport).toBe('[@My Notes](plugin://notes%40local) take notes');
     editor.addToHistory(content);
     editor.addToHistory('another prompt');
     editor.handleInput('\x1b[A');

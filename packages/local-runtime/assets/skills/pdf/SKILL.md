@@ -2,7 +2,7 @@
 name: pdf
 description: >
   Unified PDF skill — generate, reformat, fill, and read PDFs. Covers: text-to-PDF (reports,
-  resumes, proposals, 可视化报告), LaTeX thesis, Markdown→PDF conversion, PDF form filling, and PDF
+  resumes, proposals, visual reports), LaTeX thesis, Markdown→PDF conversion, PDF form filling, and PDF
   reading/extraction/OCR. Trigger on any task with PDF as primary input or output. Not for DOCX or
   PPT.
 metadata:

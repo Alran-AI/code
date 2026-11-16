@@ -134,7 +134,7 @@ function headTail(value: string, limit: number, headShare: number): string {
   if (text.length <= limit) return text;
   const head = Math.floor(limit * headShare);
   const tail = limit - head;
-  return `${text.slice(0, head)}\n…[省略 ${text.length - limit} 字]…\n${text.slice(text.length - tail)}`;
+  return `${text.slice(0, head)}\n…[${text.length - limit} characters omitted]…\n${text.slice(text.length - tail)}`;
 }
 
 /**
@@ -229,7 +229,7 @@ function cleanUserText(value: string): string {
     text = text.replace(
       block,
       comments.length
-        ? `[对引用内容的批注] ${comments.map((comment, index) => `(${index + 1}) ${comment}`).join(' ')}`
+        ? `[Comments on quoted content] ${comments.map((comment, index) => `(${index + 1}) ${comment}`).join(' ')}`
         : '',
     );
   }

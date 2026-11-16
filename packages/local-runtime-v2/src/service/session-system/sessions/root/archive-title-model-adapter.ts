@@ -48,7 +48,8 @@ export class ArchiveTitleModelAdapter<TAgentConfig, TModel> implements RootArchi
 
   async summarize(input: RootArchiveTitleModelInput): Promise<string | null> {
     const turnId = this.makeTurnId();
-    // 记下这次生成标题用的模型要不要审，标题出来后据此决定是否送审。
+    // Remember whether the model that generated this title needs a review, and decide
+    // whether to send it for review once the title is available.
     let contentReviewRequired: boolean | undefined;
     let raw: string;
     try {

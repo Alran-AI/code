@@ -21,8 +21,8 @@ const context: Context = {
 	messages: [{ role: "user", content: "hello", timestamp: 0 }],
 };
 
-describe("provider 原始错误回调", () => {
-	it("保留 OpenAI SDK 连接异常及底层 DNS cause", async () => {
+describe("provider original error callback", () => {
+	it("preserves the OpenAI SDK connection error and the underlying DNS cause", async () => {
 		const dnsError = Object.assign(new Error("getaddrinfo ENOTFOUND missing.example.com"), {
 			code: "ENOTFOUND",
 			errno: -3008,

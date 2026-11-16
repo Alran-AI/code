@@ -11,12 +11,12 @@ here unless the user explicitly asks for an academic thesis.
 
 ## Trigger signatures
 
-- “中文技术书 LaTeX 模板”
-- “把这些 HTML 页面整理成一本书”
-- “源码解析书 / 工程实践书 / 多 Agent 平台书稿”
-- “B5 / 16 开技术出版读物”
-- “O'Reilly 风格封面 / 动物封面 / 技术书封面”
-- “代码块、目录、页眉页脚、引文框、结构图都要像书”
+- “LaTeX template for a Chinese technical book”
+- “Turn these HTML pages into a book”
+- “Source-code reading book / engineering practice book / multi-agent platform manuscript”
+- “B5 / 16-mo technical publication”
+- “O'Reilly-style cover / animal cover / technical book cover”
+- “Code blocks, table of contents, headers and footers, pull-quote boxes, and structure diagrams must all look like a book”
 
 ---
 

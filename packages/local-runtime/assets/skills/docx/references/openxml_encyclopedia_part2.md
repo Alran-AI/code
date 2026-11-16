@@ -205,7 +205,7 @@ var wideMargins = new PageMargin
     Gutter = 0U
 };
 
-// --- Chinese Government Document 公文 standard (GB/T 9704-2012) ---
+// --- Chinese Government Document standard (GB/T 9704-2012) ---
 // Top: 37mm (2098 DXA), Bottom: 35mm (1984 DXA)
 // Left: 28mm (1588 DXA), Right: 26mm (1474 DXA)
 var chineseGovMargins = new PageMargin
@@ -395,7 +395,7 @@ sectionProps.AppendChild(lineNums);
 // LinePitch = distance between lines in DXA (e.g., 312 for standard Chinese docs)
 // CharacterSpace = extra spacing between characters in DXA
 
-// --- Chinese document grid: 28 lines × 28 chars per line (common for 公文) ---
+// --- Chinese document grid: 28 lines × 28 chars per line (common for Chinese official documents) ---
 var cjkGrid = new DocGrid
 {
     Type = DocGridValues.LinesAndChars,
@@ -1247,11 +1247,11 @@ body.AppendChild(styledTable);
 body.AppendChild(new Paragraph());  // Empty paragraph after table
 ```
 
-### 2.15 Three-Line Table (学术三线表)
+### 2.15 Three-Line Table (academic three-line table)
 
 ```csharp
 // =============================================================================
-// THREE-LINE TABLE (学术三线表)
+// THREE-LINE TABLE (academic three-line table)
 // =============================================================================
 // Academic/scientific table style common in Chinese academic publishing:
 //   - Top border: THICK (1.5pt)
@@ -1801,14 +1801,14 @@ tblHeaderPart.Header = new Header(headerTable, new Paragraph());
 tblHeaderPart.Header.Save();
 ```
 
-### 3.9 Chinese Government Document Page Numbers (公文页码)
+### 3.9 Chinese Government Document Page Numbers (official-document page numbers)
 
 ```csharp
 // =============================================================================
-// CHINESE GOVERNMENT DOCUMENT PAGE NUMBERS (公文页码)
+// CHINESE GOVERNMENT DOCUMENT PAGE NUMBERS (official-document page numbers)
 // =============================================================================
 // Standard: bottom center, format "-X-" (em-dash surrounding page number)
-// Font: 宋体 (SimSun) 四号 (14pt = "28" half-points)
+// Font: SimSun at size 4 (14pt = "28" half-points)
 // Per GB/T 9704-2012
 
 var govFooterPart = mainPart.AddNewPart<FooterPart>();
@@ -1819,7 +1819,7 @@ var govFooterPara = new Paragraph(
         new Justification { Val = JustificationValues.Center })
 );
 
-// Run properties for 宋体四号
+// Run properties for SimSun at size 4
 RunProperties GovPageRunProps() => new RunProperties(
     new RunFonts
     {
@@ -1827,7 +1827,7 @@ RunProperties GovPageRunProps() => new RunProperties(
         HighAnsi = "SimSun",
         EastAsia = "SimSun"
     },
-    new FontSize { Val = "28" },           // 14pt = 四号
+    new FontSize { Val = "28" },           // 14pt = SimSun size 4
     new FontSizeComplexScript { Val = "28" }
 );
 
@@ -2817,4 +2817,4 @@ ConfigureDocumentSettings(doc);
 | Narrow | 720 | 720 | 720 | 720 |
 | Moderate | 1440 | 1440 | 1080 | 1080 |
 | Wide | 1440 | 1440 | 2880 | 2880 |
-| Chinese 公文 | 2098 | 1984 | 1588 | 1474 |
+| Chinese official document | 2098 | 1984 | 1588 | 1474 |

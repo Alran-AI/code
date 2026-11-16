@@ -1,8 +1,9 @@
 import type { Api, Model, StreamOptions } from "../types.ts";
 
 /**
- * 把 provider 捕获到的原始异常同步交给宿主。宿主回调属于观测旁路，
- * 即使自身抛错也不能替换 provider 原本的失败结果。
+ * Hands the original exception caught by the provider to the host synchronously.
+ * The host callback is an observation side channel; even if it throws, it must not
+ * replace the provider original failure result.
  */
 export function notifyProviderError(
 	callback: StreamOptions["onProviderError"],
@@ -12,7 +13,7 @@ export function notifyProviderError(
 	try {
 		callback?.(error, model);
 	} catch {
-		// 错误观测失败不能影响 provider 的错误处理流程。
+		// A failed error observation must not affect the provider error handling.
 	}
 }
 
@@ -26,7 +27,7 @@ export async function* observeProviderEvents<T>(
 		try {
 			callback(event, model);
 		} catch {
-			// 事件观测失败不能影响 provider stream。
+			// A failed event observation must not affect the provider stream.
 		}
 		yield event;
 	}

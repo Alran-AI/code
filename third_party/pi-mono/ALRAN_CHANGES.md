@@ -13,6 +13,14 @@ This directory vendors `pi-mono` as source so Alran can patch, validate, and shi
 
 No upstream source files are changed in the baseline import.
 
+### 2026-11-16 — translate the Chinese documentation of the provider error hook
+
+- Reason: this project is published as open source. The imported upstream tree carried Chinese-language documentation and test titles that were inherited from the code base this repository was derived from. The owner asked for the published source to carry no Chinese-language internal prose, so the documentation was translated to English.
+- Affected package: `packages/ai` (`@earendil-works/pi-ai`), `src/types.ts`, `src/utils/provider-error.ts`, `test/openai-completions-retry.test.ts`, `test/provider-error-hook.test.ts`. The JSDoc of `StreamOptions.onProviderError`, the module documentation of `notifyProviderError` and `observeProviderEvents`, the two inline comments of the error-observation paths, and the `describe` / `it` titles of the two provider-error test suites were translated.
+- Change type: documentation only. No identifier, signature, type, control flow, error message, or assertion changed. The Chinese test data that exercises CJK display width, line wrapping, IME input, word navigation, surrogate pairs and multi-byte truncation was deliberately left untouched, because those tests assert on the exact Chinese strings.
+- Upstream PR: not opened. The change is a translation of upstream comments and test titles; upstream may prefer to keep its own wording.
+- Validation: the vendored provider-error suites were run unchanged apart from their titles; `pnpm check:language` reports no Chinese outside the files that are allowed to carry it, and the allow list names every vendored file that keeps Chinese test data.
+
 ### 2026-10-28 — configurable text truncation limits for the read tool
 
 - Reason: a Alran `run_code` (PTC) child call hands its result to the program, not to the model context, so the host needs `read` to return a whole file for that caller, or exactly the `offset`/`limit` window it asked for. Pi hard-codes a 2000-line / 50KB head truncation inside `read`, which even an explicit `limit` cannot exceed, so a script paged the same data across many small calls.

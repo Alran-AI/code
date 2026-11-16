@@ -461,9 +461,9 @@ describe("TuiRuntimeAdapter product access", () => {
       projectAccountDisplayIdentity({
         userEmail: " dev@example.com ",
         userName: "Registered",
-        subUserName: "令酱",
+        subUserName: "Sam",
       }),
-    ).toEqual({ email: "dev@example.com", name: "令酱" });
+    ).toEqual({ email: "dev@example.com", name: "Sam" });
     expect(
       projectAccountDisplayIdentity({
         userName: "Registered",

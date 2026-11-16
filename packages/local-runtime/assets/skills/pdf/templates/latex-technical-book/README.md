@@ -8,11 +8,11 @@ report.
 
 Trigger examples:
 
-- “把这些 HTML/Markdown 章节做成一本技术书”
-- “中文技术书 LaTeX 模板”
-- “源码解析书 / 工程实践书 / 算法书排版”
-- “B5/16 开，目录、页眉页脚、代码块、引文框、结构图”
-- “O'Reilly 风格封面 / 动物封面 / 技术出版读物”
+- “Turn these HTML/Markdown chapters into a technical book”
+- “LaTeX template for a Chinese technical book”
+- “Typesetting for a source-code reading book / engineering practice book / algorithm book”
+- “B5/16-mo, with table of contents, headers and footers, code blocks, pull-quote boxes, and structure diagrams”
+- “O'Reilly-style cover / animal cover / technical publication”
 
 Do **not** use this for academic thesis formatting; use `templates/latex-academic-thesis/` and
 `docs/latex-academic-thesis-guide.md` instead.
@@ -28,7 +28,7 @@ Do **not** use this for academic thesis formatting; use `templates/latex-academi
 
 The scaffold includes:
 
-- B5 / 16 开 page size: `176mm × 250mm`.
+- B5 / 16-mo page size: `176mm × 250mm`.
 - O'Reilly-like framed cover with top/bottom red bars, optional animal illustration, publisher mark,
   and old-cover fallback command `\maketechbooktitleClassic` that is not used by default.
 - Clickable `hyperref` table of contents with black text and red number/page accents.

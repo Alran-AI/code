@@ -312,7 +312,7 @@ describe("Local Agent reference resolver integration", () => {
     ).resolves.toBe("authorized");
     await expect(
       projectLocalAgentReferencesForModel({
-        content: `请${reference}修复登录问题`,
+        content: `please ${reference} fix the login issue`,
         agentConfig: {
           agent_profile: {
             agent_role: "orchestrator",
@@ -326,7 +326,7 @@ describe("Local Agent reference resolver integration", () => {
             agentReferences.resolveDelegatable(requestRef),
         },
       }),
-    ).resolves.toBe("请通过 Task tool 调用 agent:coder Agent修复登录问题");
+    ).resolves.toBe("please Call the agent:coder Agent through the Task tool fix the login issue");
   });
 });
 
@@ -1697,20 +1697,20 @@ function registerAtomicDefinitionCreationTests(): void {
       root: { getRootSessionByAgent: vi.fn() },
       publish: published,
     });
-    const systemPrompt = "第一行。\n\n保留换行。\n";
+    const systemPrompt = "First line.\n\nKeep the newline.\n";
 
     const created = await application.createDefinition({
-      displayName: "测试删除",
+      displayName: "test delete",
       initialDefinition: {
-        name: "测试删除",
+        name: "test delete",
         description: "",
         model: "alran/Alran-M3",
-        alran: { displayName: "测试删除", avatar: PNG_DATA_URL },
+        alran: { displayName: "test delete", avatar: PNG_DATA_URL },
         systemPrompt,
       },
     });
 
-    expect(created).toMatchObject({ displayName: "测试删除" });
+    expect(created).toMatchObject({ displayName: "test delete" });
     expect(created.exactOwnerName).toMatch(/^agent-[a-f0-9]{12}$/u);
     expect(published).toHaveBeenCalledWith({
       type: "agent.created",
@@ -1724,9 +1724,9 @@ function registerAtomicDefinitionCreationTests(): void {
       exactOwnerName: created.exactOwnerName,
       configured: {
         name: created.exactOwnerName,
-        description: "测试删除",
+        description: "test delete",
         model: "alran/Alran-M3",
-        alran: { displayName: "测试删除", avatar: "./avatar.png" },
+        alran: { displayName: "test delete", avatar: "./avatar.png" },
         systemPrompt,
       },
     });
@@ -1737,12 +1737,12 @@ function registerAtomicDefinitionCreationTests(): void {
     ).resolves.toEqual(PNG_BYTES);
     await expect(
       application.createDefinition({
-        displayName: "测试删除",
+        displayName: "test delete",
         initialDefinition: {
-          name: "测试删除",
+          name: "test delete",
           description: "",
           model: "alran/Alran-M3",
-          alran: { displayName: "测试删除", avatar: PNG_DATA_URL },
+          alran: { displayName: "test delete", avatar: PNG_DATA_URL },
           systemPrompt,
         },
       }),
@@ -1758,12 +1758,12 @@ function registerAtomicDefinitionCreationTests(): void {
     });
     const input = {
       name: "desktop-writer",
-      displayName: "测试删除",
+      displayName: "test delete",
       initialDefinition: {
-        name: "测试删除",
+        name: "test delete",
         description: "",
         model: "alran/Alran-M3",
-        alran: { displayName: "测试删除" },
+        alran: { displayName: "test delete" },
         systemPrompt: "Keep the route owner.",
       },
     };
@@ -1776,7 +1776,7 @@ function registerAtomicDefinitionCreationTests(): void {
     ).resolves.toMatchObject({
       configured: {
         name: "desktop-writer",
-        description: "测试删除",
+        description: "test delete",
         model: "alran/Alran-M3",
       },
     });
@@ -1786,7 +1786,7 @@ function registerAtomicDefinitionCreationTests(): void {
     });
     await expect(
       application.createDefinition({
-        name: "测试删除",
+        name: "test delete",
         displayName: "Another display name",
         initialDefinition: {
           name: "presentation-only-name",

@@ -13,11 +13,15 @@ Generated launchers clear inherited sandbox, API/auth URL, client and scope over
 the host-owned shared-broker coordinates. This keeps Desktop and TUI on the artifact's baked
 business API profile while a lease is in use.
 
-## 内置资源与系统代理
+## Built-in resources and the system proxy
 
-系统代理发现和 Node fetch 初始化由新版 alran-tools CLI 自身承担。宿主只提供认证 Broker 和资源分发，
-不注入代理地址，也不复制 CLI 的业务域名映射。
+The system proxy discovery and the initialisation of the Node fetch are handled by the newer
+alran-tools CLI itself. The host only provides the authentication broker and the distribution of
+the resources; it injects no proxy address and does not copy the business domain mapping of the CLI.
 
-资源校验兼容旧 schema v3。schema v4 允许 CLI、registry-js 许可证和 Windows x64/arm64/ia32
-预编译文件，校验完整资源集合、SHA-256 并拒绝符号链接。`resource-manifest.mjs` 同时供运行时、
-Desktop/TUI 打包与产物验收使用；打包锁定 v4 manifest SHA-256，原生资源的锁定哈希也编入 CLI。
+The resource check stays compatible with the old schema v3. Schema v4 allows the CLI, the
+registry-js license and the prebuilt Windows x64/arm64/ia32 files; it verifies the complete set of
+resources and their SHA-256 and rejects symbolic links. `resource-manifest.mjs` is used by the
+runtime, by the Desktop/TUI packaging and by the acceptance of the build output; the packaging
+pins the SHA-256 of the v4 manifest, and the pinned hashes of the native resources are compiled
+into the CLI.

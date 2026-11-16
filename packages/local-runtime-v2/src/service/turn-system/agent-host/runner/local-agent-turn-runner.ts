@@ -563,7 +563,7 @@ function isSlowReview(startMs: number): boolean {
   return Date.now() - startMs >= SAFETY_REVIEW_SLOW_READ_MS;
 }
 
-/** 审核返回（或抛错）时看耗时：等了 15 秒以上先通知慢送审，再把是否慢交给调用方。 */
+/** Measures the elapsed time when the review returns (or throws): after 15 seconds, report the slow review first, then leave the "is it slow" decision to the caller. */
 function observeReviewElapsed(startMs: number, observeSlowReview: () => void): boolean {
   const slow = isSlowReview(startMs);
   if (slow) observeSlowReview();

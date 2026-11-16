@@ -1677,7 +1677,7 @@ function completed(method: "tool_archive" | "tool_trim" | "llm_checkpoint") {
     compactionId: `${method}-1`,
     strategyVersion: "context-compaction-v2",
     method,
-    ...(method === "llm_checkpoint" ? { summary: "checkpoint正文" } : {}),
+    ...(method === "llm_checkpoint" ? { summary: "checkpoint body" } : {}),
     ...(method !== "llm_checkpoint" ? { replacementSourceIndexes: [0] } : {}),
     replacementMessages: replacement,
     messagesBefore: 1,
@@ -1731,7 +1731,7 @@ describe("bounded compaction replacement metadata", () => {
       expect(JSON.stringify(decision.metadata)).not.toContain(
         "SENTINEL_REPLACEMENT_BODY",
       );
-      expect(JSON.stringify(decision.metadata)).not.toContain("checkpoint正文");
+      expect(JSON.stringify(decision.metadata)).not.toContain("checkpoint body");
     },
   );
 
@@ -1759,7 +1759,7 @@ describe("bounded compaction replacement metadata", () => {
       expect(JSON.stringify(change.metadata)).not.toContain(
         "SENTINEL_REPLACEMENT_BODY",
       );
-      expect(JSON.stringify(change.metadata)).not.toContain("checkpoint正文");
+      expect(JSON.stringify(change.metadata)).not.toContain("checkpoint body");
     },
   );
 
@@ -1785,7 +1785,7 @@ describe("bounded compaction replacement metadata", () => {
     });
     expect(
       JSON.stringify(readCompactionLifecycleMetadata(piMetadata)),
-    ).not.toContain("checkpoint正文");
+    ).not.toContain("checkpoint body");
   });
 
   it("carries an Hmid overflow recovery marker into durable lifecycle metadata", () => {
@@ -1800,7 +1800,7 @@ describe("bounded compaction replacement metadata", () => {
       method: "llm_checkpoint",
       hmidOverflowRecovered: true,
     });
-    expect(JSON.stringify(piMetadata)).not.toContain("checkpoint正文");
+    expect(JSON.stringify(piMetadata)).not.toContain("checkpoint body");
   });
 
   it.each(["tool_archive", "tool_trim"] as const)(

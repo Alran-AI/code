@@ -10,7 +10,8 @@
 
 - **EN keywords**: fill PDF form, acroform, form-fill, visa form, application form, tax form,
   official form, populate PDF form
-- **CN keywords**: 填表、填写表单、acroform、签证表、申请表、报税表、PDF 表单填写、自动填表
+- **CN keywords**: fill form, fill in the form, acroform, visa form, application form, tax form,
+  PDF form filling, auto-fill form
 - **Sample user asks**:
   - "Fill in the Italian visa application from my source documents. Leave blanks for missing data
     and tell me what is missing."

@@ -1,7 +1,7 @@
 import { accessSync, constants, statSync } from "node:fs";
 import { delimiter, extname, isAbsolute, join, resolve, sep } from "node:path";
 
-/** 查找可执行文件，不依赖外部 which 进程及其启动超时。 */
+/** Find an executable without depending on an external which process and its start-up timeout. */
 export function whichSync(
   bin: string,
   searchPath = process.env.PATH ?? "",

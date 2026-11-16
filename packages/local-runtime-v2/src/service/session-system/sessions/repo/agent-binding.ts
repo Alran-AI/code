@@ -16,7 +16,7 @@ interface FrozenAgentExecutionDefinitionBase {
      * Always present (releases up to v3.1.4 require it). With `selectorVersion`
      * 2 it is the Agent's own selector: `[]` = unrestricted, `[":none"]` = no
      * MCP. Older snapshots recorded the servers ready at capture and keep that
-     * meaning (`[]` = no MCP). See README "Desktop Local Agent 定义".
+     * meaning (`[]` = no MCP). See README "Desktop Local Agent Definition".
      */
     readonly mcpServers: readonly string[];
     readonly skills: readonly string[];
@@ -26,7 +26,7 @@ interface FrozenAgentExecutionDefinitionBase {
   }>;
 }
 
-/** The only selector version written today; see README "Desktop Local Agent 定义". */
+/** The only selector version written today; see README "Desktop Local Agent Definition". */
 type FrozenSelectorVersion = 2;
 
 /** V1 was written only for Task Sessions. Keep it decodable during the rollout. */

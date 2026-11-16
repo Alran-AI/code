@@ -31,7 +31,7 @@ The generation core that preserves old benchmark quality is:
 - `<skill_dir>/references/scenario_a_create.md`
 - `<skill_dir>/references/typography_guide.md`
 - `<skill_dir>/references/design_principles.md`
-- `<skill_dir>/references/cjk_typography.md` when CJK / 公文 / mixed-script quality matters
+- `<skill_dir>/references/cjk_typography.md` when CJK / official government document / mixed-script quality matters
 - `<skill_dir>/scripts/dotnet/AlranAIDocx.Core/Samples/AestheticRecipeSamples*.cs`
 
 These files are not optional background. They are the recipe layer. Pick a family from them before
@@ -53,7 +53,7 @@ Use this table first. Only read deeper references after you have a first-match f
 | --- | --- |
 | report / proposal / executive brief / polished business document | `ModernCorporate` or `ExecutiveBrief` |
 | thesis / paper / journal-like / academic deliverable | `AcademicThesis` or the nearest citation-style recipe |
-| 公文 / Chinese official / strong CJK formal output | `ChineseGovernment` + `cjk_typography.md` |
+| Official government document / Chinese official / strong CJK formal output | `ChineseGovernment` + `cjk_typography.md` |
 | branded but not institutionally templated document | nearest business recipe, then refine with `design_principles.md` |
 
 ## Style family / recipe selection
@@ -64,7 +64,7 @@ Choose the nearest recipe family before backend arbitration:
 | --- | --- |
 | business report / proposal / executive brief | `AestheticRecipeSamples` -> `ModernCorporate`, `ExecutiveBrief`, `MinimalModern`; spacing / page defaults from `typography_guide.md` |
 | academic paper / thesis / journal-like output | `AcademicThesis`, `APA`, `MLA`, `Chicago`, `Springer`, `Nature`; hierarchy and spacing from `design_principles.md` |
-| 公文 / Chinese institutional document / strong CJK output | `ChineseGovernment` + `cjk_typography.md` |
+| Official government document / Chinese institutional document / strong CJK output | `ChineseGovernment` + `cjk_typography.md` |
 | brand / house style without a structural template | nearest recipe family first, then refine with `design_principles.md` / `typography_guide.md` |
 
 If the user gives exact institutional formatting through a template DOCX, reconsider whether the real

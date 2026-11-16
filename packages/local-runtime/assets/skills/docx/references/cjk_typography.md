@@ -209,13 +209,13 @@ Chinese government document standard (党政机关公文格式). These are **str
 
 ```
 ┌─────────────────────────────────┐
-│     发文机关标志 (红头)           │  ← 小标宋 or 红色大字
+│     发文机关标志 (红头)           │  ← 小标宋 or large red characters
 │     ══════════════════ (红线)    │  ← Red #FF0000, 2pt
 ├─────────────────────────────────┤
 │  发文字号: X机发〔2025〕X号      │  ← 仿宋 三号, centered
 │                                 │
 │  标题 (Title)                   │  ← 小标宋 二号, centered
-│                                 │     可分多行，回行居中
+│                                 │     may span multiple lines; wrapped lines are centered
 │  主送机关:                      │  ← 仿宋 三号
 │                                 │
 │  正文 (Body)...                 │  ← 仿宋_GB2312 三号

@@ -84,8 +84,7 @@ Bundled skills (code review, deep research, documents, spreadsheets, slides, PDF
 
 User data lives in `~/.alran` (`ALRAN_DATA_DIR` overrides it). `ALRAN_API_BASE` (default
 `https://ai.ottili.one/v1`) and `OTTILI_PLATFORM_URL` (default `https://platform.ottili.one`) point
-at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly update hint. Coming
-from the upstream CLI or an early build: [migration guide](docs/MIGRATION_FROM_MINIMAX.md).
+at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly update hint.
 
 ### 4. Try it: build the pocket pet
 
@@ -280,6 +279,6 @@ For now, code and documentation pull requests are accepted only from repository 
 
 ## License
 
-Alran Code is derived from MiniMax Code (mcode). MiniMax Code is © 2026 MiniMax Code and licensed under the MIT License. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Alran Code includes MIT-licensed upstream material. The upstream copyright notice, its license text and the list of modifications are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 First-party code defaults to [MIT](LICENSE). Existing file-level and package-level licenses remain in place. See [third-party notices](THIRD_PARTY_NOTICES.md) and [license status](LICENSE-STATUS.md) for dependencies, assets, and `alran-tools`.

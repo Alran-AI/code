@@ -12,7 +12,7 @@ import {
   type PromptSuggestionPolicy,
 } from './prompt-suggestion-policy.js';
 
-const answer = (text = '补充两个测试案例'): AssistantMessage => ({
+const answer = (text = 'add two more test cases'): AssistantMessage => ({
   role: 'assistant',
   content: [{ type: 'text', text }],
   api: 'anthropic-messages',
@@ -78,13 +78,13 @@ function fixture(result = async () => answer()) {
       turnId: 't',
       phase: 'initial',
       scope: 'agent',
-      messages: [{ role: 'user', content: '修复这段代码', timestamp: 0 }],
+      messages: [{ role: 'user', content: 'fix this code', timestamp: 0 }],
       model,
       systemPrompt: 'original system',
       tools: [],
       thinkingLevel: 'off',
     },
-    finalAssistant: answer('修复完成'),
+    finalAssistant: answer('fix complete'),
     payloadFactory: () => async () => undefined,
   };
   const publish = vi.fn();
@@ -140,8 +140,8 @@ describe('live prompt suggestions', () => {
     expect(model).toBe(f.capture.prepared.model);
     expect(context.systemPrompt).toBeUndefined();
     expect(context.messages).toHaveLength(1);
-    expect(context.messages[0].content).toContain('<user>修复这段代码</user>');
-    expect(context.messages[0].content).toContain('<assistant>修复完成</assistant>');
+    expect(context.messages[0].content).toContain('<user>fix this code</user>');
+    expect(context.messages[0].content).toContain('<assistant>fix complete</assistant>');
     expect(options.maxTokens).toBeUndefined();
     expect(options.timeoutMs).toBe(LLM_REQUEST_TIMEOUT_MS);
     expect(options).toMatchObject({
@@ -170,7 +170,7 @@ describe('live prompt suggestions', () => {
         expect.objectContaining({ type: 'turn.prompt_suggestion.generated' }),
       ),
     );
-    expect(f.review).toHaveBeenCalledWith('补充两个测试案例');
+    expect(f.review).toHaveBeenCalledWith('add two more test cases');
     expect(
       f.publish.mock.calls.find(([event]) => event.type === 'turn.prompt_suggestion.generated')![0],
     ).toMatchObject({
@@ -178,7 +178,7 @@ describe('live prompt suggestions', () => {
       payload: {
         sessionId: 's',
         turnId: 't',
-        suggestion: '补充两个测试案例',
+        suggestion: 'add two more test cases',
         usage: { inputTokens: 1520, outputTokens: 12 },
       },
     });
@@ -357,7 +357,7 @@ describe('prompt suggestions validation and deadlines', () => {
     // Only the bounds every main request gets apply; the suggestion adds none.
     expect(options.timeoutMs).toBe(LLM_REQUEST_TIMEOUT_MS);
     expect(options.signal.aborted).toBe(false);
-    release(answer('补一个慢请求的回归测试'));
+    release(answer('add a regression test for a slow request'));
     await vi.waitFor(() =>
       expect(f.publish).toHaveBeenCalledWith(
         expect.objectContaining({ type: 'turn.prompt_suggestion.generated' }),
@@ -427,7 +427,7 @@ describe('prompt suggestions validation and deadlines', () => {
   });
   it('publishes a BYOK suggestion without review', async () => {
     const f = fixture();
-    // 审核若被调用就会拦下；BYOK 不应走到这里。
+    // The review would intercept the call if it ran; BYOK should never reach this point.
     f.review.mockResolvedValue(false);
     f.service.schedule('s', 't', { ...f.capture, contentReviewRequired: false });
     await vi.waitFor(() =>
@@ -460,7 +460,7 @@ describe('prompt suggestions validation and deadlines', () => {
     'No thanks.',
     'OK, thank you',
     '',
-    '修复这段代码！',
+    'fix this code!',
   ])('drops filler, empty output and repeated requests without retry: %s', async (text) => {
     const f = fixture(async () => answer(text));
     f.service.schedule('s', 't', f.capture);
@@ -475,7 +475,7 @@ describe('prompt suggestions validation and deadlines', () => {
       expect.objectContaining({ type: 'turn.prompt_suggestion.generated' }),
     );
   });
-  it.each(['不用抛异常，改为对空数组返回 NaN', '继续补齐空数组和非法输入的测试'])(
+  it.each(['do not throw an exception; return NaN for an empty array instead', 'continue adding tests for empty arrays and invalid input'])(
     'keeps concrete actions that contain conversational words: %s',
     async (text) => {
       const f = fixture(async () => answer(text));
@@ -493,7 +493,7 @@ describe('prompt suggestions validation and deadlines', () => {
 });
 
 describe('restoring a generated prompt suggestion', () => {
-  const generated = () => fixture(async () => answer('补一个失败路径的测试'));
+  const generated = () => fixture(async () => answer('add a test for the failure path'));
 
   it('restores a passed result with its version, timing and usage, and never calls the model', async () => {
     const f = generated();
@@ -509,7 +509,7 @@ describe('restoring a generated prompt suggestion', () => {
     const second = f.service.read('s', 't');
 
     expect(first).toMatchObject({
-      suggestion: '补一个失败路径的测试',
+      suggestion: 'add a test for the failure path',
       promptVersion: PROMPT_SUGGESTION_VERSION,
       status: 'ready',
     });
@@ -618,7 +618,7 @@ describe('restoring a generated prompt suggestion', () => {
         await new Promise<void>((resolve) => {
           release = resolve;
         });
-        return answer('补一个失败路径的测试');
+        return answer('add a test for the failure path');
       },
     }));
     f.service.schedule('s', 't', f.capture);
@@ -658,7 +658,7 @@ describe('versioned prompt suggestion policy', () => {
   });
 
   it('stops restoring an old result once the policy is updated to kill', async () => {
-    const f = fixture(async () => answer('补一个失败路径的测试'));
+    const f = fixture(async () => answer('add a test for the failure path'));
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() =>
       expect(f.publish).toHaveBeenCalledWith(
@@ -673,7 +673,7 @@ describe('versioned prompt suggestion policy', () => {
 
 describe('prompt suggestion structured logging', () => {
   it('records the version, elapsed time and usage for a generated result', async () => {
-    const f = fixture(async () => answer('补一个失败路径的测试'));
+    const f = fixture(async () => answer('add a test for the failure path'));
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() =>
       expect(f.publish).toHaveBeenCalledWith(
@@ -699,7 +699,7 @@ describe('prompt suggestion structured logging', () => {
     );
     expect(rejected.review).not.toHaveBeenCalled();
 
-    const blocked = fixture(async () => answer('补一个失败路径的测试'));
+    const blocked = fixture(async () => answer('add a test for the failure path'));
     blocked.review.mockResolvedValue(false);
     blocked.service.schedule('s', 't', blocked.capture);
     await vi.waitFor(() =>
@@ -710,7 +710,7 @@ describe('prompt suggestion structured logging', () => {
   });
 
   it('never records the prompt or the produced text in a log line', async () => {
-    const text = '补一个失败路径的测试';
+    const text = 'add a test for the failure path';
     const f = fixture(async () => answer(text));
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() =>
@@ -835,7 +835,7 @@ function recentFixture(result: () => Promise<AssistantMessage>, mainInputTokens 
       messages: [
         {
           role: 'user',
-          content: '修复这个 bug 并跑测试<system-reminder>internal</system-reminder>',
+          content: 'fix this bug and run the tests<system-reminder>internal</system-reminder>',
           timestamp: 0,
         },
         replyWith(
@@ -857,7 +857,7 @@ function recentFixture(result: () => Promise<AssistantMessage>, mainInputTokens 
       thinkingLevel: 'off',
     },
     finalAssistant: replyWith(
-      [{ type: 'text', text: '已修复，测试还没跑。' }],
+      [{ type: 'text', text: 'Fixed, but the tests have not run yet.' }],
       'stop',
       mainInputTokens,
     ),
@@ -881,7 +881,7 @@ const publishedSuggestions = (publish: ReturnType<typeof vi.fn>) =>
 
 describe('suggestion request built from the recent conversation', () => {
   it('sends one small user message: no system prompt, no tools, no tool output, no output cap', async () => {
-    const f = recentFixture(async () => replyWith([{ type: 'text', text: '运行测试并汇报结果' }]));
+    const f = recentFixture(async () => replyWith([{ type: 'text', text: 'run the tests and report the results' }]));
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() => expect(f.stream).toHaveBeenCalledOnce());
     const [model, context, options] = f.stream.mock.calls[0]!;
@@ -890,8 +890,8 @@ describe('suggestion request built from the recent conversation', () => {
     expect(context.tools).toBeUndefined();
     expect(context.messages).toHaveLength(1);
     const prompt = context.messages[0].content as string;
-    expect(prompt).toContain('<user>修复这个 bug 并跑测试</user>');
-    expect(prompt).toContain('<assistant>已修复，测试还没跑。</assistant>');
+    expect(prompt).toContain('<user>fix this bug and run the tests</user>');
+    expect(prompt).toContain('<assistant>Fixed, but the tests have not run yet.</assistant>');
     expect(prompt).not.toContain('TOOL_OUTPUT_SHOULD_NOT_APPEAR');
     expect(prompt).not.toContain('internal');
     expect(prompt.endsWith(promptSuggestionInstruction(PROMPT_SUGGESTION_VERSION))).toBe(true);
@@ -908,7 +908,7 @@ describe('suggestion request built from the recent conversation', () => {
     ['low', 'low'],
     ['off', undefined],
   ] as const)('follows the main Turn thinking level %s', async (level, reasoning) => {
-    const f = recentFixture(async () => replyWith([{ type: 'text', text: '运行测试并汇报结果' }]));
+    const f = recentFixture(async () => replyWith([{ type: 'text', text: 'run the tests and report the results' }]));
     f.capture = { ...f.capture, prepared: { ...f.capture.prepared, thinkingLevel: level } };
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() => expect(f.stream).toHaveBeenCalledOnce());
@@ -917,7 +917,7 @@ describe('suggestion request built from the recent conversation', () => {
 
   it('no longer skips a Turn whose main request read a large prompt', async () => {
     const f = recentFixture(
-      async () => replyWith([{ type: 'text', text: '运行测试并汇报结果' }]),
+      async () => replyWith([{ type: 'text', text: 'run the tests and report the results' }]),
       200_000,
     );
     f.service.schedule('s', 't', f.capture);
@@ -930,19 +930,19 @@ describe('reply from a model that keeps thinking on (forced_on)', () => {
   it('publishes the text and ignores the thinking block', async () => {
     const f = recentFixture(async () =>
       replyWith([
-        { type: 'thinking', thinking: '用户下一步应该是跑测试', thinkingSignature: 'sig' },
-        { type: 'text', text: '运行测试并汇报结果' },
+        { type: 'thinking', thinking: 'the user should run the tests next', thinkingSignature: 'sig' },
+        { type: 'text', text: 'run the tests and report the results' },
       ]),
     );
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() => expect(publishedSuggestions(f.publish)).toHaveLength(1));
-    expect(publishedSuggestions(f.publish)[0]![0].payload.suggestion).toBe('运行测试并汇报结果');
+    expect(publishedSuggestions(f.publish)[0]![0].payload.suggestion).toBe('run the tests and report the results');
   });
 
   it('still drops a reply that requests a tool', async () => {
     const f = recentFixture(async () =>
       replyWith([
-        { type: 'text', text: '运行测试' },
+        { type: 'text', text: 'run the tests' },
         { type: 'toolCall', id: 'x', name: 'bash', arguments: {} },
       ]),
     );
@@ -971,7 +971,7 @@ describe('abstention written as text', () => {
 
   it('keeps a real suggestion that merely contains brackets', async () => {
     const f = recentFixture(async () =>
-      replyWith([{ type: 'text', text: '把 (a, b) 两个参数的校验补上' }]),
+      replyWith([{ type: 'text', text: 'add validation for the two parameters (a, b)' }]),
     );
     f.service.schedule('s', 't', f.capture);
     await vi.waitFor(() => expect(publishedSuggestions(f.publish)).toHaveLength(1));
@@ -1020,7 +1020,7 @@ describe('terminal facts carried for analytics', () => {
       elapsedMs: expect.any(Number),
       usage: { inputTokens: 1520, outputTokens: 12 },
     });
-    expect(JSON.stringify(f.publish.mock.calls)).not.toContain('补充两个测试案例');
+    expect(JSON.stringify(f.publish.mock.calls)).not.toContain('add two more test cases');
   });
 
   it.each([

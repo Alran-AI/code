@@ -361,7 +361,7 @@ body {
 - `border-collapse: collapse`, zebra `nth-child(even)` row, `padding: 7px 10px`.
 - `page-break-inside: avoid` on small tables; for large tables, allow split
   but repeat headers via `<thead>`.
-- **Use half-width punctuation inside cells** (`()`、`:`、`/`). Full-width
+- **Use half-width punctuation inside cells** (`()`, `:`, `/`). Full-width
   CJK punctuation forces line-wrap in narrow columns.
 - Status badges go in their own column with one of the 5 `pill-*` classes.
 
@@ -380,7 +380,7 @@ body {
 - **Don't fake superscripts with HTML entities.** `3nm⊃2;` (intent: `3nm²`)
   prints the literal `⊃2;`. Paste real unicode: `²` `³` `⁺` `⁻` `™` `°` `µ`.
 - **Never use full-width / CJK quotes in HTML or CSS syntax.** Editors that
-  default to 中文标点 will silently turn `"` into `“ ”` and `'` into `‘ ’`,
+  default to Chinese punctuation will silently turn `"` into `“ ”` and `'` into `‘ ’`,
   producing invalid markup that Chromium parses as a malformed attribute /
   selector. Symptoms: attributes get dropped (`class=` becomes inert),
   `font-family` falls back, charts won't render. Always type ASCII

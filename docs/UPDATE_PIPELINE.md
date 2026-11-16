@@ -33,7 +33,7 @@ one-line hint when a newer version exists. `ALRAN_NO_UPDATE_CHECK=1` and `CI` sw
 
 1. Bump `version` in `package.json` and `packages/tui/package.json` (the line stays on 0.x until the
    release is final), commit, tag `vX.Y.Z` on `main`.
-2. `pnpm install --frozen-lockfile && pnpm verify` (all gates, including `lint:no-minimax` and
+2. `pnpm install --frozen-lockfile && pnpm verify` (all gates, including `lint:brand` and
    `license-check`).
 3. `pnpm build && pnpm release:npm-dry-run --pack ./out` — prints the file list, size, legal files and
    dependencies, and writes `./out/alran-X.Y.Z.tgz`.

@@ -1,8 +1,9 @@
 # LaTeX Academic Thesis Template
 
-Compact scaffold for Chinese undergraduate / graduate theses (本科毕业论文,
-硕士论文). All structural components are present with minimal content so the
-agent can substitute real content without re-engineering the formatting.
+Compact scaffold for Chinese undergraduate / graduate theses (undergraduate
+thesis, master's thesis). All structural components are present with minimal
+content so the agent can substitute real content without re-engineering the
+formatting.
 
 ## When to use this template
 
@@ -58,14 +59,14 @@ xelatex main.tex && bibtex main && xelatex main.tex && xelatex main.tex
 ## Merge cover PDF (if cover is external)
 
 ```bash
-# 封面 PDF（封面1页在前） + 正文 PDF（全部页面在后）
+# Cover PDF (cover 1 page first) + body PDF (all pages after)
 qpdf --empty --pages cover_page.pdf 1-z body.pdf 1-z -- final_output.pdf
 pdfinfo final_output.pdf | grep Pages
 ```
 
 ## Common patterns from this template
 
-### Heading with correct spacing (南理工 spec)
+### Heading with correct spacing (NUST spec)
 
 ```latex
 \ctexset{
@@ -122,7 +123,7 @@ pdfinfo final_output.pdf | grep Pages
     t_{latency} = t_{switch} - t_{wakeup}
     \label{eq:sched-latency}
 \end{equation}
-% Reference: 式\eqref{eq:sched-latency}
+% Reference: Equation \eqref{eq:sched-latency}
 ```
 
 ### GB/T 7714-2015 bibliography

@@ -33,7 +33,7 @@ When the user asks to revise or update a page, edit the existing HTML file direc
 
 **Aesthetics is the goal, not decoration.** A page that "works" but looks cheap is a failure. The reader's eyes judge in 2 seconds before reading a single word. Treat beauty as a non-negotiable requirement equal to data correctness.
 
-**图表先行，文字辅助。** Charts, diagrams, and illustrations are the PRIMARY communication tool — they let readers grasp the point in seconds. Text exists to annotate details that visuals can't convey alone. When building a page, start from "what chart/diagram tells this story?" not "what paragraphs explain this?" If a section has 3+ paragraphs without a visual, you're doing it wrong — find the chart, flow, or illustration that replaces most of that text.
+**Charts first, text second.** Charts, diagrams, and illustrations are the PRIMARY communication tool — they let readers grasp the point in seconds. Text exists to annotate details that visuals can't convey alone. When building a page, start from "what chart/diagram tells this story?" not "what paragraphs explain this?" If a section has 3+ paragraphs without a visual, you're doing it wrong — find the chart, flow, or illustration that replaces most of that text.
 
 **Design for the reader.** You are guiding a human eye, not displaying your work. One H1, one core conclusion, F-pattern scanning. Empty space is a feature. Charts and inline SVG beat dense paragraphs for any structured comparison or hierarchy.
 

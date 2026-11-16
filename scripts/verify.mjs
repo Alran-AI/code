@@ -42,7 +42,8 @@ const steps = [
   { name: "check:tsconfig", script: "check:tsconfig", docs: true, windows: true },
   // No upstream name outside legal attribution and marked compatibility code; legal files and
   // dependency licenses complete.
-  { name: "lint:no-minimax", script: "lint:no-minimax", docs: true, windows: true },
+  { name: "lint:brand", script: "lint:brand", docs: true, windows: true },
+  { name: "check:language", script: "check:language", docs: true, windows: true },
   { name: "license-check", script: "license-check", docs: true, windows: true },
   { name: "test:gates", script: "test:gates", docs: true, windows: true },
   {

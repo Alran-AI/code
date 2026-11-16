@@ -35,7 +35,7 @@ Labels, used independently: type (`bug`, `enhancement`, `documentation`, `questi
 - Keep third-party license text and notices intact; `pnpm license-check` fails when a nested upstream
   license loses its original copyright line.
 - The names of the upstream code base appear only in the legal files and in the marked compatibility
-  shims (`pnpm lint:no-minimax`).
+  shims (`pnpm lint:brand`).
 
 ## Releases
 

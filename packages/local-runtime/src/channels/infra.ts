@@ -1623,7 +1623,7 @@ export class LocalChannelBridgeInfra {
   // [Hidden this release] /btw is unsupported. The parser treats it as an ordinary LLM message,
   // and the registry has no btw entry. Retain the dormant logic. To restore it, add 'btw' back to
   // LOCAL_CHANNEL_SLASH_COMMANDS and restore the registry entry.
-  // `btw: (c, cmd, l) => this.handleBtwCommand(c, cmd, l)`。
+  // `btw: (c, cmd, l) => this.handleBtwCommand(c, cmd, l)`.
   private async handleBtwCommand(
     ctx: LocalChannelContext,
     command: LocalChannelSlashCommand,

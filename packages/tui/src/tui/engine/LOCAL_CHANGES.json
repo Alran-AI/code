@@ -21,8 +21,8 @@
         "L032"
       ],
       "upstreamCommit": "b37ebb7f22ec1a8fbf882366dc20ae6d6010a6e2",
-      "reason": "Contain fd child stdout and stderr stream failures at the autocomplete owner and order nested matches after shallower same-score matches. 提供方通过上下文回调控制自动触发，并通过 applyOnEnter 控制 Enter 是否填入候选。 命令参数候选标记阶段，接受命令后续查参数，并隔离参数回调失败。",
-      "behaviorImpact": "A failed background file-autocomplete scan returns no suggestions while the active Alran session remains usable, and direct paths remain visible when recursive results are abundant. Shell 补全只由 Tab 打开，菜单内输入继续过滤；Enter 执行当前输入，Tab 填入选中项。其他提供方沿用默认行为。 带参数候选的命令支持连续补全，参数 Enter 仅填入，Esc 保留草稿；无参数命令保持原行为。"
+      "reason": "Contain fd child stdout and stderr stream failures at the autocomplete owner and order nested matches after shallower same-score matches. The provider controls the automatic trigger through the context callback and uses applyOnEnter to control whether Enter fills in a candidate. While the candidates for the command arguments are marked, the accepted command is looked up for further arguments and the failures of the argument callbacks are isolated.",
+      "behaviorImpact": "A failed background file-autocomplete scan returns no suggestions while the active Alran session remains usable, and direct paths remain visible when recursive results are abundant. The shell completion is opened with Tab only; typing inside the menu keeps filtering;Enter runs the current input, Tab fills in the selected entry.The other providers keep the default behavior. A command with argument candidates supports continuous completion; Enter on an argument only fills it in, Esc keeps the draft;A command without arguments keeps its previous behavior."
     },
     {
       "path": "components/editor.ts",
@@ -35,8 +35,8 @@
         "L032",
         "L042"
       ],
-      "reason": "Preserve product history metadata through a generic text transform and draft extension state. Keep strict TypeScript fixes and add the smallest generic snapshot, paste, telemetry, programmatic submission, undo-extension and empty-placeholder hooks needed by the Alran product wrapper. 提供方通过上下文回调控制自动触发，并通过 applyOnEnter 控制 Enter 是否填入候选。 强制补全上下文失效时立即取消请求并清空菜单。 支持单帧 placeholder 覆盖，由 Editor 统一保留 padding、可见光标和 IME 定位标记。 命令参数候选标记阶段，接受命令后续查参数，并隔离参数回调失败。",
-      "behaviorImpact": "Alran Draft, attachment, product-level submission-intent and empty-input guidance semantics use the canonical Pi Editor cursor, width, padding, history, undo, paste-marker and autocomplete behavior. Shell 补全只由 Tab 打开，菜单内输入继续过滤；Enter 执行当前输入，Tab 填入选中项。其他提供方沿用默认行为。 删除 Shell 标记或命令名前缀后立即关闭候选；已取消请求的延迟结果无法恢复旧菜单。 带参数候选的命令支持连续补全，参数 Enter 仅填入，Esc 保留草稿；无参数命令保持原行为。"
+      "reason": "Preserve product history metadata through a generic text transform and draft extension state. Keep strict TypeScript fixes and add the smallest generic snapshot, paste, telemetry, programmatic submission, undo-extension and empty-placeholder hooks needed by the Alran product wrapper. The provider controls the automatic trigger through the context callback and uses applyOnEnter to control whether Enter fills in a candidate. When the forced completion context becomes invalid, the request is cancelled immediately and the menu is cleared. A single-frame placeholder override is supported; the Editor keeps the padding, the visible cursor and the IME position markers in one place. While the candidates for the command arguments are marked, the accepted command is looked up for further arguments and the failures of the argument callbacks are isolated.",
+      "behaviorImpact": "Alran Draft, attachment, product-level submission-intent and empty-input guidance semantics use the canonical Pi Editor cursor, width, padding, history, undo, paste-marker and autocomplete behavior. The shell completion is opened with Tab only; typing inside the menu keeps filtering;Enter runs the current input, Tab fills in the selected entry.The other providers keep the default behavior. The candidates close immediately when the shell marker or the command name prefix is deleted;The delayed result of a cancelled request cannot restore the old menu. A command with argument candidates supports continuous completion; Enter on an argument only fills it in, Esc keeps the draft;A command without arguments keeps its previous behavior."
     },
     {
       "path": "components/input.ts",
@@ -67,8 +67,8 @@
         "L026",
         "L045"
       ],
-      "reason": "Keep strict TypeScript fixes and product Markdown hooks, plus Pi's post-baseline wrapped-table style restoration. 链接标签使用独立样式上下文，防止外层正文或标题颜色覆盖链接颜色。 稳定 Markdown 块缓存",
-      "behaviorImpact": "Alran keeps its compact code presentation without reimplementing Pi Markdown or leaking wrapped link styles into table borders and adjacent cells. 链接保留嵌套强调与行内代码，并在结束后恢复外层样式。 保留两个尾部块并对引用回退全文。"
+      "reason": "Keep strict TypeScript fixes and product Markdown hooks, plus Pi's post-baseline wrapped-table style restoration. Link labels use their own style context, so the colour of the surrounding text or heading cannot override the link colour. Stabilise the Markdown block cache",
+      "behaviorImpact": "Alran keeps its compact code presentation without reimplementing Pi Markdown or leaking wrapped link styles into table borders and adjacent cells. Links keep nested emphasis and inline code and restore the outer style when they end. Keep the two trailing blocks and fall back to the full text for a reference."
     },
     {
       "path": "components/scroll-view.ts",
@@ -132,8 +132,8 @@
       "changeIds": [
         "L024"
       ],
-      "reason": "登记 /btw 侧会话快捷键所需的最小兼容改动：传统终端将 Ctrl+/ 编码为与 Ctrl+_ 相同的 0x1F。",
-      "behaviorImpact": "传统终端可匹配 Ctrl+/；kitty 和 modifyOtherKeys 终端继续使用可区分的键序列。"
+      "reason": "Register the minimal compatibility change the /btw side-session shortcut needs: traditional terminals encode Ctrl+/ as 0x1F, the same as Ctrl+_.",
+      "behaviorImpact": "A traditional terminal can match Ctrl+/;kitty and modifyOtherKeys terminals keep using a distinguishable key sequence."
     },
     {
       "path": "latex.ts",
@@ -213,8 +213,8 @@
         "L044",
         "L051"
       ],
-      "reason": "Use the package-aware native module resolver for Windows virtual-terminal input initialization. 终端焦点报告生命周期 Preserve ordered asynchronous terminal output under POSIX TTY backpressure.",
-      "behaviorImpact": "Packaged Windows builds retain modified-key escape sequences such as Shift+Tab instead of silently falling back to plain keys. 焦点报告转发给 Host，cmux 抑制策略仍归 Host。 Slow terminal output does not block input; pending frames coalesce and terminal handoffs drain ordered output."
+      "reason": "Use the package-aware native module resolver for Windows virtual-terminal input initialization. Terminal focus reporting lifecycle Preserve ordered asynchronous terminal output under POSIX TTY backpressure.",
+      "behaviorImpact": "Packaged Windows builds retain modified-key escape sequences such as Shift+Tab instead of silently falling back to plain keys. The focus report is forwarded to the Host; the cmux suppression policy stays with the Host. Slow terminal output does not block input; pending frames coalesce and terminal handoffs drain ordered output."
     },
     {
       "path": "tui-alt-screen.ts",
@@ -229,8 +229,8 @@
         "L035"
       ],
       "upstreamCommit": "4e494929998d6bc4fccf75e0a233f727db4b70ee,1ac6128e66bd44668b58db773c2a76c29163ade5",
-      "reason": "Keep strict TypeScript fixes and layout-first mouse dispatch, join path and kebab-case word segments, and expose configurable fullscreen selection copying helpers. 活动搜索索引与命中复用 独立面板声明键盘分页归属。 Reserve scrollbar hit targets for gutter columns and support track jumps and thumb dragging.",
-      "behaviorImpact": "Fullscreen product interaction clicks and Pi-owned text selection coexist; double-click selects complete path-like tokens, and hosts can disable automatic copy or copy an active selection explicitly. 搜索交互复用索引。 handlesViewportKeys 为 true 时，fullscreen 分页交给焦点面板；默认仍由外层视口处理。 Fullscreen track presses jump and drag without consuming adjacent content; visible overlays cancel active scrollbar drags."
+      "reason": "Keep strict TypeScript fixes and layout-first mouse dispatch, join path and kebab-case word segments, and expose configurable fullscreen selection copying helpers. The active search index and its hits are reused An independent panel declares the ownership of the keyboard paging. Reserve scrollbar hit targets for gutter columns and support track jumps and thumb dragging.",
+      "behaviorImpact": "Fullscreen product interaction clicks and Pi-owned text selection coexist; double-click selects complete path-like tokens, and hosts can disable automatic copy or copy an active selection explicitly. The search interaction reuses the index. When handlesViewportKeys is true, the fullscreen paging is handed to the focused panel;By default the outer viewport still handles it. Fullscreen track presses jump and drag without consuming adjacent content; visible overlays cancel active scrollbar drags."
     },
     {
       "path": "tui-main-screen.ts",
@@ -252,7 +252,7 @@
         "L051"
       ],
       "upstreamCommit": "6c4f360264397c59801f6da2bdac13e3b1fcbe91",
-      "reason": "Keep strict TypeScript fixes and stream full and differential renders through Pi's bounded terminal writer. 缩放期间仅重绘可见尾部 常规模式在差分比较前剥离行首 OSC 133 zone 标记。 内容收缩或历史内容变化触发回退重绘时仅更新可见区域。 Preserve ordered asynchronous terminal output under POSIX TTY backpressure. Defer history reconstruction without recent user input until the next key. Truncate an over-wide row at its rightmost column instead of wrapping it when the terminal draws a grapheme cluster wider than visibleWidth() reports (ZWJ emoji in VS Code), so differential redraws no longer drift down a row per frame.",
+      "reason": "Keep strict TypeScript fixes and stream full and differential renders through Pi's bounded terminal writer. During a resize only the visible tail is redrawn In regular mode the leading OSC 133 zone markers are stripped before the differential comparison. When the content shrinks or the history changes and a fallback redraw is triggered, only the visible area is updated. Preserve ordered asynchronous terminal output under POSIX TTY backpressure. Defer history reconstruction without recent user input until the next key. Truncate an over-wide row at its rightmost column instead of wrapping it when the terminal draws a grapheme cluster wider than visibleWidth() reports (ZWJ emoji in VS Code), so differential redraws no longer drift down a row per frame.",
       "behaviorImpact": "Regular viewport redraws erase rows in place so hosts that save an erased screen to scrollback do not retain stale transcript or footer rows. Visible text-only shrink with unchanged historical text temporarily pads the active screen to preserve host scrolling and the input position; later output reuses this space. Historical text replacement or removal reconstructs the session to avoid stale or duplicate history; without recent user input the screen is repainted in place first and the reconstruction waits for the next key. Rebuilding clears pre-launch shell scrollback. Genuine resize retains delayed history replay; redundant same-size notifications are ignored. Slow terminal output does not block input; pending frames coalesce and terminal handoffs drain ordered output. A scrolled-up reader stays in place when a transient layout shrinks, historical text changes or the document shrinks without user input; the reconstruction runs after the next key, a resize replay or at stop."
     },
     {
@@ -272,8 +272,8 @@
         "L047",
         "L051"
       ],
-      "reason": "Keep strict TypeScript fixes, expose Pi's existing immediate scheduler as a non-destructive product interaction contract, dispatch the input left over after terminal color sequences are removed, and coalesce synchronous submission renders. 提供 resize hook 及焦点输入过滤 独立面板声明键盘分页归属。 Preserve ordered asynchronous terminal output under POSIX TTY backpressure. Report user-originated input to the renderer.",
-      "behaviorImpact": "Urgent product interactions render immediately without resetting differential state or clearing native scrollback, and a coalesced color answer no longer discards the keystrokes sharing its chunk. A synchronous submission frame dismisses the previous interrupted footer without a second input render. 焦点先交给 viewport listener，不进入编辑器。 handlesViewportKeys 为 true 时，fullscreen 分页交给焦点面板；默认仍由外层视口处理。 Slow terminal output does not block input; pending frames coalesce and terminal handoffs drain ordered output. Key and paste input, parsed apart from terminal reports in the same chunk, lets the regular renderer run deferred history reconstruction."
+      "reason": "Keep strict TypeScript fixes, expose Pi's existing immediate scheduler as a non-destructive product interaction contract, dispatch the input left over after terminal color sequences are removed, and coalesce synchronous submission renders. Provide a resize hook and a focused input filter An independent panel declares the ownership of the keyboard paging. Preserve ordered asynchronous terminal output under POSIX TTY backpressure. Report user-originated input to the renderer.",
+      "behaviorImpact": "Urgent product interactions render immediately without resetting differential state or clearing native scrollback, and a coalesced color answer no longer discards the keystrokes sharing its chunk. A synchronous submission frame dismisses the previous interrupted footer without a second input render. The focus goes to the viewport listener first and does not reach the editor. When handlesViewportKeys is true, the fullscreen paging is handed to the focused panel;By default the outer viewport still handles it. Slow terminal output does not block input; pending frames coalesce and terminal handoffs drain ordered output. Key and paste input, parsed apart from terminal reports in the same chunk, lets the regular renderer run deferred history reconstruction."
     },
     {
       "path": "utils.ts",
@@ -303,8 +303,8 @@
         "L025"
       ],
       "currentSha256": "5d4a8f5434bebe91e2fd01700bb331807ee9b9107ad96c33b730f663fae1e063",
-      "reason": "活动搜索索引与命中复用",
-      "behaviorImpact": "内容或宽度变化失效，避免重复 Unicode 映射。"
+      "reason": "The active search index and its hits are reused",
+      "behaviorImpact": "It is invalidated when the content or the width changes, which avoids a repeated Unicode mapping."
     },
     {
       "path": "ui-env.ts",

@@ -58,7 +58,7 @@ export function evaluateLocalPermissionCheck(
 }
 
 /**
- * Reasons that survive bypassPermissions ('始终允许'). Keep narrow:
+ * Reasons that survive bypassPermissions ('always allow'). Keep narrow:
  *
  *   1. UNC / SMB share access — desktop runtime supports local filesystem access only
  *      and must never let the agent talk to network shares directly.

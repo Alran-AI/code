@@ -1,139 +1,139 @@
-# When to Bundle Scripts — 何时建脚本 vs 用其他机制
+# When to Bundle Scripts — when to write a script vs. use another mechanism
 
-> 一个常见错误是"看到能写脚本就写脚本"。Alran 已经有多种机制处理不同类型的工作；先判断**这件事本质上是什么**，再决定用什么。
+> A common mistake is "see something a script could do, so write a script". Alran already has several mechanisms for different kinds of work; decide what the task fundamentally is first, then pick the mechanism.
 
-## 决策树
+## Decision tree
 
 ```
-有一个动作要在 skill 里反复执行 →
+Is there an action the skill must run repeatedly →
 │
-├─ 这是确定性的本地计算（无需 LLM 判断）？
-│   ├─ 是 → 写 Node.js 脚本（放 scripts/）
-│   └─ 否 → 继续往下
+├─ Is it deterministic local computation (no LLM judgment needed)?
+│   ├─ Yes → write a Node.js script (put it in scripts/)
+│   └─ No  → continue down
 │
-├─ Alran 原生 tool 已经支持了？
-│   ├─ 是 → 直接调用对应 tool（`alran` / `skill` 等），不写脚本
-│   └─ 否 → 继续往下
+├─ Does an Alran native tool already handle it?
+│   ├─ Yes → call that tool directly (`alran` / `skill`, etc.), no script
+│   └─ No  → continue down
 │
-├─ 涉及多 agent 协作 / 评审 / 对比？
-│   ├─ 是 → 用后台 Task 子代理（subagent），在 SKILL.md procedure 里描述分工
-│   └─ 否 → 继续往下
+├─ Does it involve multi-agent collaboration / review / comparison?
+│   ├─ Yes → use a background Task subagent, describe the split in the SKILL.md procedure
+│   └─ No  → continue down
 │
-├─ 涉及跨 session 状态传递？
-│   ├─ 是 → 用 scratchpad（不写文件）
-│   └─ 否 → 继续往下
+├─ Does it involve passing state across sessions?
+│   ├─ Yes → use the scratchpad (no file written)
+│   └─ No  → continue down
 │
-└─ 是判断性 / 创造性工作？
-    └─ 让 LLM 在 SKILL.md 的 procedure 里直接做，不用脚本
+└─ Is it judgment / creative work?
+    └─ Let the LLM do it directly in the SKILL.md procedure, no script
 ```
 
-## 各类工作对应的机制
+## Which mechanism fits which kind of work
 
-### 用脚本（scripts/*.js）
+### Use a script (scripts/*.js)
 
-适合：**纯本地确定性计算 / 校验 / 格式化**
+Fits: **purely local deterministic computation / validation / formatting**
 
-例：
-- `lint-skill.js` — 校验 SKILL.md 格式、frontmatter
-- 文件解析、统计、转换
+Examples:
+- `lint-skill.js` — validates the SKILL.md format and frontmatter
+- File parsing, counting, conversion
 
-**判断标准**：跑同样输入永远得同样输出，不需要 LLM 介入。
+**Test**: the same input always produces the same output, with no LLM involved.
 
-**约束**：用 Node.js + 内置 fs，禁止依赖第三方 npm 包。
+**Constraint**: use Node.js and the built-in fs, no third-party npm packages.
 
-### 用 Alran 原生 tool
+### Use an Alran native tool
 
-适合：**Alran 已封装的能力**
+Fits: **capabilities Alran already wraps**
 
-例：
-- 列已有 skill → 看 context 里的 `<available_skills>` 块
-- 看 session 状态 → `alran({ command: "session list" })`
-- 管理定时任务 → `alran({ command: "cron list" })`
+Examples:
+- List existing skills → read the `<available_skills>` block in context
+- Check session state → `alran({ command: "session list" })`
+- Manage scheduled tasks → `alran({ command: "cron list" })`
 
-**判断标准**：动作是否已经是 Alran 的标准 API。是的话直接调用，不要包脚本。
+**Test**: whether the action is already a standard Alran API. If it is, call it directly instead of wrapping it in a script.
 
-### 用后台 Task 子代理
+### Use a background Task subagent
 
-适合：**多 agent 协作 / 对比评审 / 需要 verify 闭环**（task 工具 + `run_in_background: true`；前台 task 调用是顺序阻塞的，后台才能真正并行）
+Fits: **multi-agent collaboration / comparative review / a verify loop** (the task tool with `run_in_background: true`; a foreground task call blocks in sequence, only a background call runs truly in parallel)
 
-例：
-- skill 评测：producer / baseline 两个后台子代理并行跑 + 主 session 自己写 compare
-- 多角度审查：3 个 reviewer 并发独立审一个文档
+Examples:
+- Skill evaluation: a producer / baseline pair of background subagents running in parallel, with the main session writing the comparison
+- Multi-angle review: 3 reviewers checking one document independently and concurrently
 
-**判断标准**：动作是否需要"派活给多个 worker + 等结果 + 汇总"。是的话在 SKILL.md procedure 里用后台 Task 子代理表达，不要在脚本里手动编排。
+**Test**: whether the action means "assign work to several workers, wait for results, then summarize". If it does, express it as background Task subagents in the SKILL.md procedure; do not orchestrate workers by hand inside a script.
 
-### 用 scratchpad
+### Use the scratchpad
 
-适合：**跨 session 信息传递**
+Fits: **passing information across sessions**
 
-例：
-- skill iterate 过程中 cycle N 的反馈传给 cycle N+1
-- 多个 worker 共享中间状态
+Examples:
+- Feedback from cycle N of a skill iteration is passed to cycle N+1
+- Several workers share intermediate state
 
-**判断标准**：信息是否需要被多个 session 看到。是的话写 scratchpad 文件，不要塞进 agent memory（agent memory 是经验沉淀，不是临时进度）。
+**Test**: whether the information needs to be visible to more than one session. If it does, write a scratchpad file instead of stuffing it into agent memory (agent memory holds accumulated experience, not temporary progress).
 
-### 让 LLM 直接做
+### Let the LLM do it directly
 
-适合：**判断性 / 创造性 / 需要理解上下文的工作**
+Fits: **judgment / creative work / work that needs context understood**
 
-例：
-- 给 skill 起名字
-- 写 description
-- 决定该 reuse 还是 create
-- 评判两个 skill 输出哪个更好
+Examples:
+- Naming a skill
+- Writing the description
+- Deciding whether to reuse or create
+- Judging which of two skill outputs is better
 
-**判断标准**：换个输入就要换种处理方式 → 让 LLM 在 SKILL.md procedure 里直接做。
+**Test**: a different input needs a different way of handling it → let the LLM do it directly in the SKILL.md procedure.
 
-## 反例：错误地建了脚本
+## Anti-patterns: scripts written when they are not needed
 
-### 反例 A：写脚本扫已有 skill
+### Anti-pattern A: a script that scans existing skills
 
 ```js
-// scan-existing-skills.js — 不必要
+// scan-existing-skills.js — unnecessary
 const skills = fs.readdirSync('{{DATA_DIR}}/skills/');
 const matches = skills.filter(s => s.includes(query));
 ```
 
-**问题**：context 里的 `<available_skills>` 块已经列出全部 skill，直接看即可，不需要脚本。
+**Problem**: the `<available_skills>` block in context already lists every skill, so read it instead of writing a script.
 
-### 反例 B：写脚本跑 eval
+### Anti-pattern B: a script that runs the eval
 
 ```js
-// run-eval.js — 不必要
+// run-eval.js — unnecessary
 runWorker(`load ${skillPath} and handle: ${prompt}`);
 runWorker(prompt);  // baseline
 compareOutputs();
 ```
 
-**问题**：这是典型的 producer/baseline/compare 工作流，应该用后台 Task 子代理。脚本里手动 spawn worker 等于在重写 subagent 编排。
+**Problem**: this is the classic producer/baseline/compare workflow and belongs in background Task subagents. Spawning workers by hand inside a script rewrites the subagent orchestration.
 
-### 反例 C：写脚本汇总迭代反馈
+### Anti-pattern C: a script that aggregates iteration feedback
 
 ```js
-// summarize-iteration.js — 不必要
+// summarize-iteration.js — unnecessary
 const feedback = JSON.parse(fs.readFileSync('feedback.json'));
 const summary = aggregateByCategory(feedback);
 fs.writeFileSync('summary.md', summary);
 ```
 
-**问题**：这是判断性工作（什么是"重要反馈"，什么是"噪声"），应该让 LLM 在 SKILL.md procedure 里读 eval 反馈 + scratchpad 直接处理。
+**Problem**: this is judgment work (what counts as "important feedback" and what counts as "noise"), so the LLM should read the eval feedback plus the scratchpad and handle it directly in the SKILL.md procedure.
 
-## 上游的"看 transcript 找重复造轮子"提示
+## The upstream hint: "read the transcript to spot reinvention"
 
-上游 skill-creator 提到一个有用的判断方法：**跑完几轮 eval 后，看 worker transcript，如果发现多个 worker 独立写了同一个辅助函数，那才说明这个动作该 bundle 成脚本**。
+The upstream skill-creator offers a useful test: **after a few eval rounds, read the worker transcripts; only when several workers independently wrote the same helper function does that action deserve to be bundled into a script**.
 
-换句话说：
-- 脚本不是预先决定要写的，是从迭代中**发现**该写的
-- 第一版 skill 不要急着写脚本，先用 LLM 直接做，看哪些动作真的高频且确定性
-- 高频 + 确定性的部分才下沉到脚本
+In other words:
+- Scripts are not decided up front, they are **discovered** during iteration
+- Do not rush to write scripts for the first version of a skill; let the LLM do the work first and watch which actions are genuinely frequent and deterministic
+- Only the frequent and deterministic parts sink down into scripts
 
-## 总结：奥卡姆剃刀清单
+## Summary: Occam's razor checklist
 
-写脚本前问：
-- [ ] Alran 原生 tool 已经支持了吗？
-- [ ] 涉及多 agent 吗（→ 后台 Task 子代理）？
-- [ ] 涉及跨 session 吗（→ scratchpad）？
-- [ ] LLM 自己做就行吗（→ procedure 里直接写）？
-- [ ] 真的是确定性本地计算吗？
+Ask before writing a script:
+- [ ] Does an Alran native tool already handle it?
+- [ ] Does it involve multiple agents (→ background Task subagents)?
+- [ ] Does it involve multiple sessions (→ scratchpad)?
+- [ ] Can the LLM do it (→ write it straight into the procedure)?
+- [ ] Is it really deterministic local computation?
 
-5 个问题都答完，最后一个还是 "是"，才写脚本。
+Answer all five questions; write the script only when the last answer is still "yes".

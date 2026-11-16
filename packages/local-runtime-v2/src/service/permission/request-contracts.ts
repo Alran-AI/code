@@ -96,7 +96,7 @@ function permissionToolDescription(item: LocalPermissionRequest): string | undef
 }
 
 function permissionReason(item: LocalPermissionRequest): string {
-  return item.parentToolCallId ? `来自 PTC：${item.reason}` : item.reason;
+  return item.parentToolCallId ? `From PTC: ${item.reason}` : item.reason;
 }
 
 /** Permission request protocol consumed by Channel delivery. */

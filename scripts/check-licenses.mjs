@@ -13,6 +13,14 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import {
+  nestedCopyright,
+  upstreamCopyright,
+  upstreamModifications,
+  upstreamReference,
+  upstreamSourceUrl,
+} from './lib/brand-terms.mjs';
+
 export const ALLOWED_LICENSES = Object.freeze(new Set([
   'MIT', 'ISC', 'Apache-2.0', 'BSD-2-Clause', 'BSD-3-Clause', '0BSD',
 ]));
@@ -29,10 +37,10 @@ export const REVIEWED_EXCEPTIONS = Object.freeze(new Map([
   ['(BSD-2-Clause OR MIT OR Apache-2.0)', 'used under MIT'],
 ]));
 
-const UPSTREAM_COPYRIGHT = 'Copyright (c) 2026 MiniMax Code';
+const UPSTREAM_COPYRIGHT = upstreamCopyright;
 /** Nested license files of upstream material, with the copyright line each must keep. */
 export const UPSTREAM_NESTED_NOTICES = Object.freeze({
-  'packages/local-runtime/assets/skills/docx/LICENSE': 'Copyright (c) 2026 MiniMaxAI',
+  'packages/local-runtime/assets/skills/docx/LICENSE': nestedCopyright,
 });
 const MIT_PERMISSION = 'Permission is hereby granted, free of charge, to any person obtaining a copy';
 
@@ -44,13 +52,13 @@ export function checkLegalFiles(root) {
   const license = read('LICENSE');
   if (license && !license.startsWith('MIT License')) problems.push('LICENSE: does not start with the MIT License text');
   if (license && !license.includes(MIT_PERMISSION)) problems.push('LICENSE: MIT permission notice missing');
-  if (license && !/derived from MiniMax Code/u.test(license)) problems.push('LICENSE: reference to the upstream (MiniMax Code) missing');
+  if (license && !license.includes(upstreamReference)) problems.push('LICENSE: reference to the upstream missing');
   if (license && !license.includes('THIRD_PARTY_NOTICES.md')) problems.push('LICENSE: pointer to THIRD_PARTY_NOTICES.md missing');
   const notices = read('THIRD_PARTY_NOTICES.md');
   if (notices && !notices.includes(UPSTREAM_COPYRIGHT)) problems.push('THIRD_PARTY_NOTICES.md: upstream copyright notice missing');
   if (notices && !notices.includes(MIT_PERMISSION)) problems.push('THIRD_PARTY_NOTICES.md: upstream MIT permission notice missing');
-  if (notices && !notices.includes('https://github.com/minimax-ai/minimax-code')) problems.push('THIRD_PARTY_NOTICES.md: upstream source URL missing');
-  if (notices && !/Modifications made to MiniMax Code/u.test(notices)) problems.push('THIRD_PARTY_NOTICES.md: list of modifications missing');
+  if (notices && !notices.includes(upstreamSourceUrl)) problems.push('THIRD_PARTY_NOTICES.md: upstream source URL missing');
+  if (notices && !notices.includes(upstreamModifications)) problems.push('THIRD_PARTY_NOTICES.md: list of modifications missing');
   read('NOTICE');
   // Bundled upstream material that came with a license of its own keeps its copyright line (MIT:
   // "The above copyright notice … shall be included"); a rename once replaced one with our name.

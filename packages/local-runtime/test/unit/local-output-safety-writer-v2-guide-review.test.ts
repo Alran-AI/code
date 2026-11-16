@@ -126,7 +126,7 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
     expect(writer.consumeGuidePrompt()).toBe(SENTINEL_GUIDE_PROMPT);
   });
 
-  it('reject without guide_prompt → 走原 block 路径', async () => {
+  it('reject without guide_prompt → takes the original block path', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -139,13 +139,13 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       checkText,
       chunkThreshold: 0,
     });
-    await writer.pushRuntime(contentChunk('内容'));
+    await writer.pushRuntime(contentChunk('content'));
     expect(writer.blocked).toBe(true);
     expect(writer.guideReviewed).toBe(false);
     expect(writer.consumeGuidePrompt()).toBeUndefined();
   });
 
-  it('reject + 空字符串 guide_prompt → 当作缺失,走 block 路径(防御性)', async () => {
+  it('reject + empty string guide_prompt → treated as missing, takes the block path (defensive)', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -160,12 +160,12 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       checkText,
       chunkThreshold: 0,
     });
-    await writer.pushRuntime(contentChunk('内容'));
+    await writer.pushRuntime(contentChunk('content'));
     expect(writer.blocked).toBe(true);
     expect(writer.guideReviewed).toBe(false);
   });
 
-  it('clean pass + 有 guide_prompt → 不动 guide state(guide_prompt 只在 reject 时有效)', async () => {
+  it('clean pass + guide_prompt present → leaves the guide state untouched (guide_prompt is only valid on reject)', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: true,
@@ -183,7 +183,7 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
     expect(writer.consumeGuidePrompt()).toBeUndefined();
   });
 
-  it('consumeGuidePrompt() 调用后清空状态(避免跨 attempt 残留)', async () => {
+  it('consumeGuidePrompt() clears the state after the call (prevents residue across attempts)', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -198,14 +198,14 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       checkText,
       chunkThreshold: 0,
     });
-    await writer.pushRuntime(contentChunk('问题内容'));
+    await writer.pushRuntime(contentChunk('problem content'));
     expect(writer.guideReviewed).toBe(true);
     expect(writer.consumeGuidePrompt()).toBe(SENTINEL_GUIDE_PROMPT);
     expect(writer.consumeGuidePrompt()).toBeUndefined();
     expect(writer.guideReviewed).toBe(false);
   });
 
-  it('resetGuideReview() 清空状态(host 每个 attempt 边界调一次)', async () => {
+  it('resetGuideReview() clears the state (the host calls it once at every attempt boundary)', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -220,14 +220,14 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       checkText,
       chunkThreshold: 0,
     });
-    await writer.pushRuntime(contentChunk('问题内容'));
+    await writer.pushRuntime(contentChunk('problem content'));
     expect(writer.guideReviewed).toBe(true);
     writer.resetGuideReview();
     expect(writer.guideReviewed).toBe(false);
     expect(writer.consumeGuidePrompt()).toBeUndefined();
   });
 
-  it('CRITICAL: V2 guide_prompt 绝不出现在 final AgentMessage / user-visible 流事件里', async () => {
+  it('CRITICAL: the V2 guide_prompt never appears in the final AgentMessage / user-visible stream events', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -243,8 +243,8 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       chunkThreshold: 0,
     });
     const sinkSpy = vi.spyOn(inner, 'pushRuntime');
-    await writer.pushRuntime(contentChunk('问题内容1'));
-    await writer.pushRuntime(finalMessageEvent('问题内容 final', 'msg_1'));
+    await writer.pushRuntime(contentChunk('problem content 1'));
+    await writer.pushRuntime(finalMessageEvent('problem content final', 'msg_1'));
     expect(sinkSpy).not.toHaveBeenCalled();
     expect(captured).toEqual([]);
     // guide_prompt remains readable from internal writer state for the host to assemble systemPrompt.
@@ -252,7 +252,7 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
     expect(writer.consumeGuidePrompt()).toBe(SENTINEL_GUIDE_PROMPT);
   });
 
-  it('metrics: guide review 决策记 decision=guide_review, 不计 output_safety_block_total', async () => {
+  it('metrics: a guide review decision records decision=guide_review and does not count towards output_safety_block_total', async () => {
     const checkText = vi.fn(
       async (): Promise<SafetyCheckResult> => ({
         pass: false,
@@ -270,7 +270,7 @@ describe('LocalOutputSafetyEventWriter — V2 guide review', () => {
       chunkThreshold: 0,
       metricsClient: metrics as LocalRuntimeMetricsClient,
     });
-    await writer.pushRuntime(contentChunk('问题内容'));
+    await writer.pushRuntime(contentChunk('problem content'));
     // Find the guide_review decision.
     const guideReviewCalls = counterSpy.mock.calls.filter(
       (c) =>

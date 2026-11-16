@@ -91,17 +91,17 @@ import type {
 } from '../../service/workspace/index.js';
 
 export type { LocalRuntimeAuthContext } from '../../service/model-system/index.js';
-/** 复用 Task 执行宿主的完整配置输入，不使用 ModelSystem 的局部配置视图。 */
+/** Reuses the full configuration input of the Task execution host, not the partial ModelSystem configuration view. */
 export type LocalRuntimeConfig = ReturnType<LocalTaskRunnerHost['configGetter']>;
 
-/** 完整复用消费者的 Eval 契约，保留可选能力和 transport 配置。 */
+/** Reuses the consumer Eval contract in full, keeping optional capabilities and transport configuration. */
 type LocalEvalReporterFactoryLike = NonNullable<
   NonNullable<ConstructorParameters<typeof LocalSessionController>[0]>['evalReporterFactory']
 >;
 type LocalEvalReporterFactoryOptions = ConstructorParameters<typeof LocalEvalReporterFactory>[0];
 type LocalSessionRecord = NonNullable<Awaited<ReturnType<LocalSessionController['getSession']>>>;
 type LocalSessionListOptions = NonNullable<Parameters<LocalSessionController['listSessions']>[0]>;
-/** Goal owner 绑定的子 Session 轮次归属端口。 */
+/** Round attribution port for the sub-Sessions bound to a Goal owner. */
 type SubSessionRoundAttribution = Parameters<RuntimeGoalHost['bindSubSessionRoundAttribution']>[0];
 
 interface LocalRuntimeCapabilities {
@@ -125,13 +125,13 @@ interface LocalRuntimeCapabilities {
   elicitation: boolean;
 }
 
-/** 宿主输入的中性契约；不依赖 HTTP 构造器或基础设施实现。 */
+/** Neutral contract for the host input; it does not depend on HTTP constructors or infrastructure implementations. */
 export interface ProcessLocalProductHostOptions {
   readonly reviewPromptDir?: string;
   dataDir: string;
   runtimeOwnerKind: 'electron' | 'cli' | 'tui' | string;
   capabilityProfile?: 'cli';
-  /** 只限制磁盘恢复状态的冷启动执行，不限制交互请求。 */
+  /** Limits cold-start execution that restores state from disk only; interactive requests are not restricted. */
   startupExecutionPolicy?: 'enabled' | 'quarantined';
   runtimeMode?: 'clean' | 'rollback';
   appVersion?: string;
@@ -149,7 +149,7 @@ export interface ProcessLocalProductHostOptions {
   deferQuestionnaireRecovery?: boolean;
   workspaceIndexingEnabled?: () => Promise<boolean>;
   composerSendBehavior?: () => Promise<'queue' | 'steer'>;
-  /** V2 后台任务 owner 的运行时工厂。 */
+  /** Runtime factory for the V2 background task owner. */
   createBackgroundTaskRuntime?: (host: BackgroundTaskHost) => BackgroundTaskRuntime;
   runLegacyImCredentialMigration?: (action: () => Promise<void>) => Promise<void>;
   telemetry?: (event: {
@@ -195,7 +195,7 @@ export interface ProcessLocalProductHostOptions {
   metricsReporter?: MetricsBatchReporter;
 }
 
-/** 装配阶段注入的完整 capability 集合；独立于产品输入。 */
+/** The complete capability set injected during assembly; independent of the product input. */
 export interface ProcessLocalCompatibilityHostOptions {
   readonly mcpRuntime?: LocalMcpRuntimeCapability;
   readonly skillRuntime?: RuntimeSkillCapability;
@@ -220,7 +220,7 @@ interface ProcessLocalAgentRecord {
   updatedAtMs: number;
 }
 
-/** 保留现有 Agent 入口的所有公开操作，具体路由实现仍归 HTTP。 */
+/** Keeps all public operations of the existing Agent entry point; the concrete routing implementations still belong to HTTP. */
 interface ProcessLocalAgentRoutes {
   routeAgentApi(request: Request, parts: string[], url: URL): Promise<Response>;
   routeAgentSessionLookup(sessionId: string): Promise<Response>;
@@ -255,8 +255,9 @@ interface ProcessLocalAgentRoutes {
 }
 
 /**
- * 现有 apiHost 的完整公开结构。只描述能力，不引用 HTTP 类及其 private 状态；
- * runtime 装配返回的具体实例由 TypeScript 按此契约检查。
+ * The complete public shape of the existing apiHost. It describes capabilities only and does not
+ * reference the HTTP classes or their private state; the concrete instances returned by the runtime
+ * assembly are checked against this contract by TypeScript.
  */
 interface ProcessLocalApiHost {
   readonly controller: LocalSessionController;

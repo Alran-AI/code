@@ -1,6 +1,9 @@
-# 项目级 MCP 配置
+# Project-level MCP configuration
 
-本地 Runtime 按当前 session 的主工作目录读取 `.mcp.json`，Desktop、Alran 交互式 TUI、`alran exec`、`alran acp` 和使用同一 Runtime 的 CLI 共用这一能力。无需导入，也不设置 MCP 专属批准或配置摘要授权。
+The local Runtime reads `.mcp.json` from the main working directory of the current session. The
+Desktop, the interactive Alran TUI, `alran exec`, `alran acp` and every CLI that uses the same
+Runtime share this capability. Nothing has to be imported, and there is no MCP-specific approval or
+configuration-summary authorization.
 
 ```json
 {
@@ -19,33 +22,68 @@
 }
 ```
 
-## 自动加载与连接
+## Automatic loading and connecting
 
-- Runtime 从 session 的 canonical `workspaceDir` 读取配置。不会因为客户端类型不同而跳过项目文件；项目路径不依赖启动 Runtime 进程时的 cwd。
-- 读取配置或展示列表不会启动 MCP。实际 turn 工具发现或调用时，Runtime 自动连接有效且未禁用的 server。
-- stdio 连接会执行项目配置里的命令，远程连接会访问配置的 URL；这是项目配置自动加载的产品约定。工具调用仍走原有权限策略，但工具权限确认发生在连接之后，不替代进程启动控制。
-- 工具发现和调用前重新读取配置。文件内容或展开后的环境变量变化时，中止旧 project 调用、关闭旧连接，后续请求自动使用新配置，不再弹出批准窗口。
-- 可以在 `.mcp.json` 中设置 `enabled: false` 停用条目。删除文件或整份文件无效时，移除项目层并恢复同名 profile 配置。
-- 文件始终只读，不会导入或写回 profile 的 `mcp.json`，不持久化项目配置授权。
+- The Runtime reads the configuration from the canonical `workspaceDir` of the session. The project
+  file is not skipped because the client type differs, and the project path does not depend on the
+  cwd that the Runtime process was started in.
+- Reading the configuration or showing the list does not start an MCP. When the tools are actually
+  discovered or called in a turn, the Runtime connects the servers that are valid and not disabled.
+- A stdio connection executes the command from the project configuration, and a remote connection
+  visits the configured URL. This is the product agreement of the automatic loading of the project
+  configuration. Tool calls still follow the existing permission policy, but the tool permission
+  confirmation happens after the connection and does not replace the control over the process start.
+- The configuration is read again before the tool discovery and the tool call. When the file content
+  or the expanded environment variables change, the old project calls are aborted and the old
+  connections are closed; the following requests use the new configuration automatically and no
+  approval window is shown again.
+- An entry can be disabled with `enabled: false` in `.mcp.json`. When the file is deleted or the
+  whole file is invalid, remove the project layer and restore the profile configuration of the same
+  name.
+- The file is only ever read. Nothing is imported into or written back to the profile `mcp.json`,
+  and the project configuration authorization is not persisted.
 
-## 项目边界与格式
+## Project boundary and format
 
-- 只读取主工作目录的 `.mcp.json`，不向上搜索、不扫描 `/add-dir`。从子目录启动且 session 主目录就是该子目录时，只读取子目录内的文件。
-- 支持 stdio、`http`、`streamable-http`、`sse`；不支持的 transport 显示错误。
-- `command`、`args`、`env`、`url`、`headers` 支持 `${VAR}`、`${VAR:-default}`。变量缺失时停用该 server 并显示变量名，不回显变量值。
-- 支持正整数 `timeout`（毫秒）。Runtime 内部字段（builtin、tools、metadata 等）不会从项目文件加载。
-- stdio cwd 与 MCP `roots/list` 都使用 canonical 主项目目录。远程 MCP 也收到该 root；HTTP 凭据禁止跨 origin 重定向携带。
-- 文件最大 1 MiB，必须为项目内普通文件；允许指向项目内文件的 symlink。坏 JSON、读失败或名字归一化冲突使整份文件失效；单个 server 的错误不会阻止其他有效 server。项目目录已删除时，profile 和 builtin 仍可使用。
+- Only the `.mcp.json` of the main working directory is read. There is no upward search and no scan
+  of `/add-dir`. When the Runtime is started in a subdirectory and the main directory of the
+  session is that subdirectory, only the file inside the subdirectory is read.
+- `stdio`, `http`, `streamable-http` and `sse` are supported; an unsupported transport shows an
+  error.
+- `command`, `args`, `env`, `url` and `headers` support `${VAR}` and `${VAR:-default}`. When a
+  variable is missing, that server is disabled and the name of the variable is shown; the value of
+  the variable is never echoed.
+- A positive integer `timeout` in milliseconds is supported. Runtime-internal fields (builtin,
+  tools, metadata and the like) are not loaded from the project file.
+- The stdio cwd and the MCP `roots/list` both use the canonical main project directory. A remote
+  MCP receives that root as well; HTTP credentials must not be carried across a redirect to another
+  origin.
+- The file is at most 1 MiB and has to be a regular file inside the project; a symlink to a file
+  inside the project is allowed. Broken JSON, a failed read or a name normalization conflict
+  invalidates the whole file; an error in a single server does not stop the other valid servers.
+  When the project directory has been deleted, the profile and the builtin servers stay usable.
 
-## 同名规则与状态
+## Rules for the same name and the state
 
-普通配置同名按 **ACP session > project > profile** 整条替换，不跨来源拼接 URL、command、env 或 headers。禁用或错误的 project entry 仍遮蔽同名 profile entry，避免悄悄连接另一个目标；保留的 builtin 名称不能被项目配置覆盖。插件仍由插件 Runtime 独立管理。
+A regular configuration with the same name is replaced as a whole along the order
+**ACP session > project > profile**; the URL, command, env and headers are never merged across
+sources. A disabled or broken project entry still shadows the profile entry of the same name, so
+another target is not connected silently; a kept builtin name cannot be overridden by the project
+configuration. Plugins are still managed independently by the plugin Runtime.
 
-配置、连接与错误状态按 session、canonical 项目目录和配置版本隔离；清除 ACP 客户端注入不会清除项目文件配置。会话删除通过公共 Runtime 生命周期清理项目及客户端连接。
+The configuration, the connections and the error state are isolated per session, canonical project
+directory and configuration version; clearing the configuration that an ACP client injected does not
+clear the configuration of the project file. Deleting a session cleans up the project and the client
+connections through the common Runtime lifecycle.
 
-- TUI `/mcp`：显示当前 session 的 Built-in、User-configured、Project、Client session 配置和状态。
-- TUI `/mcp reload`：重新读取并展示；`/mcp <filter>` 按 server 名过滤。没有 `approve` / `deny` 操作，它们可作为普通过滤词。
-- ACP `/mcp <filter>`：列出当前 ACP session 的有效配置。
-- 检查接口不回显 args、env、headers、URL query。全局 MCP 管理继续操作 profile 文件；项目文件的变更直接在项目中进行。
+- TUI `/mcp`: shows the Built-in, User-configured, Project and Client session configuration and the
+  state of the current session.
+- TUI `/mcp reload`: reads it again and shows it; `/mcp <filter>` filters by the server name. There
+  are no `approve` / `deny` actions; they work as ordinary filter words.
+- ACP `/mcp <filter>`: lists the valid configuration of the current ACP session.
+- The inspection interface never echoes args, env, headers or URL query parameters. The global MCP
+  administration keeps working on the profile file; a change to the project file is made directly in
+  the project.
 
-连接成功后状态为 `available`；未连接为 `configured`；禁用或无效时为 `disabled` / `error`。没有 `pending_approval` 状态。
+After a successful connection the state is `available`; when not connected it is `configured`; when
+disabled or invalid it is `disabled` / `error`. There is no `pending_approval` state.

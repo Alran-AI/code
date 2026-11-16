@@ -32,7 +32,7 @@ const STRUCTURED_TAG_START_RE = /<(media|genui|deliver-assets)\b[^>]*(?:>|$)/giu
  *   - read → src/index.ts ✓
  */
 export function formatToolSummary(toolCalls: Map<string, ToolCall>): string {
-  const lines: string[] = ['🔧 工具调用'];
+  const lines: string[] = ['🔧 Tool calls'];
 
   for (const tc of toolCalls.values()) {
     const icon =

@@ -1383,9 +1383,7 @@ public static int AddFullComment(
     // Create a paragraph for the comment with a unique paraId (via w14:paraId)
     var commentPara = new Paragraph(
         new ParagraphProperties(
-            new ParagraphStyleId { Val = "CommentText" },
-            // w14:paraId for modern comment threading
-            new乳啜攠嘶嘐呓顾纨asiId { Val = paraId }
+            new ParagraphStyleId { Val = "CommentText" }
         ),
         new Run(
             new RunProperties(new RunStyle { Val = "CommentReference" }),
@@ -1393,6 +1391,9 @@ public static int AddFullComment(
         ),
         new Run(new Text(text))
     );
+    // w14:paraId for modern comment threading
+    commentPara.SetAttribute(new OpenXmlAttribute(
+        "w14", "paraId", "http://schemas.microsoft.com/office/word/2010/wordml", paraId));
 
     var comment = new Comment
     {
@@ -1594,9 +1595,10 @@ public static void ResolveComment(WordprocessingDocument doc, int commentId)
     if (comment != null)
     {
         var para = comment.Elements<Paragraph>().FirstOrDefault();
-        var paraIdElem = para?.ParagraphProperties?
-            .Elements<乳啜攠嘶嘐呓顾纨asiId>().FirstOrDefault();
-        paraId = paraIdElem?.Val?.Value;
+        var paraIdAttr = para?.GetAttributes()
+            .FirstOrDefault(a => a.LocalName == "paraId"
+                && a.NamespaceUri == "http://schemas.microsoft.com/office/word/2010/wordml");
+        paraId = paraIdAttr?.Value;
     }
 
     if (paraId == null) return;
@@ -1635,9 +1637,10 @@ public static void DeleteComment(WordprocessingDocument doc, int commentId)
             // Get paraId before deletion for other files
             string? paraId = null;
             var para = comment.Elements<Paragraph>().FirstOrDefault();
-            var paraIdElem = para?.ParagraphProperties?
-                .Elements<乳啜攠嘶嘐呓顾纨asiId>().FirstOrDefault();
-            paraId = paraIdElem?.Val?.Value;
+            var paraIdAttr = para?.GetAttributes()
+                .FirstOrDefault(a => a.LocalName == "paraId"
+                    && a.NamespaceUri == "http://schemas.microsoft.com/office/word/2010/wordml");
+            paraId = paraIdAttr?.Value;
 
             comment.Remove();
 
@@ -2471,7 +2474,7 @@ new M.Fraction(
     new M.Numerator(...),
     new M.Denominator(...),
     new M.FractionPr(
-        new M.Type { Val = M.FractionValues.Skewed }  // or Normal, Linear,丝
+        new M.Type { Val = M.FractionValues.Skewed }  // or Normal, Linear, etc.
     )
 );
 ```
@@ -3026,9 +3029,8 @@ var freshNumInstance = new NumberingInstance(
 
 ### 9.6 Link Numbering to Heading Styles (Outline Numbering)
 
-```句话说，link numbering to heading styles so that Heading1 starts a new numbering sequence, Heading2 is a sub-item, etc.
-
 ```csharp
+// This links numbering to heading styles so that Heading1 starts a new numbering sequence, Heading2 is a sub-item, etc.
 // This links styles to numbering levels automatically via StyleLink
 var abstractNumForOutline = new AbstractNum { AbstractNumberId = 10 };
 abstractNumForOutline.Append(new MultiLevelType { Val = MultiLevelValues.Multilevel });
@@ -3104,9 +3106,9 @@ NumberFormatValues.Ordinal          // 1st, 2nd, 3rd... (locale-dependent)
 NumberFormatValues.OrdinalText      // First, Second, Third... (locale-dependent)
 NumberFormatValues.Hex              // 0, 1, 2... F, 10, 11... (hexadecimal)
 NumberFormatValues.ChicagoManual    // Chapter numbering (I, A, 1, a)
-NumberFormatValues.Kanji           // 漢数字
-NumberFormatValues.KanjiDigit      // 一, 二, 三...
-NumberFormatValues.DoubleByte      // Ideographic: 一, 二, 三
+NumberFormatValues.Kanji           // Kanji numerals
+NumberFormatValues.KanjiDigit      // 1, 2, 3, ...
+NumberFormatValues.DoubleByte      // Ideographic: 1, 2, 3
 NumberFormatValues.ArabicFullWidth // Full-width: １, ２, ３
 NumberFormatValues.Bullet          // Custom symbol (●, ✓, etc.)
 NumberFormatValues.None            // No number

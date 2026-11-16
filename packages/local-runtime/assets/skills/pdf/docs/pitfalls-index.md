@@ -43,9 +43,9 @@
 
 ### Match signatures
 
-- "做一份 {BRAND_NAME}（{BRAND_URL}）的 brand guide / 品牌指南 PDF"
+- "Make a {BRAND_NAME} ({BRAND_URL}) brand guide / brand-guidelines PDF"
 - "make a brand-guide / cover / poster PDF from {BRAND_URL}"
-- "把 {site} 抓取的品牌元素整理成双页 PDF"
+- "Turn the brand elements scraped from {site} into a two-page PDF"
 - "create a 2-page design system overview for {company}"
 
 ### Canonical query
@@ -106,7 +106,7 @@ CONSTRAINTS (universal — do not violate):
 
 ### Match signatures
 
-- "做一份 {LANG_A}-{LANG_B} 双语 {RESTAURANT_TYPE} 菜单 PDF"
+- "Make a {LANG_A}-{LANG_B} bilingual {RESTAURANT_TYPE} menu PDF"
 - "make a {LANG_A}/{LANG_B} bilingual menu / wine list / certificate"
 - "design a 2-page formal printed PDF for {use_case}"
 
@@ -161,7 +161,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把 {INPUT_PATH} (markdown/csv) 转成含图表的 PDF 报告"
+- "Convert {INPUT_PATH} (markdown/csv) into a chart-rich PDF report"
 - "convert this benchmark / dataset / md into a visualized PDF"
 - "make a data brief from {INPUT_PATH}"
 - "可视化报告 / 图文报告 / 评测报告 / data report"
@@ -237,7 +237,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "研究 {TOPIC} 在 {JURISDICTIONS} 的 {regulatory|market|enforcement} 情况"
+- "Research the {regulatory|market|enforcement} situation of {TOPIC} across {JURISDICTIONS}"
 - "deep research on {topic} across {N} regions, output a synthesised PDF"
 - "multi-country survey of {policy area}, parallel workers"
 
@@ -308,7 +308,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把这份 {INPUT_PATH} (.eml/.pdf) 翻译成 {TARGET_LANG}，保留排版"
+- "Translate this {INPUT_PATH} (.eml/.pdf) into {TARGET_LANG}, preserving the layout"
 - "translate this {formal / research} report to {lang}, output PDF"
 - "翻译保版 / preserve-layout translation"
 
@@ -378,7 +378,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "在这份 {PDF_PATH}（{N}页年报/招股书）里找 {TARGET_QUERY}"
+- "Find {TARGET_QUERY} in this {PDF_PATH} ({N}-page annual report / prospectus)"
 - "extract {metric/section} from this annual report / prospectus / white paper"
 - "what does {long PDF} say about {topic}"
 
@@ -447,7 +447,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把这份 {PDF_PATH}（240页 financial report / 10-K / 招股书）转成 {Excel/Word/Markdown}"
+- "Convert this {PDF_PATH} (240-page financial report / 10-K / prospectus) to {Excel/Word/Markdown}"
 - "convert balance sheet / income statement / cash-flow from {PDF} to {format}"
 - "extract financial tables from {annual report}"
 
@@ -528,9 +528,9 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "填这份 {FORM_PDF} (visa / tax / contract)，材料是 {MATERIALS[]}"
+- "Fill in this {FORM_PDF} (visa / tax / contract); the supporting materials are {MATERIALS[]}"
 - "fill out PDF form / AcroForm with the supplied values"
-- "把 {employment_letter / itinerary} 里的信息填到 {visa_form}"
+- "Fill the information from {employment_letter / itinerary} into {visa_form}"
 
 ### Canonical query
 
@@ -616,9 +616,9 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把这份 {INPUT_XLSX}（{N} 行）导出成 PDF / 打印"
+- "Export this {INPUT_XLSX} ({N} rows) to PDF / print it"
 - "export 10k+ rows as PDF, landscape, repeat header"
-- "{xlsx} 转 PDF 可打印"
+- "Convert {xlsx} into a printable PDF"
 
 ### Canonical query
 
@@ -696,7 +696,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把这份 {INPUT_PATH} (.docx/.pdf/.md) 转成 {TARGET_FORMATS[]}，并评估 fidelity loss"
+- "Convert this {INPUT_PATH} (.docx/.pdf/.md) to {TARGET_FORMATS[]} and assess the fidelity loss"
 - "convert {contract / report} to PDF + MD + HTML, tell me what's lost"
 - "DOCX 双向转换 / round-trip"
 

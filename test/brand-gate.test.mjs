@@ -7,32 +7,45 @@ import { fileURLToPath } from 'node:url';
 import { checkBrand, findBrandHits } from '../scripts/check-brand.mjs';
 import { checkBuiltArtifact } from '../scripts/check-built-artifact.mjs';
 import { checkDependencyLicenses, checkLegalFiles } from '../scripts/check-licenses.mjs';
+import {
+	upstreamCliName,
+	upstreamInternalPath,
+	upstreamName,
+	upstreamReportingHost,
+	upstreamRuntimeName,
+} from '../scripts/lib/brand-terms.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-test('the repository carries no upstream name outside legal attribution and marked compatibility code', () => {
+test('the repository carries no upstream name outside the legal attribution files', () => {
   assert.deepEqual(checkBrand(root), []);
 });
 
 test('an upstream name is a word: camelCase, scopes, env names and dot-dirs count; embedded letters do not', () => {
   const hits = (line) => findBrandHits('src/example.ts', line).map((hit) => hit.term);
-  assert.deepEqual(hits('const miniMaxFiles = 1;'), ['miniMax']);
-  assert.deepEqual(hits("import x from '@mavis/shared';"), ['mavis']);
-  assert.deepEqual(hits('process.env.MAVIS_DATA_DIR'), ['MAVIS']);
-  assert.deepEqual(hits("path.join(home, '.mcode')"), ['mcode']);
-  assert.deepEqual(hits('class McodeAgent {}'), ['Mcode']);
-  assert.deepEqual(hits("'DefinitelyMissingMavisModule'"), ['Mavis']);
-  assert.deepEqual(hits('https://data.hailuoai.com/x'), ['hailuo']);
+  const camel = `mini${upstreamName.slice(4, 5).toUpperCase()}${upstreamName.slice(5)}Files`;
+  assert.deepEqual(hits(`const ${camel} = 1;`), [camel.slice(0, 7)]);
+  assert.deepEqual(hits(`import x from '@${upstreamRuntimeName}/shared';`), [upstreamRuntimeName]);
+  assert.deepEqual(hits(`process.env.${upstreamRuntimeName.toUpperCase()}_DATA_DIR`), [
+    upstreamRuntimeName.toUpperCase(),
+  ]);
+  assert.deepEqual(hits(`path.join(home, '.${upstreamCliName}')`), [upstreamCliName]);
+  assert.deepEqual(hits(`class ${upstreamCliName[0].toUpperCase()}${upstreamCliName.slice(1)}Agent {}`), [
+    `${upstreamCliName[0].toUpperCase()}${upstreamCliName.slice(1)}`,
+  ]);
+  assert.deepEqual(hits(`'DefinitelyMissing${upstreamRuntimeName[0].toUpperCase()}${upstreamRuntimeName.slice(1)}Module'`), [
+    `${upstreamRuntimeName[0].toUpperCase()}${upstreamRuntimeName.slice(1)}`,
+  ]);
+  assert.deepEqual(hits(`https://data.${upstreamReportingHost}ai.com/x`), [upstreamReportingHost]);
   assert.deepEqual(hits('String.fromCodePoint(cp); const upstreamCode = 1; readonly systemCode?: string;'), []);
 });
 
-test('a marked compatibility path and the legal files are allowed; an unmarked one is not', () => {
-  assert.deepEqual(findBrandHits('src/a.ts', "// legacy-brand-compat: TODO: remove after 2027-Q1\nconst LEGACY = '.mavis';"), []);
-  assert.deepEqual(findBrandHits('src/a.ts', "// legacy-brand-compat:begin\nconst a = '.mavis';\nconst b = 'MAVIS_';\n// legacy-brand-compat:end"), []);
-  assert.equal(findBrandHits('src/a.ts', "// legacy-brand-compat:begin\nconst a = 1;\n// legacy-brand-compat:end\nconst b = '.mavis';").length, 1);
-  assert.deepEqual(findBrandHits('THIRD_PARTY_NOTICES.md', 'Copyright (c) 2026 MiniMax Code'), []);
-  assert.deepEqual(findBrandHits('README.md', 'Alran Code is derived from MiniMax Code (mcode).'), []);
-  assert.equal(findBrandHits('README.md', 'Built by the MiniMax team.').length, 1);
+test('the legal attribution files are allowed; every other file is not', () => {
+  assert.deepEqual(findBrandHits('THIRD_PARTY_NOTICES.md', `Copyright (c) 2026 ${upstreamName} Code`), []);
+  assert.deepEqual(findBrandHits('LICENSE', `derived from ${upstreamName} Code`), []);
+  assert.deepEqual(findBrandHits('packages/local-runtime/assets/skills/docx/LICENSE', `Copyright (c) 2026 ${upstreamName}AI`), []);
+  assert.equal(findBrandHits('README.md', `Built by the ${upstreamName} team.`).length, 1);
+  assert.equal(findBrandHits('src/a.ts', `const legacy = '.${upstreamRuntimeName}';`).length, 1);
 });
 
 test('the built artifact carries no address of the vendor the code base was derived from', async () => {
@@ -45,7 +58,7 @@ test('the built artifact carries no address of the vendor the code base was deri
     assert.deepEqual(checkBuiltArtifact(scratch), []);
     writeFileSync(
       path.join(scratch, 'chunks', 'chunk.js'),
-      'const endpoint = "http://matrix-archon-biz-default.weaver.svc.cluster.local:8080";',
+      `const endpoint = "http://matrix-archon-biz-default.${upstreamInternalPath}.svc.cluster.local:8080";`,
     );
     const hits = checkBuiltArtifact(scratch);
     assert.equal(hits.length, 1);

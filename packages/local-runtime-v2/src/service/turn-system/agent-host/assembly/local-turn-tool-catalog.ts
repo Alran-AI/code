@@ -885,7 +885,7 @@ function isAuthoritativeMainProfile(profile: LocalTurnAgentProfileFacts | undefi
 /**
  * The one rule for an Agent's `tools`, `disallowedTools` and `mcpServers`,
  * the same for builtin, Custom and Plugin Agents and for every role (README
- * "Desktop Local Agent 定义"). A tool is an MCP tool when its name starts with
+ * "Desktop Local Agent Definition"). A tool is an MCP tool when its name starts with
  * `mcp__`, whatever its source or Agent role.
  * - `disallowedTools` removes any tool it names.
  * - An MCP tool (user MCP, Plugin MCP, a builtin server with `mcp__` names)

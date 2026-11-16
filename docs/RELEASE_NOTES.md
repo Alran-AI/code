@@ -24,8 +24,8 @@ later; against an older gateway it still understands the old answers.
 
 ## 0.2.0 — the first Ottili release
 
-Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived from MiniMax Code (MIT); see
-`THIRD_PARTY_NOTICES.md`.
+Package `alran` (`npm install -g alran`), binary `alran`. Alran Code includes MIT-licensed upstream
+material; see `THIRD_PARTY_NOTICES.md`.
 
 ## New
 
@@ -74,17 +74,11 @@ Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived 
 - Package renamed from `@ottili/code` to `alran`. The new package ships only the build
   (about 800 files, 13 MB instead of 7,549 files, 44 MB) and declares its native dependencies, so it
   runs on Node 24 (the old 0.1.4 crashed there).
-- Data directory `~/.alran`; environment variables `ALRAN_*`.
+- Data directory `~/.alran`; environment variables `ALRAN_*`. There is no compatibility layer
+  for older names: the data directory is always `~/.alran` and only `ALRAN_*` variables are read.
 - The model list contains only models the gateway serves; earlier entries that the gateway refused
   are gone. A saved default naming a removed model falls back to Werk.
 - No usage reporting to any host unless `ALRAN_TELEMETRY_ENDPOINT` is set.
-
-## Deprecated (removed after 2027-Q1)
-
-- Reading the environment variables of releases before the rename as `ALRAN_*` (with a one-time warning).
-- The link from the old data directory to `~/.alran`.
-
-See `docs/MIGRATION_FROM_MINIMAX.md`.
 
 ## Known limitations
 

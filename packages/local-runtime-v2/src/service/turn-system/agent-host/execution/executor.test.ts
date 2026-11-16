@@ -851,7 +851,7 @@ describe("LocalRuntimeTurnExecutor Bash output capability", () => {
         { mode: "off" },
       );
       const command = "echo " + "x".repeat(100_000);
-      for (const description of [undefined, "说明🙂".repeat(20_000), "Inspect workspace"]) {
+      for (const description of [undefined, "€€🙂".repeat(20_000), "Inspect workspace"]) {
         const result = await tool.execute(
           {
             sessionId: "session-1",
@@ -1623,7 +1623,7 @@ describe("LocalRuntimeTurnExecutor runtime contracts", () => {
 
 describe("LocalRuntimeTurnExecutor Agent reference canonical history", () => {
   const unavailableInternalAgent = (displayName: string) =>
-    `这是当前不可调用的内部 Agent 引用，显示名为 ${JSON.stringify(`@${displayName}`)}。不要将其视为联系人或外部 @ 提及。`;
+    `This is an internal Agent reference that cannot currently be called, with the display name ${JSON.stringify(`@${displayName}`)}. Do not treat it as a contact or an external @ mention.`;
 
   const mainProfile = {
     agent_role: "orchestrator",
@@ -1666,7 +1666,7 @@ describe("LocalRuntimeTurnExecutor Agent reference canonical history", () => {
     });
 
     const projectedCurrent =
-      "通过 Task tool 调用 agent:coder Agent fix current";
+      "Call the agent:coder Agent through the Task tool fix current";
     expect(captured?.userMessage.text).toBe(projectedCurrent);
     expect(captured?.history?.[0]).toMatchObject({
       role: "user",
@@ -2370,7 +2370,7 @@ describe("LocalRuntimeTurnExecutor user query provenance", () => {
     let captured: LocalRuntimeTurnRunnerInput<LocalToolContext> | undefined;
     const internalPrompt =
       "Implement the approved plan below.\n\n# Internal plan";
-    const displayQuery = "开始实施已批准计划";
+    const displayQuery = "Start implementing the approved plan";
     const base = executionInput();
     const executor = new LocalRuntimeTurnExecutor(
       options(async (runInput) => {

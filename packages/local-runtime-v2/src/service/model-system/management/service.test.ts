@@ -1953,9 +1953,9 @@ describe('custom provider creation and duplication', () => {
 
     const duplicate = await h.service.duplicateUserProvider({
       providerId: source.providerId,
-      name: 'appintheloop 副本',
+      name: 'appintheloop copy',
     });
-    expect(duplicate.name).toBe('appintheloop 副本');
+    expect(duplicate.name).toBe('appintheloop copy');
     expect(duplicate.providerId).not.toBe(source.providerId);
   });
 
@@ -2105,15 +2105,15 @@ describe('custom provider thinking configuration', () => {
     expect(h.config.custom_provider).toBeUndefined();
   });
 
-  it('create with chinese name generates provider-<hex> key', async () => {
+  it('create with a non-ASCII name generates provider-<hex> key', async () => {
     const h = makeHarness();
     const provider = await h.service.createUserProvider({
-      name: '我的服务',
+      name: 'Мой Сервис',
       baseUrl: 'https://api.example.com',
       apiKey: CUSTOM_KEY,
     });
     expect(provider.providerId).toBe('custom_provider:provider-a1b2c3');
-    expect(provider.name).toBe('我的服务');
+    expect(provider.name).toBe('Мой Сервис');
   });
 
   it('activates the first configured model after its current fingerprint passes', async () => {

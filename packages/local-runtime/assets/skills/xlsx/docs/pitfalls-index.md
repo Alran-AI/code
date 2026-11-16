@@ -40,7 +40,7 @@
 
 ### Match signatures
 
-- "读 {COMPANY} 的 {YEAR_RANGE} 年报 PDF，提取 {METRICS}，输出 Excel 含公式和图表"
+- "Read the {COMPANY} {YEAR_RANGE} annual-report PDFs, extract {METRICS}, and output an Excel file with formulas and charts"
 - "build an Excel analysis of {COMPANY}'s {years} from these annual reports"
 - "extract revenue / EPS / store count / segment data from {PDF}, build xlsx"
 
@@ -140,7 +140,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "分析 {DATA}，产出 Excel dashboard + PDF report + Word memo"
+- "Analyze {DATA} and produce an Excel dashboard + PDF report + Word memo"
 - "build me a triple deliverable: spreadsheet + presentation PDF + Word"
 - "用户退款 / 业务三件套 / 完整分析包"
 
@@ -206,7 +206,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "处理 {INPUT}（54万行 / 500k+ rows）做透视 / dashboard / RFM"
+- "Process {INPUT} (540k rows / 500k+ rows) into pivot tables / dashboard / RFM"
 - "clean + pivot + slicer dashboard from {large_dataset}"
 - "Online Retail / 电商交易明细 → 完整分析"
 
@@ -339,9 +339,9 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把这份 {PDF_PATH}（240页 financial report / HKEx 2024）转成 Excel"
+- "Convert this {PDF_PATH} (240-page financial report / HKEx 2024) to Excel"
 - "convert balance sheet / income statement / cash flow PDF to xlsx"
-- "金融年报 → Excel，要保留所有 table 结构"
+- "Financial annual report → Excel, preserving every table structure"
 
 ### Canonical query
 
@@ -414,7 +414,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "{COMPANY} {YEAR_RANGE} 财务分析 Excel，含 revenue / margin / growth / segment 趋势"
+- "{COMPANY} {YEAR_RANGE} financial-analysis Excel, containing revenue / margin / growth / segment trends"
 - "build a financial-analysis xlsx for {COMPANY} covering {years}"
 - "腾讯 / Alibaba / Apple 多年财报对比 + 派生指标"
 
@@ -494,9 +494,9 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "做一个 composite score / 综合评分 from {COLS}, normalised {0-100 / 1-10}"
+- "Build a composite score / overall score from {COLS}, normalised {0-100 / 1-10}"
 - "build a risk index / ranking, normalised to {RANGE}"
-- "{Financial_Sample_with_PI} 综合评分要 0-100"
+- "{Financial_Sample_with_PI} overall score must be 0-100"
 
 ### Canonical query
 
@@ -643,7 +643,7 @@ CONSTRAINTS:
 
 ### Match signatures
 
-- "把 {INPUT_XLSX} 转成 csv + json + pdf，PDF 要横向 + 重复表头"
+- "Convert {INPUT_XLSX} to csv + json + pdf, with the PDF in landscape orientation and repeating headers"
 - "export to multiple formats with landscape, repeat header"
 - "Superstore / 多格式数据转换"
 

@@ -1,7 +1,7 @@
 # Architecture
 
-Alran Code is Ottili's terminal coding agent. It is derived from MiniMax Code (MIT, see
-`THIRD_PARTY_NOTICES.md`); the agent loop, the tool system and the terminal UI are the upstream's,
+Alran Code is Ottili's terminal coding agent. It builds on MIT-licensed upstream material (see
+`THIRD_PARTY_NOTICES.md`); the agent loop, the tool system and the terminal UI come from there,
 and this document says what Alran Code adds around them and where the boundaries are.
 
 ## The three parts and who owns what
@@ -45,13 +45,12 @@ and the gateway's `GET /v1/credits` for prices, pools and spend. Exit codes: 0 o
 Everything lives in the data directory, `~/.alran` (override: `ALRAN_DATA_DIR`): `config.yaml`
 (settings, an API key if one was pasted), `auth/platform/<env>/platform-session.json` (the Platform
 session, 0600 in a 0700 directory), `auth/platform/account.json` (selected project per company), session
-history, Plugins (`plugins/`), the weekly update-check stamp. A data directory of a release before the
-rename is moved here once (`docs/MIGRATION_FROM_MINIMAX.md`).
+history, Plugins (`plugins/`), the weekly update-check stamp.
 
 ## Gates
 
 `pnpm verify` runs, among others: the typecheck, `check:source` (the published file inventory),
-`lint:no-minimax` (no upstream name or host outside legal attribution and marked compatibility code),
+`lint:brand` (no upstream name or host outside the legal attribution files),
 `license-check` (legal files complete, dependency licenses allowed) and `test:gates`.
 
 # Source boundaries

@@ -147,7 +147,7 @@ describe('AlranUpdateService', () => {
         }),
       );
       const signature = Buffer.from(sign(null, manifest, privateKey).toString('base64'));
-      const installRoot = path.join(root, '用户 files & (test)');
+      const installRoot = path.join(root, 'user files & (test)');
       mkdirSync(installRoot);
       writeFileSync(path.join(installRoot, 'current'), '1.2.3\n');
       const service = new AlranUpdateService({

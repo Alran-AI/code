@@ -48,7 +48,7 @@ const cfg = loadPerfConfig([
   '--out-dir', join(input.directory, 'raw'), '--harness', 'alran-code',
   '--port', String(port), '--interval-ms', String(input.intervalMs),
   '--timeout-ms', String(input.scenario.timeoutMs), '--sampler', 'rusage',
-  '--prompt', '压测：请持续用只读命令检查当前目录状态',
+  '--prompt', 'Stress test: continuously check the current directory state with read-only commands',
 ]);
 let code: number;
 try { code = await runPerf(cfg, {

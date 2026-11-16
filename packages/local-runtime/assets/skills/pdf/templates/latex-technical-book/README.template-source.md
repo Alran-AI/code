@@ -1,15 +1,17 @@
-# 中文技术出版读物 LaTeX 模板
+# LaTeX Template for Chinese Technical Publications
 
-这是一个面向中文技术书出版的 LaTeX 模板，适合计算机科学教材、算法书、系统设计书、工程实践类专著。模板采用 B5
-/ 16 开近似尺寸 `176mm × 250mm`，比 A4 更接近正式中文技术书样张。
+This is a LaTeX template for publishing Chinese technical books. It suits computer science
+textbooks, algorithm books, systems design books, and engineering practice monographs. The template
+uses a B5 / 16-mo approximate size of `176mm × 250mm`, which is closer to a real Chinese technical
+book proof than A4.
 
-## 编译
+## Compilation
 
 ```bash
 latexmk -xelatex -interaction=nonstopmode main.tex
 ```
 
-或手动：
+Or manually:
 
 ```bash
 xelatex main.tex
@@ -19,7 +21,7 @@ xelatex main.tex
 xelatex main.tex
 ```
 
-## 文件结构
+## File structure
 
 ```text
 technical-book-latex-template/
@@ -31,32 +33,39 @@ technical-book-latex-template/
 ├── chapters/
 │   ├── chapter01.tex
 │   ├── chapter02.tex
-│   └── chapter03.tex
+│   ├── chapter03.tex
 ├── backmatter/
 │   └── appendix.tex
 └── figures/
 ```
 
-## 主要特性
+## Main features
 
-- B5 / 16 开中文技术书版式：`176mm × 250mm`。
-- 双面排版，章节默认右页开始。
-- 中文环境名：定义、定理、例、要点提示、常见误区、习题、本章延伸阅读。
-- 支持算法伪代码、代码清单、表格、参考文献和索引。
-- 使用 `hyperref` 生成可点击目录和引用。
+- B5 / 16-mo Chinese technical book layout: `176mm × 250mm`.
+- Two-sided typesetting; chapters start on a right-hand page by default.
+- Chinese environment names: definition, theorem, example, key point, common pitfall, exercise, and
+  further reading for the chapter.
+- Supports algorithm pseudocode, code listings, tables, bibliography, and index.
+- Uses `hyperref` to generate a clickable table of contents and cross references.
 
-## 正式出版前建议
+## Recommendations before formal publication
 
-正式交付出版社前，请确认：开本、版心、页边距、字体授权、ISBN、版权页、CIP 信息、图表分辨率和印刷出血规范。
+Before delivering to a publisher, confirm: trim size, text block, margins, font licensing, ISBN,
+copyright page, CIP information, figure resolution, and print bleed specifications.
 
-## 当前风格
+## Current style
 
-本模板已更新为与 `harness-book` 成书版一致的技术出版风格，但保留通用占位内容：
+This template has been updated to match the technical publishing style of the `harness-book`
+finished-book edition, while keeping generic placeholder content:
 
-- O'Reilly / 技术动物封面风格，默认使用 TikZ 动物线稿占位；旧封面保留为
-  `\maketechbooktitleClassic`，默认不编译。
-- 目录编号与页码采用红色强调，正文目录文字保持黑色。
-- 正文包含首字下沉、引文框、提示框、图示框、低饱和代码高亮、自动换行的行内代码路径等样式。
-- 页眉仅显示当前小节标题，页脚显示书名、出版标识与页码。
+- O'Reilly / technical-animal cover style, using a TikZ animal line drawing as the placeholder by
+  default; the old cover is kept as `\maketechbooktitleClassic` and is not compiled by default.
+- Table of contents numbering and page numbers use red accents; the body table-of-contents text
+  stays black.
+- The body includes styles for drop caps, pull quotes, callout boxes, diagram boxes, low-saturation
+  code highlighting, and inline code paths with automatic line breaking.
+- The header shows only the current section title; the footer shows the book title, the publisher
+  mark, and the page number.
 
-正式成书时，建议替换 `main.tex` 中的书籍元数据、前言、章节文件与封面插图。
+When producing the finished book, replace the book metadata, preface, chapter files, and cover
+illustration in `main.tex`.

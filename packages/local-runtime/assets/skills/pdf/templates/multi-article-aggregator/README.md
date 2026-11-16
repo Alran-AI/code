@@ -10,7 +10,8 @@
 - **EN keywords**: aggregate articles, blog digest, multi-post
   compilation, monthly digest, TOC + multi-doc, news roundup,
   blog -> PDF
-- **CN keywords**: 文章合集、blog 聚合、多篇汇总、月度回顾、资讯整理、博客打包
+- **CN keywords**: article collection, blog aggregation, multi-article roundup, monthly review,
+  news digest, blog bundle
 - **Sample user asks**:
   - "Compile these source blog posts from January 2026 into a PDF;
     needs a TOC that jumps to each post; one post per page."

@@ -173,7 +173,7 @@ anything on `MINGW*/MSYS*/CYGWIN*` and tell you to switch to `powershell.exe` / 
 
 | Intent | Guide | What happens next |
 |---|---|---|
-| **CREATE_DOCX** — author a new report / proposal / contract / memo / thesis / 公文 | `docs/task-create.md` | normalize source -> choose recipe family -> choose `D`/`S` -> write -> acceptance |
+| **CREATE_DOCX** — author a new report / proposal / contract / memo / thesis / official government document | `docs/task-create.md` | normalize source -> choose recipe family -> choose `D`/`S` -> write -> acceptance |
 | **APPLY_TEMPLATE** — preserve content but move into a template / institutional visual system | `docs/task-apply-template.md` | choose template mode -> align recipe family -> read only the needed structure -> choose `D`/`S` -> write -> strict rendered acceptance |
 | **EDIT_FILL_DOCX** — mutate content in an existing DOCX while keeping it the same document | `docs/task-edit-fill.md` | choose edit mode -> choose `X`/`D`/`S` -> mutate -> acceptance |
 
@@ -207,7 +207,7 @@ Use these after `CREATE_DOCX` / `APPLY_TEMPLATE` is selected:
 | `references/scenario_c_apply_template.md` | template transfer and multi-section rules |
 | `references/typography_guide.md` | font pairings, sizes, spacing, page layout, table rules |
 | `references/design_principles.md` | visual judgment rules when exact specs are missing |
-| `references/cjk_typography.md` | CJK fonts, 字号, mixed-script rules, 公文 defaults |
+| `references/cjk_typography.md` | CJK fonts, named font sizes, mixed-script rules, official-document defaults |
 | `scripts/dotnet/AlranAIDocx.Core/Samples/AestheticRecipeSamples*.cs` | benchmarked recipe families; choose one instead of inventing values |
 
 ## Runtime shorthands

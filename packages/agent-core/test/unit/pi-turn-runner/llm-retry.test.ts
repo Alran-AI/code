@@ -683,7 +683,7 @@ describe("withLLMRetry", () => {
     ["custom_provider:work", '413 {"error":{"type":"request_too_large","message":"Request exceeds the maximum size"}}'],
     [
       "custom_provider:work",
-      '{"type":"error","error":{"type":"invalid_request_error","message":"上游返回 413，取消重试：request body too large: 154339079 bytes exceeds limit of 134217728 bytes"}}',
+      '{"type":"error","error":{"type":"invalid_request_error","message":"Upstream returned 413, cancelling the retry: request body too large: 154339079 bytes exceeds limit of 134217728 bytes"}}',
     ],
     ["custom_provider:work", "Input is too long for requested model."],
     ["alran_api", "invalid params, context window exceeds limit"],
