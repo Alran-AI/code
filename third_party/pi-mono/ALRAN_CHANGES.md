@@ -413,3 +413,22 @@ For future changes, add one entry per Alran patch with:
 - Change: append `exit $LASTEXITCODE` after the scriptblock invocation (stdin transport) and after `Invoke-Expression` (ConstrainedLanguage transport).
 - Upstream PR: not opened.
 - Validation (Windows 11 x64 build 26200, PowerShell 5.1 default, Node 24.18.0): `packages/local-runtime/test/unit/child-bash-lifecycle.test.ts` 'failure' mode fails before the fix (`expected 'succeeded' to be 'failed'`) and passes after; 'timeout' and 'cancel' modes unaffected. Focused re-run of the affected suites and full `pnpm test:capabilities` show no new failures. Not run: pwsh 7 host validation, ConstrainedLanguage host validation (launcher covered by structure assertions only), macOS/Linux regression runs.
+
+## 2026-11-15: The agent core names the product Alran
+
+- Reason: the agent core read its product name from the package manifest of the file it runs from. In the vendored source that manifest still named the product it was derived from, so the agent named its process, its environment variables and its debug log file after that product. The bundled CLI read the manifest of the build output, which carried no product name at all, so a source run and the bundled CLI disagreed about the name.
+- Affected package: `@earendil-works/pi-coding-agent` — `package.json` (`piConfig.name`) and, through it, `src/config.ts` (`APP_NAME`, `APP_TITLE`, `ENV_AGENT_DIR`, `ENV_SESSION_DIR`). Those constants are the product name, the title shown in the terminal, and the two environment variable names derived from the product name; no path and no behaviour depends on them.
+- Type: Alran-specific glue. It changes names, not behaviour.
+- Change: `piConfig` in `third_party/pi-mono/packages/coding-agent/package.json` now reads `{ "name": "alran" }`, and `scripts/build.mjs` writes the same value into the manifest of the build output so the bundled CLI names itself the same way a source run does. The two environment variables become `ALRAN_CODING_AGENT_DIR` and `ALRAN_CODING_AGENT_SESSION_DIR`.
+- Deliberately not changed: `piConfig.configDir`. It sets `CONFIG_DIR_NAME`, which names the project-local directory `<project>/.pi/` that holds the project settings, the project skills, prompts, themes and extensions, and whose presence marks a project as trusted (`src/core/trust-manager.ts`). Renaming it to `.alran` would orphan the content users already have in their own repositories and would move the trust marker, so it needs a migration of the existing directories rather than a rename. It is tracked as a follow-up.
+- Upstream PR: not opened.
+- Validation: `pnpm typecheck`; `pnpm build`; `pnpm check:artifact` (no vendor address in the build output); `pnpm lint:tui`; `npx vitest run --config vitest.oss.config.mjs packages/tui/test/unit/tui-ui-env.test.ts packages/tui/test/unit/tui-engine-local-deltas.test.ts` (123 tests); `npx vitest run --config vitest.config.ts test/settings-manager.test.ts test/settings-manager-bug.test.ts` in this package (29 tests). The vendored package has no build script of its own — it is consumed as source through the standalone TypeScript project — so the build above compiles it. The first-party terminal UI switches are covered by `packages/tui/src/tui/engine/LOCAL_CHANGES.md` entry L051.
+
+## 2026-11-15: The install telemetry is off unless it is asked for
+
+- Reason: `getEnableInstallTelemetry` fell back to `true`, so an anonymous ping with the version string left the machine unless a user set `PI_TELEMETRY=0` or turned the offline mode on. The path that reads it is not part of the Alran build, but the default was still the wrong one for a distribution that ships no telemetry endpoint.
+- Affected package: `@earendil-works/pi-coding-agent` — `src/core/settings-manager.ts` (`getEnableInstallTelemetry`). `src/core/telemetry.ts` is unchanged: `PI_TELEMETRY` still overrides the setting in either direction, so an explicit opt-in keeps working.
+- Type: Alran-specific glue, one line.
+- Change: the fallback changed from `true` to `false`.
+- Upstream PR: not opened.
+- Validation: `pnpm typecheck`; `pnpm build`; the built artifact contains no reference to the ping endpoint, which `pnpm check:artifact` now enforces. `PI_TELEMETRY` still overrides the setting in either direction, so an explicit opt-in keeps working.

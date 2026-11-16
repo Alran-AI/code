@@ -5,6 +5,7 @@ import { setKittyProtocolActive } from "./keys.js";
 import { isNativeModifierPressed } from "./native-modifiers.js";
 import { getNativeModuleCandidates } from "./native-module-path.js";
 import { StdinBuffer } from "./stdin-buffer.js";
+import { readUiEnv } from "./ui-env.js";
 
 const cjsRequire = createRequire(import.meta.url);
 
@@ -218,7 +219,7 @@ export class ProcessTerminal implements Terminal {
 	private stdinDataHandler?: (data: string) => void;
 	private progressInterval?: ReturnType<typeof setInterval>;
 	private writeLogPath = (() => {
-		const env = process.env.PI_TUI_WRITE_LOG || "";
+		const env = readUiEnv("ALRAN_TUI_WRITE_LOG") || "";
 		if (!env) return "";
 		try {
 			if (fs.statSync(env).isDirectory()) {

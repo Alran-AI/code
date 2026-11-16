@@ -29,6 +29,7 @@
     "test:status-contract": "node scripts/run-vitest-suite.mjs status-contract",
     "check:source": "node scripts/source-inventory.mjs",
     "lint:no-minimax": "node scripts/check-brand.mjs",
+    "check:artifact": "node scripts/check-built-artifact.mjs",
     "license-check": "node scripts/check-licenses.mjs",
     "test:gates": "node --test test/brand-gate.test.mjs",
     "check:plugin": "node tools/plugins/validate-plugin.mjs",

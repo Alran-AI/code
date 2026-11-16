@@ -15,6 +15,7 @@ import {
 } from "./terminal-colors.js";
 import { getCapabilities, isImageLine, setCellDimensions } from "./terminal-image.js";
 import { extractSegments, normalizeTerminalOutput, sliceByColumn, sliceWithWidth, visibleWidth } from "./utils.js";
+import { readUiEnv } from "./ui-env.js";
 
 /**
  * Component interface - all components must implement this
@@ -362,8 +363,8 @@ export abstract class TuiBase extends Container implements TUI {
 	private renderTimer: NodeJS.Timeout | undefined;
 	private lastRenderAt = 0;
 	private static readonly MIN_RENDER_INTERVAL_MS = 16;
-	private showHardwareCursor = process.env.PI_HARDWARE_CURSOR === "1";
-	private clearOnShrink = process.env.PI_CLEAR_ON_SHRINK === "1";
+	private showHardwareCursor = readUiEnv("ALRAN_HARDWARE_CURSOR") === "1";
+	private clearOnShrink = readUiEnv("ALRAN_CLEAR_ON_SHRINK") === "1";
 	protected fullRedrawCount = 0;
 	protected stopped = false;
 	private pendingOsc11BackgroundReplies = 0;
@@ -384,7 +385,8 @@ export abstract class TuiBase extends Container implements TUI {
 	constructor(terminal: Terminal, showHardwareCursor?: boolean, logDirectory?: string) {
 		super();
 		this.terminal = terminal;
-		this.logDirectory = logDirectory ?? process.env.PI_CODING_AGENT_DIR ?? path.join(os.homedir(), ".pi", "agent");
+		// The agent core owns this directory; the switch overrides it for one run.
+		this.logDirectory = logDirectory ?? readUiEnv("ALRAN_CODING_AGENT_DIR") ?? path.join(os.homedir(), ".alran", "agent");
 		if (showHardwareCursor !== undefined) {
 			this.showHardwareCursor = showHardwareCursor;
 		}

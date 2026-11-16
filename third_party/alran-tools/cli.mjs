@@ -3621,10 +3621,6 @@ function bedrockLaneHeaders(lane) {
 var PROFILE = ENV_PROFILES[BUILD_ENV];
 var DEFAULT_CLIENT_ID = PROFILE.clientId;
 var DEFAULT_SCOPE = PROFILE.scope;
-var TEST_SANDBOX_API_BASE_URLS = {
-  cn: "http://matrix-archon-biz-default.xingye-test.svc.cluster.local:8080",
-  en: "http://matrix-archon-biz-default.weaver.svc.cluster.local:8080"
-};
 var DEFAULT_EXTRA_HEADERS = PROFILE.useBedrockLane ? bedrockLaneHeaders(BEDROCK_LANE) : {};
 function stripTrailingSlash(url) {
   return url.replace(/\/+$/, "");
@@ -3724,7 +3720,7 @@ function loadConfig() {
     );
   }
   const apiBaseUrl = stripTrailingSlash(
-    apiBaseUrlOverride || (BUILD_ENV === "test" && isSandbox ? TEST_SANDBOX_API_BASE_URLS[region] : PROFILE.apiBaseUrls[region])
+    apiBaseUrlOverride || PROFILE.apiBaseUrls[region]
   );
   const clientId = process.env.ALRAN_CLIENT_ID?.trim() || DEFAULT_CLIENT_ID;
   const scope = process.env.ALRAN_SCOPE?.trim() || DEFAULT_SCOPE;

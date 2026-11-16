@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { deleteKittyImage, isImageLine } from "./terminal-image.js";
 import { type Component, type TUI, TuiBase, type TuiStopOptions } from "./tui.js";
 import { stripTerminalSequences, visibleWidth } from "./utils.js";
+import { readUiEnv } from "./ui-env.js";
 
 const KITTY_SEQUENCE_PREFIX = "\x1b_G";
 const MAX_RENDER_WRITE_CHARS = 1024 * 1024;
@@ -517,10 +518,10 @@ export class TuiMainScreen extends TuiBase implements TUI {
 			this.previousHeight = height;
 		};
 
-		const debugRedraw = process.env.PI_DEBUG_REDRAW === "1";
+		const debugRedraw = readUiEnv("ALRAN_DEBUG_REDRAW") === "1";
 		const logRedraw = (reason: string, detail = ""): void => {
 			if (!debugRedraw) return;
-			const logPath = path.join(this.logDirectory, "pi-debug.log");
+			const logPath = path.join(this.logDirectory, "alran-debug.log");
 			// Several sessions may share one log file; the pid tells them apart.
 			const msg = `[${new Date().toISOString()}] [pid ${process.pid}] fullRender: ${reason} (prev=${this.previousLines.length}, new=${newLines.length}, height=${height})${detail}\n`;
 			fs.mkdirSync(path.dirname(logPath), { recursive: true });
@@ -784,7 +785,7 @@ export class TuiMainScreen extends TuiBase implements TUI {
 			output.append("\x1b[2K"); // Clear current line
 			if (!isImage && visibleWidth(line) > width) {
 				// Log all lines to crash file for debugging
-				const crashLogPath = path.join(this.logDirectory, "pi-crash.log");
+				const crashLogPath = path.join(this.logDirectory, "alran-crash.log");
 				const crashData = [
 					`Crash at ${new Date().toISOString()}`,
 					`Terminal width: ${width}`,
@@ -832,7 +833,7 @@ export class TuiMainScreen extends TuiBase implements TUI {
 			output.append(`\x1b[${extraLines}A`);
 		}
 
-		if (process.env.PI_TUI_DEBUG === "1") {
+		if (readUiEnv("ALRAN_TUI_DEBUG") === "1") {
 			const debugDir = "/tmp/tui";
 			fs.mkdirSync(debugDir, { recursive: true });
 			const debugPath = path.join(debugDir, `render-${Date.now()}-${Math.random().toString(36).slice(2)}.log`);

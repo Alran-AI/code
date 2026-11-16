@@ -921,6 +921,7 @@ test('Windows contract profile selects focused gates', () => {
       'test:release-tools',
       'lint:tui',
       'build',
+      'check:artifact',
       'check:standalone',
       'test:artifact',
       'test:windows',

@@ -11,6 +11,7 @@ import {
   type TuiStopOptions,
 } from '../engine/public.js';
 import { captureTuiIncidentBestEffort, type TuiIncidentSink } from '../../observability/index.js';
+import { readUiEnv } from '../engine/public.js';
 
 export interface AlranInteractiveRendererOptions {
   readonly terminal: Terminal;
@@ -284,7 +285,7 @@ export class AlranInteractiveRenderer {
     // leaving browser-terminal IME composition at the last painted cell.
     // Keep explicit options and PI_HARDWARE_CURSOR authoritative.
     showHardwareCursor = this.options.showHardwareCursor ??
-      (process.platform === 'win32' && process.env.PI_HARDWARE_CURSOR === undefined
+      (process.platform === 'win32' && readUiEnv('ALRAN_HARDWARE_CURSOR') === undefined
         ? true
         : undefined),
   ): TuiMainScreen | TuiAltScreen {

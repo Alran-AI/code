@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import { homedir } from "node:os";
 import { isAbsolute } from "node:path";
 import { pathToFileURL } from "node:url";
+import { readUiEnv } from "./ui-env.js";
 
 export type ImageProtocol = "kitty" | "iterm2" | null;
 
@@ -141,18 +142,18 @@ function parseBooleanCapabilityOverride(value: string | undefined): boolean | un
 }
 
 export function detectCapabilities(tmuxForwardsHyperlink: () => boolean = probeTmuxHyperlinks): TerminalCapabilities {
-	const hyperlinks = parseBooleanCapabilityOverride(process.env.PI_HYPERLINKS);
+	const hyperlinks = parseBooleanCapabilityOverride(readUiEnv("ALRAN_HYPERLINKS"));
 	const detected = detectCapabilitiesFromEnvironment(
 		hyperlinks === undefined ? tmuxForwardsHyperlink : () => hyperlinks,
 	);
-	const imageProtocol = process.env.PI_IMAGE_PROTOCOL?.toLowerCase();
+	const imageProtocol = readUiEnv("ALRAN_IMAGE_PROTOCOL")?.toLowerCase();
 	const images =
 		imageProtocol === "kitty" || imageProtocol === "iterm2"
 			? imageProtocol
 			: imageProtocol === "none" || imageProtocol === "0"
 				? null
 				: undefined;
-	const trueColor = parseBooleanCapabilityOverride(process.env.PI_TRUE_COLOR);
+	const trueColor = parseBooleanCapabilityOverride(readUiEnv("ALRAN_TRUE_COLOR"));
 	return {
 		...detected,
 		...(images !== undefined ? { images } : {}),

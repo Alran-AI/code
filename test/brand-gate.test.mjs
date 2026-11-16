@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { checkBrand, findBrandHits } from '../scripts/check-brand.mjs';
+import { checkBuiltArtifact } from '../scripts/check-built-artifact.mjs';
 import { checkDependencyLicenses, checkLegalFiles } from '../scripts/check-licenses.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -32,6 +33,26 @@ test('a marked compatibility path and the legal files are allowed; an unmarked o
   assert.deepEqual(findBrandHits('THIRD_PARTY_NOTICES.md', 'Copyright (c) 2026 MiniMax Code'), []);
   assert.deepEqual(findBrandHits('README.md', 'Alran Code is derived from MiniMax Code (mcode).'), []);
   assert.equal(findBrandHits('README.md', 'Built by the MiniMax team.').length, 1);
+});
+
+test('the built artifact carries no address of the vendor the code base was derived from', async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const scratch = mkdtempSync(path.join(tmpdir(), 'alran-artifact-gate-'));
+  try {
+    mkdirSync(path.join(scratch, 'chunks'), { recursive: true });
+    writeFileSync(path.join(scratch, 'chunks', 'chunk.js'), 'const endpoint = "https://api.ottili.one";');
+    assert.deepEqual(checkBuiltArtifact(scratch), []);
+    writeFileSync(
+      path.join(scratch, 'chunks', 'chunk.js'),
+      'const endpoint = "http://matrix-archon-biz-default.weaver.svc.cluster.local:8080";',
+    );
+    const hits = checkBuiltArtifact(scratch);
+    assert.equal(hits.length, 1);
+    assert.match(hits[0].term, /internal service address/u);
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
 });
 
 test('LICENSE and THIRD_PARTY_NOTICES.md say what the MIT license of the upstream requires', () => {

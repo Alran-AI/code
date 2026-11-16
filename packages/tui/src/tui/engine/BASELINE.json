@@ -19,7 +19,11 @@
   "sourceFileCount": 39,
   "upstreamTreeDigest": "3e0601b9e99f2a2f09fc746d40be14b1ffd9bb3a118a20c0c1bc0ad17185e48a",
   "adaptedTreeDigest": "53d36cf6f27850da54cd0345869b19797c00d21855ba1c930fbb059ad04d4bfd",
-  "localSourceFiles": ["native-module-path.ts", "public.ts"],
+  "localSourceFiles": [
+    "native-module-path.ts",
+    "public.ts",
+    "ui-env.ts"
+  ],
   "files": [
     {
       "path": "alt-screen-search.ts",

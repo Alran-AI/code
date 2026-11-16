@@ -1255,10 +1255,10 @@ describe('Alran Pi Engine local deltas', () => {
       expect(history.match(/Completed in 3s/g)).toHaveLength(1);
     });
 
-    it('logs the pid, the deferral and the changed row shape with PI_DEBUG_REDRAW', async () => {
+    it('logs the pid, the deferral and the changed row shape with ALRAN_DEBUG_REDRAW', async () => {
       const logDirectory = mkdtempSync(path.join(tmpdir(), 'alran-redraw-'));
-      const previous = process.env.PI_DEBUG_REDRAW;
-      process.env.PI_DEBUG_REDRAW = '1';
+      const previous = process.env.ALRAN_DEBUG_REDRAW;
+      process.env.ALRAN_DEBUG_REDRAW = '1';
       try {
         const terminal = new RecordingVirtualTerminal(60, 16);
         const tui = new TuiMainScreen(terminal, undefined, logDirectory);
@@ -1276,14 +1276,14 @@ describe('Alran Pi Engine local deltas', () => {
         tui.renderNow();
         await terminal.flush();
 
-        const log = readFileSync(path.join(logDirectory, 'pi-debug.log'), 'utf8');
+        const log = readFileSync(path.join(logDirectory, 'alran-debug.log'), 'utf8');
         expect(log).toContain(`[pid ${process.pid}] fullRender: first render`);
         expect(log).toMatch(/fullRender: firstChanged < viewportTop \(3 < \d+\) .* deferred=yes row=3 old="\s*aaaaaaa 9" new="\s*aaaaaaa 9 \(aaaaaaa\)"/);
         expect(log).toContain('fullRender: deferred history replay after user input');
         expect(log).not.toContain('History');
       } finally {
-        if (previous === undefined) delete process.env.PI_DEBUG_REDRAW;
-        else process.env.PI_DEBUG_REDRAW = previous;
+        if (previous === undefined) delete process.env.ALRAN_DEBUG_REDRAW;
+        else process.env.ALRAN_DEBUG_REDRAW = previous;
         rmSync(logDirectory, { recursive: true, force: true });
       }
     });

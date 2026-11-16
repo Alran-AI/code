@@ -58,6 +58,8 @@ const steps = [
   // all platforms still build and validate native artifacts on their own platform.
   { name: "typecheck", script: "typecheck", fullOnly: true },
   { name: "build", script: "build", windows: true },
+  // The build output is not tracked, so the source brand gate never reads it.
+  { name: "check:artifact", script: "check:artifact", windows: true },
   { name: "check:standalone", script: "check:standalone", windows: true },
   { name: "test:artifact", script: "test:artifact", windows: true },
   { name: "test:capabilities", script: "test:capabilities" },

@@ -3,10 +3,10 @@
  * spawned by the agent (via pi-mono's `getShellEnv()`) can find tools like
  * `alran-trash`, `alran`, and `alran`.
  *
- * `getShellEnv()` (third_party/pi-mono) spreads `process.env` and prepends
- * `~/.pi/agent/bin`, but does NOT add the alran data-dir bin. Rather than
- * patching third-party code, we inject the entry into `process.env` early
- * — once is enough for the lifetime of the Electron process.
+ * `getShellEnv()` (third_party/pi-mono) spreads `process.env` and prepends the
+ * agent core's own bin directory, but does NOT add the alran data-dir bin.
+ * Rather than patching third-party code, we inject the entry into
+ * `process.env` early — once is enough for the lifetime of the Electron process.
  *
  * Idempotent: skips if the entry is already present.
  */

@@ -12,6 +12,17 @@ They now point at the Ottili platform. The tool's behaviour is otherwise
 unchanged, and the embedded bytes are pinned by hash in
 `scripts/lib/alran-tools-artifact.mjs`.
 
+## Local changes to the vendored CLI
+
+One change was made to the vendored bytes after the rebrand: the
+`TEST_SANDBOX_API_BASE_URLS` table, which pointed at two internal Kubernetes
+service addresses of the company the CLI was originally built for, was removed
+together with the `BUILD_ENV === "test"` branch that selected it. The vendored
+build is `prod`, so that branch was already unreachable; the removal leaves no
+upstream infrastructure address in the shipped artifact. The pinned hash in
+`scripts/lib/alran-tools-artifact.mjs` and the resource hash in
+`manifest.json` were updated to the new bytes. No other behaviour changed.
+
 > # Third-party notices
 >
 > ## Pi TUI

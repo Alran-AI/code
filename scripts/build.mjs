@@ -167,6 +167,11 @@ writeFileSync(
   JSON.stringify(
     {
       name: "alran", version, type: "module", private: true,
+      // The vendored agent core reads its product name from the package manifest
+      // of the file it runs from. In the bundle that manifest is this one, so it
+      // carries the same value as the vendored package manifest and the bundled
+      // CLI names itself the same way a source run does.
+      piConfig: { name: "alran" },
       ...(process.env.ALRAN_RELEASE_TAG ? {
         gitHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
       } : {}),
