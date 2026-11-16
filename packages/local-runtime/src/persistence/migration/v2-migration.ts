@@ -2,7 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { loadBetterSqlite3Module } from '../better-sqlite3-loader.js';
 import { registerLocalAssetSync, type LocalRuntimeAssetRecord } from '../../assets/store.js';
-import { openLocalRuntimeDb, type DatabaseConstructor, type DatabaseLike } from '../db.js';
+import {
+  openLocalRuntimeDb,
+  resolveLocalRuntimeDbPath,
+  type DatabaseConstructor,
+  type DatabaseLike,
+} from '../db.js';
 import { getLocalRuntimeSqliteTableRoleLegend } from '../sqlite-table-roles.js';
 import type { ModuleMetricsReporter } from '../../common/metrics.js';
 import {
@@ -143,10 +148,36 @@ function reportV2LayoutMigration(
   }
 }
 
-export function assertV2MigrationSucceeded(manifest: V2MigrationManifest): void {
+export function assertV2MigrationSucceeded(
+  manifest: V2MigrationManifest,
+  dataDir?: DataDirInput,
+): void {
   if (manifest.status !== 'failed') return;
   const reason = manifest.errors.length > 0 ? manifest.errors.join('; ') : 'unknown';
-  throw new Error(`current_local_runtime_v2_migration_failed:${reason}`);
+  throw new Error(`current_local_runtime_v2_migration_failed:${reason}${damagedDatabaseHint(reason, dataDir)}`);
+}
+
+/**
+ * A runtime database that is not a database leaves the start-up with a bare error code. Name the
+ * file and the command that moves it aside; nothing is moved or deleted for the user, who keeps
+ * the damaged file, and a fresh database is created on the next start.
+ */
+function damagedDatabaseHint(reason: string, dataDir: DataDirInput | undefined): string {
+  if (
+    dataDir === undefined ||
+    !/sqlite:(?:runtime-state:(?:open|schema-check)|dev-draft-v2:schema-check):[^;]*(?:malformed|not a database)/iu.test(
+      reason,
+    )
+  ) {
+    return '';
+  }
+  const file = resolveLocalRuntimeDbPath(dataDir);
+  return (
+    `\nThe runtime database ${file} is damaged and cannot be opened. ` +
+    `Stop every Alran Code process, then move it aside and start again: ` +
+    `mv "${file}" "${file}.damaged" (also move ${path.basename(file)}-wal and ${path.basename(file)}-shm ` +
+    `next to it if they exist). Alran Code creates a fresh database on the next start.`
+  );
 }
 
 export function ensureCurrentLocalRuntimeDataMigratedToV2OrThrow(
@@ -155,7 +186,7 @@ export function ensureCurrentLocalRuntimeDataMigratedToV2OrThrow(
   metrics?: ModuleMetricsReporter,
 ): V2MigrationManifest {
   const manifest = ensureCurrentLocalRuntimeDataMigratedToV2({ dataDir, nowMs, metrics });
-  assertV2MigrationSucceeded(manifest);
+  assertV2MigrationSucceeded(manifest, dataDir);
   return manifest;
 }
 

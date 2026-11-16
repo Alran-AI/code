@@ -198,7 +198,7 @@ export function withLLMStreamTimeouts(
 const STOPPED: unique symbol = Symbol('llm-stream-timeout-stopped');
 
 /** Ask the inner stream to stop without waiting on one that may never settle. */
-function releaseIterator(iterator: AsyncIterator<AssistantMessageEvent>): void {
+export function releaseIterator(iterator: AsyncIterator<AssistantMessageEvent>): void {
   void Promise.resolve()
     .then(() => iterator.return?.())
     .catch(() => undefined);
@@ -216,14 +216,14 @@ function timeoutMessage(phase: 'first' | 'idle', ms: number): string {
         `Raise it with ${LLM_STREAM_IDLE_TIMEOUT_ENV} (milliseconds, 0 disables) or the host's per-model streamIdleTimeoutMs.`;
 }
 
-function partialOf(event: AssistantMessageEvent): AssistantMessage | undefined {
+export function partialOf(event: AssistantMessageEvent): AssistantMessage | undefined {
   if (event.type === 'done') return event.message;
   if (event.type === 'error') return event.error;
   return event.partial;
 }
 
 /** Detach from the provider's mutable partial so a late abort cannot rewrite the reported message. */
-function snapshot(partial: AssistantMessage | undefined, model: Model<Api>): AssistantMessage {
+export function snapshot(partial: AssistantMessage | undefined, model: Model<Api>): AssistantMessage {
   return partial ? { ...partial, content: [...partial.content] } : blankAssistant(model);
 }
 

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import os from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import yaml from "js-yaml";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -139,6 +139,30 @@ describe.each(writers)("%s config updates", (_name, write) => {
     read.mockRestore();
     expect(fs.readFileSync(configPath, "utf8")).toBe(source);
     expect(rename).not.toHaveBeenCalled();
+    expect(fs.readdirSync(dataDir)).toEqual(["config.yaml"]);
+  });
+});
+
+describe.each(
+  writers.filter(([name]) => !name.includes("context")),
+)("%s writer with a symlinked config.yaml", (_name, write) => {
+  it("updates the link target and keeps the link", async () => {
+    // A profile whose config.yaml is a symlink into a managed settings
+    // directory must keep pointing there after a save.
+    const target = join(root, "managed", "config.yaml");
+    fs.mkdirSync(dirname(target));
+    fs.writeFileSync(target, "customSetting: kept\n", { mode: 0o600 });
+    fs.symlinkSync(target, configPath);
+
+    await write();
+
+    expect(fs.lstatSync(configPath).isSymbolicLink()).toBe(true);
+    expect(fs.readlinkSync(configPath)).toBe(target);
+    const updated = yaml.load(fs.readFileSync(target, "utf8")) as Record<string, unknown>;
+    expect(updated.customSetting).toBe("kept");
+    expect(Object.keys(updated).length).toBeGreaterThan(1);
+    // No temporary file is left next to either path.
+    expect(fs.readdirSync(dirname(target))).toEqual(["config.yaml"]);
     expect(fs.readdirSync(dataDir)).toEqual(["config.yaml"]);
   });
 });

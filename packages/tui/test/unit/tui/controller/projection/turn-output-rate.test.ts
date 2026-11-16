@@ -232,6 +232,30 @@ describe("TuiTurnOutputRate", () => {
     expect(apply("fast-provider", 1_500, 1_000, 1_200)).toBe(1_900 / 3);
   });
 
+  it("drops an implausibly fast sample even when the request duration is not reported", () => {
+    // Only a runtime with a metrics client reports the request duration, so the burst guard that
+    // compares against it cannot be the only one.
+    const rate = new TuiTurnOutputRate();
+    rate.beginTurn("turn-1");
+    const apply = (id: string, outputTokens: number, decodeDurationMs: number) =>
+      rate.apply("turn-1", {
+        type: "message",
+        message: {
+          id,
+          role: "assistant",
+          usage: { outputTokens, decodeDurationMs },
+        },
+      });
+
+    expect(apply("buffered", 395, 64)).toBeUndefined();
+    expect(apply("buffered-again", 2_000, 100)).toBeUndefined();
+    expect(apply("normal", 400, 2_000)).toBe(200);
+    // Still ignored once real samples exist, and it does not disturb their aggregate.
+    expect(apply("buffered-late", 395, 64)).toBe(200);
+    // A fast provider below the bound is kept.
+    expect(apply("fast", 1_500, 1_000)).toBe((400 + 1_500) / 3);
+  });
+
   it("ignores late events from an older turn after reset", () => {
     const rate = new TuiTurnOutputRate();
     rate.beginTurn("turn-old");

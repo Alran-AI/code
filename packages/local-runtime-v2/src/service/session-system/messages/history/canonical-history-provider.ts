@@ -2,6 +2,9 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
+import { logger } from '@alran/shared/local-runtime-logging';
+
+import { repairTornJsonlTail } from '../../../../infra/file/jsonl.js';
 import type { SessionRepository } from '../../sessions/repo/contract.js';
 import {
   canonicalActiveHistoryRevision,
@@ -376,6 +379,7 @@ export function createSessionSystemCanonicalHistoryProvider(
       locationMode === 'allocate'
         ? await locations.allocate(session)
         : await locations.ensure(session);
+    await dropInterruptedAppend(sessionId, paths);
     await ensureCanonicalHistoryMaterialized({
       sessionId,
       paths,
@@ -389,6 +393,25 @@ export function createSessionSystemCanonicalHistoryProvider(
   async function inLane<T>(sessionId: string, operation: () => Promise<T>): Promise<T> {
     return ioLane.run(sessionId, operation);
   }
+}
+
+/**
+ * A crash between an append's write and its sync can leave half a record at the end of
+ * messages.jsonl. It was never acknowledged, but every later strict read of the session would
+ * fail on it, and the next append would make it permanent. Cut it off (a copy is kept beside the
+ * file) before the history is read or extended.
+ */
+async function dropInterruptedAppend(sessionId: string, paths: SessionHistoryPaths): Promise<void> {
+  const repaired = await repairTornJsonlTail(paths.messages);
+  if (!repaired) return;
+  logger.warn(
+    {
+      session_id: sessionId,
+      removed_bytes: repaired.removedBytes,
+      backup_path: repaired.backupPath,
+    },
+    '[history] dropped an unterminated final line left by an interrupted write',
+  );
 }
 
 async function persistCanonical(

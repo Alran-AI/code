@@ -39,6 +39,10 @@ not change Git state: no \`git add\`, \`stash\`, \`checkout\`, \`restore\`,
 the working tree, or refs. Inspecting with \`git status\`, \`git diff\`, and
 \`git log\` is expected and safe.
 
+This run is offline: \`web_fetch\` and \`web_search\` are not available. Use \`read\`,
+\`grep\` and \`bash\` on the workspace. When the evidence is not reachable that
+way, the verdict is PARTIAL; do not reach for the network.
+
 Include exactly one verdict statement in your reply, using one of these tokens:
 
 VERDICT: PASS

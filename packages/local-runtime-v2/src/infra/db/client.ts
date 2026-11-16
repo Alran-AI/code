@@ -4,6 +4,8 @@ import { dirname, join } from 'node:path';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
 
+import { inBoundedAdmissionAttempt, retryBusyAdmission } from './write-transaction.js';
+
 export type AppDb = BetterSQLite3Database;
 
 interface BetterSqlite3Statement {
@@ -46,12 +48,23 @@ export type BetterSqlite3Constructor = new (
 ) => BetterSqlite3Instance;
 
 const DB_FILE = 'runtime-state.sqlite';
+const BUSY_TIMEOUT_MS = 5000;
+/** A checkpoint is housekeeping: it must not hold up start-up or exit while another process writes. */
+const CHECKPOINT_BUSY_TIMEOUT_MS = 250;
+
+export type WalCheckpointMode = 'PASSIVE' | 'FULL' | 'RESTART' | 'TRUNCATE';
 const DB_RELATIVE_PATH = join('v2', 'sqlite', DB_FILE);
 
 export interface DatabaseClientOptions {
   readonly dataDir: string;
   /** Override the better-sqlite3 load path for Electron native rebuilds. */
   readonly sqlite3ModulePath?: string;
+  /**
+   * Retry a transaction that takes the write lock at its start (`immediate`) when another
+   * process holds it past the native busy timeout, instead of failing the caller's turn.
+   * Several Alran processes share one database file; see `retryBusyAdmission`.
+   */
+  readonly retryBusyAdmission?: boolean;
 }
 
 export class DatabaseClient {
@@ -99,9 +112,32 @@ export class DatabaseClient {
     }
   }
 
+  /**
+   * Copy the write-ahead log into the database file and, for TRUNCATE, reset it to
+   * zero bytes. SQLite only does this by itself when the last connection closes,
+   * and a process that exits with another connection open leaves the whole log
+   * behind. Best effort: a contended or failing checkpoint never throws, it only
+   * leaves the log for the next one.
+   */
+  checkpoint(mode: WalCheckpointMode = 'PASSIVE'): void {
+    const sqlite = this.rawDb_;
+    if (!sqlite) return;
+    try {
+      sqlite.exec(`PRAGMA busy_timeout = ${CHECKPOINT_BUSY_TIMEOUT_MS}`);
+      try {
+        sqlite.exec(`PRAGMA wal_checkpoint(${mode})`);
+      } finally {
+        sqlite.exec(`PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS}`);
+      }
+    } catch {
+      // Contended by another writer or the connection is unusable: not worth failing for.
+    }
+  }
+
   /** Close the connection and release resources. */
   close(): void {
     if (this.rawDb_) {
+      this.checkpoint('TRUNCATE');
       this.rawDb_.close();
       this.rawDb_ = null;
       this.drizzleDb = null;
@@ -116,10 +152,11 @@ export class DatabaseClient {
       // v1 and v2 temporarily access the same database through separate connections; keep PRAGMAs aligned.
       sqlite.exec(`
         PRAGMA journal_mode = WAL;
-        PRAGMA busy_timeout = 5000;
+        PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS};
         PRAGMA foreign_keys = ON;
       `);
       const drizzleDb = drizzle({ client: sqlite as never });
+      if (this.options.retryBusyAdmission === true) retryBusyImmediateTransactions(drizzleDb);
       this.rawDb_ = sqlite;
       this.drizzleDb = drizzleDb;
       return sqlite;
@@ -132,6 +169,36 @@ export class DatabaseClient {
       throw error;
     }
   }
+}
+
+/**
+ * Makes `db.transaction(fn, { behavior: 'immediate' })` retry a refused lock (see
+ * `retryBusyAdmission`). Other transactions and the bounded attempts `runWithWriteLock` makes
+ * by itself keep their own behaviour.
+ */
+function retryBusyImmediateTransactions(db: AppDb): void {
+  const transaction = db.transaction.bind(db) as (
+    fn: (tx: AppDb) => unknown,
+    config?: { behavior?: string },
+  ) => unknown;
+  Object.defineProperty(db, 'transaction', {
+    configurable: true,
+    writable: true,
+    value: (fn: (tx: AppDb) => unknown, config?: { behavior?: string }) => {
+      if (config?.behavior !== 'immediate' || inBoundedAdmissionAttempt()) {
+        return transaction(fn, config);
+      }
+      let entered = false;
+      return retryBusyAdmission(
+        () =>
+          transaction((tx) => {
+            entered = true;
+            return fn(tx);
+          }, config),
+        () => entered,
+      );
+    },
+  });
 }
 
 /** Resolve the native SQLite constructor for target and read-only source connections. */

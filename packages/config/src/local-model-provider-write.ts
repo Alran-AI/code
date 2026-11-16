@@ -244,7 +244,10 @@ async function withLockedConfig<T>(
 }
 
 async function atomicWriteFile(filePath: string, content: string): Promise<void> {
-  const tmpPath = join(dirname(filePath), `.config-tmp-${randomBytes(6).toString('hex')}`);
+  // Replace the real file: renaming onto a symlink would swap the link itself
+  // for a regular file and cut it off from the settings it was managing.
+  const targetPath = await fs.promises.realpath(filePath).catch(() => filePath);
+  const tmpPath = join(dirname(targetPath), `.config-tmp-${randomBytes(6).toString('hex')}`);
   let created = false;
   try {
     const mode = LOCAL_CONFIG_FILE_MODE;
@@ -256,7 +259,7 @@ async function atomicWriteFile(filePath: string, content: string): Promise<void>
     } finally {
       await temporary.close();
     }
-    await fs.promises.rename(tmpPath, filePath);
+    await fs.promises.rename(tmpPath, targetPath);
   } catch {
     if (created) await fs.promises.unlink(tmpPath).catch(() => undefined);
     throw new LocalModelProviderConfigWriteError();

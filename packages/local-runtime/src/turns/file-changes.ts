@@ -396,6 +396,11 @@ export async function applyLocalTurnDiffSnapshotMutation(
   const sourceKey = action === 'revert' ? 'after' : 'before';
   const targetKey = action === 'revert' ? 'before' : 'after';
   for (const undo of record.undo) {
+    if (await leavesWorkspaceThroughLink(record.workspaceDir, undo.file)) {
+      return { success: false, reason: 'unsafe_path' };
+    }
+  }
+  for (const undo of record.undo) {
     const current = await snapshotCapturedFile(record.workspaceDir, undo.file);
     if (snapshotHash(current) !== snapshotHash(undo[sourceKey])) {
       return { success: false, reason: 'conflict' };
@@ -676,6 +681,10 @@ async function snapshotCapturedFile(
   if (!normalized) return { file: filePath, exists: false };
   const absolute = safeCapturedPath(workspaceDir, normalized);
   if (!absolute) return { file: normalized, exists: false };
+  // What a link inside the workspace leads to outside of it is not part of the turn's changes.
+  if (await leavesWorkspaceThroughLink(workspaceDir, normalized)) {
+    return { file: normalized, exists: false };
+  }
   try {
     const stats = await fs.stat(absolute);
     if (!stats.isFile()) return { file: normalized, exists: false };
@@ -704,6 +713,45 @@ async function snapshotCapturedFile(
   } catch {
     return { file: normalized, exists: false };
   }
+}
+
+/**
+ * Whether a recorded path that is inside the workspace by its spelling reaches outside it through a
+ * symlink: a link to an outside file or directory, or a dangling link that a write would follow. A
+ * path recorded as outside the workspace (an absolute path) was reviewed as such and is not judged
+ * here.
+ */
+async function leavesWorkspaceThroughLink(workspaceDir: string, file: string): Promise<boolean> {
+  if (path.isAbsolute(file) || path.win32.isAbsolute(file)) return false;
+  const root = await resolveThroughLinks(path.resolve(workspaceDir));
+  const target = await resolveThroughLinks(path.resolve(workspaceDir, file));
+  const relative = path.relative(root, target);
+  return relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative);
+}
+
+const MAX_LINK_HOPS = 16;
+
+/** Where an access to `target` lands: links resolved, dangling ones followed, a missing tail kept. */
+async function resolveThroughLinks(target: string, hops = 0): Promise<string> {
+  try {
+    return await fs.realpath(target);
+  } catch {
+    // Missing, or a link that leads nowhere yet.
+  }
+  try {
+    if (hops < MAX_LINK_HOPS && (await fs.lstat(target)).isSymbolicLink()) {
+      return await resolveThroughLinks(
+        path.resolve(path.dirname(target), await fs.readlink(target)),
+        hops + 1,
+      );
+    }
+  } catch {
+    // Not a link either: judge the parent.
+  }
+  const parent = path.dirname(target);
+  return parent === target
+    ? target
+    : path.join(await resolveThroughLinks(parent, hops), path.basename(target));
 }
 
 function isValidUtf8(buffer: Buffer): boolean {

@@ -31,6 +31,7 @@ import type {
 } from "../types.ts";
 import { AssistantMessageEventStream } from "../utils/event-stream.ts";
 import { headersToRecord } from "../utils/headers.ts";
+import { withNullableTypeArrays } from "../utils/json-schema.ts";
 import { parseStreamingJson } from "../utils/json-parse.ts";
 import { notifyProviderError, withProviderEventObserver } from "../utils/provider-error.ts";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.ts";
@@ -79,6 +80,39 @@ type ChatCompletionTextPartWithCacheControl = ChatCompletionContentPartText & {
 type ChatCompletionToolWithCacheControl = OpenAI.Chat.Completions.ChatCompletionTool & {
 	cache_control?: OpenAICompatCacheControl;
 };
+
+/** The longest tool call identity a new suffix may produce (providers cap them at 64 characters or fewer). */
+const MAX_TOOL_CALL_ID_LENGTH = 64;
+
+/**
+ * The tool call identities already used in the conversation. A conversation keeps every call and
+ * its result under one identity, so a provider that answers with an identity it already used (a
+ * counter that restarts, a gateway that returns a constant) must not be allowed to repeat it.
+ */
+function reservedToolCallIds(messages: Message[]): Set<string> {
+	const ids = new Set<string>();
+	for (const message of messages) {
+		if (message.role === "assistant") {
+			for (const block of message.content) {
+				if (isToolCallBlock(block) && block.id) ids.add(block.id);
+			}
+		} else if (message.role === "toolResult" && message.toolCallId) {
+			ids.add(message.toolCallId);
+		}
+	}
+	return ids;
+}
+
+/** `id` when it is free, otherwise the first of `id_2`, `id_3`, ... that is. The result is reserved. */
+function allocateToolCallId(id: string, reserved: Set<string>): string {
+	let candidate = id;
+	for (let attempt = 2; reserved.has(candidate); attempt += 1) {
+		const suffix = `_${attempt}`;
+		candidate = `${id.slice(0, Math.max(1, MAX_TOOL_CALL_ID_LENGTH - suffix.length))}${suffix}`;
+	}
+	reserved.add(candidate);
+	return candidate;
+}
 
 function resolveCacheRetention(cacheRetention?: CacheRetention): CacheRetention {
 	if (cacheRetention) {
@@ -152,7 +186,9 @@ export const streamOpenAICompletions: StreamFunction<"openai-completions", OpenA
 			let thinkingBlock: ThinkingContent | null = null;
 			let hasFinishReason = false;
 			const toolCallBlocksByIndex = new Map<number, StreamingToolCallBlock>();
+			// Keyed by the identity the provider sent, which may differ from the block's own identity.
 			const toolCallBlocksById = new Map<string, StreamingToolCallBlock>();
+			const reservedIds = reservedToolCallIds(context.messages);
 			const blocks = output.content as StreamingBlock[];
 			const getContentIndex = (block: StreamingBlock) => blocks.indexOf(block);
 			const finishBlock = (block: StreamingBlock) => {
@@ -212,12 +248,21 @@ export const streamOpenAICompletions: StreamFunction<"openai-completions", OpenA
 				const streamIndex = typeof toolCall.index === "number" ? toolCall.index : undefined;
 				let block = streamIndex !== undefined ? toolCallBlocksByIndex.get(streamIndex) : undefined;
 				if (!block && toolCall.id) {
-					block = toolCallBlocksById.get(toolCall.id);
+					const sameId = toolCallBlocksById.get(toolCall.id);
+					// A different stream index is a different call, even when the provider repeats the id.
+					if (
+						sameId &&
+						(streamIndex === undefined ||
+							sameId.streamIndex === undefined ||
+							sameId.streamIndex === streamIndex)
+					) {
+						block = sameId;
+					}
 				}
 				if (!block) {
 					block = {
 						type: "toolCall",
-						id: toolCall.id || "",
+						id: toolCall.id ? allocateToolCallId(toolCall.id, reservedIds) : "",
 						name: toolCall.function?.name || "",
 						arguments: {},
 						partialArgs: "",
@@ -331,7 +376,7 @@ export const streamOpenAICompletions: StreamFunction<"openai-completions", OpenA
 						for (const toolCall of choice.delta.tool_calls) {
 							const block = ensureToolCallBlock(toolCall);
 							if (!block.id && toolCall.id) {
-								block.id = toolCall.id;
+								block.id = allocateToolCallId(toolCall.id, reservedIds);
 								toolCallBlocksById.set(toolCall.id, block);
 							}
 							if (!block.name && toolCall.function?.name) {
@@ -982,7 +1027,8 @@ function convertTools(
 		function: {
 			name: tool.name,
 			description: tool.description,
-			parameters: tool.parameters as any, // TypeBox already generates JSON Schema
+			// TypeBox already generates JSON Schema; nullable unions get a type array for Gemini-style validators.
+			parameters: withNullableTypeArrays(tool.parameters) as any,
 			// Only include strict if provider supports it. Some reject unknown fields.
 			...(compat.supportsStrictMode !== false && { strict: false }),
 		},
