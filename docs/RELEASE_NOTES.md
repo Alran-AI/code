@@ -1,5 +1,27 @@
 # Alran Code — release notes
 
+## 1.0.1 — Claude on your own Anthropic key
+
+Package `alran` (`npm install -g alran`), binary `alran`. Works with the Ottili AI Gateway of 2026-11-16 and
+later; against an older gateway it still understands the old answers.
+
+### Changed
+
+- **Claude is billed by Anthropic, not by Ottili.** Claude Sonnet 5.5 and Claude Opus 5.5 run on your own
+  Anthropic API key. Add it once in the Ottili AI Platform under *Settings → Provider keys* (it is checked
+  with Anthropic, stored encrypted and used only for your requests); Anthropic bills you directly. Ottili
+  charges nothing for Claude: no token price, no hold on your credit, and the 4.5 % service fee is gone.
+  Werk is unchanged and stays on your Ottili credit (the welcome credit covers it).
+- `alran models` says *needs your Anthropic key* or *Anthropic rejected your key* (yellow / red) instead of
+  "requires purchased credit"; `alran config model sonnet` prints what to do when no key is stored.
+- `alran usage` shows the state of your Anthropic key, lists Claude's tokens as *billed by Anthropic* and totals
+  only what Ottili charged. The service-fee column is gone, and so are `service_fee_*` and `credit_class`
+  from `--json`.
+- The refusals about the key (`byok_key_required`, `byok_key_invalid`, `byok_key_rejected`,
+  `byok_key_forbidden`, `byok_provider_billing`) have their own sentences and exit code 5; a Claude turn that
+  fails on the key says where the key lives instead of "Access denied".
+- `isPaidOnlyOttiliModel` of `@alran/config` became `isByokOttiliModel`.
+
 ## 0.2.0 — the first Ottili release
 
 Package `alran` (`npm install -g alran`), binary `alran`. Alran Code is derived from MiniMax Code (MIT); see

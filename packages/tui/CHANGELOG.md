@@ -3,6 +3,17 @@
 This changelog covers changes that directly affect Alran Code users: the terminal UI, `alran exec`, the
 account commands, models, Plugins, installation and updates.
 
+## 1.0.1 · 2026-11-16
+
+### Changed
+
+- Claude Sonnet 5.5 and Opus 5.5 run on your own Anthropic API key (Ottili AI Platform → Settings → Provider
+  keys). Anthropic bills it directly; Ottili charges nothing for Claude and adds no service fee. Werk is
+  unchanged.
+- `alran models`, `alran usage` and `alran config model` say whether you can use a Claude model now and what it
+  needs; `alran usage` shows the state of your Anthropic key and lists Claude as *billed by Anthropic*.
+- The gateway's `byok_*` refusals have their own sentences and exit code 5.
+
 ## 0.2.0 · 2026-11-11
 
 The first release as an Ottili product.
