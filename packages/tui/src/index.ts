@@ -5,13 +5,8 @@ import {
   resolveTuiStartupEnvironmentOption,
 } from './cli/environment.js';
 import { prepareAlranPrefixProcess } from './update/prefix-update.js';
-import { applyLegacyEnvironmentAliases, formatLegacyEnvironmentWarning } from '@alran/config';
 
 async function main(): Promise<void> {
-  // Old variable names are read under their new ones before anything else reads the environment.
-  // legacy-brand-compat: TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
-  const legacyWarning = formatLegacyEnvironmentWarning(applyLegacyEnvironmentAliases(process.env));
-  if (legacyWarning) process.stderr.write(`${legacyWarning}\n`);
   // Startup environment selection is an internal switch; the public package has none.
   const internalPackage = false;
   let startupBuildEnvironment: ReturnType<typeof resolveTuiStartupEnvironmentOption>;

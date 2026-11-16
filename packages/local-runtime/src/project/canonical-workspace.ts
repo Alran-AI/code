@@ -1,6 +1,5 @@
 import path from 'node:path';
 
-import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@alran/config/data-dir';
 
 import type { LocalSessionRecord } from '../sessions/controller.js';
 import { validateAgentName } from '../agent/contract.js';
@@ -35,7 +34,7 @@ export interface SessionProjectProjection {
     | 'runtime-default'
     | 'session-default'
     | 'agent-default'
-    | 'legacy-data-dir-alias';
+    ;
 }
 
 /** The single lexical Session → canonical Project projection used by Desktop and Channel. */
@@ -74,15 +73,6 @@ export function projectForSession(
   ) {
     return { projectKey: DEFAULT_PROJECT_KEY, defaultReason: 'agent-default' };
   }
-  if (
-    isLegacySessionDefaultWorkspaceDir(
-      session.workspaceDir,
-      sessionDefaultWorkspaceDir,
-      session.sessionId,
-    )
-  ) {
-    return { projectKey: DEFAULT_PROJECT_KEY, defaultReason: 'legacy-data-dir-alias' };
-  }
   const canonical = canonicalProjectWorkspaceDir(session.workspaceDir, session.runLocation);
   return {
     projectKey: projectKeyForWorkspace(canonical),
@@ -110,40 +100,7 @@ export function normalizeAbsolutePath(value: string | undefined): string | undef
   return trimTrailingSeparators(normalized, flavor.sep);
 }
 
-/**
- * Match the one-way read alias from the historical `.alran[-profile]` data
- * directory to the current `.alran[-profile]` data directory.
- *
- * The alias is deliberately narrower than a general path migration: both
- * paths must be under the same parent, use the same profile suffix, contain
- * the same sessionId, and end at the exact `sessions/<id>/workspace` shape.
- * This is a lexical read-only comparison; it must not call realpath, migrate
- * data, or backfill the session record.
- */
-export function isLegacySessionDefaultWorkspaceDir(
-  workspaceDir: string | undefined,
-  currentSessionDefaultWorkspaceDir: string | undefined,
-  sessionId: string,
-): boolean {
-  const current = parseSessionDefaultWorkspacePath(currentSessionDefaultWorkspaceDir, sessionId);
-  const legacy = parseSessionDefaultWorkspacePath(workspaceDir, sessionId);
-  if (!current || !legacy || current.windows !== legacy.windows) return false;
-  const sameDataDirBase = current.windows
-    ? current.dataDirBase.toLowerCase() === NEW_DATA_DIR_BASENAME &&
-      legacy.dataDirBase.toLowerCase() === LEGACY_DATA_DIR_BASENAME
-    : current.dataDirBase === NEW_DATA_DIR_BASENAME &&
-      legacy.dataDirBase === LEGACY_DATA_DIR_BASENAME;
-  if (!sameDataDirBase) {
-    return false;
-  }
-  const sameProfile = current.windows
-    ? current.profileSuffix.toLowerCase() === legacy.profileSuffix.toLowerCase()
-    : current.profileSuffix === legacy.profileSuffix;
-  if (!sameProfile) return false;
-  return pathsEqual(current.parentDir, legacy.parentDir, current.windows);
-}
-
-/** Match current and historical internal Agent fallback workspaces without filesystem access. */
+/** Match the internal Agent fallback workspace without filesystem access. */
 export function isAgentInternalDefaultWorkspaceDir(
   workspaceDir: string | undefined,
   currentAgentWorkspaceDir: string | undefined,
@@ -161,21 +118,7 @@ export function isAgentInternalDefaultWorkspaceDir(
   const currentFlavor = detectPathFlavor(current);
   if (workspaceFlavor !== currentFlavor) return false;
   const windows = currentFlavor === path.win32;
-  if (pathsEqual(workspace, current, windows)) return true;
-
-  const legacy = parseAgentWorkspacePath(workspace, agentName);
-  const active = parseAgentWorkspacePath(current, agentName);
-  if (!legacy || !active || legacy.windows !== active.windows) return false;
-  const sameDataDirBase = windows
-    ? active.dataDirBase.toLowerCase() === NEW_DATA_DIR_BASENAME &&
-      legacy.dataDirBase.toLowerCase() === LEGACY_DATA_DIR_BASENAME
-    : active.dataDirBase === NEW_DATA_DIR_BASENAME &&
-      legacy.dataDirBase === LEGACY_DATA_DIR_BASENAME;
-  return (
-    sameDataDirBase &&
-    pathsEqual(active.parentDir, legacy.parentDir, windows) &&
-    pathsEqual(active.profileSuffix, legacy.profileSuffix, windows)
-  );
+  return pathsEqual(workspace, current, windows);
 }
 
 function collapseWorktreeDir(workspaceDir: string): string {
@@ -188,98 +131,6 @@ function collapseWorktreeDir(workspaceDir: string): string {
   const parentParts = parts.slice(0, markerIndex);
   const collapsed = `${root}${parentParts.join(flavor.sep)}`;
   return trimTrailingSeparators(collapsed, flavor.sep);
-}
-
-interface SessionDefaultWorkspacePath {
-  windows: boolean;
-  parentDir: string;
-  dataDirBase: string;
-  profileSuffix: string;
-}
-
-function parseAgentWorkspacePath(
-  value: string,
-  agentName: string,
-): SessionDefaultWorkspacePath | undefined {
-  const flavor = detectPathFlavor(value);
-  const windows = flavor === path.win32;
-  const root = flavor.parse(value).root;
-  const parts = value
-    .slice(root.length)
-    .split(windows ? /[\\/]+/ : /\/+/)
-    .filter(Boolean);
-  if (parts.length < 4) return undefined;
-  if (
-    !samePathPart(parts.at(-1), 'workspace', windows) ||
-    !samePathPart(parts.at(-2), agentName, windows) ||
-    !samePathPart(parts.at(-3), 'agents', windows)
-  ) {
-    return undefined;
-  }
-  const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
-  if (!match?.[1]) return undefined;
-  return {
-    windows,
-    parentDir: `${root}${parts.slice(0, -4).join(flavor.sep)}`,
-    dataDirBase: `.${match[1]}`,
-    profileSuffix: match[2] ?? '',
-  };
-}
-
-/**
- * Parser-only: lexically parses absolute `<parent>/.{alran|alran}[-profile]/sessions/<sessionId>/workspace`
- * candidates and extracts `windows`, `parentDir`, `dataDirBase`, and `profileSuffix`.
- * It validates the exact suffix shape and supplied `sessionId`; the caller compares alias
- * direction and parent/profile equality in `isLegacySessionDefaultWorkspaceDir`.
- * POSIX uses case-sensitive `/`; Windows uses win32 separators/case semantics.
- * No filesystem access, `realpath`, migration, or data writes occur.
- */
-function parseSessionDefaultWorkspacePath(
-  value: string | undefined,
-  sessionId: string,
-): SessionDefaultWorkspacePath | undefined {
-  if (!sessionId || /[\\/]/.test(sessionId)) return undefined;
-  const normalized = normalizeAbsolutePath(value);
-  if (!normalized) return undefined;
-  const flavor = detectPathFlavor(normalized);
-  const windows = flavor === path.win32;
-  const root = flavor.parse(normalized).root;
-  const parts = normalized
-    .slice(root.length)
-    .split(windows ? /[\\/]+/ : /\/+/)
-    .filter(Boolean);
-  if (parts.length < 4) return undefined;
-
-  const workspacePart = parts.at(-1);
-  const sessionPart = parts.at(-2);
-  const sessionsPart = parts.at(-3);
-  if (
-    !samePathPart(workspacePart, 'workspace', windows) ||
-    !samePathPart(sessionPart, sessionId, windows) ||
-    !samePathPart(sessionsPart, 'sessions', windows)
-  ) {
-    return undefined;
-  }
-
-  const dataDirPart = parts.at(-4);
-  const dataDirMatch = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
-  if (!dataDirMatch) return undefined;
-  const dataDirBase = dataDirMatch[1];
-  if (!dataDirBase) return undefined;
-  const dataDirIndex = parts.length - 4;
-  const parentDir = `${root}${parts.slice(0, dataDirIndex).join(flavor.sep)}`;
-  return {
-    windows,
-    parentDir,
-    dataDirBase: `.${dataDirBase}`,
-    profileSuffix: dataDirMatch[2] ?? '',
-  };
-}
-
-function samePathPart(left: string | undefined, right: string, windows: boolean): boolean {
-  if (left === undefined) return false;
-  return windows ? left.toLowerCase() === right.toLowerCase() : left === right;
 }
 
 function pathsEqual(left: string, right: string, windows: boolean): boolean {

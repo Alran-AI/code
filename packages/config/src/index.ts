@@ -134,22 +134,11 @@ export type {
   ModelSelectionSource,
 } from './model-availability.js';
 export {
-  LEGACY_DATA_DIR_BASENAME,
-  NEW_DATA_DIR_BASENAME,
-  getLegacyDataDirPath,
-  getPrimaryDataDirPath,
-  migrateDefaultDataDir,
-  migrateProfileDataDir,
+  DATA_DIR_BASENAME,
+  getDataDirPath,
   resolveDataDir,
 } from './data-dir.js';
-export type { DataDirMigrationLogger, ResolveDataDirOptions } from './data-dir.js';
-// legacy-brand-compat: TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
-export {
-  applyLegacyEnvironmentAliases,
-  formatLegacyEnvironmentWarning,
-  LEGACY_ENV_SUPPORT_ENDS,
-} from './legacy-env.js';
-export type { LegacyEnvironmentAlias } from './legacy-env.js';
+export type { DataDirLogger, ResolveDataDirOptions } from './data-dir.js';
 export {
   isLegacyManagedAlranProvider,
   isManagedProviderBaseUrl,

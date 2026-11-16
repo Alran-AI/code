@@ -627,7 +627,6 @@ async function inspectSafeAgentDirectory(
 
 type AgentDirectorySegment = 'data_dir' | 'agents' | 'builtin' | 'agent' | 'nested';
 type AgentDirectoryTargetScope =
-  | 'expected_default_target'
   | 'data_dir_inside'
   | 'data_dir_outside'
   | 'unresolvable';
@@ -667,7 +666,7 @@ async function resolveAgentDirectoryLink(input: {
   } else {
     resolvedTargetKind = 'not_directory';
   }
-  const targetScope = await agentDirectoryTargetScope(input.root, input.current, resolvedTarget);
+  const targetScope = await agentDirectoryTargetScope(input.root, resolvedTarget);
   logAgentDirectoryLink({
     root: input.root,
     current: input.current,
@@ -714,15 +713,12 @@ function dataDirSource(): string {
   return source && KNOWN_DATA_DIR_SOURCES.has(source) ? source : 'unknown';
 }
 
-// legacy-brand-compat:begin — a data directory reached through the legacy `.mavis` symlink that the
-// data-dir migration leaves behind. TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
-function agentDirectoryRootKind(root: string): '.alran' | '.mavis' | 'other' {
+/** Whether the data directory root is the Alran data directory or a directory of another shape. */
+function agentDirectoryRootKind(root: string): '.alran' | 'other' {
   const name = basename(root).toLowerCase();
   if (name === '.alran' || name.startsWith('.alran-')) return '.alran';
-  if (name === '.mavis' || name.startsWith('.mavis-')) return '.mavis';
   return 'other';
 }
-// legacy-brand-compat:end
 
 function agentDirectorySegment(segments: readonly string[], index: number): AgentDirectorySegment {
   if (index === 0) return 'data_dir';
@@ -735,43 +731,16 @@ function agentDirectorySegment(segments: readonly string[], index: number): Agen
 
 async function agentDirectoryTargetScope(
   root: string,
-  current: string,
   resolvedTarget: string | null,
 ): Promise<AgentDirectoryTargetScope> {
   if (!resolvedTarget) return 'unresolvable';
   try {
-    if (await isExpectedDefaultDataDirTarget(root, current, resolvedTarget)) {
-      return 'expected_default_target';
-    }
     const resolvedRoot = await realpath(root);
     return isWithinDirectory(resolvedRoot, resolvedTarget) ? 'data_dir_inside' : 'data_dir_outside';
   } catch {
     return 'unresolvable';
   }
 }
-
-// legacy-brand-compat:begin — TODO: remove after 2027-Q1 (docs/MIGRATION_FROM_MINIMAX.md).
-async function isExpectedDefaultDataDirTarget(
-  root: string,
-  current: string,
-  resolvedTarget: string,
-): Promise<boolean> {
-  if (current !== root || agentDirectoryRootKind(root) !== '.mavis') return false;
-  try {
-    return samePath(
-      resolvedTarget,
-      await realpath(join(dirname(root), expectedDefaultAlranDataDirName(root))),
-    );
-  } catch {
-    return false;
-  }
-}
-
-function expectedDefaultAlranDataDirName(root: string): string {
-  const name = basename(root);
-  return name.startsWith('.mavis-') ? `.alran${name.slice('.mavis'.length)}` : '.alran';
-}
-// legacy-brand-compat:end
 
 function samePath(left: string, right: string): boolean {
   return process.platform === 'win32' ? left.toLowerCase() === right.toLowerCase() : left === right;

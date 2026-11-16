@@ -1,6 +1,5 @@
 import path from 'node:path';
 
-import { LEGACY_DATA_DIR_BASENAME, NEW_DATA_DIR_BASENAME } from '@alran/config/data-dir';
 
 import type { SessionRunLocation } from '../sessions/repo/contract.js';
 import { normalizeAbsolutePath, pathFlavor } from './path-normalization.js';
@@ -51,10 +50,7 @@ export function isAgentInternalDefaultWorkspaceDir(
   const currentFlavor = pathFlavor(paths.current);
   if (pathFlavor(paths.workspace) !== currentFlavor) return false;
   const windows = currentFlavor === path.win32;
-  return (
-    pathsEqual(paths.workspace, paths.current, windows) ||
-    isLegacyAgentInternalWorkspaceAlias(paths.workspace, paths.current, agentName)
-  );
+  return pathsEqual(paths.workspace, paths.current, windows);
 }
 
 function isValidAgentWorkspaceName(agentName: string): boolean {
@@ -68,81 +64,6 @@ function normalizeAgentWorkspacePaths(
   const workspace = normalizeAbsolutePath(workspaceDir);
   const current = normalizeAbsolutePath(currentAgentInternalWorkspaceDir);
   return workspace && current ? { workspace, current } : undefined;
-}
-
-function isLegacyAgentInternalWorkspaceAlias(
-  workspace: string,
-  current: string,
-  agentName: string,
-): boolean {
-  const legacy = parseAgentWorkspacePath(workspace, agentName);
-  const active = parseAgentWorkspacePath(current, agentName);
-  if (!legacy || !active || legacy.windows !== active.windows) return false;
-  return (
-    hasLegacyAgentDataDirectoryAlias(active, legacy) &&
-    pathsEqual(active.parentDir, legacy.parentDir, active.windows) &&
-    pathsEqual(active.profileSuffix, legacy.profileSuffix, active.windows)
-  );
-}
-
-function hasLegacyAgentDataDirectoryAlias(
-  active: AgentWorkspacePath,
-  legacy: AgentWorkspacePath,
-): boolean {
-  if (active.windows) {
-    return (
-      active.dataDirBase.toLowerCase() === NEW_DATA_DIR_BASENAME &&
-      legacy.dataDirBase.toLowerCase() === LEGACY_DATA_DIR_BASENAME
-    );
-  }
-  return (
-    active.dataDirBase === NEW_DATA_DIR_BASENAME &&
-    legacy.dataDirBase === LEGACY_DATA_DIR_BASENAME
-  );
-}
-
-interface AgentWorkspacePath {
-  readonly windows: boolean;
-  readonly parentDir: string;
-  readonly dataDirBase: string;
-  readonly profileSuffix: string;
-}
-
-function parseAgentWorkspacePath(
-  value: string,
-  agentName: string,
-): AgentWorkspacePath | undefined {
-  const flavor = pathFlavor(value);
-  const windows = flavor === path.win32;
-  const root = flavor.parse(value).root;
-  const parts = value
-    .slice(root.length)
-    .split(windows ? /[\\/]+/u : /\/+/u)
-    .filter(Boolean);
-  if (parts.length < 4) return undefined;
-  if (
-    !samePathPart(parts.at(-1), 'workspace', windows) ||
-    !samePathPart(parts.at(-2), agentName, windows) ||
-    !samePathPart(parts.at(-3), 'agents', windows)
-  ) {
-    return undefined;
-  }
-  const dataDirPart = parts.at(-4);
-  const match = dataDirPart?.match(/^\.(alran|alran)(?:-(.+))?$/i);
-  if (!match?.[1]) return undefined;
-  return {
-    windows,
-    parentDir: `${root}${parts.slice(0, -4).join(flavor.sep)}`,
-    dataDirBase: `.${match[1]}`,
-    profileSuffix: match[2] ?? '',
-  };
-}
-
-function samePathPart(value: string | undefined, expected: string, windows: boolean): boolean {
-  return (
-    value !== undefined &&
-    (windows ? value.toLowerCase() === expected.toLowerCase() : value === expected)
-  );
 }
 
 function pathsEqual(left: string, right: string, windows: boolean): boolean {

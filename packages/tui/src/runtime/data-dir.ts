@@ -1,4 +1,4 @@
-import { getPrimaryDataDirPath, getProfile } from '@alran/config';
+import { getDataDirPath, getProfile } from '@alran/config';
 import { resolveAlranDataEnvironment, type AlranDataEnvironment } from '../auth/environment.js';
 import { configureTuiRuntimeEnvironment } from '../cli/environment.js';
 
@@ -17,7 +17,7 @@ export interface PrepareTuiDataDirOptions {
 
 export function resolveDefaultTuiDataDir(
   _buildEnv: AlranDataEnvironment,
-  getPrimaryDataDir: typeof getPrimaryDataDirPath = getPrimaryDataDirPath,
+  getPrimaryDataDir: typeof getDataDirPath = getDataDirPath,
   getCurrentProfile: typeof getProfile = getProfile,
 ): string {
   return getPrimaryDataDir(undefined, getCurrentProfile());
