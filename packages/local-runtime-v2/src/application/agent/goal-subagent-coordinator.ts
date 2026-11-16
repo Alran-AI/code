@@ -16,6 +16,13 @@ import { renderGoalVerifierReminder } from './goal-verifier-reminder.js';
  */
 const GOAL_VERIFIER_DENIED_TOOLS = new Set(['web_fetch', 'web_search']);
 
+/**
+ * How many blocked network calls a run may spend on finding out it is offline. The reminder does
+ * not tell every model up front, and a Goal is about the local workspace, which `read`, `grep`
+ * and `bash` can still answer. Past this the child is looping, not detouring.
+ */
+const GOAL_VERIFIER_DENIED_CALL_ALLOWANCE = 2;
+
 /** Structurally mirrors the v1 delegation runner's registry contract. */
 export interface GoalVerifierChildRunIssue {
   readonly code: 'route_unavailable' | 'capability_violation' | 'child_budget_exhausted';
@@ -39,6 +46,8 @@ export interface GoalVerifierChildRunState {
   childTurns: number;
   tokens: number;
   usageIncomplete: boolean;
+  /** Calls to a denied tool so far; only the ones past the allowance end the run. */
+  deniedToolCalls: number;
   issue?: GoalVerifierChildRunIssue;
 }
 
@@ -69,6 +78,7 @@ export class GoalVerifierChildCoordinator {
       childTurns: 0,
       tokens: 0,
       usageIncomplete: false,
+      deniedToolCalls: 0,
     });
   }
 
@@ -161,10 +171,19 @@ export class GoalVerifierChildCoordinator {
     const toolName = toolContext.toolCall.name;
     if (!GOAL_VERIFIER_DENIED_TOOLS.has(toolName)) return undefined;
     const reason = `GOAL_VERIFIER_CAPABILITY_VIOLATION: readonly Goal verification blocked tool "${toolName}".`;
-    // Latched, not aborted here: the blocked result goes back to the model and
-    // the next `beforeLlm` stops the run on the latched issue.
-    this.latchIssue(state, { code: 'capability_violation', message: reason });
-    return { block: true, reason };
+    state.deniedToolCalls += 1;
+    if (state.deniedToolCalls > GOAL_VERIFIER_DENIED_CALL_ALLOWANCE) {
+      // Latched, not aborted here: the blocked result goes back to the model and
+      // the next `beforeLlm` stops the run on the latched issue.
+      this.latchIssue(state, { code: 'capability_violation', message: reason });
+      return { block: true, reason };
+    }
+    // Within the allowance the call is blocked but the run goes on: the model is told
+    // what to do instead and gets its next turn.
+    return {
+      block: true,
+      reason: `${reason} This run is offline. Check the objective with read, grep or bash on the workspace; if the evidence cannot be reached that way, give a PARTIAL verdict.`,
+    };
   }
 
   private latchIssue(state: GoalVerifierChildRunState, issue: GoalVerifierChildRunIssue): void {

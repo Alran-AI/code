@@ -66,6 +66,31 @@ function probeTmuxHyperlinks(): boolean {
 	}
 }
 
+/** VTE (GNOME Terminal and its relatives) understands OSC 8 from version 0.50. */
+const MIN_VTE_VERSION_WITH_HYPERLINKS = 5000;
+
+/**
+ * Whether the environment names a terminal known to handle OSC 8 hyperlinks that tmux does not
+ * hide: the variables these terminals export reach a process inside tmux, while TERM_PROGRAM does
+ * not. Used under tmux, whose own feature list is conservative and cannot tell what the outer
+ * terminal is, and for the terminals the table below has no TERM_PROGRAM entry for.
+ */
+function environmentNamesHyperlinkTerminal(term: string): boolean {
+	const vteVersion = Number(process.env.VTE_VERSION);
+	return (
+		Boolean(process.env.KITTY_WINDOW_ID) ||
+		Boolean(process.env.GHOSTTY_RESOURCES_DIR) ||
+		Boolean(process.env.WEZTERM_PANE) ||
+		Boolean(process.env.WARP_SESSION_ID || process.env.WARP_TERMINAL_SESSION_UUID) ||
+		Boolean(process.env.ITERM_SESSION_ID) ||
+		Boolean(process.env.WT_SESSION) ||
+		(Number.isFinite(vteVersion) && vteVersion >= MIN_VTE_VERSION_WITH_HYPERLINKS) ||
+		Boolean(process.env.KONSOLE_VERSION) ||
+		term === "foot" ||
+		term.startsWith("foot-")
+	);
+}
+
 function detectCapabilitiesFromEnvironment(tmuxForwardsHyperlink: () => boolean): TerminalCapabilities {
 	const termProgram = process.env.TERM_PROGRAM?.toLowerCase() || "";
 	const terminalEmulator = process.env.TERMINAL_EMULATOR?.toLowerCase() || "";
@@ -74,10 +99,16 @@ function detectCapabilitiesFromEnvironment(tmuxForwardsHyperlink: () => boolean)
 	const hasTrueColorHint = colorTerm === "truecolor" || colorTerm === "24bit";
 	const isWindowsConsole = process.platform === "win32";
 
-	// Emit OSC 8 hyperlinks only when tmux confirms it forwards.
+	// Emit OSC 8 hyperlinks when tmux confirms it forwards them, or when the outer terminal is
+	// known to handle them: tmux's default feature list does not name the outer terminal, and a
+	// sequence tmux strips leaves the plain text, which is what the fallback shows anyway.
 	// Image protocols are unreliable under tmux, so leave `images: null`.
 	if (process.env.TMUX || term.startsWith("tmux")) {
-		return { images: null, trueColor: hasTrueColorHint, hyperlinks: tmuxForwardsHyperlink() };
+		return {
+			images: null,
+			trueColor: hasTrueColorHint,
+			hyperlinks: tmuxForwardsHyperlink() || environmentNamesHyperlinkTerminal(term),
+		};
 	}
 
 	// screen does not forward OSC 8 hyperlinks, so keep them off there.
@@ -120,6 +151,11 @@ function detectCapabilitiesFromEnvironment(tmuxForwardsHyperlink: () => boolean)
 
 	if (terminalEmulator === "jetbrains-jediterm") {
 		return { images: null, trueColor: true, hyperlinks: false };
+	}
+
+	// GNOME Terminal and the other VTE terminals, Konsole and foot handle OSC 8.
+	if (environmentNamesHyperlinkTerminal(term)) {
+		return { images: null, trueColor: hasTrueColorHint, hyperlinks: true };
 	}
 
 	// Windows Terminal does not always set WT_SESSION, for example when it hosts

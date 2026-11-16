@@ -1050,6 +1050,51 @@ describe("TuiInputFlow steer Draft handling", () => {
     expect(withAttachment.leaveUi).not.toHaveBeenCalled();
   });
 
+  it("asks before Ctrl+D exits while a response is still running", () => {
+    vi.useFakeTimers();
+    try {
+      const harness = createHarness("", { attachments: [] }, false, false, true);
+
+      expect(harness.inputListener?.("\x04")).toEqual({ consume: true });
+      expect(harness.leaveUi).not.toHaveBeenCalled();
+      expect(harness.setHint).toHaveBeenLastCalledWith(
+        "A response is still running. Press Ctrl+D again to exit and stop it, or Esc to interrupt it",
+      );
+
+      expect(harness.inputListener?.("\x04")).toEqual({ consume: true });
+      expect(harness.leaveUi).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not keep the Ctrl+D question open after another key or a pause", () => {
+    vi.useFakeTimers();
+    try {
+      const other = createHarness("", { attachments: [] }, false, false, true);
+      other.inputListener?.("\x04");
+      other.inputListener?.("\x1a");
+      expect(other.inputListener?.("\x04")).toEqual({ consume: true });
+      expect(other.leaveUi).not.toHaveBeenCalled();
+
+      const paused = createHarness("", { attachments: [] }, false, false, true);
+      paused.inputListener?.("\x04");
+      vi.advanceTimersByTime(6_000);
+      expect(paused.inputListener?.("\x04")).toEqual({ consume: true });
+      expect(paused.leaveUi).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("names the running response in the Ctrl+C exit hint", () => {
+    const running = createHarness("", { attachments: [] }, false, false, true);
+    running.inputListener?.("\x03");
+    expect(running.setHint).toHaveBeenLastCalledWith(
+      "A response is still running. Press Ctrl+C again to exit and stop it",
+    );
+  });
+
   it("submits the active Draft as guidance when Enter is pressed", async () => {
     const harness = createHarness("focus on the failing test", {
       attachments: [],

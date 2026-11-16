@@ -96,26 +96,23 @@ const VISUAL_TOKEN_STAND_IN = 4_800;
 export type EncodeFn = (text: string) => number[] | Uint32Array;
 
 const MAX_EXACT_TOKENIZER_CHARS = 4_096;
-const UNICODE_LETTER_OR_NUMBER = /[\p{L}\p{N}]/u;
+/** An unbroken run of letters and digits (any script) too long to hand to the exact tokenizer. */
+const OVERSIZED_ALPHANUMERIC_RUN = new RegExp(`[\\p{L}\\p{N}]{${MAX_EXACT_TOKENIZER_CHARS + 1},}`, 'gu');
 
-function hasOversizedAlphanumericRun(text: string): boolean {
-  let runLength = 0;
-  for (const character of text) {
-    const codePoint = character.codePointAt(0) ?? 0;
-    const isLetterOrNumber =
-      codePoint <= 0x7f
-        ? (codePoint >= 0x30 && codePoint <= 0x39) ||
-          (codePoint >= 0x41 && codePoint <= 0x5a) ||
-          (codePoint >= 0x61 && codePoint <= 0x7a)
-        : UNICODE_LETTER_OR_NUMBER.test(character);
-    if (!isLetterOrNumber) {
-      runLength = 0;
-      continue;
-    }
-    runLength += 1;
-    if (runLength > MAX_EXACT_TOKENIZER_CHARS) return true;
-  }
-  return false;
+/**
+ * Splits a text into what the exact tokenizer may count and the UTF-8 bytes of its oversized
+ * alphanumeric runs (a base64 payload, a hash, an unbroken identifier). The byte bound is the
+ * estimate for the run alone: charged to the whole text it inflates everything around the run.
+ * Returns undefined when the text has no oversized run.
+ */
+function splitOversizedRuns(text: string): { rest: string; runBytes: number } | undefined {
+  let runBytes = 0;
+  const rest = text.replace(OVERSIZED_ALPHANUMERIC_RUN, (run) => {
+    runBytes += Buffer.byteLength(run, 'utf8');
+    // A space keeps the text on either side of the run from running together.
+    return ' ';
+  });
+  return runBytes === 0 ? undefined : { rest, runBytes };
 }
 
 function estimateTextTokensUpperBound(text: string): number {
@@ -240,8 +237,13 @@ export class BpeTokenEstimator implements TokenEstimator {
       return cached;
     }
     try {
-      if (text.length > MAX_EXACT_TOKENIZER_CHARS && hasOversizedAlphanumericRun(text)) {
-        return estimateTextTokensUpperBound(text);
+      const oversized = text.length > MAX_EXACT_TOKENIZER_CHARS ? splitOversizedRuns(text) : undefined;
+      if (oversized) {
+        const restTokens = oversized.rest.trim() ? this.countExactTokens(oversized.rest) : 0;
+        if (!Number.isFinite(restTokens) || restTokens < 0) {
+          return estimateTextTokensUpperBound(text);
+        }
+        return oversized.runBytes + restTokens;
       }
       const tokens = this.countExactTokens(text);
       if (!Number.isFinite(tokens) || tokens < 0) return estimateTextTokensUpperBound(text);

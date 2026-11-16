@@ -32,7 +32,11 @@ export interface CreateBackgroundRuntimeOptions {
   readonly restorePersistedJobExecution?: boolean;
   /** Disable Electron-only scheduled work for embedded command-line owners. */
   readonly enableScheduler?: boolean;
+  /** How often the maintenance tasks run again while the process lives. Defaults to six hours. */
+  readonly maintenanceRepeatMs?: number;
 }
+
+const DEFAULT_MAINTENANCE_REPEAT_MS = 6 * 60 * 60 * 1_000;
 
 export interface BackgroundRuntime {
   /** Lifecycle-free capabilities borrowed by business services. */
@@ -77,6 +81,8 @@ export async function createBackgroundRuntime(
   let maintenancePromise: Promise<void> | undefined;
   let stopPromise: Promise<void> | undefined;
   let closePromise: Promise<void> | undefined;
+  let maintenanceTimer: NodeJS.Timeout | undefined;
+  let maintenancePass: Promise<void> | undefined;
   const maintenanceTasks: Array<{ readonly name: string; readonly run: () => Promise<unknown> }> =
     [];
   if (options.dataDir) {
@@ -108,7 +114,33 @@ export async function createBackgroundRuntime(
 
   async function runDeferredMaintenance(): Promise<void> {
     await deferMaintenance();
-    await runMaintenanceTasks();
+    scheduleMaintenanceRepeat();
+    await runMaintenancePass();
+  }
+
+  /**
+   * A process can run for days: retention that only ran at start-up left everything that became
+   * eligible afterwards (and anything past one pass's batch) in place until the next restart.
+   */
+  function scheduleMaintenanceRepeat(): void {
+    if (stopPromise || maintenanceTimer) return;
+    const repeatMs = options.maintenanceRepeatMs ?? DEFAULT_MAINTENANCE_REPEAT_MS;
+    if (!Number.isFinite(repeatMs) || repeatMs <= 0) return;
+    maintenanceTimer = setInterval(() => {
+      if (stopPromise) return;
+      void runMaintenancePass();
+    }, repeatMs);
+    maintenanceTimer.unref();
+  }
+
+  function runMaintenancePass(): Promise<void> {
+    // A pass that is still running is not started a second time.
+    if (maintenancePass) return maintenancePass;
+    const pass = runMaintenanceTasks().finally(() => {
+      if (maintenancePass === pass) maintenancePass = undefined;
+    });
+    maintenancePass = pass;
+    return pass;
   }
 
   async function runMaintenanceTasks(): Promise<void> {
@@ -127,6 +159,8 @@ export async function createBackgroundRuntime(
   }
 
   async function stopBackgroundInfrastructure(): Promise<void> {
+    clearInterval(maintenanceTimer);
+    maintenanceTimer = undefined;
     try {
       if (scheduler) scheduler.stop();
     } finally {
@@ -143,6 +177,8 @@ export async function createBackgroundRuntime(
     }
     try {
       await maintenancePromise;
+      // A repeated pass may still be running when the runtime closes.
+      await maintenancePass;
     } catch (error) {
       firstError ??= error;
     }

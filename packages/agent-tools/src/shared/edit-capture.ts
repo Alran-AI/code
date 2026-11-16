@@ -2,6 +2,8 @@ import { access, readFile, writeFile } from 'node:fs/promises';
 
 import type { EditOperations } from '@earendil-works/pi-coding-agent';
 
+import { assertEditableUtf8 } from './edit-encoding.js';
+
 export interface EditCapture {
   readonly path: string;
   readonly originalFile: string;
@@ -22,6 +24,7 @@ export function createCapturingEditOperations(): {
     access,
     async readFile(path) {
       const buffer = await readFile(path);
+      assertEditableUtf8(buffer, path);
       pendingReads.set(path, buffer);
       return buffer;
     },

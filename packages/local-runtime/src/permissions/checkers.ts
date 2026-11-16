@@ -72,9 +72,10 @@ function parseDirectTrashTargets(command: string): string[] {
 function resolveWindowsTargets(
   rawTargets: readonly string[] | undefined,
   workspaceDir: string | undefined,
-): { resolved: string[]; hasDynamicTarget: boolean } {
-  if (!rawTargets) return { resolved: [], hasDynamicTarget: true };
+): { resolved: string[]; hasDynamicTarget: boolean; dynamicTargets: string[] } {
+  if (!rawTargets) return { resolved: [], hasDynamicTarget: true, dynamicTargets: [] };
   const resolved: string[] = [];
+  const dynamicTargets: string[] = [];
   let hasDynamicTarget = false;
   const workspace = workspaceDir && /^[A-Za-z]:[\\/]/.test(workspaceDir) ? workspaceDir : undefined;
   for (const rawTarget of rawTargets) {
@@ -83,13 +84,14 @@ function resolveWindowsTargets(
     const fullyQualified = /^(?:[A-Za-z]:[\\/]|\\\\)/.test(rawTarget);
     if (/[%$*?`]/.test(rawTarget) || /^~/.test(rawTarget) || (!fullyQualified && !workspace)) {
       hasDynamicTarget = true;
+      dynamicTargets.push(rawTarget);
       continue;
     }
     resolved.push(
       fullyQualified ? path.win32.normalize(rawTarget) : path.win32.resolve(workspace!, rawTarget),
     );
   }
-  return { resolved, hasDynamicTarget };
+  return { resolved, hasDynamicTarget, dynamicTargets };
 }
 
 function isRecursiveWindowsWriteCommand(command: string, shellFamily?: ShellFamily): boolean {
@@ -939,22 +941,29 @@ function buildWindowsPathSafetyDenyReason(input: LocalPermissionCheckerInput): s
     }
     nativeTargets.push(...resolved.resolved);
   }
-  if (
-    writeOrDeleteSurfaces.some(
-      (surface) =>
-        surface.cwdChanged &&
+  const unverifiable = [
+    ...writeOrDeleteSurfaces
+      .filter((surface) => surface.cwdChanged)
+      .map((surface) =>
         resolveWindowsTargets(
           readWindowsPathSafetyTargets(surface.command, surface.shellFamily, surface.recoverableRm),
           undefined,
-        ).hasDynamicTarget,
-    ) ||
-    surfaces.some(
-      (surface) =>
-        surface.cwdChanged &&
-        resolveWindowsTargets(surface.redirectionTargets, undefined).hasDynamicTarget,
-    )
-  ) {
-    return `Local hard safety policy blocked ${input.toolName}: write/delete targets cannot be verified safely after a command working directory change.`;
+        ),
+      ),
+    ...surfaces
+      .filter((surface) => surface.cwdChanged)
+      .map((surface) => resolveWindowsTargets(surface.redirectionTargets, undefined)),
+  ].filter((resolved) => resolved.hasDynamicTarget);
+  if (unverifiable.length > 0) {
+    const named = [...new Set(unverifiable.flatMap((resolved) => resolved.dynamicTargets))];
+    const detail =
+      named.length > 0
+        ? ` Target${named.length > 1 ? 's' : ''} that could not be resolved: ${named
+            .slice(0, 5)
+            .map((target) => `"${target}"`)
+            .join(', ')}. Use a literal absolute path for the write target, or write it before the working directory change.`
+        : '';
+    return `Local hard safety policy blocked ${input.toolName}: write/delete targets cannot be verified safely after a command working directory change.${detail}`;
   }
   const targets = values
     .flatMap((value) => value.match(/(?:\\\\\?\\)?[A-Za-z]:[\\/][^\s"';&|<>]*/gi) ?? [])

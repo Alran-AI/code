@@ -89,6 +89,7 @@ import { createSessionUsageRepository } from './usage/repo/drizzle.js';
 import { recordCommittedPiUsage } from './usage/pi-usage.js';
 import { SessionUsageService } from './usage/service.js';
 import { createSessionUsageCommitSignal } from './usage/commit-signal.js';
+import { modelIdentity } from './usage/model-identity.js';
 import { SessionLlmCallReportStore, SessionReportService } from '@alran/session-report';
 import { createSessionStorageRetention } from './storage-retention.js';
 import {
@@ -816,10 +817,3 @@ function createTitleCommitter(
   };
 }
 
-function modelIdentity(model: unknown): string | null {
-  if (!model || typeof model !== 'object') return null;
-  const provider = Reflect.get(model, 'provider');
-  const id = Reflect.get(model, 'id');
-  if (typeof provider === 'string' && typeof id === 'string') return `${provider}/${id}`;
-  return typeof id === 'string' ? id : null;
-}

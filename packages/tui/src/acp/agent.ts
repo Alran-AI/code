@@ -64,6 +64,11 @@ interface AcpSession {
   coordinator: TuiRunCoordinator;
   readonly attachmentController: AbortController;
   pendingModeIntent?: TuiPlanClientIntent;
+  /**
+   * Settles when the Runtime has acknowledged the last cancellation. A cancelled prompt is not
+   * answered before that: the Runtime refuses a new Turn while it is still closing the old one.
+   */
+  cancellationSettled?: Promise<void>;
   activePrompt?: {
     readonly controller: AbortController;
     readonly continuation: TuiAcpPromptContinuation;
@@ -1087,12 +1092,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       if (!active) {
         throw acp.RequestError.resourceNotFound(context.params.sessionId);
       }
-      if (active.activePrompt) {
-        throw acp.RequestError.invalidParams(
-          undefined,
-          'A prompt is already active for this session.',
-        );
-      }
+      if (active.activePrompt) throw sessionBusyError();
 
       const command = await executeTuiAcpCommand({
         runtime: options.runtime,
@@ -1151,7 +1151,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
     let modeIntentAccepted = false;
     const cancel = () => {
       promptController.abort(context.signal.reason);
-      void active.coordinator.abort();
+      active.cancellationSettled = settledQuietly(active.coordinator.abort());
     };
     context.signal.addEventListener('abort', cancel, { once: true });
     if (context.signal.aborted) cancel();
@@ -1220,6 +1220,7 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       if (result.status === 'succeeded') return { stopReason: 'end_turn' };
       if (result.status === 'cancelled') return { stopReason: 'cancelled' };
       if (result.status === 'limit_exceeded') return { stopReason: 'max_turn_requests' };
+      if (result.outcome.error?.code === 'local_session_busy') throw sessionBusyError();
       throw acp.RequestError.internalError(
         undefined,
         result.error
@@ -1228,6 +1229,8 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       );
     } finally {
       context.signal.removeEventListener('abort', cancel);
+      // The answer to a cancelled prompt tells the client the session is free again.
+      if (promptController.signal.aborted) await awaitCancellation(active.cancellationSettled);
       if (active.activePrompt === activePrompt) active.activePrompt = undefined;
       if (modeIntentAccepted && active.pendingModeIntent === submittedModeIntent) {
         active.pendingModeIntent = undefined;
@@ -1268,7 +1271,9 @@ export function createTuiAcpAgent(options: CreateTuiAcpAgentOptions): acp.AgentA
       return;
     }
     active.activePrompt.controller.abort(new Error('ACP session cancelled.'));
-    await active.coordinator.abort();
+    const aborting = active.coordinator.abort();
+    active.cancellationSettled = settledQuietly(aborting);
+    await aborting;
   });
 
   return app;
@@ -2131,4 +2136,43 @@ async function assertAuthenticated(runtime: TuiAcpRuntime): Promise<void> {
     }
     throw error;
   }
+}
+
+/** How long a cancelled prompt waits for the Runtime to close the aborted Turn before it answers. */
+const CANCELLATION_SETTLEMENT_WAIT_MS = 5_000;
+
+function settledQuietly(work: Promise<unknown>): Promise<void> {
+  return work.then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
+async function awaitCancellation(settled: Promise<void> | undefined): Promise<void> {
+  if (!settled) return;
+  let timer: NodeJS.Timeout | undefined;
+  const limit = new Promise<void>((release) => {
+    timer = setTimeout(release, CANCELLATION_SETTLEMENT_WAIT_MS);
+    timer.unref();
+  });
+  try {
+    await Promise.race([settled, limit]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** The extension method that delivers a message to a session after its current turn. */
+const ACP_QUEUE_ENQUEUE_METHOD = 'alran/session/queue/enqueue';
+
+/**
+ * One rejection for every way a prompt can find its session busy: the same code and message, and
+ * a `data` a client can branch on without reading prose.
+ */
+function sessionBusyError(): acp.RequestError {
+  return acp.RequestError.invalidParams(
+    { reason: 'session_busy', queueMethod: ACP_QUEUE_ENQUEUE_METHOD },
+    // Clients already recognise a busy session by this sentence; it stays at the start.
+    `Session already has an active Turn. Send the message with ${ACP_QUEUE_ENQUEUE_METHOD} to deliver it after the current turn.`,
+  );
 }

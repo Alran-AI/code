@@ -32,6 +32,7 @@ import { withProviderEventObserver } from "../utils/provider-error.ts";
 import type { AssistantMessageEventStream } from "../utils/event-stream.ts";
 import { shortHash } from "../utils/hash.ts";
 import { parseStreamingJson } from "../utils/json-parse.ts";
+import { withNullableTypeArrays } from "../utils/json-schema.ts";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.ts";
 import { transformMessages } from "./transform-messages.ts";
 
@@ -279,7 +280,8 @@ export function convertResponsesTools(tools: Tool[], options?: ConvertResponsesT
 		type: "function",
 		name: tool.name,
 		description: tool.description,
-		parameters: tool.parameters as any, // TypeBox already generates JSON Schema
+		// TypeBox already generates JSON Schema; nullable unions get a type array for Gemini-style validators.
+		parameters: withNullableTypeArrays(tool.parameters) as any,
 		strict,
 	}));
 }

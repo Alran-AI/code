@@ -25,6 +25,8 @@ import type { RecentCodexSession } from '../../../host/recent-codex-session.js';
 import { parseTuiBashInput } from '../../commands/bash-input.js';
 
 const DOUBLE_ESCAPE_WINDOW_MS = 500;
+/** How long a question "exit while a response is running?" waits for the second press. */
+const EXIT_WHILE_RUNNING_WINDOW_MS = 5_000;
 
 export interface TuiInputFlowOptions {
   readonly cancelBash?: () => boolean;
@@ -90,6 +92,7 @@ export class TuiInputFlow {
   private clearedEditorDraft: EditorDraftSnapshot | undefined;
   private ctrlCExitArmed = false;
   private lastEscapeAtMs = 0;
+  private exitWhileRunningAskedAtMs = 0;
   private nextBusySubmission: { readonly busyAction: 'steer' | 'queue' } | undefined;
 
   constructor(private readonly options: TuiInputFlowOptions) {
@@ -256,6 +259,7 @@ export class TuiInputFlow {
     if (keyAction !== 'resume-codex') this.options.dismissRecentCodexSession?.();
     if (keyAction !== 'clear') this.ctrlCExitArmed = false;
     if (keyAction !== 'interrupt') this.lastEscapeAtMs = 0;
+    if (keyAction !== 'exit') this.exitWhileRunningAskedAtMs = 0;
     if (keyAction === 'suspend' && this.options.requestProcessSuspend) {
       this.options.requestProcessSuspend();
       return { consume: true };
@@ -441,6 +445,22 @@ export class TuiInputFlow {
         void this.options.closeSideConversation?.('ctrl_d');
         return { consume: true };
       }
+      if (this.options.liveRunId()) {
+        // Leaving now would stop the running response: ask once before doing it.
+        const now = Date.now();
+        const asked = this.exitWhileRunningAskedAtMs;
+        if (asked === 0 || now - asked > EXIT_WHILE_RUNNING_WINDOW_MS) {
+          this.exitWhileRunningAskedAtMs = now;
+          const keybindings = this.options.keybindings ?? getDefaultTuiKeybindingRegistry();
+          this.options.setHint(
+            `A response is still running. Press ${formatTuiKeybinding('app.exit', keybindings)} again to exit and stop it, or ${formatTuiKeybinding('app.interrupt', keybindings)} to interrupt it`,
+          );
+          this.options.onChanged();
+          this.options.tui.requestRender();
+          return { consume: true };
+        }
+        this.exitWhileRunningAskedAtMs = 0;
+      }
       void this.options.leaveUi();
       return { consume: true };
     }
@@ -545,7 +565,11 @@ export class TuiInputFlow {
     } else {
       this.ctrlCExitArmed = true;
       const keybindings = this.options.keybindings ?? getDefaultTuiKeybindingRegistry();
-      this.options.setHint(`Press ${formatTuiKeybinding('app.clear', keybindings)} again to exit`);
+      this.options.setHint(
+        this.options.liveRunId()
+          ? `A response is still running. Press ${formatTuiKeybinding('app.clear', keybindings)} again to exit and stop it`
+          : `Press ${formatTuiKeybinding('app.clear', keybindings)} again to exit`,
+      );
       this.options.onChanged();
     }
     this.options.tui.requestRender();
