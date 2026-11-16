@@ -6,12 +6,6 @@
   <a href="docs/examples.md">Examples</a> ·
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
-<p align="center">
-  <img src="docs/assets/source-preview.svg" alt="Source preview">
-  <img src="docs/assets/node.svg" alt="Compatibility: Node.js 22.19+, 24.2+, 25, and 26">
-  <a href="LICENSE-STATUS.md"><img src="docs/assets/license.svg" alt="First-party default license: MIT"></a>
-</p>
-
 Alran Code is Ottili's AI coding agent for the terminal. It reads and edits your code, runs
 commands and tests, and keeps iterating until the task works. By default it runs on **Ottili Werk** through the Ottili AI Gateway; Claude Sonnet 5.5 and Claude Opus 5.5 are one switch away, and you can bring your own provider key.
 
