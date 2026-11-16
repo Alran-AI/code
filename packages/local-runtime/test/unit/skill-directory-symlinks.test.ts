@@ -1,3 +1,4 @@
+import { watch } from 'node:fs';
 import { mkdtemp, mkdir, realpath, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
@@ -48,6 +49,25 @@ async function linkDirectory(target: string, link: string, relativeTarget = fals
     process.platform === 'win32' ? 'junction' : 'dir',
   );
 }
+
+/**
+ * Whether the operating system will hand this process another file watcher.
+ *
+ * An editor's remote server can hold nearly every inotify watch of a Linux user, and the next
+ * `fs.watch` then fails with `ENOSPC` (or `EMFILE`). The product treats that as "no live reload"
+ * on purpose, so the tests that prove live reload cannot pass there and say so, instead of
+ * failing for a reason that is not in the code. Any other error from the probe is not an
+ * exhausted limit: the tests run and report it.
+ */
+const canWatchFiles = (() => {
+  try {
+    watch(tmpdir(), { persistent: false }).close();
+    return true;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return !(code === 'ENOSPC' || code === 'EMFILE' || code === 'ENFILE');
+  }
+})();
 
 describe('configured workspace skill directory links', () => {
   it.each(['.agents', '.claude', '.alran'])(
@@ -143,7 +163,7 @@ describe('configured workspace skill directory links', () => {
     expect(registry.getAvailableSkills()[0]?.content).toContain('Second instructions');
   });
 
-  it('watches linked directories before SKILL.md exists and reloads later edits', async () => {
+  it.skipIf(!canWatchFiles)('watches linked directories before SKILL.md exists and reloads later edits', async () => {
     const target = join(fixture, 'shared', 'linked');
     await mkdir(target, { recursive: true });
     await linkDirectory(target, join(workspace, '.agents', 'skills', 'linked'));

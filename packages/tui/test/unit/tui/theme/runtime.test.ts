@@ -1,3 +1,5 @@
+import { watch } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { stripVTControlCharacters } from 'node:util';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -29,6 +31,25 @@ import {
   tuiColors,
   tuiStreamingMarkdownTheme,
 } from '../../../../src/tui/theme/runtime.js';
+
+/**
+ * Whether the operating system will hand this process another file watcher.
+ *
+ * An editor's remote server can hold nearly every inotify watch of a Linux user, and the next
+ * `fs.watch` then fails with `ENOSPC` (or `EMFILE`). The product treats that as "no live reload"
+ * on purpose, so the tests that prove live reload cannot pass there and say so, instead of
+ * failing for a reason that is not in the code. Any other error from the probe is not an
+ * exhausted limit: the tests run and report it.
+ */
+const canWatchFiles = (() => {
+  try {
+    watch(tmpdir(), { persistent: false }).close();
+    return true;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return !(code === 'ENOSPC' || code === 'EMFILE' || code === 'ENFILE');
+  }
+})();
 
 describe('Alran terminal theme palettes', () => {
   it.each([ALRAN_CODE_DARK_THEME, ALRAN_CODE_LIGHT_THEME])(
@@ -568,7 +589,7 @@ describe('TuiThemeController theme selection', () => {
     restoreTheme();
   });
 
-  it('repaints live colors when a custom theme file changes in place', async () => {
+  it.skipIf(!canWatchFiles)('repaints live colors when a custom theme file changes in place', async () => {
     const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
     const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
@@ -607,7 +628,7 @@ describe('TuiThemeController theme selection', () => {
     }
   });
 
-  it('does not repaint when a custom theme reload changes nothing', async () => {
+  it.skipIf(!canWatchFiles)('does not repaint when a custom theme reload changes nothing', async () => {
     const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
     const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
