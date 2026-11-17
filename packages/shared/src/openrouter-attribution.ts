@@ -1,5 +1,7 @@
+// The referer points at the product's own site, not at the shared API host: OpenRouter shows this
+// address as the app that made the request, so it has to be the page a reader can visit.
 export const OPENROUTER_ATTRIBUTION_HEADERS = {
-  'HTTP-Referer': 'https://api.ottili.one/',
+  'HTTP-Referer': 'https://alran.dev',
   'X-OpenRouter-Title': 'Alran Code',
   'X-OpenRouter-Categories': 'cli-agent',
 } as const;

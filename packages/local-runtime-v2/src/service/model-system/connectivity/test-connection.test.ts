@@ -133,7 +133,7 @@ describe('ModelConnectionTester requests', () => {
 
     const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     const headers = new Headers(init.headers);
-    expect(headers.get('http-referer')).toBe('https://api.ottili.one/');
+    expect(headers.get('http-referer')).toBe('https://alran.dev');
     expect(headers.get('x-openrouter-title')).toBe('Alran Code');
     expect(headers.get('x-openrouter-categories')).toBe('cli-agent');
   });

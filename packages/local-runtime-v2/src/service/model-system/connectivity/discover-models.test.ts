@@ -67,7 +67,7 @@ describe('ModelDiscoveryClient', () => {
 
     const calls = fetchImpl.mock.calls as unknown as Array<[string, RequestInit]>;
     const headers = new Headers(calls[0]?.[1]?.headers);
-    expect(headers.get('http-referer')).toBe('https://api.ottili.one/');
+    expect(headers.get('http-referer')).toBe('https://alran.dev');
     expect(headers.get('x-openrouter-title')).toBe('Alran Code');
     expect(headers.get('x-openrouter-categories')).toBe('cli-agent');
   });

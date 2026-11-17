@@ -591,7 +591,7 @@ describe('LocalModelResolver BYOK routing and fallback', () => {
     });
 
     expect(resolved.headers).toMatchObject({
-      'HTTP-Referer': 'https://api.ottili.one/',
+      'HTTP-Referer': 'https://alran.dev',
       'X-OpenRouter-Title': 'Alran Code',
       'X-OpenRouter-Categories': 'cli-agent',
       'X-Alran-Session-Id': 'session-openrouter',
