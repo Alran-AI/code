@@ -56,6 +56,7 @@
     "docs/plugins/package-format-v1.md",
     "docs/releasing.md",
     "docs/retries.md",
+    "docs/self-hosted-search.md",
     "docs/source-sync.md",
     "docs/store.md",
     "docs/store/index-format-v1.md",
