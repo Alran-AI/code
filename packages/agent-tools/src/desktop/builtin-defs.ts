@@ -613,11 +613,105 @@ function prepareTaskArguments(args: unknown): LocalTaskToolInput {
 
 export const LocalTaskToolDef = {
   name: 'task',
-  executionMode: 'sequential',
+  // Pi serializes a whole tool batch when any member is sequential. Delegation
+  // is safe to overlap: each call owns a separate child Session and task row.
+  executionMode: 'parallel',
   prepareArguments: prepareTaskArguments,
   description: LOCAL_TASK_TOOL_DESCRIPTION,
   schema: LocalTaskSchema,
 } as const satisfies ToolDefinition;
+
+const LOCAL_TASK_SPAWN_AGENT_DESCRIPTION = `One background child Agent in the group. Each entry has the same meaning as a \`task\` call: \`description\` is the short Session title, \`prompt\` is the self-contained briefing, and \`agent_name\` selects the target Agent. Keep file ownership disjoint between workers.`;
+
+const LocalTaskSpawnAgentSchema = Type.Object(
+  {
+    description: Type.String({
+      minLength: 1,
+      description:
+        'Short child Session title for this Agent, in the user’s language; keep identifiers verbatim.',
+    }),
+    prompt: Type.String({
+      description:
+        'Self-contained first user message: objective, scope, file ownership, constraints, deliverable and acceptance criteria. The child has no parent history.',
+    }),
+    agent_name: Type.String({ description: agentNameDescription() }),
+    model: Type.Optional(
+      Type.String({
+        minLength: 1,
+        description:
+          'Set only when the user explicitly specifies a model; otherwise omit. Do not guess a model key.',
+      }),
+    ),
+    effort: Type.Optional(
+      Type.String({
+        minLength: 1,
+        description:
+          'Set only when the user explicitly specifies an effort level; otherwise omit.',
+      }),
+    ),
+  },
+  { additionalProperties: false },
+);
+
+const LocalTaskSpawnSchema = Type.Object(
+  {
+    label: Type.String({
+      minLength: 1,
+      description: 'Short label for the whole group, shown in the task list.',
+    }),
+    agents: Type.Array(LocalTaskSpawnAgentSchema, {
+      minItems: 1,
+      maxItems: 16,
+      description: LOCAL_TASK_SPAWN_AGENT_DESCRIPTION,
+    }),
+  },
+  { additionalProperties: false },
+);
+export type LocalTaskSpawnToolInput = Static<typeof LocalTaskSpawnSchema>;
+
+export const LOCAL_TASK_SPAWN_TOOL_DESCRIPTION = `Start several background child Agents in one call and return all task handles together.
+
+Use this for a fan-out of independent investigations or scoped implementations. Every entry becomes its own background task with its own child Session. At most eight child Agents run at once; entries beyond that stay queued with their own task id until a slot frees. The call returns immediately with all handles: report the start to the user and end your turn. When a child finishes, the owning conversation is resumed automatically with a <background-task-finished> notice, and you can then read the result with task_output.
+
+Only call task_wait with the returned task_ids when you deliberately want to stay in this turn and wait for the group. Parallel writers must own disjoint files. Canonical Worker Agents cannot delegate.`;
+
+export const LocalTaskSpawnToolDef = {
+  name: 'task_spawn',
+  executionMode: 'parallel',
+  description: LOCAL_TASK_SPAWN_TOOL_DESCRIPTION,
+  schema: LocalTaskSpawnSchema,
+} as const satisfies ToolDefinition;
+
+const LOCAL_TASK_WAIT_TOOL_DESCRIPTION = `Park this turn until background tasks settle, then continue.
+
+The runtime wakes the owning conversation automatically when each task finishes. This tool is for the case where you have nothing useful to do in parallel and want to wait for a group of results in one place. It returns a status line per task; it never stops or cancels the work.
+
+Pass task_ids from task, task_spawn, task_query or a background Bash receipt. Omit task_ids to wait for every active task owned by this session. wait_ms is the maximum time to park; the runtime caps it at 600000 ms (10 minutes) and reports the cap. A timed-out wait is not an error: the completion notice will still resume this conversation later.`;
+
+export const LocalTaskWaitToolDef = {
+  name: 'task_wait',
+  executionMode: 'sequential',
+  description: LOCAL_TASK_WAIT_TOOL_DESCRIPTION,
+  schema: Type.Object(
+    {
+      task_ids: Type.Optional(
+        Type.Array(Type.String({ minLength: 1 }), {
+          minItems: 1,
+          description: 'Task ids to wait for. Omit to wait for all active tasks in this session.',
+        }),
+      ),
+      wait_ms: Type.Optional(
+        Type.Integer({
+          minimum: 0,
+          description:
+            'Maximum milliseconds to park, default 30000. Values above 600000 are capped at 600000 ms without an error.',
+        }),
+      ),
+    },
+    { additionalProperties: false },
+  ),
+} as const satisfies ToolDefinition;
+export type LocalTaskWaitToolInput = Static<typeof LocalTaskWaitToolDef.schema>;
 
 export const LOCAL_TASK_APPEND_TOOL_DESCRIPTION = `Send follow-up work to a task you already started, addressed by its task_id.
 
@@ -1073,6 +1167,8 @@ export const LOCAL_BASE_TOOL_DEFS = [
   LocalWebFetchToolDef,
   LocalTaskToolDef,
   LocalTaskAppendToolDef,
+  LocalTaskSpawnToolDef,
+  LocalTaskWaitToolDef,
   LocalTaskQueryToolDef,
   LocalTaskOutputToolDef,
   LocalTaskStopToolDef,

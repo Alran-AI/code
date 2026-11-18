@@ -21,7 +21,7 @@ import {
 } from '../api/local-task-host.js';
 import { normalizeLocalTaskInput, taskModelSelectionFor } from '../api/local-task-input.js';
 import { resolveLocalTaskAgentTarget, taskSessionOwner } from '../api/local-task-subagents.js';
-import { admitBackgroundTask, drainBackgroundTasks } from './lifecycle.js';
+import { admitBackgroundTask, drainBackgroundTasks, waitForSubagentSlot } from './lifecycle.js';
 
 export async function startBackgroundLocalTask(input: {
   host: LocalTaskRunnerHostWithSessionLookup;
@@ -32,7 +32,10 @@ export async function startBackgroundLocalTask(input: {
 }): Promise<LocalTaskBackgroundStartResult> {
   if (input.signal?.aborted) throw new Error('Operation aborted');
   const controller = new AbortController();
-  const admission = admitBackgroundTask(input.host, (reason) => controller.abort(reason));
+  // Admission is immediate: the durable row and its id exist before the child
+  // waits for an execution slot, so the parent gets the whole fan-out receipt
+  // in one turn and can report back to the user right away.
+  const admission = admitBackgroundTask(input.host, (reason) => controller.abort(reason), 'subagent');
   const starting = startAdmittedBackgroundLocalTask(input, admission, controller.signal);
   void starting.then(admission.release, admission.release);
   return starting;
@@ -105,21 +108,6 @@ async function startAdmittedBackgroundLocalTask(
         shutdownSignal,
       });
     }
-    await input.host.backgroundTaskService.patch(taskId, {
-      status: 'running',
-      startedAt: input.host.nowMs(),
-      metadata: { childSessionId: childSession.sessionId, subTurnId: turnId, agentName },
-    });
-    if (shutdownSignal.aborted) {
-      return cancelAdmittedTaskSetup({
-        input,
-        target,
-        taskId,
-        turnId,
-        childSession,
-        shutdownSignal,
-      });
-    }
   } catch (error) {
     if (shutdownSignal.aborted) {
       return cancelAdmittedTaskSetup({
@@ -149,6 +137,60 @@ async function startAdmittedBackgroundLocalTask(
     };
   }
 
+  // The row stays queued until a real execution slot is free. The parent has
+  // already received the task id, so this wait never holds its turn.
+  let releaseSlot: () => void;
+  try {
+    releaseSlot = await waitForSubagentSlot(input.host, shutdownSignal);
+  } catch (error) {
+    await persistLocalSubagentTaskTerminal({
+      host: input.host,
+      taskId,
+      result: { failure: error },
+      delivery: 'already-delivered',
+    });
+    return {
+      status: 'failed',
+      taskId,
+      subSessionId: childSession.sessionId,
+      subTurnId: turnId,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    };
+  }
+  try {
+    await input.host.backgroundTaskService.patch(taskId, {
+      status: 'running',
+      startedAt: input.host.nowMs(),
+      metadata: { childSessionId: childSession.sessionId, subTurnId: turnId, agentName },
+    });
+  } catch (error) {
+    releaseSlot();
+    await persistLocalSubagentTaskTerminal({
+      host: input.host,
+      taskId,
+      result: { failure: error },
+      delivery: 'already-delivered',
+    });
+    return {
+      status: 'failed',
+      taskId,
+      subSessionId: childSession.sessionId,
+      subTurnId: turnId,
+      errorMessage: error instanceof Error ? error.message : String(error),
+    };
+  }
+  if (shutdownSignal.aborted) {
+    releaseSlot();
+    return cancelAdmittedTaskSetup({
+      input,
+      target,
+      taskId,
+      turnId,
+      childSession,
+      shutdownSignal,
+    });
+  }
+
   const startedChildSession = childSession;
   const settled = runBackgroundLocalTaskTurn({
     host: input.host,
@@ -162,6 +204,7 @@ async function startAdmittedBackgroundLocalTask(
     signal: shutdownSignal,
   });
   admission.bind(settled);
+  void settled.then(releaseSlot, releaseSlot);
   void settled.catch((error) => {
     input.host.matrixLogger?.warn(
       { sessionId: startedChildSession.sessionId, turnId },

@@ -23,6 +23,9 @@ import type {
   LocalTaskControlAdapter,
   LocalTaskOutputReadOptions,
   LocalTaskOutputReadResult,
+  LocalTaskWaitInput,
+  LocalTaskWaitResult,
+  LocalTaskWaitStatus,
 } from '@alran/agent-tools/desktop';
 import { logger } from '../common/logger.js';
 import { isLocalChildWorkerSession } from '../sessions/session-policy.js';
@@ -215,6 +218,70 @@ export class LocalBackgroundTaskService implements LocalTaskControlAdapter {
       });
     }
     return this.readOutputAtOffset(ctx, taskId, readOptions);
+  }
+
+  /**
+   * Park the caller until the selected tasks settle. Waiters are registered
+   * before each durable read so a terminal event between the read and the wait
+   * cannot be missed. The loop re-registers after every wake because the
+   * registry intentionally fires each waiter only once.
+   */
+  async waitForTasks(ctx: LocalRuntimeToolContext, input: LocalTaskWaitInput): Promise<LocalTaskWaitResult> {
+    const requestedWaitMs = input.waitMs;
+    const effectiveWaitMs = clampTaskWaitMs(requestedWaitMs, MAX_TASK_WAIT_MS, DEFAULT_TASK_WAIT_MS);
+    const wait_ms_clamped =
+      Number.isFinite(requestedWaitMs) && requestedWaitMs > MAX_TASK_WAIT_MS;
+    const signal = input.signal;
+    if (signal?.aborted) throw taskWaitAbortError(signal);
+    const deadline = Date.now() + effectiveWaitMs;
+    const ids = input.taskIds ? [...new Set(input.taskIds)] : undefined;
+
+    for (;;) {
+      // Register before the durable read: a terminal event between the read
+      // and the wait must wake this loop, not be lost until the deadline.
+      const waiters = [
+        this.taskWaiters.create(`session:${ctx.sessionId}`, signal),
+        ...(ids ?? []).map((taskId) => this.taskWaiters.create(taskId, signal)),
+      ];
+      try {
+        const tasks = ids
+          ? await Promise.all(ids.map((taskId) => this.get(ctx, taskId)))
+          : (await this.list(ctx, {})).items;
+        const idsToWait = ids ?? tasks.flatMap((task) => (task ? [task.taskId] : []));
+        const statuses: LocalTaskWaitStatus[] = idsToWait.map((taskId, index) => {
+          const task = tasks[index];
+          return {
+            task_id: taskId,
+            status: task?.status ?? 'not_found',
+            ...(task?.kind ? { kind: task.kind } : {}),
+            ...(task?.description ? { description: task.description } : {}),
+          };
+        });
+        const settled = statuses.every(
+          (status) => status.status === 'not_found' || isTerminalTaskStatus(status.status),
+        );
+        if (settled) {
+          return {
+            tasks: statuses,
+            timedOut: false,
+            effective_wait_ms: effectiveWaitMs,
+            wait_ms_clamped,
+          };
+        }
+        const remainingMs = deadline - Date.now();
+        if (remainingMs <= 0) {
+          return {
+            tasks: statuses,
+            timedOut: true,
+            effective_wait_ms: effectiveWaitMs,
+            wait_ms_clamped,
+          };
+        }
+        await Promise.race(waiters.map((waiter) => waiter.wait(remainingMs)));
+      } finally {
+        for (const waiter of waiters) waiter.cancel();
+      }
+    }
   }
 
   private async readOutputAtOffset(
@@ -475,4 +542,13 @@ function optionsAsReadOptions(
 function clampTaskOutputWaitMs(value: number | undefined): number {
   if (!Number.isFinite(value) || value === undefined || value <= 0) return 0;
   return Math.min(30_000, Math.floor(value));
+}
+
+/** A parked turn must have a hard ceiling even when the model asks for more. */
+const DEFAULT_TASK_WAIT_MS = 30_000;
+const MAX_TASK_WAIT_MS = 600_000;
+
+function clampTaskWaitMs(value: number, max: number, fallback: number): number {
+  if (!Number.isFinite(value) || value <= 0) return fallback;
+  return Math.min(max, Math.floor(value));
 }

@@ -489,6 +489,27 @@ export interface LocalTaskOutputReadResult extends TaskOutputReadResult {
   timedOut?: boolean;
 }
 
+export interface LocalTaskWaitInput {
+  /** Omitted means every active task owned by this session. */
+  readonly taskIds?: readonly string[];
+  readonly waitMs: number;
+  readonly signal?: AbortSignal;
+}
+
+export interface LocalTaskWaitStatus {
+  readonly task_id: string;
+  readonly status: BackgroundTaskStatus | 'not_found';
+  readonly kind?: BackgroundTask['kind'];
+  readonly description?: string;
+}
+
+export interface LocalTaskWaitResult {
+  readonly tasks: readonly LocalTaskWaitStatus[];
+  readonly timedOut: boolean;
+  readonly effective_wait_ms: number;
+  readonly wait_ms_clamped: boolean;
+}
+
 export interface LocalTaskControlAdapter {
   get(ctx: LocalRuntimeToolContext, taskId: string): Promise<BackgroundTask | undefined>;
   list(ctx: LocalRuntimeToolContext, query: TaskQuery): Promise<LocalTaskListResult>;
@@ -502,6 +523,11 @@ export interface LocalTaskControlAdapter {
     taskId: string,
     reason?: string,
   ): Promise<BackgroundTask | undefined>;
+  /** Optional so older/host-provided control adapters keep compiling. */
+  waitForTasks?(
+    ctx: LocalRuntimeToolContext,
+    input: LocalTaskWaitInput,
+  ): Promise<LocalTaskWaitResult>;
 }
 
 export type LocalBackgroundTaskStatus = BackgroundTaskStatus;
