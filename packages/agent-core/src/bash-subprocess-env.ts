@@ -161,6 +161,14 @@ const PROTECTED_ENV_NAMES: ReadonlySet<string> = new Set([
 
 const ALRAN_ACCOUNT_CREDENTIAL_NAMES = ['ALRAN_API_KEY'] as const;
 
+/**
+ * Host-owned values that are decided for each call. The parent process may carry a trailer for its
+ * own commits; a child must only see the value the host sets for this call. It is removed silently
+ * (not reported in `removed`, which lists scrubbed secrets) and re-added through `extraEnv` when
+ * the host supplies one, after both sanitization layers have run.
+ */
+const HOST_PER_CALL_ENV_NAMES = ['ALRAN_COMMIT_TRAILER'] as const;
+
 function isProtectedName(name: string): boolean {
   const upper = name.toUpperCase();
   return PROTECTED_ENV_NAMES.has(upper) || upper.startsWith('LC_');
@@ -221,6 +229,10 @@ export function sanitizeBashSubprocessEnv(
     if (out[name] !== undefined) removed.push(name);
     delete out[name];
   }
+
+  // The commit trailer is host-owned, per-call data. Never inherit an ambient value: a call without
+  // a trailer must not silently reuse the parent's. `extraEnv` re-adds the current call's value.
+  for (const name of HOST_PER_CALL_ENV_NAMES) delete out[name];
 
   // Layer B — provider and integration secret scrub, gated by mode.
   if (policy.mode === 'scrub') {
