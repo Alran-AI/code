@@ -100,6 +100,15 @@ signed-in install keeps the managed search route; with neither, `web search` is 
 all and the host notes at start that `SEARXNG_URL` is unset, rather than offering a tool that can
 only fail.
 
+If the instance sits behind a gateway that checks a key, set `SEARXNG_API_KEY` as well. It is sent
+as `X-Api-Key` and left out when unset, so a plain instance on loopback needs nothing extra:
+
+```bash
+export SEARXNG_URL='https://search.example.com'
+export SEARXNG_API_KEY='…'
+```
+
+
 ### 4. Try it: build the pocket pet
 
 Clone this repository and copy the starter into a separate directory:

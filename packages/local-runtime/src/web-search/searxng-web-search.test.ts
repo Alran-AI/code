@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { SearxngWebSearchAdapter, searxngUrlFromEnv } from './searxng-web-search.js';
+import {
+  SearxngWebSearchAdapter,
+  searxngApiKeyFromEnv,
+  searxngUrlFromEnv,
+} from './searxng-web-search.js';
 
 const ctx = { sessionId: 's', turnId: 't' };
 
@@ -130,5 +134,42 @@ describe('searxngUrlFromEnv', () => {
   it('returns undefined when unset or blank', () => {
     expect(searxngUrlFromEnv({})).toBeUndefined();
     expect(searxngUrlFromEnv({ SEARXNG_URL: '   ' })).toBeUndefined();
+  });
+});
+
+describe('SearxngWebSearchAdapter gateway key', () => {
+  it('sends SEARXNG_API_KEY as X-Api-Key when configured', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(searxngPayload));
+    const adapter = new SearxngWebSearchAdapter({
+      baseUrl: 'https://search.example.test',
+      apiKey: 'gateway-key',
+      fetchImpl,
+    });
+
+    await adapter.search(ctx, { query: 'alran' });
+
+    const [, request] = fetchImpl.mock.calls[0]!;
+    expect(new Headers(request?.headers).get('x-api-key')).toBe('gateway-key');
+  });
+
+  it('sends no credential header when no key is configured', async () => {
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse(searxngPayload));
+    const adapter = new SearxngWebSearchAdapter({
+      baseUrl: 'http://127.0.0.1:8080',
+      fetchImpl,
+    });
+
+    await adapter.search(ctx, { query: 'alran' });
+
+    const [, request] = fetchImpl.mock.calls[0]!;
+    const headers = new Headers(request?.headers);
+    expect(headers.get('x-api-key')).toBeNull();
+    expect(headers.get('authorization')).toBeNull();
+  });
+
+  it('reads SEARXNG_API_KEY from the environment', () => {
+    expect(searxngApiKeyFromEnv({ SEARXNG_API_KEY: 'k' })).toBe('k');
+    expect(searxngApiKeyFromEnv({ SEARXNG_API_KEY: '  ' })).toBeUndefined();
+    expect(searxngApiKeyFromEnv({})).toBeUndefined();
   });
 });

@@ -6,14 +6,22 @@ import {
   LocalWebSearchClient,
   type LocalWebSearchClientOptions,
 } from './local-web-search-client.js';
-import { SearxngWebSearchAdapter, searxngUrlFromEnv } from './searxng-web-search.js';
+import {
+  SearxngWebSearchAdapter,
+  searxngApiKeyFromEnv,
+  searxngUrlFromEnv,
+} from './searxng-web-search.js';
 
 export {
   createManagedLocalWebSearchClient,
   LocalWebSearchClient,
   type LocalWebSearchClientOptions,
 } from './local-web-search-client.js';
-export { SearxngWebSearchAdapter, searxngUrlFromEnv } from './searxng-web-search.js';
+export {
+  SearxngWebSearchAdapter,
+  searxngApiKeyFromEnv,
+  searxngUrlFromEnv,
+} from './searxng-web-search.js';
 export type { SearchHit, SearxngWebSearchOptions } from './searxng-web-search.js';
 
 export interface CreateLocalWebSearchAdapterOptions {
@@ -40,8 +48,10 @@ export function createLocalWebSearchAdapter(
 ): LocalWebSearchAdapter {
   const searxngUrl = searxngUrlFromEnv(env);
   if (searxngUrl !== undefined) {
+    const apiKey = searxngApiKeyFromEnv(env);
     return new SearxngWebSearchAdapter({
       baseUrl: searxngUrl,
+      ...(apiKey === undefined ? {} : { apiKey }),
       ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
     });
   }

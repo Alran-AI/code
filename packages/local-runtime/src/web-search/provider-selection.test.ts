@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { resolveWebSearchProvider, SEARXNG_SETUP_HINT } from './provider-resolution.js';
 
@@ -30,5 +30,26 @@ describe('resolveWebSearchProvider', () => {
 
   it('names SEARXNG_URL in the setup hint that the host shows at start', () => {
     expect(SEARXNG_SETUP_HINT).toContain('SEARXNG_URL');
+  });
+});
+
+describe('createLocalWebSearchAdapter with a gateway key', () => {
+  it('passes SEARXNG_API_KEY to the SearXNG adapter', async () => {
+    const { createLocalWebSearchAdapter } = await import('./index.js');
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ results: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    const adapter = createLocalWebSearchAdapter(
+      { SEARXNG_URL: 'https://search.example.test', SEARXNG_API_KEY: 'gateway-key' },
+      { fetchImpl },
+    );
+    await adapter.search({}, { query: 'x' });
+
+    const [, request] = fetchImpl.mock.calls[0]!;
+    expect(new Headers(request?.headers).get('x-api-key')).toBe('gateway-key');
   });
 });

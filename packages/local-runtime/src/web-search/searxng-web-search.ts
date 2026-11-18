@@ -20,8 +20,13 @@ const REQUEST_TIMEOUT_MS = 20_000;
 const MAX_REASON_LENGTH = 120;
 
 export interface SearxngWebSearchOptions {
-  /** Instance base URL, e.g. `http://127.0.0.1:8080` or `http://[fd7a::1]:18888`. */
+  /** Instance base URL, e.g. `http://127.0.0.1:8080` or `http://[::1]:8080`. */
   baseUrl: string;
+  /**
+   * Credential for an instance behind a key-checking gateway. Sent as `X-Api-Key`; omitted for a
+   * bare instance that needs no auth.
+   */
+  apiKey?: string;
   fetchImpl?: typeof fetch;
 }
 
@@ -50,13 +55,24 @@ export function searxngUrlFromEnv(env: NodeJS.ProcessEnv = process.env): string 
   return raw && raw.length > 0 ? raw : undefined;
 }
 
+/**
+ * Credential for a key-checking SearXNG gateway. Only needed when `SEARXNG_URL` points at a
+ * gateway rather than a bare instance; a private instance on loopback needs none.
+ */
+export function searxngApiKeyFromEnv(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const raw = env.SEARXNG_API_KEY?.trim();
+  return raw && raw.length > 0 ? raw : undefined;
+}
+
 export class SearxngWebSearchAdapter implements LocalWebSearchAdapter {
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch;
+  private readonly apiKey: string | undefined;
 
   constructor(options: SearxngWebSearchOptions) {
     // Normalise once so a trailing slash never produces `//search`.
     this.baseUrl = options.baseUrl.trim().replace(/\/+$/u, '');
+    this.apiKey = options.apiKey?.trim() || undefined;
     this.fetchImpl = options.fetchImpl ?? fetch;
   }
 
@@ -73,7 +89,10 @@ export class SearxngWebSearchAdapter implements LocalWebSearchAdapter {
     try {
       response = await this.fetchImpl(this.buildSearchUrl(input), {
         method: 'GET',
-        headers: { accept: 'application/json' },
+        headers: {
+          accept: 'application/json',
+          ...(this.apiKey === undefined ? {} : { 'x-api-key': this.apiKey }),
+        },
         signal: combinedSignal,
       });
     } catch (error) {
