@@ -17,7 +17,7 @@
     "node": ">=22.19 <23 || >=24 <27"
   },
   "license": "MIT",
-  "homepage": "https://ai.ottili.one/settings/cli",
+  "homepage": "https://alran.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Alran-AI/code.git"

@@ -1,5 +1,16 @@
 # Alran Code — release notes
 
+## 1.0.2 — 2026-11-18
+
+Package `alran` (`npm install -g alran`), binary `alran`.
+
+### Changed
+
+- The package homepage is [alran.dev](https://alran.dev) instead of the Platform settings page.
+- OpenRouter requests identify the app with `https://alran.dev` in `HTTP-Referer`, so the OpenRouter
+  dashboard links to a page a reader can visit.
+- Bundled prompts and skill documentation are English-only; a new language gate keeps it that way.
+
 ## 1.0.1 — Claude on your own Anthropic key
 
 Package `alran` (`npm install -g alran`), binary `alran`. Works with the Ottili AI Gateway of 2026-11-16 and

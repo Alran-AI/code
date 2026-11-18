@@ -68,7 +68,7 @@ export function releaseManifest(importers, version) {
     name: 'alran', version, type: 'module', license: 'MIT',
     description: 'Alran Code — the AI coding agent of the Ottili AI Platform, in your terminal.',
     keywords: ['ottili', 'alran', 'cli', 'coding-agent', 'ai'],
-    homepage: 'https://ai.ottili.one/settings/cli',
+    homepage: 'https://alran.dev',
     bugs: { url: 'https://github.com/Alran-AI/code/issues' },
     bin: { alran: 'cli.js' },
     engines: json(path.join(root, 'package.json')).engines,

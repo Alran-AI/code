@@ -3,6 +3,15 @@
 This changelog covers changes that directly affect Alran Code users: the terminal UI, `alran exec`, the
 account commands, models, Plugins, installation and updates.
 
+## 1.0.2 · 2026-11-18
+
+### Changed
+
+- The package homepage is [alran.dev](https://alran.dev) instead of the Platform settings page.
+- OpenRouter requests identify Alran Code with `https://alran.dev` in `HTTP-Referer`, so the OpenRouter
+  dashboard links to a page a reader can visit.
+- Bundled prompts and skill documentation are English-only.
+
 ## 1.0.1 · 2026-11-16
 
 ### Changed
