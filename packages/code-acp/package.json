@@ -14,7 +14,11 @@
     "alran": "0.0.0-dev"
   },
   "engines": {
-    "node": ">=22.19 <23 || >=24 <27"
+    "node": ">=22.19 <23 || >=24.2 <27"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT",
   "homepage": "https://alran.dev",
