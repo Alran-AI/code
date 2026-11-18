@@ -37,12 +37,17 @@ import { executeLocalMemoryTool } from "../memory/local-memory-tool.js";
 import type { DesktopTurnCapabilityView } from "../runtime/desktop-turn-capabilities.js";
 import type { LocalRuntimeAuthContext } from "../runtime/model-resolver.js";
 import type { LocalRuntimeRoutingContext } from "../runtime/routing-headers.js";
+import { logger } from "../common/logger.js";
 import { buildLocalHostTrashRuntime } from "../permissions/host-trash-runtime.js";
 import { resolveAgentBashEnvPolicy } from "../infra/ensure-rm-shim.js";
 import { getSkillService } from "../skills/skill-service.js";
 import { emitLocalTodoUpdatedEvent } from "../turns/todo-event.js";
 import { LocalWebFetchClient } from "../web-fetch/index.js";
-import { createManagedLocalWebSearchClient } from "../web-search/index.js";
+import { createLocalWebSearchAdapter } from "../web-search/index.js";
+import {
+  resolveWebSearchProvider,
+  SEARXNG_SETUP_HINT,
+} from "../web-search/provider-resolution.js";
 import { LocalWebsiteDeployClient } from "../website-deploy/index.js";
 import { buildLocalAskUserAdapter } from "./local-ask-user-adapter.js";
 import { mergeDesktopTurnTools } from "./local-desktop-tool-modes.js";
@@ -62,6 +67,46 @@ export type {
   LocalTurnToolSources,
   LocalTurnToolSourcesInput,
 } from "./local-turn-tool-sources.types.js";
+
+/**
+ * Build the adapter only when a backend can actually answer. Returning `undefined` leaves
+ * `web_search` out of the tool list entirely, which is better than offering a tool that can only
+ * fail: without `SEARXNG_URL` and without a managed login, there is nothing to call.
+ *
+ * The host shows `SEARXNG_SETUP_HINT` once at start in that case, so the missing variable is named
+ * instead of discovered through a failed call.
+ */
+function buildWebSearchAdapterFor(
+  env: NodeJS.ProcessEnv,
+  input: {
+    authContext?: LocalRuntimeAuthContext;
+    authContextGetter?: () => LocalRuntimeAuthContext | undefined;
+    authContextInvalidator?: (
+      rejectedAccessToken?: string,
+      loginEpoch?: string,
+    ) => void | Promise<void>;
+    fetchImpl?: typeof fetch;
+    routingContextGetter?: () => LocalRuntimeRoutingContext | undefined;
+  },
+): LocalWebSearchAdapter | undefined {
+  const session = input.authContextGetter?.() ?? input.authContext;
+  const hasMatrixSession = (session?.accessToken?.trim().length ?? 0) > 0;
+  const provider = resolveWebSearchProvider(env, hasMatrixSession);
+  if (provider.kind === 'none') {
+    // Name the missing variable once, instead of surfacing it later as a failed tool call.
+    logger.warn({ env: 'SEARXNG_URL' }, SEARXNG_SETUP_HINT);
+    return undefined;
+  }
+  return createLocalWebSearchAdapter(process.env, {
+    ...(input.authContext ? { authContext: input.authContext } : {}),
+    ...(input.authContextGetter ? { authContextGetter: input.authContextGetter } : {}),
+    ...(input.authContextInvalidator
+      ? { authContextInvalidator: input.authContextInvalidator }
+      : {}),
+    ...(input.fetchImpl ? { fetchImpl: input.fetchImpl } : {}),
+    ...(input.routingContextGetter ? { routingContextGetter: input.routingContextGetter } : {}),
+  });
+}
 
 export function buildLocalNativeRuntimeTools(input: {
   dataDir?: string;
@@ -127,7 +172,8 @@ export function buildLocalNativeRuntimeTools(input: {
     new LocalWebFetchClient({ fetchImpl: input.fetchImpl });
   const webSearchAdapter =
     input.webSearchEnabled === true
-      ? (input.webSearchAdapter ?? createManagedLocalWebSearchClient(input))
+      ? (input.webSearchAdapter ??
+        buildWebSearchAdapterFor(process.env, input))
       : undefined;
   const builtinSkillNames = resolveFeatureAwareBuiltinSkillNames(capabilities, {
     cuModeActive: input.cuModeActive === true,

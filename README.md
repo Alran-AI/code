@@ -86,6 +86,20 @@ User data lives in `~/.alran` (`ALRAN_DATA_DIR` overrides it). `ALRAN_API_BASE` 
 `https://ai.ottili.one/v1`) and `OTTILI_PLATFORM_URL` (default `https://platform.ottili.one`) point
 at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly update hint.
 
+#### Web search
+
+`web_search` needs a backend. Set `SEARXNG_URL` to a SearXNG instance that serves the JSON API
+(`/search?q=…&format=json`), and the tool calls it directly — no Matrix server and no Ottili login:
+
+```bash
+export SEARXNG_URL='http://127.0.0.1:8080'
+```
+
+An IPv6 literal stays in brackets: `SEARXNG_URL='http://[::1]:8080'`. Without `SEARXNG_URL`, a
+signed-in install keeps the managed search route; with neither, `web search` is not registered at
+all and the host notes at start that `SEARXNG_URL` is unset, rather than offering a tool that can
+only fail.
+
 ### 4. Try it: build the pocket pet
 
 Clone this repository and copy the starter into a separate directory:
