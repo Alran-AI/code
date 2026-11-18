@@ -1,5 +1,42 @@
 # Alran Code — release notes
 
+## 1.1.0 — 2026-11-18
+
+Package `alran` (`npm install -g alran`), binary `alran`.
+
+### Added
+
+- **Web search on your own key.** `web_search` now calls a provider you chose: Brave, Serper, Tavily or
+  Exa with your own API key, or a SearXNG instance you run yourself. The first one you set wins, and the
+  request leaves your machine. Brave's free tier covers thousands of queries a month, so search can be
+  switched on without a bill. With no key at all, the keyless Exa endpoint answers from your own IP.
+- **A search backend you host.** Point `SEARXNG_URL` at your own SearXNG: no account, no per-query fee,
+  and your queries never share an IP with anyone else. When the instance sits behind a key-checking
+  gateway, `SEARXNG_API_KEY` is sent as `X-Api-Key`. The whole procedure — container, settings, one line
+  of configuration — is in [self-hosted web search](self-hosted-search.md).
+- **Search settings in one file.** The provider keys can live in `~/.alran/config.yaml` under
+  `webSearch:` (`braveApiKey`, `serperApiKey`, `tavilyApiKey`, `exaApiKey`, `searxngUrl`,
+  `searxngApiKey`). The environment still wins, so a one-off override never has to edit the file.
+- **Parallel and background subagents.** `task_spawn` starts every agent at once and returns all task
+  ids; `task_wait` parks the turn until the named background tasks settle (up to 600 seconds, waking on
+  completion). Task rows and ids are durable from the first call, and only the child turn waits for one
+  of eight execution slots, so a wide fan-out never holds the main agent back.
+
+### Changed
+
+- **A search that cannot work is no longer offered.** With no provider key, no SearXNG and no signed-in
+  session, `web_search` is not registered at all. The host names the variables to set at startup instead
+  of letting the first call fail.
+- **Search failures name their cause** — `http:502`, `code:ENOTFOUND`, `code:timeout`,
+  `error:invalid-json` — instead of one generic message.
+- The commit trailer no longer leaks into bash subprocesses: a call with attribution switched off carries
+  no trailer at all.
+
+### Fixed
+
+- A Plugin hook that wrote its transcript into a directory that had just been cleaned up failed with a
+  server error. The directory is created again and the write is retried.
+
 ## 1.0.2 — 2026-11-18
 
 Package `alran` (`npm install -g alran`), binary `alran`.
