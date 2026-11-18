@@ -1082,6 +1082,14 @@ export interface Config {
   review: ReviewConfig;
   /** Fetch the selected upstream before creating a new worktree. */
   worktreeRefreshBeforeCreate: boolean;
+  /**
+   * Install new CLI versions in the background (npm global installs only).
+   * `false` turns automatic installation off; the once-a-day update hint stays.
+   * Env `ALRAN_DISABLE_AUTOUPDATE=1` and `ALRAN_OFFLINE=1` also switch it off.
+   */
+  autoUpdate?: boolean;
+  /** Update channel for auto-update: "latest" (default) or "stable" (lags latest). Env `ALRAN_UPDATE_CHANNEL` wins. */
+  autoUpdateChannel?: "latest" | "stable";
   /** Automatic prompt delivery policy. */
   promptConfig: PromptConfig;
   /** Durable Goal policy, budgets, breaker, and verifier defaults. */
@@ -1868,6 +1876,8 @@ const DEFAULTS: Omit<
   logRetentionDays: 3,
   cuBackend: DEFAULT_CU_BACKEND,
   worktreeRefreshBeforeCreate: true,
+  autoUpdate: true,
+  autoUpdateChannel: "latest",
   review: {
     mode: "subagent",
     modeSource: "default",
@@ -2228,6 +2238,11 @@ export function resolveConfigFromRaw(
     cuBackend: parseCuBackend(raw.cuBackend),
     review: parseReviewConfig(raw.review, DEFAULTS.review),
     worktreeRefreshBeforeCreate: raw.worktreeRefreshBeforeCreate !== false,
+    autoUpdate: raw.autoUpdate === false ? false : true,
+    autoUpdateChannel:
+      raw.autoUpdateChannel === "latest" || raw.autoUpdateChannel === "stable"
+        ? raw.autoUpdateChannel
+        : "latest",
     promptConfig: resolvePromptConfig(raw.promptConfig),
     goal: goalParsed.config,
     goalWarnings: goalParsed.warnings,

@@ -6,7 +6,8 @@
 - Install: `npm install -g alran` (Node 22.19+ on 22.x, 24.2+ on 24.x, 25 or 26).
 - `alran --version` prints the version.
 - The package is staged from `dist/` with its own manifest (`scripts/package-cli-release.mjs`): about
-  800 files, 13 MB packed, `LICENSE`, `NOTICE` and `THIRD_PARTY_NOTICES.md` included, the native
+  800 files, 13 MB packed, `LICENSE`, `NOTICE`, `THIRD_PARTY_NOTICES.md` and `CHANGELOG.md` included
+  (the auto-update announcement counts its `feat`/`fix` entries), the native
   dependencies (`better-sqlite3` …) declared so npm installs the build for the user's Node.
 
 The earlier package `@ottili/code` (0.1.1–0.1.4) was the whole workspace (7,549 files, 44 MB) with a
@@ -28,6 +29,14 @@ self-hosted mirror with the same layout; only https is accepted.
 **Weekly hint.** The plain subcommands (`alran usage`, `alran models`, …) look up npm's `latest` at
 most once every 7 days (stamp file in the data directory, 1.5 s budget, stderr only) and print a
 one-line hint when a newer version exists. `ALRAN_NO_UPDATE_CHECK=1` and `CI` switch it off.
+
+**Background auto-update.** On interactive start, `alran` also runs a background cycle
+(`packages/tui/src/update/auto-update.ts`): a registry lookup at most once every 6 hours
+(`~/.alran/auto-update.json`), a 3 s timeout, silent failure, and a background
+`npm install -g alran@<version>` for npm global installs only, verified with `alran --version` and
+announced once on the next start. Channels are `latest` (default) and `stable` (three days behind);
+`autoUpdate: false` / `ALRAN_DISABLE_AUTOUPDATE=1` opt out and leave only the once-a-day hint, and
+`ALRAN_OFFLINE=1` makes no network call at all. See `docs/UPDATES.md`.
 
 ## Releasing a version (founders)
 
