@@ -7,10 +7,16 @@ import {
   type LocalWebSearchClientOptions,
 } from './local-web-search-client.js';
 import {
+  BraveWebSearchAdapter,
+  SerperWebSearchAdapter,
+  TavilyWebSearchAdapter,
+} from './direct-providers.js';
+import {
   SearxngWebSearchAdapter,
   searxngApiKeyFromEnv,
   searxngUrlFromEnv,
 } from './searxng-web-search.js';
+import { resolveWebSearchProvider } from './provider-resolution.js';
 
 export {
   createManagedLocalWebSearchClient,
@@ -36,24 +42,40 @@ export interface CreateLocalWebSearchAdapterOptions {
 }
 
 /**
- * Pick the direct provider when one is configured, otherwise keep the managed Matrix client.
+ * Pick the configured provider, or `undefined` when nothing can answer.
  *
- * `SEARXNG_URL` wins because a configured self-hosted instance is reachable without an Ottili
- * login, which is exactly the case the Matrix path cannot serve. Unset keeps today's behaviour,
- * so the managed route is untouched for everyone who never sets it.
+ * Bring-your-own-key first: a customer key is used directly from their environment, so the request
+ * leaves their machine. `SEARXNG_URL` is next, then the managed Matrix route. Returning
+ * `undefined` lets the caller leave `web_search` out of the tool list entirely, which is better
+ * than offering a tool that can only fail.
  */
 export function createLocalWebSearchAdapter(
   env: NodeJS.ProcessEnv = process.env,
   options: CreateLocalWebSearchAdapterOptions = {},
-): LocalWebSearchAdapter {
-  const searxngUrl = searxngUrlFromEnv(env);
-  if (searxngUrl !== undefined) {
-    const apiKey = searxngApiKeyFromEnv(env);
-    return new SearxngWebSearchAdapter({
-      baseUrl: searxngUrl,
-      ...(apiKey === undefined ? {} : { apiKey }),
-      ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}),
-    });
+  hasMatrixSession = false,
+): LocalWebSearchAdapter | undefined {
+  const provider = resolveWebSearchProvider(env, hasMatrixSession);
+  const fetchImpl = options.fetchImpl;
+  const fetchOption = fetchImpl === undefined ? {} : { fetchImpl };
+
+  switch (provider.kind) {
+    case 'brave':
+      return new BraveWebSearchAdapter({ apiKey: provider.apiKey, ...fetchOption });
+    case 'serper':
+      return new SerperWebSearchAdapter({ apiKey: provider.apiKey, ...fetchOption });
+    case 'tavily':
+      return new TavilyWebSearchAdapter({ apiKey: provider.apiKey, ...fetchOption });
+    case 'searxng': {
+      const apiKey = searxngApiKeyFromEnv(env);
+      return new SearxngWebSearchAdapter({
+        baseUrl: provider.baseUrl,
+        ...(apiKey === undefined ? {} : { apiKey }),
+        ...fetchOption,
+      });
+    }
+    case 'matrix':
+      return createManagedLocalWebSearchClient(options);
+    case 'none':
+      return undefined;
   }
-  return createManagedLocalWebSearchClient(options);
 }

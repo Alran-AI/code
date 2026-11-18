@@ -47,6 +47,7 @@ import { createLocalWebSearchAdapter } from "../web-search/index.js";
 import {
   resolveWebSearchProvider,
   SEARXNG_SETUP_HINT,
+  WEB_SEARCH_PROVIDER_ENV_VARS,
 } from "../web-search/provider-resolution.js";
 import { LocalWebsiteDeployClient } from "../website-deploy/index.js";
 import { buildLocalAskUserAdapter } from "./local-ask-user-adapter.js";
@@ -94,7 +95,7 @@ function buildWebSearchAdapterFor(
   const provider = resolveWebSearchProvider(env, hasMatrixSession);
   if (provider.kind === 'none') {
     // Name the missing variable once, instead of surfacing it later as a failed tool call.
-    logger.warn({ env: 'SEARXNG_URL' }, SEARXNG_SETUP_HINT);
+    logger.warn({ providers: WEB_SEARCH_PROVIDER_ENV_VARS }, SEARXNG_SETUP_HINT);
     return undefined;
   }
   return createLocalWebSearchAdapter(process.env, {
@@ -105,7 +106,7 @@ function buildWebSearchAdapterFor(
       : {}),
     ...(input.fetchImpl ? { fetchImpl: input.fetchImpl } : {}),
     ...(input.routingContextGetter ? { routingContextGetter: input.routingContextGetter } : {}),
-  });
+  }, hasMatrixSession);
 }
 
 export function buildLocalNativeRuntimeTools(input: {

@@ -88,26 +88,25 @@ at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly u
 
 #### Web search
 
-`web_search` needs a backend. Set `SEARXNG_URL` to a SearXNG instance that serves the JSON API
-(`/search?q=…&format=json`), and the tool calls it directly — no Matrix server and no Ottili login:
+`web_search` needs a backend. Bring your own key and the tool calls that provider directly from
+your machine — no Ottili server in the path, and your quota is yours alone. Providers are tried in
+this order, and the first one set wins:
 
 ```bash
-export SEARXNG_URL='http://127.0.0.1:8080'
+export BRAVE_API_KEY='…'    # Brave Search API — free tier covers thousands of queries a month
+export SERPER_API_KEY='…'   # Serper
+export TAVILY_API_KEY='…'   # Tavily
+export SEARXNG_URL='http://127.0.0.1:8080'   # self-hosted SearXNG (JSON API)
 ```
 
-An IPv6 literal stays in brackets: `SEARXNG_URL='http://[::1]:8080'`. Without `SEARXNG_URL`, a
-signed-in install keeps the managed search route; with neither, `web search` is not registered at
-all and the host notes at start that `SEARXNG_URL` is unset, rather than offering a tool that can
-only fail.
+SearXNG expects `/search?q=…&format=json`; an IPv6 literal stays in brackets
+(`SEARXNG_URL='http://[::1]:8080'`). If that instance sits behind a key-checking gateway, set
+`SEARXNG_API_KEY` too — it is sent as `X-Api-Key`.
 
-If the instance sits behind a gateway that checks a key, set `SEARXNG_API_KEY` as well. It is sent
-as `X-Api-Key` and left out when unset, so a plain instance on loopback needs nothing extra:
-
-```bash
-export SEARXNG_URL='https://search.example.com'
-export SEARXNG_API_KEY='…'
-```
-
+All providers return the same `title` / `url` / `snippet` shape and honour `count` and
+`freshness`. Without any of these variables, a signed-in install uses the managed search route;
+with neither, `web_search` is not registered at all and the host notes at start which variable to
+set, rather than offering a tool that can only fail.
 
 ### 4. Try it: build the pocket pet
 

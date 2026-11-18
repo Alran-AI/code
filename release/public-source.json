@@ -2547,6 +2547,8 @@
     "packages/local-runtime/src/utils/model-image-preprocess.ts",
     "packages/local-runtime/src/web-fetch/index.ts",
     "packages/local-runtime/src/web-fetch/local-web-fetch-client.ts",
+    "packages/local-runtime/src/web-search/direct-providers.test.ts",
+    "packages/local-runtime/src/web-search/direct-providers.ts",
     "packages/local-runtime/src/web-search/index.ts",
     "packages/local-runtime/src/web-search/local-web-search-client.ts",
     "packages/local-runtime/src/web-search/provider-resolution.ts",
