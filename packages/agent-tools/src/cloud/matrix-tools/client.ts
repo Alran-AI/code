@@ -63,6 +63,8 @@ const MATRIX_TOOL_BUSINESS_FAILED = 'MATRIX_TOOL_BUSINESS_FAILED';
 const MATRIX_TOOL_REQUEST_FAILED_TEXT = 'MATRIX_TOOL_REQUEST_FAILED: Matrix tool request failed.';
 const MATRIX_TOOL_BUSINESS_FAILED_TEXT =
   'MATRIX_TOOL_BUSINESS_FAILED: Matrix tool request was rejected.';
+/** Caps a transport message in the failure label so no long body leaks into tool output. */
+const MAX_REASON_LENGTH = 120;
 
 export async function callMatrixTool(opts: CallMatrixToolOptions): Promise<ToolResult> {
   const { toolName, path, input, archonServer, signal } = opts;
@@ -78,9 +80,10 @@ export async function callMatrixTool(opts: CallMatrixToolOptions): Promise<ToolR
     });
   } catch (err) {
     const httpStatus = httpStatusFromError(err);
-    logCallError(opts, startMs, httpStatus);
+    const reason = failureReasonFrom(err, httpStatus);
+    logCallError(opts, startMs, httpStatus, reason);
     if (signal?.aborted) throw err;
-    return matrixRequestFailure(toolName, path, httpStatus);
+    return matrixRequestFailure(toolName, path, httpStatus, reason);
   }
 
   const baseResp = isRecord(resp.base_resp) ? (resp.base_resp as BaseResp) : undefined;
@@ -134,9 +137,10 @@ export async function callMatrixToolRaw(
     });
   } catch (err) {
     const httpStatus = httpStatusFromError(err);
-    logCallError(opts, startMs, httpStatus);
+    const reason = failureReasonFrom(err, httpStatus);
+    logCallError(opts, startMs, httpStatus, reason);
     if (signal?.aborted) throw err;
-    return { ok: false, result: matrixRequestFailure(toolName, path, httpStatus) };
+    return { ok: false, result: matrixRequestFailure(toolName, path, httpStatus, reason) };
   }
 
   const baseResp = isRecord(resp.base_resp) ? (resp.base_resp as BaseResp) : undefined;
@@ -212,12 +216,13 @@ function logCallError(
   opts: CallMatrixToolOptions,
   startMs: number,
   httpStatus: number | undefined,
+  reason: string | undefined,
 ): void {
   const { toolName, path, ctx, signal } = opts;
   const durationMs = Date.now() - startMs;
   ctx.matrixLogger?.warn(
     ctx,
-    `matrix-tools error tool=${toolName} path=${path} stage=request code=${MATRIX_TOOL_REQUEST_FAILED} http_status=${httpStatus ?? 'none'} duration_ms=${durationMs} aborted=${signal?.aborted === true} session=${ctx.sessionId} turn=${ctx.turnId}`,
+    `matrix-tools error tool=${toolName} path=${path} stage=request code=${MATRIX_TOOL_REQUEST_FAILED} http_status=${httpStatus ?? 'none'} reason=${reason ?? 'none'} duration_ms=${durationMs} aborted=${signal?.aborted === true} session=${ctx.sessionId} turn=${ctx.turnId}`,
   );
 }
 
@@ -225,16 +230,26 @@ function matrixRequestFailure(
   toolName: string,
   path: string,
   httpStatus: number | undefined,
+  reason: string | undefined,
 ): ToolResult {
+  // A bare "request failed" hides the one thing that makes the failure actionable. A DNS or
+  // connection error carries no HTTP status at all, so without its cause an unreachable backend
+  // and a rejected request read exactly the same. Name the cause in the text and in details;
+  // neither carries a token, a header, or a downstream body.
+  const text =
+    reason === undefined
+      ? MATRIX_TOOL_REQUEST_FAILED_TEXT
+      : `${MATRIX_TOOL_REQUEST_FAILED_TEXT} (reason: ${reason})`;
   return {
     tool_name: toolName,
-    text: MATRIX_TOOL_REQUEST_FAILED_TEXT,
-    content: [{ type: 'text', text: MATRIX_TOOL_REQUEST_FAILED_TEXT }],
+    text,
+    content: [{ type: 'text', text }],
     details: {
       ok: false,
       path,
       error_code: MATRIX_TOOL_REQUEST_FAILED,
       ...(httpStatus !== undefined ? { http_status: httpStatus } : {}),
+      ...(reason !== undefined ? { reason } : {}),
     },
   };
 }
@@ -266,6 +281,27 @@ function httpStatusFromError(error: unknown): number | undefined {
   if (!(error instanceof Error)) return undefined;
   const match = /\bHTTP\s+(\d{3})\b/i.exec(error.message);
   return match ? Number(match[1]) : undefined;
+}
+
+/**
+ * A short, non-secret label for why the request failed, so an unreachable backend is
+ * distinguishable from a rejected one. HTTP failures report their status; transport failures
+ * report the underlying error code (`ENOTFOUND`, `ECONNREFUSED`, …). Neither reads a token,
+ * header, or response body.
+ */
+function failureReasonFrom(error: unknown, httpStatus: number | undefined): string | undefined {
+  if (httpStatus !== undefined) return `http:${httpStatus}`;
+  if (!(error instanceof Error)) return undefined;
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause !== null && typeof cause === 'object') {
+    const code = (cause as { code?: unknown }).code;
+    if (typeof code === 'string' && code.length > 0) return `code:${code}`;
+  }
+  // fetch() rejects with "fetch failed"; without a cause there is nothing more specific to say.
+  // Keep the label short so a long transport message cannot push a response body into tool output.
+  const message = error.message.trim();
+  if (message.length === 0 || message === 'fetch failed') return undefined;
+  return `error:${message.length > MAX_REASON_LENGTH ? `${message.slice(0, MAX_REASON_LENGTH)}…` : message}`;
 }
 
 function approxJsonByteSize(value: unknown): number {

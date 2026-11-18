@@ -21,6 +21,7 @@
       "packages/agent-tools/src/shared/edit-encoding.test.ts",
       "packages/agent-tools/src/shared/cron-schedule-input.test.ts",
       "packages/agent-tools/src/desktop/edit-diff-bounds.test.ts",
+      "packages/agent-tools/src/cloud/matrix-tools/client.test.ts",
       "packages/tui/test/unit/tui-ui-env.test.ts",
       "packages/tui/test/unit/tui-tool-preview-diff-omitted.test.ts",
       "packages/local-runtime-v2/test/unit/agent/agent-import.test.ts",
@@ -318,6 +319,10 @@
       "packages/local-runtime-v2/src/service/turn-system/agent-host/runner/policy/ptc-prefix-fingerprint.test.ts",
       "packages/local-runtime/test/unit/remote-token-counter-fallback.test.ts",
       "packages/local-runtime/test/unit/local-matrix-client-401-recovery.test.ts",
+      "packages/local-runtime/src/web-search/searxng-web-search.test.ts",
+      "packages/local-runtime/src/web-search/select-provider.test.ts",
+      "packages/local-runtime/src/web-search/provider-wiring.test.ts",
+      "packages/local-runtime/src/web-search/provider-selection.test.ts",
       "packages/agent-tools/test/desktop/ptc-child-uncapped.test.ts",
       "packages/agent-tools/test/desktop/local-alran-session-messages.test.ts",
       "packages/config/test/attribution.test.ts",
@@ -327,7 +332,8 @@
       "packages/tui/test/unit/model-display.test.ts",
       "packages/tui/test/unit/first-run-welcome.test.ts",
       "packages/shared/test/unit/redact-log-secret.test.ts",
-      "packages/oauth-lease-protocol/test/unit/node-client-reconnect.test.ts"
+      "packages/oauth-lease-protocol/test/unit/node-client-reconnect.test.ts",
+      "packages/local-runtime/src/web-search/registration.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"
