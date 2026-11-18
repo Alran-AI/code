@@ -591,7 +591,6 @@ describe('TuiThemeController theme selection', () => {
 
   it.skipIf(!canWatchFiles)('repaints live colors when a custom theme file changes in place', async () => {
     const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
-    const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
     const dataDir = await mkdtemp(join(tmpdir(), 'alran-theme-reload-'));
     let controller: TuiThemeController | undefined;
@@ -630,7 +629,6 @@ describe('TuiThemeController theme selection', () => {
 
   it.skipIf(!canWatchFiles)('does not repaint when a custom theme reload changes nothing', async () => {
     const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
-    const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
     const dataDir = await mkdtemp(join(tmpdir(), 'alran-theme-noop-'));
     let controller: TuiThemeController | undefined;
@@ -698,7 +696,6 @@ describe('TuiThemeController theme selection', () => {
 
   it('lists built-in themes and surfaces custom load problems', async () => {
     const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
-    const { tmpdir } = await import('node:os');
     const { join } = await import('node:path');
     const dataDir = await mkdtemp(join(tmpdir(), 'alran-theme-controller-'));
     try {
