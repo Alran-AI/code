@@ -5,6 +5,13 @@ export { writeTuiStatusLineSetting } from './tui-status-line-write.js';
 export { parseRunawayGuardOverride, resolveRunawayGuardConfig } from './runaway-guard-config.js';
 export type { RunawayGuardSettings, RunawayGuardOverride } from './runaway-guard-config.js';
 export {
+  WEB_SEARCH_CONFIG_DEFAULTS,
+  parseWebSearchConfig,
+  webSearchEnvFromConfig,
+  webSearchEnvWithConfig,
+} from './web-search-config.js';
+export type { WebSearchConfig, WebSearchConfigParseResult } from './web-search-config.js';
+export {
   parsePromptSuggestionRemotePolicy,
   resolvePromptSuggestionEnabled,
   withEffectivePromptSuggestion,

@@ -99,6 +99,8 @@ export interface LocalRuntimeConfig {
   runawayGuard?: Config['runawayGuard'];
   promptSuggestion?: Config['promptSuggestion'];
   toolResultCompaction?: Config['toolResultCompaction'];
+  /** Bring-your-own-key web search, merged under the environment by the tool builder. */
+  webSearch?: Config['webSearch'];
   mcp?: {
     nativeToolAllowlist?: string[];
   };

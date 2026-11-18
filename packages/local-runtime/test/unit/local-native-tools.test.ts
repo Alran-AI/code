@@ -81,6 +81,46 @@ describe('local native turn tools', () => {
     ).toContain('web_search');
   });
 
+  it('uses a webSearch config key when the environment is silent, and lets the environment win', async () => {
+    for (const name of [
+      'BRAVE_API_KEY',
+      'SERPER_API_KEY',
+      'TAVILY_API_KEY',
+      'SEARXNG_URL',
+      'SEARXNG_API_KEY',
+    ]) {
+      vi.stubEnv(name, '');
+    }
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ web: { results: [] } }), { status: 200 }),
+    );
+    const base = { workspaceRoot: '/workspace', agentName: 'alran', webSearchEnabled: true, fetchImpl };
+    const run = (configGetter: () => { webSearch?: { braveApiKey?: string; serperApiKey?: string } }) => {
+      const tools = buildLocalNativeRuntimeTools({ ...base, configGetter });
+      const tool = tools.find((candidate) => candidate.def.name === 'web_search');
+      expect(tool).toBeDefined();
+      return tool!.impl.execute({ sessionId: 's', turnId: 't' }, { query: 'hi' });
+    };
+    try {
+      await run(() => ({ webSearch: { braveApiKey: 'config-brave' } }));
+      expect(String(fetchImpl.mock.calls[0]![0])).toContain('api.search.brave.com');
+      expect(new Headers(fetchImpl.mock.calls[0]![1]?.headers).get('x-subscription-token')).toBe(
+        'config-brave',
+      );
+
+      // A real environment key beats the file, even when the file names a different provider.
+      fetchImpl.mockClear();
+      vi.stubEnv('BRAVE_API_KEY', 'env-brave');
+      await run(() => ({ webSearch: { serperApiKey: 'config-serper' } }));
+      expect(String(fetchImpl.mock.calls[0]![0])).toContain('api.search.brave.com');
+      expect(new Headers(fetchImpl.mock.calls[0]![1]?.headers).get('x-subscription-token')).toBe(
+        'env-brave',
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('executes native search through the authenticated gateway without a Matrix MCP server', async () => {
     vi.stubEnv('ALRAN_BUILD_ENV', 'test');
     const dataDir = await mkdtemp(join(tmpdir(), 'native-search-'));

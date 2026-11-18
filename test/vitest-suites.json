@@ -334,7 +334,8 @@
       "packages/shared/test/unit/redact-log-secret.test.ts",
       "packages/oauth-lease-protocol/test/unit/node-client-reconnect.test.ts",
       "packages/local-runtime/src/web-search/registration.test.ts",
-      "packages/local-runtime/src/web-search/direct-providers.test.ts"
+      "packages/local-runtime/src/web-search/direct-providers.test.ts",
+      "packages/config/test/web-search-config.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"

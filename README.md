@@ -99,6 +99,22 @@ export TAVILY_API_KEY='…'   # Tavily
 export SEARXNG_URL='http://127.0.0.1:8080'   # self-hosted SearXNG (JSON API)
 ```
 
+You can also put the same settings in `~/.alran/config.yaml`, under `webSearch:`, if you would
+rather keep them in one file than repeat shell exports:
+
+```yaml
+webSearch:
+  braveApiKey: "…"
+  serperApiKey: "…"
+  tavilyApiKey: "…"
+  searxngUrl: "http://127.0.0.1:8080"
+  searxngApiKey: "…"       # only when SearXNG sits behind a key-checking gateway
+```
+
+Environment variables win over the file, so a one-off `BRAVE_API_KEY=… alran` or a CI override
+never has to edit it. As with provider API keys, values in `config.yaml` are stored in plain text —
+anyone who can read that file can read them.
+
 SearXNG expects `/search?q=…&format=json`; an IPv6 literal stays in brackets
 (`SEARXNG_URL='http://[::1]:8080'`). If that instance sits behind a key-checking gateway, set
 `SEARXNG_API_KEY` too — it is sent as `X-Api-Key`.

@@ -106,6 +106,16 @@ alran
 
 That is all. `web_search` now queries your instance.
 
+If you prefer a file over shell state, the same setting can go in `~/.alran/config.yaml`:
+
+```yaml
+webSearch:
+  searxngUrl: "http://127.0.0.1:8080"
+```
+
+An environment variable always wins over `config.yaml`, so leaving `SEARXNG_URL` in the shell
+overrides the file when you need to switch instances for one run.
+
 Use an IPv6 literal in brackets if you bind one: `http://[::1]:8080`.
 
 ## 5. If you put a gateway in front
@@ -116,6 +126,14 @@ front that checks a key, and give each person their own key:
 ```bash
 export SEARXNG_URL='https://search.example.com'
 export SEARXNG_API_KEY='…'    # sent as X-Api-Key
+```
+
+Or the equivalent in `config.yaml`:
+
+```yaml
+webSearch:
+  searxngUrl: "https://search.example.com"
+  searxngApiKey: "…"
 ```
 
 SearXNG has no authentication of its own, so an exposed instance is an open proxy that anyone can

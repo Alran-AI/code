@@ -85,6 +85,11 @@ import {
   SANDBOX_CONFIG_DEFAULTS,
   type SandboxConfig,
 } from "./sandbox-config.js";
+import {
+  WEB_SEARCH_CONFIG_DEFAULTS,
+  parseWebSearchConfig,
+  type WebSearchConfig,
+} from "./web-search-config.js";
 
 export type { TuiConfig, TuiCustomStatusLineConfig } from "./tui-config.js";
 
@@ -1089,6 +1094,10 @@ export interface Config {
   sandbox: SandboxConfig;
   /** Non-fatal corrections made while parsing Goal policy. */
   goalWarnings: readonly string[];
+  /** Bring-your-own-key web search settings (`webSearch:` in config.yaml). */
+  webSearch: WebSearchConfig;
+  /** Non-fatal corrections made while parsing the web search block. */
+  webSearchWarnings: readonly string[];
 }
 
 // --- Modality & Status ---
@@ -1868,6 +1877,8 @@ const DEFAULTS: Omit<
   retryWarnings: [],
   sandbox: structuredClone(SANDBOX_CONFIG_DEFAULTS),
   goalWarnings: [],
+  webSearch: { ...WEB_SEARCH_CONFIG_DEFAULTS },
+  webSearchWarnings: [],
 };
 
 function ensureConfigFile(): void {
@@ -2057,6 +2068,7 @@ export function resolveConfigFromRaw(
   }
   const goalParsed = parseGoalConfig(raw.goal);
   const retryParsed = parseRetryConfig(raw.retry);
+  const webSearchParsed = parseWebSearchConfig(raw.webSearch);
   const managedProvider = applyRequiredProviderOverrides(
     {
       provider:
@@ -2222,6 +2234,8 @@ export function resolveConfigFromRaw(
     retry: retryParsed.config,
     retryWarnings: retryParsed.warnings,
     sandbox: parseSandboxConfig(raw.sandbox),
+    webSearch: webSearchParsed.config,
+    webSearchWarnings: webSearchParsed.warnings,
   };
 }
 

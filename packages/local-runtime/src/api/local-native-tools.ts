@@ -25,6 +25,7 @@ import {
   commitTrailerFor,
   getConfig,
   resolveAgentCapabilities,
+  webSearchEnvWithConfig,
   type AgentBuiltinMcpToolId,
   type AgentBuiltinSkillId,
   type ResolvedAgentCapabilities,
@@ -98,7 +99,7 @@ function buildWebSearchAdapterFor(
     logger.warn({ providers: WEB_SEARCH_PROVIDER_ENV_VARS }, SEARXNG_SETUP_HINT);
     return undefined;
   }
-  return createLocalWebSearchAdapter(process.env, {
+  return createLocalWebSearchAdapter(env, {
     ...(input.authContext ? { authContext: input.authContext } : {}),
     ...(input.authContextGetter ? { authContextGetter: input.authContextGetter } : {}),
     ...(input.authContextInvalidator
@@ -171,10 +172,15 @@ export function buildLocalNativeRuntimeTools(input: {
   const webFetchAdapter =
     input.webFetchAdapter ??
     new LocalWebFetchClient({ fetchImpl: input.fetchImpl });
+  // `webSearch:` in config.yaml is a fallback for the environment, never an override: a key in the
+  // shell wins even when the file holds a different one. Read config only when we actually build.
   const webSearchAdapter =
     input.webSearchEnabled === true
       ? (input.webSearchAdapter ??
-        buildWebSearchAdapterFor(process.env, input))
+        buildWebSearchAdapterFor(
+          webSearchEnvWithConfig((input.configGetter ?? getConfig)().webSearch, process.env),
+          input,
+        ))
       : undefined;
   const builtinSkillNames = resolveFeatureAwareBuiltinSkillNames(capabilities, {
     cuModeActive: input.cuModeActive === true,
