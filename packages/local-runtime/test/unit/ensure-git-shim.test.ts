@@ -294,7 +294,10 @@ describePosix('the whole chain: LocalBashTool, the host env policy, the shim, gi
   });
 
   it('a user who runs git outside the agent is not touched: the shim is not on their PATH', () => {
-    const r = spawnSync('git', ['commit', '--allow-empty', '-q', '-m', 'By hand'], { cwd: repo, encoding: 'utf8', env: { ...process.env, ALRAN_COMMIT_TRAILER: TRAILER } });
+    // Call the system git directly: the host running these tests may have its own attribution shim
+    // ahead of git on PATH, which is exactly the setup this case must not depend on.
+    const systemGit = ['/usr/bin/git', '/usr/local/bin/git', '/bin/git'].find((path) => existsSync(path)) ?? 'git';
+    const r = spawnSync(systemGit, ['commit', '--allow-empty', '-q', '-m', 'By hand'], { cwd: repo, encoding: 'utf8', env: { ...process.env, ALRAN_COMMIT_TRAILER: TRAILER } });
     expect(r.status).toBe(0);
     expect(message()).toBe('By hand');
   });

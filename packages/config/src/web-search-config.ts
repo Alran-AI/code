@@ -8,6 +8,7 @@
 //     braveApiKey: "…"          # Brave Search API — free tier covers thousands of queries a month
 //     serperApiKey: "…"
 //     tavilyApiKey: "…"
+//     exaApiKey: "…"             # optional: Exa works keyless for most users
 //     searxngUrl: "http://127.0.0.1:8080"
 //     searxngApiKey: "…"        # only when the instance sits behind a key-checking gateway
 //
@@ -23,6 +24,7 @@ export interface WebSearchConfig {
   braveApiKey?: string;
   serperApiKey?: string;
   tavilyApiKey?: string;
+  exaApiKey?: string;
   searxngUrl?: string;
   searxngApiKey?: string;
 }
@@ -32,6 +34,7 @@ const KNOWN_KEYS = [
   'braveApiKey',
   'serperApiKey',
   'tavilyApiKey',
+  'exaApiKey',
   'searxngUrl',
   'searxngApiKey',
 ] as const satisfies readonly (keyof WebSearchConfig)[];
@@ -41,6 +44,7 @@ const CONFIG_KEY_TO_ENV: Readonly<Record<keyof WebSearchConfig, string>> = Objec
   braveApiKey: 'BRAVE_API_KEY',
   serperApiKey: 'SERPER_API_KEY',
   tavilyApiKey: 'TAVILY_API_KEY',
+  exaApiKey: 'EXA_API_KEY',
   searxngUrl: 'SEARXNG_URL',
   searxngApiKey: 'SEARXNG_API_KEY',
 });

@@ -154,6 +154,35 @@ report a failed command. Stop failures and incomplete logs are reported separate
 An optional `description` supplies the TUI summary while execution and permission
 checks continue to use the original command.
 
+## Parallel subagents and bounded waiting
+
+`task` is a parallel tool: several delegations in one assistant message run at
+the same time instead of being serialized by the tool batch. Each call owns a
+separate child Session and background task row. At most eight child Agent turns
+run concurrently per runtime process; further entries keep their task id in
+`queued` state until a slot frees, so no delegated work is silently dropped and
+the parent is never blocked by the fan-out.
+
+`task_spawn` is the explicit group form. One call takes a label and a list of
+Agent entries (the same `description`, `prompt` and `agent_name` fields as
+`task`) and starts each entry in the background. Its receipt lists every
+`task_id`, the resolved `session_id` where available, and per-entry status. The
+call returns immediately: the main agent reports the start to the user and ends
+its turn, then is resumed by each completion notice.
+
+`task_wait` parks the current turn until the named tasks settle, or until every
+active task in the session settles when no ids are given. `wait_ms` is the
+agent-supplied maximum: it defaults to 30 seconds and is capped at 10 minutes,
+with the cap reported in the result. Waiting never stops a task and never
+suppresses completion delivery. Each terminal background task still resumes the
+owning conversation through the existing `<background-task-finished>` notice,
+which also covers background Bash commands. A timed-out wait is therefore a
+status report, not a failure.
+
+Canonical Explore, Worker and Verifier Agents cannot spawn subagents or park a
+parent turn. The usual disjoint-file rule still applies to parallel workers:
+the runtime does not serialize writes to the same file.
+
 ## Stopping a conversation and its background work
 
 An explicit user stop (Esc in the TUI) also cancels background Bash commands and

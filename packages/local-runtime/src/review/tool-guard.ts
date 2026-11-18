@@ -10,7 +10,7 @@ const REVIEW_ALLOWED_TOOLS = new Set(['read', 'grep', 'glob', 'skill', 'bash']);
 const REVIEW_PTC_PROGRAM_TOOL = 'run_code';
 // Native controls enforce session ownership in the task service. Review must
 // retain them when an allowed Bash call runs in the background.
-const REVIEW_TASK_CONTROLS = new Set(['task_query', 'task_output', 'task_stop']);
+const REVIEW_TASK_CONTROLS = new Set(['task_query', 'task_output', 'task_stop', 'task_wait']);
 
 export function createReviewToolGuard(state: ReviewTurnState): {
   beforeToolCall: PiBeforeToolCallHook;

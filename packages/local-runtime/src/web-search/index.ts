@@ -16,6 +16,7 @@ import {
   searxngApiKeyFromEnv,
   searxngUrlFromEnv,
 } from './searxng-web-search.js';
+import { ExaWebSearchAdapter } from './exa-web-search.js';
 import { resolveWebSearchProvider } from './provider-resolution.js';
 
 export {
@@ -29,6 +30,8 @@ export {
   searxngUrlFromEnv,
 } from './searxng-web-search.js';
 export type { SearchHit, SearxngWebSearchOptions } from './searxng-web-search.js';
+export { ExaWebSearchAdapter, mapExaResults } from './exa-web-search.js';
+export type { ExaWebSearchOptions } from './exa-web-search.js';
 
 export interface CreateLocalWebSearchAdapterOptions {
   authContext?: LocalRuntimeAuthContext;
@@ -65,6 +68,11 @@ export function createLocalWebSearchAdapter(
       return new SerperWebSearchAdapter({ apiKey: provider.apiKey, ...fetchOption });
     case 'tavily':
       return new TavilyWebSearchAdapter({ apiKey: provider.apiKey, ...fetchOption });
+    case 'exa':
+      return new ExaWebSearchAdapter({
+        ...(provider.apiKey === undefined ? {} : { apiKey: provider.apiKey }),
+        ...fetchOption,
+      });
     case 'searxng': {
       const apiKey = searxngApiKeyFromEnv(env);
       return new SearxngWebSearchAdapter({

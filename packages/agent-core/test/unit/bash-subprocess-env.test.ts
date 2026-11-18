@@ -86,3 +86,25 @@ describe('bash subprocess and the Alran account credential', () => {
     expect(sanitizeBashSubprocessEnv(original, policy).env).toEqual({ PATH: '/usr/bin', GH_TOKEN: 'synthetic-gh-value' });
   });
 });
+
+describe('bash subprocess and the host-owned commit trailer', () => {
+  const ambient = 'Co-Authored-By: ambient <noreply@example.invalid>';
+
+  it.each(['off', 'scrub', 'strict'] as const)('never inherits the parent trailer in mode %s', (mode) => {
+    const original = { PATH: '/usr/bin', ALRAN_COMMIT_TRAILER: ambient };
+    const { env, removed } = sanitizeBashSubprocessEnv(original, { mode });
+    expect(env).not.toHaveProperty('ALRAN_COMMIT_TRAILER');
+    expect(removed).not.toContain('ALRAN_COMMIT_TRAILER');
+    expect(original.ALRAN_COMMIT_TRAILER).toBe(ambient);
+  });
+
+  it('uses only the value the host supplies for this call', () => {
+    const current = 'Co-Authored-By: this call <noreply@example.invalid>';
+    const { env, removed } = sanitizeBashSubprocessEnv(
+      { PATH: '/usr/bin', ALRAN_COMMIT_TRAILER: ambient },
+      { mode: 'off', extraEnv: { ALRAN_COMMIT_TRAILER: current } },
+    );
+    expect(env.ALRAN_COMMIT_TRAILER).toBe(current);
+    expect(removed).not.toContain('ALRAN_COMMIT_TRAILER');
+  });
+});

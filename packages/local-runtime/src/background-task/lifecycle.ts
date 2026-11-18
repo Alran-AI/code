@@ -4,6 +4,8 @@ import { logger } from '../common/logger.js';
 interface ActiveBackgroundTask {
   readonly settled: Promise<void>;
   readonly abort?: (reason: string) => void;
+  /** Bash and subagent tasks share the stop cascade but not the fan-out cap. */
+  readonly kind: 'bash' | 'subagent';
   /**
    * Durable row identity, published by the runner before it writes the row.
    * Admission happens before `createBackgroundTaskId()`, so this stays undefined
@@ -15,7 +17,13 @@ interface ActiveBackgroundTask {
 interface HostBackgroundTaskState {
   closing: boolean;
   readonly active: Set<ActiveBackgroundTask>;
+  /** Execution slots held by child turns that are actually running. */
+  readonly runningSubagents: Set<symbol>;
+  readonly slotWaiters: Set<() => void>;
 }
+
+/** Bound a single turn's child-Agent fan-out without capping background Bash. */
+export const MAX_CONCURRENT_SUBAGENT_TASKS = 8;
 
 export interface BackgroundTaskAdmission {
   bind(settled: Promise<void>): void;
@@ -35,6 +43,7 @@ const hostStates = new WeakMap<LocalTaskRunnerHostWithSessionLookup, HostBackgro
 export function admitBackgroundTask(
   host: LocalTaskRunnerHostWithSessionLookup,
   abort?: (reason: string) => void,
+  kind: ActiveBackgroundTask['kind'] = 'bash',
 ): BackgroundTaskAdmission {
   const state = getHostState(host);
   if (state.closing) throw new Error('Local Runtime is shutting down');
@@ -45,12 +54,12 @@ export function admitBackgroundTask(
     resolve = resolvePromise;
     reject = rejectPromise;
   });
-  const active: ActiveBackgroundTask = { settled, ...(abort ? { abort } : {}) };
+  const active: ActiveBackgroundTask = { settled, kind, ...(abort ? { abort } : {}) };
   state.active.add(active);
-  void settled.then(
-    () => state.active.delete(active),
-    () => state.active.delete(active),
-  );
+  const forget = () => {
+    state.active.delete(active);
+  };
+  void settled.then(forget, forget);
 
   let bound = false;
   return {
@@ -68,6 +77,55 @@ export function admitBackgroundTask(
       active.taskId = taskId;
     },
   };
+}
+
+/**
+ * Reserves one child-Agent execution slot. Admission itself stays immediate so
+ * the parent gets every task id back at once; only the child turn waits here.
+ * The returned release function must be called when that turn settles.
+ */
+export async function waitForSubagentSlot(
+  host: LocalTaskRunnerHostWithSessionLookup,
+  signal?: AbortSignal,
+): Promise<() => void> {
+  const state = getHostState(host);
+  for (;;) {
+    if (state.closing) throw new Error('Local Runtime is shutting down');
+    if (signal?.aborted) throw new Error('Operation aborted');
+    if (state.runningSubagents.size < MAX_CONCURRENT_SUBAGENT_TASKS) {
+      const token = Symbol('subagent-slot');
+      state.runningSubagents.add(token);
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        state.runningSubagents.delete(token);
+        releaseSlotWaiters(state);
+      };
+    }
+    await new Promise<void>((resolve, reject) => {
+      const wake = () => {
+        cleanup();
+        resolve();
+      };
+      const onAbort = () => {
+        cleanup();
+        reject(new Error('Operation aborted'));
+      };
+      const cleanup = () => {
+        state.slotWaiters.delete(wake);
+        signal?.removeEventListener('abort', onAbort);
+      };
+      state.slotWaiters.add(wake);
+      signal?.addEventListener('abort', onAbort, { once: true });
+    });
+  }
+}
+
+function releaseSlotWaiters(state: HostBackgroundTaskState): void {
+  if (state.slotWaiters.size === 0) return;
+  const next = state.slotWaiters.values().next().value;
+  if (next) next();
 }
 
 /**
@@ -118,6 +176,7 @@ export function beginBackgroundTaskShutdown(
 ): number {
   const state = getHostState(host);
   state.closing = true;
+  for (const wake of [...state.slotWaiters]) wake();
   let aborted = 0;
   for (const task of state.active) {
     if (!task.abort) continue;
@@ -153,7 +212,12 @@ export { shutdownBackgroundTasks };
 function getHostState(host: LocalTaskRunnerHostWithSessionLookup): HostBackgroundTaskState {
   let state = hostStates.get(host);
   if (!state) {
-    state = { closing: false, active: new Set() };
+    state = {
+      closing: false,
+      active: new Set(),
+      runningSubagents: new Set(),
+      slotWaiters: new Set(),
+    };
     hostStates.set(host, state);
   }
   return state;

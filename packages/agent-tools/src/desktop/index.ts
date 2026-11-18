@@ -18,6 +18,8 @@ import {
 } from './local-task-control.js';
 import { LocalTaskTool } from './local-task.js';
 import { LocalTaskAppendTool } from './local-task-append.js';
+import { LocalTaskSpawnTool } from './local-task-spawn.js';
+import { LocalTaskWaitTool } from './local-task-wait.js';
 import { LocalTodoWriteTool } from './local-todowrite.js';
 import { LocalWebFetchTool } from './local-webfetch.js';
 import { LocalWebSearchTool } from './local-web-search.js';
@@ -71,6 +73,8 @@ export * from './local-code-review.js';
 export * from './local-task-control.js';
 export * from './local-task.js';
 export * from './local-task-append.js';
+export * from './local-task-spawn.js';
+export * from './local-task-wait.js';
 export * from './task-verification.js';
 export * from './local-todowrite.js';
 export * from './local-webfetch.js';
@@ -177,6 +181,7 @@ export function buildLocalToolRegistry(deps: LocalToolRegistryDeps): Map<string,
   }
   if (deps.taskAdapter) {
     tools.push(toRuntimeTool(new LocalTaskTool(deps.taskAdapter)));
+    tools.push(toRuntimeTool(new LocalTaskSpawnTool(deps.taskAdapter)));
   }
   if (deps.taskAppendAdapter) {
     tools.push(toRuntimeTool(new LocalTaskAppendTool(deps.taskAppendAdapter)));
@@ -186,6 +191,7 @@ export function buildLocalToolRegistry(deps: LocalToolRegistryDeps): Map<string,
       toRuntimeTool(new LocalTaskQueryTool(deps.taskControlAdapter)),
       toRuntimeTool(new LocalTaskOutputTool(deps.taskControlAdapter)),
       toRuntimeTool(new LocalTaskStopTool(deps.taskControlAdapter)),
+      toRuntimeTool(new LocalTaskWaitTool(deps.taskControlAdapter)),
     );
   }
   if (deps.websiteDeployAdapter) {

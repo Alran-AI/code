@@ -1050,9 +1050,19 @@ function renderUserPromptPrefix(
     .join('\n\n');
 }
 
-const TASK_CONTROL_TOOL_NAMES = new Set(['task_query', 'task_output', 'task_stop']);
-const DELEGATION_TOOL_NAMES = new Set(['task', 'task_append']);
-const TASK_CHILD_BLOCKED_TOOL_NAMES = new Set([...DELEGATION_TOOL_NAMES, 'todowrite', 'ask_user']);
+const TASK_CONTROL_TOOL_NAMES = new Set([
+  'task_query',
+  'task_output',
+  'task_stop',
+  'task_wait',
+]);
+const DELEGATION_TOOL_NAMES = new Set(['task', 'task_append', 'task_spawn']);
+const TASK_CHILD_BLOCKED_TOOL_NAMES = new Set([
+  ...DELEGATION_TOOL_NAMES,
+  'task_wait',
+  'todowrite',
+  'ask_user',
+]);
 const BUILTIN_NATIVE_TOOL_NAMES = new Set<string>(AGENT_BUILTIN_TOOL_IDS);
 const BUILTIN_MCP_TOOL_NAMES = new Set<string>(AGENT_BUILTIN_MCP_TOOL_IDS);
 

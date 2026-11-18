@@ -6,7 +6,11 @@ import { isCanonicalSubagentRole } from './subagent-roles.js';
  * Starting a task and continuing one are the same delegation entry point, so
  * `task_append` is gated with `task` rather than with the read-only handles.
  */
-export const DELEGATION_TOOL_NAMES: ReadonlySet<string> = new Set(['task', 'task_append']);
+export const DELEGATION_TOOL_NAMES: ReadonlySet<string> = new Set([
+  'task',
+  'task_append',
+  'task_spawn',
+]);
 const READ_ONLY_CANONICAL_BLOCKED_TOOL_NAMES = new Set([
   'write',
   'edit',
@@ -14,6 +18,8 @@ const READ_ONLY_CANONICAL_BLOCKED_TOOL_NAMES = new Set([
   'todowrite',
   'task',
   'task_append',
+  'task_spawn',
+  'task_wait',
   'memory',
   'ask_user',
   'request_feature_enable',
@@ -38,14 +44,17 @@ export function filterCanonicalNativeToolCeiling<T extends RuntimeTool>(
     return [...tools];
   }
   if (canonicalRole === 'worker') {
-    return tools.filter((tool) => !DELEGATION_TOOL_NAMES.has(tool.def.name));
+    return tools.filter(
+      (tool) =>
+        !DELEGATION_TOOL_NAMES.has(tool.def.name) && tool.def.name !== 'task_wait',
+    );
   }
   return tools.filter(
     (tool) =>
       !READ_ONLY_CANONICAL_BLOCKED_TOOL_NAMES.has(tool.def.name) &&
       !isComputerUseRuntimeToolName(tool.def.name) &&
       (canonicalRole !== 'explore' ||
-        !['task_query', 'task_output', 'task_stop'].includes(tool.def.name)),
+        !['task_query', 'task_output', 'task_stop', 'task_wait'].includes(tool.def.name)),
   );
 }
 
