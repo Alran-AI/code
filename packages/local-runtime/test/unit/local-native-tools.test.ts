@@ -123,6 +123,8 @@ describe('local native turn tools', () => {
 
   it('executes native search through the authenticated gateway without a Matrix MCP server', async () => {
     vi.stubEnv('ALRAN_BUILD_ENV', 'test');
+    // The managed route is now a fallback: keyless Exa is the default everywhere else.
+    vi.stubEnv('ALRAN_DISABLE_KEYLESS_EXA', '1');
     const dataDir = await mkdtemp(join(tmpdir(), 'native-search-'));
     const mcpService = new LocalMcpService(() => dataDir);
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(

@@ -15,9 +15,16 @@ function toolNames(extra: Record<string, unknown> = {}) {
   }).map((tool) => tool.def.name);
 }
 
-describe('web_search registration without a provider', () => {
-  it('is not registered when there is no SEARXNG_URL and no Matrix session', () => {
+describe('web_search registration', () => {
+  it('is registered by default through keyless Exa', () => {
     vi.stubEnv('SEARXNG_URL', '');
+
+    expect(toolNames()).toContain('web_search');
+  });
+
+  it('is not registered when keyless Exa is off and no other route exists', () => {
+    vi.stubEnv('SEARXNG_URL', '');
+    vi.stubEnv('ALRAN_DISABLE_KEYLESS_EXA', '1');
 
     expect(toolNames()).not.toContain('web_search');
   });

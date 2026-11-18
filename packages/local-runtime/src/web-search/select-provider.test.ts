@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createLocalWebSearchAdapter } from './index.js';
+import { ExaWebSearchAdapter } from './exa-web-search.js';
 import { SearxngWebSearchAdapter } from './searxng-web-search.js';
 
 afterEach(() => {
@@ -16,10 +17,17 @@ describe('createLocalWebSearchAdapter', () => {
     expect(adapter).toBeInstanceOf(SearxngWebSearchAdapter);
   });
 
-  it('keeps the managed Matrix client when SEARXNG_URL is absent', () => {
+  it('uses keyless Exa when no provider is configured', () => {
     const adapter = createLocalWebSearchAdapter({});
 
+    expect(adapter).toBeInstanceOf(ExaWebSearchAdapter);
     expect(adapter).not.toBeInstanceOf(SearxngWebSearchAdapter);
+  });
+
+  it('uses an authenticated Exa adapter for EXA_API_KEY', () => {
+    const adapter = createLocalWebSearchAdapter({ EXA_API_KEY: 'exa-key' });
+
+    expect(adapter).toBeInstanceOf(ExaWebSearchAdapter);
   });
 });
 
@@ -50,9 +58,12 @@ describe('BYOK provider order', () => {
     ).toMatchObject({ kind: 'brave' });
   });
 
-  it('treats blank keys as unset', async () => {
+  it('treats blank keys as unset and falls back to keyless Exa', async () => {
     const { resolveWebSearchProvider } = await import('./provider-resolution.js');
 
-    expect(resolveWebSearchProvider({ BRAVE_API_KEY: '  ' }, false)).toEqual({ kind: 'none' });
+    expect(resolveWebSearchProvider({ BRAVE_API_KEY: '  ' }, false)).toEqual({
+      kind: 'exa',
+      apiKey: undefined,
+    });
   });
 });

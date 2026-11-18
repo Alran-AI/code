@@ -88,14 +88,20 @@ at other Ottili deployments; `ALRAN_NO_UPDATE_CHECK=1` switches off the weekly u
 
 #### Web search
 
-`web_search` needs a backend. Bring your own key and the tool calls that provider directly from
-your machine — no Ottili server in the path, and your quota is yours alone. Providers are tried in
-this order, and the first one set wins:
+`web_search` works with no configuration at all. By default it calls Exa's hosted MCP endpoint
+directly from your machine: no account, no API key, no Ottili server in the path. Exa sees your own
+IP and applies its free per-IP rate limit, so nobody else's traffic shares your quota. The keyless
+endpoint requires a **direct IPv4 connection** — on an IPv6-only host or behind a proxy it returns
+403. If that happens, or if you hit the free-tier 429 limit, configure one of the options below.
+
+For more control, set a provider explicitly. An explicit choice always wins over the keyless
+default; the first one set wins:
 
 ```bash
 export BRAVE_API_KEY='…'    # Brave Search API — free tier covers thousands of queries a month
 export SERPER_API_KEY='…'   # Serper
 export TAVILY_API_KEY='…'   # Tavily
+export EXA_API_KEY='…'      # Exa on your own plan (also works from IPv6/proxied networks)
 export SEARXNG_URL='http://127.0.0.1:8080'   # self-hosted SearXNG (JSON API)
 ```
 
@@ -107,6 +113,7 @@ webSearch:
   braveApiKey: "…"
   serperApiKey: "…"
   tavilyApiKey: "…"
+  exaApiKey: "…"
   searxngUrl: "http://127.0.0.1:8080"
   searxngApiKey: "…"       # only when SearXNG sits behind a key-checking gateway
 ```
@@ -120,9 +127,9 @@ SearXNG expects `/search?q=…&format=json`; an IPv6 literal stays in brackets
 `SEARXNG_API_KEY` too — it is sent as `X-Api-Key`.
 
 All providers return the same `title` / `url` / `snippet` shape and honour `count` and
-`freshness`. Without any of these variables, a signed-in install uses the managed search route;
-with neither, `web_search` is not registered at all and the host notes at start which variable to
-set, rather than offering a tool that can only fail.
+`freshness`. On a host where keyless Exa cannot work, set `ALRAN_DISABLE_KEYLESS_EXA=1` to skip it:
+a signed-in install then uses the managed search route, and with neither the tool is not registered
+at all. The host notes at start which option to set rather than offering a tool that can only fail.
 
 ### 4. Try it: build the pocket pet
 

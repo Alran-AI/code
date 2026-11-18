@@ -1,8 +1,8 @@
 # Self-hosted web search
 
-Alran Code's `web_search` tool calls a search backend directly. You can run your own instead of
-bringing a provider key: one Docker container, no account, no per-query fee. This page is the whole
-procedure.
+Alran Code's `web_search` tool calls a search backend directly. The default is Exa's keyless hosted
+endpoint, so most users need no setup at all. You can also run your own SearXNG instead: one Docker
+container, no account, no per-query fee. This page is the whole procedure.
 
 ## Why run your own
 
@@ -13,8 +13,8 @@ procedure.
 
 The trade-off: a self-hosted instance scrapes the engines it queries, which is slower and less
 reliable than a paid API. If you need guaranteed freshness and ranking, use a provider key
-(`BRAVE_API_KEY`, `SERPER_API_KEY`, `TAVILY_API_KEY`) instead — see the README. A key wins over
-this option; `SEARXNG_URL` is used only when no key is set.
+(`BRAVE_API_KEY`, `SERPER_API_KEY`, `TAVILY_API_KEY`, `EXA_API_KEY`) instead — see the README.
+An explicitly set provider or `SEARXNG_URL` always wins over the keyless Exa default.
 
 ## 1. Start the container
 
