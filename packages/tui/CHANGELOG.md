@@ -3,6 +3,39 @@
 This changelog covers changes that directly affect Alran Code users: the terminal UI, `alran exec`, the
 account commands, models, Plugins, installation and updates.
 
+## 1.1.0 · 2026-11-18
+
+### Added
+
+- **Web search on your own key.** `web_search` calls Brave, Serper, Tavily or Exa with your own API key,
+  or a SearXNG instance you run yourself. The first provider you set wins, and the request leaves your
+  machine. Brave's free tier covers thousands of queries a month.
+- **A search backend you host.** `SEARXNG_URL` points Alran Code at your own SearXNG — no account, no
+  per-query fee, your own IP. `SEARXNG_API_KEY` is sent as `X-Api-Key` for an instance behind a
+  key-checking gateway. See `docs/self-hosted-search.md`.
+- **Search settings in one file.** Provider keys can live in `~/.alran/config.yaml` under `webSearch:`
+  (`braveApiKey`, `serperApiKey`, `tavilyApiKey`, `exaApiKey`, `searxngUrl`, `searxngApiKey`). The
+  environment still wins over the file.
+- **Parallel and background subagents.** `task_spawn` starts every agent at once and returns all task
+  ids; `task_wait` parks the turn until the named background tasks settle (up to 600 seconds, waking on
+  completion). Only the child turn waits for one of eight execution slots, so a wide fan-out never holds
+  the main agent back.
+
+### Changed
+
+- **A search that cannot work is no longer offered.** Without a provider key, a SearXNG instance or a
+  signed-in session, `web_search` is not registered at all; the host names the variables to set at
+  startup.
+- **Search failures name their cause** — `http:502`, `code:ENOTFOUND`, `code:timeout`,
+  `error:invalid-json` — instead of one generic message.
+- The commit trailer no longer leaks into bash subprocesses: a call with attribution switched off carries
+  no trailer at all.
+
+### Fixed
+
+- A Plugin hook that wrote its transcript into a directory that had just been cleaned up failed with a
+  server error. The directory is created again and the write is retried.
+
 ## 1.0.2 · 2026-11-18
 
 ### Changed

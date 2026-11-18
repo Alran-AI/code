@@ -125,6 +125,19 @@ describe('local native turn tools', () => {
     vi.stubEnv('ALRAN_BUILD_ENV', 'test');
     // The managed route is now a fallback: keyless Exa is the default everywhere else.
     vi.stubEnv('ALRAN_DISABLE_KEYLESS_EXA', '1');
+    // The provider is chosen from the environment and from `config.yaml`. Both are cleared
+    // here, so a machine that runs the test with its own search provider (a self-hosted
+    // SearXNG, for example) cannot redirect this request away from the managed route.
+    for (const name of [
+      'BRAVE_API_KEY',
+      'SERPER_API_KEY',
+      'TAVILY_API_KEY',
+      'EXA_API_KEY',
+      'SEARXNG_URL',
+      'SEARXNG_API_KEY',
+    ]) {
+      vi.stubEnv(name, '');
+    }
     const dataDir = await mkdtemp(join(tmpdir(), 'native-search-'));
     const mcpService = new LocalMcpService(() => dataDir);
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(
@@ -148,6 +161,8 @@ describe('local native turn tools', () => {
       emitBusEvent: vi.fn(),
       threadGoal: { runtimeToolsFor: async () => [] } as never,
       authContext: { accessToken: 'test-search-token' },
+      // The config file of the machine that runs the test must not choose the provider either.
+      configGetter: () => ({ webSearch: {} }) as never,
       fetchImpl,
       routingContextGetter: () => ({ bedrockLane: 'search-lane' }),
     };
