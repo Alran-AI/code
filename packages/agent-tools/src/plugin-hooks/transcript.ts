@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import type {
   PiHistoryChangedHookInput,
@@ -517,7 +517,21 @@ async function writeJsonl(
   preserveFirst: boolean,
 ): Promise<void> {
   const text = boundedJsonl(rows, maxBytes, preserveFirst);
-  await writeFile(path, text, { encoding: 'utf8', mode: TRANSCRIPT_FILE_MODE });
+  try {
+    await writeFile(path, text, { encoding: 'utf8', mode: TRANSCRIPT_FILE_MODE });
+  } catch (error) {
+    // The projection is an optional hook artifact in a managed temp directory.
+    // An external tmp cleaner (or an eager cleanup) can remove the directory
+    // between create() and a later apply(); recreate it instead of letting a
+    // missing directory fail the whole turn with ENOENT.
+    if (!isErrnoException(error) || error.code !== 'ENOENT') throw error;
+    await mkdir(dirname(path), { recursive: true, mode: TRANSCRIPT_DIRECTORY_MODE });
+    await writeFile(path, text, { encoding: 'utf8', mode: TRANSCRIPT_FILE_MODE });
+  }
+}
+
+function isErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error;
 }
 
 function boundedJsonl(rows: readonly unknown[], maxBytes: number, preserveFirst: boolean): string {

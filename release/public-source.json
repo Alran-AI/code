@@ -469,6 +469,7 @@
     "packages/agent-tools/test/desktop/local-browser-run-script.test.ts",
     "packages/agent-tools/test/desktop/local-memory.test.ts",
     "packages/agent-tools/test/desktop/ptc-child-uncapped.test.ts",
+    "packages/agent-tools/test/plugin-hooks/transcript.test.ts",
     "packages/alran-tools-host/README.md",
     "packages/alran-tools-host/package.json",
     "packages/alran-tools-host/src/contracts.ts",

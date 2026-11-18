@@ -20,6 +20,7 @@
       "packages/agent-tools/src/shared/replace-all-edit.test.ts",
       "packages/agent-tools/src/shared/edit-encoding.test.ts",
       "packages/agent-tools/src/shared/cron-schedule-input.test.ts",
+      "packages/agent-tools/test/plugin-hooks/transcript.test.ts",
       "packages/agent-tools/src/desktop/edit-diff-bounds.test.ts",
       "packages/agent-tools/src/cloud/matrix-tools/client.test.ts",
       "packages/tui/test/unit/tui-ui-env.test.ts",
