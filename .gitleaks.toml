@@ -67,3 +67,10 @@ condition = "AND"
 paths = ['''(^|/)packages/local-runtime/test/unit/error-reporting-privacy\.test\.ts$''']
 regexTarget = "match"
 regexes = ['''^SECRET = 'SYNTHETIC_PRIVATE_4cd7'$''']
+
+[[rules.allowlists]]
+description = "Redacted documentation example in the import commit; the file was removed afterwards"
+condition = "AND"
+paths = ['''(^|/)packages/local-runtime/assets/skills/lark-tools/cli-skills/lark-im/references/lark-im-reactions\.md$''']
+regexTarget = "match"
+regexes = ['''^page_token": "YhljsPiGfUgnVAg9urvRFd-BvSqRLxxxx"$''']
