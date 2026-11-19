@@ -1,5 +1,22 @@
 # Alran Code — release notes
 
+## 1.1.1 — 2026-11-19
+
+Package `alran` (`npm install -g alran`), binary `alran`.
+
+### Fixed
+
+- **The Store shows the store that is there.** The index the Alran Store serves grew past what the
+  client accepted — about 12 MB with 202 Plugins and 10,375 Skills — so the Store kept offering the old
+  copy of 29 Plugins and the new ones never appeared. An index of up to 64 MiB is accepted now.
+- **The Store asks less and downloads less.** The index is asked for compressed (`gzip` or `brotli`), an
+  unchanged index is revalidated with its ETag instead of being downloaded again, and a cached index is
+  used for six hours before the store is asked at all. `alran plugin marketplace upgrade` asks right
+  away and ignores the six hours.
+- **The Store says what went wrong.** A store that refused the index and a store that could not be
+  reached are no longer both reported as "unreachable", and the age of the copy that is on screen is
+  shown with it.
+
 ## 1.1.0 — 2026-11-18
 
 Package `alran` (`npm install -g alran`), binary `alran`.

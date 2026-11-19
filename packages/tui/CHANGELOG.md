@@ -3,6 +3,19 @@
 This changelog covers changes that directly affect Alran Code users: the terminal UI, `alran exec`, the
 account commands, models, Plugins, installation and updates.
 
+## 1.1.1 · 2026-11-19
+
+### Fixed
+
+- **The Store shows the store that is there.** The index the Alran Store serves grew past what the
+  client accepted — about 12 MB with 202 Plugins and 10,375 Skills — so the Store kept offering the old
+  copy of 29 Plugins. An index of up to 64 MiB is accepted now.
+- **The Store asks less and downloads less.** The index is asked for compressed, an unchanged index is
+  revalidated with its ETag instead of being downloaded again, and a cached index is used for six hours.
+  `alran plugin marketplace upgrade` still asks right away.
+- **The Store says what went wrong.** A store that refused the index and a store that could not be
+  reached are no longer both reported as "unreachable", and the age of the copy on screen is shown.
+
 ## 1.1.0 · 2026-11-18
 
 ### Added
