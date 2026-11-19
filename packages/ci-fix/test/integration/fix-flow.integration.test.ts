@@ -37,14 +37,14 @@ beforeEach(() => {
     mkdirSync(path.dirname(target), { recursive: true });
     writeFileSync(target, file.content);
   }
+  // The committer identity is passed on every commit: CI runners have no global git identity.
   for (const args of [
     ["init"],
     ["add", "."],
-    ["-c", "user.name", "Fixture"],
-    ["-c", "user.email", "fixture@example.test"],
-    ["commit", "-m", "feat: fixture"],
+    ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test", "commit", "-m", "feat: fixture"],
   ]) {
-    spawnSync("git", args, { cwd: fixture, encoding: "utf8" });
+    const result = spawnSync("git", args, { cwd: fixture, encoding: "utf8" });
+    if (result.status !== 0) throw new Error(`fixture git ${args.join(" ")} failed: ${result.stderr}`);
   }
 });
 
@@ -53,7 +53,8 @@ afterEach(() => {
 });
 
 function git(args: readonly string[]): string {
-  return execFileSync("git", args, { cwd: fixture, encoding: "utf8" });
+  const identity = ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test"];
+  return execFileSync("git", [...identity, ...args], { cwd: fixture, encoding: "utf8" });
 }
 
 function fakePorts(overrides: Partial<CiFixPorts> = {}): CiFixPorts {
