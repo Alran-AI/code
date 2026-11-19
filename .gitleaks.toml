@@ -2,16 +2,6 @@ title = "Alran Code source and history scanning"
 [extend]
 useDefault = true
 
-# Three matches in the initial import commit (c59cf53): 37-character lowercase
-# identifier strings that start with "sk-" in three source files. They are not
-# key material (real keys mix case and digits), and no such string exists at HEAD.
-# The entry only applies to that commit, those paths and that exact shape.
-[[allowlists]]
-description = "Identifier-shaped sk- strings (37 characters, lowercase and hyphens only) from the initial import"
-condition = "AND"
-regexTarget = "match"
-regexes = ['''^sk-[a-z-]{34}$''']
-
 [[rules]]
 id = "generic-api-key"
 
@@ -85,18 +75,17 @@ paths = ['''(^|/)packages/local-runtime/assets/skills/lark-tools/cli-skills/lark
 regexTarget = "match"
 regexes = ['''^page_token": "YhljsPiGfUgnVAg9urvRFd-BvSqRLxxxx"$''']
 
-[[rules.allowlists]]
-description = "Identifier-shaped sk- strings (37 characters, lowercase and hyphens only) from the initial import"
-condition = "AND"
-regexTarget = "match"
-regexes = ['''^sk-[a-z-]{34}$''']
-
-# Openai-style rule: the same exemption, in its own table.
+# Fake Stripe-style tokens in the CI Fixer tests (61e0c19), used to check that
+# secrets are masked before a prompt or a log line. They are 12 characters of
+# lowercase letters and digits; a live key is longer and mixes cases.
 [[rules]]
-id = "openai-api-key"
+id = "stripe-access-token"
 
 [[rules.allowlists]]
-description = "Identifier-shaped sk- strings (37 characters, lowercase and hyphens only) from the initial import"
+description = "Fake sk_live_ test tokens for the CI Fixer masking tests"
 condition = "AND"
-regexTarget = "match"
-regexes = ['''^sk-[a-z-]{34}$''']
+paths = [
+  '''(^|/)packages/ci-fix/test/unit/fixer\.test\.ts$''',
+  '''(^|/)packages/ci-fix/test/unit/logs\.test\.ts$''',
+]
+regexes = ['''^sk_live_[a-z0-9]{12}$''']
