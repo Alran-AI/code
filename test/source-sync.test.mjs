@@ -506,6 +506,9 @@ test('CLI release publishes only tag pushes after full verification and archive 
       if (step.uses && !step.uses.startsWith('./')) assert.match(step.uses, /@[a-f0-9]{40}$/);
       if (step.uses?.startsWith('actions/checkout@')) assert.equal(step.with['persist-credentials'], false);
       if (step.run) assert.doesNotMatch(step.run, /\$\{\{.*(?:inputs|github\.(?:ref|event))/);
+      // The workflow creates the GitHub Release; the npm package is published by the
+      // maintainer (docs/UPDATE_PIPELINE.md). No job may publish to npm.
+      assert.doesNotMatch(step.run ?? '', /npm publish/);
     }
   }
 });

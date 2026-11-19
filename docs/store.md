@@ -126,9 +126,15 @@ licences; the sources are listed in `/v1/store/THIRD_PARTY_NOTICES.md`). It is t
 Opening the Store, searching and installing contact the store's host (and only that); commands about what is
 installed never do.
 
-A remote index is cached under the data directory: used without a request for ten minutes, then
-revalidated with its ETag, and used as it was when the network is down (the Store says so). A store that
-cannot be read never hides the others.
+A remote index is cached under the data directory: used without a request for six hours, then
+revalidated with its ETag (an unchanged index is not downloaded again), and used as it was when the
+network is down (the Store says so, and how old that copy is). A store that cannot be read never
+hides the others. `alran plugin marketplace upgrade` asks the stores right away and ignores the six
+hours.
+
+The index is asked for compressed (`gzip` or `brotli`) and may be up to 64 MiB once it is
+decompressed; a larger one is refused, and the Store says that the store rejected it rather than
+that it could not be reached.
 
 | Variable | Meaning |
 | --- | --- |

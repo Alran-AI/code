@@ -273,9 +273,9 @@ describe('store transport', () => {
     const declared = async () => response('x', { headers: { 'content-length': '5000' } });
     const streamed = async () => response('y'.repeat(500));
     const small = createStoreTransport({ fetch: declared as unknown as typeof fetch });
-    expect(await codeAsync(() => small.readBytes('https://s.example/a', { maxBytes: 100 }))).toBe('SOURCE_UNREACHABLE');
+    expect(await codeAsync(() => small.readBytes('https://s.example/a', { maxBytes: 100 }))).toBe('SOURCE_REJECTED');
     const stream = createStoreTransport({ fetch: streamed as unknown as typeof fetch });
-    expect(await codeAsync(() => stream.readBytes('https://s.example/a', { maxBytes: 100 }))).toBe('SOURCE_UNREACHABLE');
+    expect(await codeAsync(() => stream.readBytes('https://s.example/a', { maxBytes: 100 }))).toBe('SOURCE_REJECTED');
     expect((await stream.readBytes('https://s.example/a', { maxBytes: 1000 })).length).toBe(500);
   });
 
@@ -296,7 +296,7 @@ describe('store transport', () => {
     const transport = createStoreTransport();
     const url = `file://${path.join(dir, 'f', 'a.json')}`;
     expect(await transport.readText(url, { maxBytes: 100 })).toMatchObject({ status: 'ok', text: '{"ok":true}' });
-    expect(await codeAsync(() => transport.readText(url, { maxBytes: 3 }))).toBe('SOURCE_UNREACHABLE');
+    expect(await codeAsync(() => transport.readText(url, { maxBytes: 3 }))).toBe('SOURCE_REJECTED');
     expect(await codeAsync(() => transport.readText(`file://${path.join(dir, 'f', 'missing.json')}`, { maxBytes: 3 }))).toBe(
       'SOURCE_UNREACHABLE',
     );
