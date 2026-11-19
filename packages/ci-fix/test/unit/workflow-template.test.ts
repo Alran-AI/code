@@ -38,6 +38,7 @@ describe("workflow generator", () => {
               env:
                 ALRAN_API_KEY: \${{ secrets.ALRAN_API_KEY }}
                 ALRAN_CI_PUSH_TOKEN: \${{ secrets.ALRAN_CI_PUSH_TOKEN }}
+                ALRAN_CI_RUN_ID: \${{ github.event.workflow_run.id }}
                 GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
               run: alran ci fix --workflow-run
       "

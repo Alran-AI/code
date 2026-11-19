@@ -104,11 +104,14 @@ function goCommands(goMod: string): ProjectCommands {
  * the next source, so a Python-only repo still gets `pytest`.
  */
 export function detectProjectCommands(sources: ProjectCommandSources): ProjectCommands {
-  const result: ProjectCommands = { test: [], lint: [], build: [] };
+  const result: { test: string[]; lint: string[]; build: string[] } = {
+    test: [],
+    lint: [],
+    build: [],
+  };
   const fill = (slot: 'test' | 'lint' | 'build', values: readonly string[]): void => {
     if (result[slot].length === 0 && values.length > 0) {
-      // eslint-disable-next-line no-param-reassign
-      (result as { [key: string]: string[] })[slot] = [...values];
+      result[slot] = [...values];
     }
   };
 

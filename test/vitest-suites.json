@@ -352,7 +352,10 @@
       "packages/ci-fix/test/unit/doctor.test.ts",
       "packages/ci-fix/test/unit/fixer.test.ts",
       "packages/ci-fix/test/unit/workflow-template.test.ts",
-      "packages/ci-fix/test/integration/fix-flow.integration.test.ts"
+      "packages/ci-fix/test/integration/fix-flow.integration.test.ts",
+      "packages/tui/test/unit/ci-command.test.ts",
+      "packages/tui/test/unit/tui/features/ci/ci-wizard.test.ts",
+      "packages/tui/test/unit/tui/features/ci/ci-flow.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"

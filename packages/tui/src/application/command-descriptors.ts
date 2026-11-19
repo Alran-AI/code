@@ -24,6 +24,10 @@ export const TUI_COMMAND_DESCRIPTORS = {
     name: 'doctor',
     description: 'Check the local config file',
   },
+  ci: {
+    name: 'ci',
+    description: 'Set up and manage the CI Fixer for this repository',
+  },
   context: {
     name: 'context',
     description: 'Show the Runtime-owned context snapshot',

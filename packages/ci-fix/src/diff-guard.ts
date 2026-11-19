@@ -51,7 +51,7 @@ interface DiffHunk {
 
 interface DiffFile {
   readonly path: string;
-  readonly deleted: boolean;
+  deleted: boolean;
   readonly hunks: DiffHunk[];
 }
 

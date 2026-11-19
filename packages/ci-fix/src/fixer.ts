@@ -176,19 +176,26 @@ export async function runCiFix(request: CiFixRequest, ports: CiFixPorts): Promis
       violations: extra.violations,
       commitSubject: undefined,
     };
-    const outcome: CiFixOutcome = {
+    const comment = buildCiFixComment(report);
+    let commented = false;
+    if (!dryRun && pullRequestNumber !== undefined) {
+      await ports.report.comment(pullRequestNumber, comment);
+      commented = true;
+    }
+    return {
       status: status as CiFixStatus,
       reasons: [reason],
       committed,
       pushed: extra.pushed ?? false,
       pullRequestCreated: extra.pullRequestCreated ?? false,
-      commented: false,
+      commented,
       pullRequestNumber,
       attempts: extra.attempts ?? 0,
       tokensUsed: extra.tokensUsed ?? 0,
       costUsd: extra.costUsd,
       diff: extra.diff ?? '',
       violations: extra.violations ?? [],
+      comment,
       retrigger: planRetrigger({
         committed,
         pushTokenAvailable: request.pushTokenAvailable === true,
@@ -196,15 +203,6 @@ export async function runCiFix(request: CiFixRequest, ports: CiFixPorts): Promis
       }),
       dryRun,
     };
-    if (!dryRun && pullRequestNumber !== undefined) {
-      const comment = buildCiFixComment(report);
-      await ports.report.comment(pullRequestNumber, comment);
-      outcome.commented = true;
-      outcome.comment = comment;
-    } else {
-      outcome.comment = buildCiFixComment(report);
-    }
-    return outcome;
   };
 
   if (!config.enabled) {

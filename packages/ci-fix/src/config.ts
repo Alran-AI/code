@@ -191,16 +191,16 @@ function readMode<T extends string>(
  */
 export function parseCiFixConfig(input: string): CiFixConfigParseResult {
   const problems: CiFixConfigProblem[] = [];
-  let raw: unknown;
+  let raw: Record<string, unknown> = {};
   try {
-    raw = input.trim().length === 0 ? {} : yaml.load(input);
+    const loaded: unknown = input.trim().length === 0 ? {} : yaml.load(input);
+    if (isRecord(loaded)) {
+      raw = loaded;
+    } else {
+      problems.push({ path: '', message: 'expected a YAML mapping at the top level' });
+    }
   } catch (error) {
     problems.push({ path: '', message: `invalid YAML: ${(error as Error).message}` });
-    raw = {};
-  }
-  if (!isRecord(raw)) {
-    problems.push({ path: '', message: 'expected a YAML mapping at the top level' });
-    raw = {};
   }
 
   const version = readNumber(raw.version, 'version', CI_FIX_CONFIG_VERSION, 1, problems);
