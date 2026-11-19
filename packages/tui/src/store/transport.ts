@@ -2,6 +2,7 @@ import { open, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import { STORE_LIMITS, StoreError } from './contract.js';
+import { formatBytes } from './status.js';
 
 export type TextRead =
   | { readonly status: 'ok'; readonly text: string; readonly etag?: string }
@@ -177,7 +178,10 @@ async function readBody(response: Response, maxBytes: number, url: string): Prom
 }
 
 function tooLarge(url: string, maxBytes: number): StoreError {
-  return new StoreError('SOURCE_UNREACHABLE', `${url} is larger than ${maxBytes} bytes.`);
+  return new StoreError(
+    'SOURCE_REJECTED',
+    `${url} is larger than the limit of ${maxBytes} bytes (${formatBytes(maxBytes)}).`,
+  );
 }
 
 function describe(error: unknown): string {
