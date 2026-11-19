@@ -90,3 +90,31 @@ condition = "AND"
 paths = ['''(^|/)packages/local-runtime/assets/skills/lark-tools/cli-skills/lark-im/references/lark-im-reactions\.md$''']
 regexTarget = "match"
 regexes = ['''^page_token": "YhljsPiGfUgnVAg9urvRFd-BvSqRLxxxx"$''']
+
+[[rules.allowlists]]
+description = "Identifier-shaped sk- strings in the initial import commit, not API keys"
+condition = "AND"
+commits = ["c59cf5377045aa1a3e699c242d089b73b7cdc2ad"]
+paths = [
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations\.ts$''',
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations/session/migration-0035-converge-published-schema-collisions\.ts$''',
+  '''(^|/)release/public-source\.json$''',
+]
+regexTarget = "match"
+regexes = ['''^sk-[a-z-]{34}$''']
+
+# Openai-style rule: the same exemption, in its own table.
+[[rules]]
+id = "openai-api-key"
+
+[[rules.allowlists]]
+description = "Identifier-shaped sk- strings in the initial import commit, not API keys"
+condition = "AND"
+commits = ["c59cf5377045aa1a3e699c242d089b73b7cdc2ad"]
+paths = [
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations\.ts$''',
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations/session/migration-0035-converge-published-schema-collisions\.ts$''',
+  '''(^|/)release/public-source\.json$''',
+]
+regexTarget = "match"
+regexes = ['''^sk-[a-z-]{34}$''']
