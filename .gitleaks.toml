@@ -2,6 +2,22 @@ title = "Alran Code source and history scanning"
 [extend]
 useDefault = true
 
+# Three matches in the initial import commit (c59cf53): 37-character lowercase
+# identifier strings that start with "sk-" in three source files. They are not
+# key material (real keys mix case and digits), and no such string exists at HEAD.
+# The entry only applies to that commit, those paths and that exact shape.
+[[allowlists]]
+description = "Identifier-shaped sk- strings in the initial import commit, not API keys"
+condition = "AND"
+commits = ["c59cf5377045aa1a3e699c242d089b73b7cdc2ad"]
+paths = [
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations\.ts$''',
+  '''(^|/)packages/local-runtime-v2/src/infra/db/migrations/session/migration-0035-converge-published-schema-collisions\.ts$''',
+  '''(^|/)release/public-source\.json$''',
+]
+regexTarget = "match"
+regexes = ['''^sk-[a-z-]{34}$''']
+
 [[rules]]
 id = "generic-api-key"
 
