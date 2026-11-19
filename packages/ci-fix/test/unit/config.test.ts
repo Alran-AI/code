@@ -8,6 +8,19 @@ import {
   matchesDenyPath,
 } from "../../src/config.js";
 
+describe("default fix model", () => {
+  // The fixer passes `model.name` to `alran exec --model`. The id is the Ottili
+  // AI Platform gateway id (docs/MODELS.md). The exec parser
+  // (packages/tui/src/headless/model-selection.ts) maps a gateway id to the
+  // first-party `alran` provider, so naming it here is what actually runs on the
+  // platform -- not a local provider called `ottili`. This pins the id so a
+  // future edit cannot silently swap it for the internal catalog key, which
+  // would work but is a less readable value to carry in a repo config.
+  it("uses the Ottili AI Platform gateway id", () => {
+    expect(DEFAULT_CI_FIX_CONFIG.model.name).toBe("ottili/werk-1.1");
+  });
+});
+
 describe("ci fix config parser", () => {
   it("falls back to the documented baseline on an empty document", () => {
     const { config, problems } = parseCiFixConfig("");

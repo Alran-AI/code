@@ -93,6 +93,13 @@ export const DEFAULT_CI_FIX_MODE: CiFixModeConfig = {
 
 export const DEFAULT_CI_FIX_MODEL: CiFixModelConfig = {
   base_url: 'https://ai.ottili.one/v1',
+  // The Ottili AI Platform model id, the same one docs/MODELS.md documents and
+  // `resolveOttiliModelId` puts on the wire. `name` is passed to
+  // `alran exec --model`, whose parser (packages/tui/src/headless/model-selection.ts)
+  // recognizes a platform gateway id (`ottili/…`, `anthropic/…`) and maps it to
+  // the first-party `alran` provider with its internal catalog id. Naming the
+  // gateway id here keeps the CI fixer config readable as "which model runs"
+  // instead of leaking the CLI's internal catalog key.
   name: 'ottili/werk-1.1',
   api_key_secret: CI_FIX_SECRET_NAME,
 };

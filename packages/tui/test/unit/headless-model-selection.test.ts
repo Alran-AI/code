@@ -53,6 +53,29 @@ describe('parseHeadlessModelOverride', () => {
       modelId: 'model',
     });
   });
+
+  // `ottili/werk-1.1` and `anthropic/claude-sonnet-5.5` are the ids the Ottili
+  // AI Platform serves, documented in docs/MODELS.md and shown by
+  // `displayModelRef()`. They are NOT `provider/model`: `ottili`/`anthropic`
+  // are gateway namespaces, not local providers. Splitting on `/` turned them
+  // into a bogus provider with an empty catalog, so the run died with
+  //   Model "ottili/werk-1.1" is not available for the "configured_provider" route
+  // The first-party `alran` provider is the one that can call them, addressed by
+  // its internal catalog id (`Alran-Werk`, `anthropic/claude-sonnet-5.5`).
+  it.each([
+    ['ottili/werk-1.1', 'Alran-Werk'],
+    ['anthropic/claude-sonnet-5.5', 'anthropic/claude-sonnet-5.5'],
+  ])('resolves the gateway id %s to the alran provider and catalog id', (gatewayId, modelId) => {
+    expect(parseHeadlessModelOverride(gatewayId)).toEqual({ providerId: 'alran', modelId });
+  });
+
+  it('keeps a variant on a gateway id', () => {
+    expect(parseHeadlessModelOverride('ottili/werk-1.1#thinking')).toEqual({
+      providerId: 'alran',
+      modelId: 'Alran-Werk',
+      variant: 'thinking',
+    });
+  });
 });
 
 describe('resolveHeadlessModelSelection', () => {

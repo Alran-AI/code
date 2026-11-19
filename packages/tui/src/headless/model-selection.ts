@@ -1,3 +1,8 @@
+import {
+  isOttiliModelId,
+  MANAGED_ALRAN_PROVIDER_ID,
+  resolveOttiliCatalogModelId,
+} from '@alran/config';
 import { normalizeTuiEffortOptions } from '../application/model-effort.js';
 import type { TuiModel, TuiModelSelection, TuiSession } from '../runtime/port.js';
 import { TuiExecError } from './exit-policy.js';
@@ -32,14 +37,36 @@ export interface HeadlessModelSelectionInput {
 }
 
 export function parseHeadlessModelOverride(value: string): HeadlessModelReference {
-  const slash = value.indexOf('/');
-  if (slash < 1 || slash === value.length - 1) throw invocationError(MODEL_SYNTAX);
-  const providerId = value.slice(0, slash);
-  const modelAndVariant = value.slice(slash + 1);
-  const hash = modelAndVariant.lastIndexOf('#');
-  const modelId = hash > 0 ? modelAndVariant.slice(0, hash) : modelAndVariant;
-  const variant = hash > 0 ? modelAndVariant.slice(hash + 1) : undefined;
-  if (!providerId || !modelId || (hash > 0 && !variant)) throw invocationError(MODEL_SYNTAX);
+  // Split the trailing `#variant` off first, so a gateway id like
+  // `ottili/werk-1.1#thinking` resolves the same way as `ottili/werk-1.1`.
+  const hash = value.lastIndexOf('#');
+  const reference = hash > 0 ? value.slice(0, hash) : value;
+  const variant = hash > 0 ? value.slice(hash + 1) : undefined;
+  if (hash > 0 && !variant) throw invocationError(MODEL_SYNTAX);
+
+  // A platform gateway id is NOT `provider/model`. `ottili/werk-1.1` and
+  // `anthropic/claude-sonnet-5.5` are the ids the Ottili AI Platform serves
+  // (docs/MODELS.md, displayModelRef()); the `ottili`/`anthropic` prefixes are
+  // gateway namespaces, not configured providers. Only the first-party `alran`
+  // provider can call them, addressed by its internal catalog id. Splitting on
+  // `/` produced provider `ottili` -- not a configured provider -- with an empty
+  // catalog, so the run failed with
+  //   Model "ottili/werk-1.1" is not available for the "configured_provider" route
+  // before it reached the model. Map it back through the same catalog the wire
+  // resolver uses.
+  if (isOttiliModelId(reference)) {
+    return {
+      providerId: MANAGED_ALRAN_PROVIDER_ID,
+      modelId: resolveOttiliCatalogModelId(reference),
+      ...(variant ? { variant } : {}),
+    };
+  }
+
+  const slash = reference.indexOf('/');
+  if (slash < 1 || slash === reference.length - 1) throw invocationError(MODEL_SYNTAX);
+  const providerId = reference.slice(0, slash);
+  const modelId = reference.slice(slash + 1);
+  if (!providerId || !modelId) throw invocationError(MODEL_SYNTAX);
   return { providerId, modelId, ...(variant ? { variant } : {}) };
 }
 
