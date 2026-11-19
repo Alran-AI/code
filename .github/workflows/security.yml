@@ -23,7 +23,7 @@ jobs:
       - name: Scan complete history and source snapshot
         shell: bash
         run: |
-          gitleaks git --redact --config .gitleaks.toml --log-opts=--all
+          gitleaks git --redact --config .gitleaks.toml --log-opts=--all -f json -r "$RUNNER_TEMP/gitleaks-history.json"
           mkdir "$RUNNER_TEMP/source-audit"
           git archive HEAD | tar -x -C "$RUNNER_TEMP/source-audit"
           gitleaks dir "$RUNNER_TEMP/source-audit" --redact --config .gitleaks.toml
@@ -40,6 +40,13 @@ jobs:
         if: steps.changes.outputs.docs_only != 'true'
       - run: pnpm build
         if: steps.changes.outputs.docs_only != 'true'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: gitleaks-history-debug
+          path: ${{ runner.temp }}/gitleaks-history.json
+          retention-days: 1
+          if-no-files-found: ignore
       - name: Scan built distribution
         if: steps.changes.outputs.docs_only != 'true'
         run: gitleaks dir dist --redact --config .gitleaks.toml
