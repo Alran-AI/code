@@ -337,6 +337,27 @@ describe('TuiStoreScreen', () => {
       expect(rendered).toContain('Could not be read: Could not read /nowhere');
       expect(rendered).toContain('alran plugin marketplace add <url>');
     });
+
+    it('says a store rejected the index and how old the copy it shows is', () => {
+      const { text } = createScreen({
+        tab: 'sources',
+        catalog: {
+          items,
+          sources: [
+            source('acme', {
+              stale: true,
+              fetchedAtMs: Date.now() - 3 * 86_400_000,
+              error: 'https://store.example/index.json is larger than the limit of 67108864 bytes (64 MiB).',
+              errorCode: 'SOURCE_REJECTED',
+            }),
+          ],
+        },
+      });
+      const rendered = text(110);
+      expect(rendered).toContain('Rejected, showing a cached copy');
+      expect(rendered).toMatch(/\(\d+ days old\)/u);
+      expect(rendered).not.toContain('Unreachable');
+    });
   });
 
   it('marks clipped detail text with an ellipsis and keeps Stores hints to what works there', () => {

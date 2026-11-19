@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, truncateSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,8 +7,10 @@ import { runAlranPluginCommand } from '../../src/cli/plugin-command.js';
 import { createTuiProgram } from '../../src/cli/program.js';
 import { runAlranSkillCommand } from '../../src/cli/skills-command.js';
 import type { StoreCliHost } from '../../src/cli/store-cli.js';
+import { searchStore } from '../../src/cli/store-cli.js';
 import type { AlranPluginCliRequest, AlranSkillCliRequest } from '../../src/plugin/contract.js';
 import { AlranStoreApplication } from '../../src/store/application.js';
+import { STORE_LIMITS } from '../../src/store/contract.js';
 import { createFakeRuntime, pluginFiles, skillFiles, writeStore } from '../helpers/store-fixtures.js';
 
 let root: string;
@@ -334,6 +336,50 @@ describe('without any store', () => {
     expect(none.split('\n')).toEqual([`local\tdirectory\t${data}/plugins`]);
     await host.store.sources.add({ url: path.join(root, 'store'), id: 'mine' });
     expect(await skills({ action: 'list' }, host)).toContain('honest-status');
+  });
+});
+
+describe('the store index', () => {
+  function hostForUrl(url: string) {
+    const store = new AlranStoreApplication({
+      dataDir: data,
+      bundledSkills: async () => [],
+      environment: { ALRAN_STORE_URL: url },
+    });
+    const host: StoreCliHost = {
+      store,
+      width: 100,
+      notify: () => undefined,
+      confirm: async () => undefined,
+    };
+    return host;
+  }
+
+  it('says the store could not be reached and how old the copy it shows is', async () => {
+    const url = 'http://127.0.0.1:9/index.json';
+    const fetchedAtMs = Date.now() - 3 * 86_400_000;
+    mkdirSync(path.join(data, 'store', 'cache'), { recursive: true });
+    writeFileSync(
+      path.join(data, 'store', 'cache', 'ottili.json'),
+      JSON.stringify({
+        url,
+        fetchedAtMs,
+        etag: '"one"',
+        text: JSON.stringify({ schema: 'alran.store/v1', name: 'Cached Store', plugins: [], skills: [] }),
+      }),
+    );
+    const output = await searchStore(hostForUrl(url), 'plugin', { query: 'play' });
+    expect(output).toContain('note: store "ottili" could not be reached');
+    expect(output).toMatch(/showing the copy from \d{4}-\d{2}-\d{2} \(3 days old\)/u);
+  });
+
+  it('says the store rejected an index that is too large', async () => {
+    const big = path.join(root, 'big.json');
+    writeFileSync(big, '');
+    truncateSync(big, STORE_LIMITS.indexBytes + 1);
+    const output = await searchStore(hostForUrl(big), 'plugin', { query: 'play' });
+    expect(output).toContain('note: store "ottili" rejected the index');
+    expect(output).toContain(`larger than the limit of ${STORE_LIMITS.indexBytes} bytes (64 MiB)`);
   });
 });
 

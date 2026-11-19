@@ -133,6 +133,8 @@ export interface StoreSourceStatus {
   readonly stale: boolean;
   readonly fetchedAtMs?: number;
   readonly error?: string;
+  /** Why the last attempt failed, so the Store can say what went wrong. */
+  readonly errorCode?: StoreErrorCode;
 }
 
 export interface InstalledStoreRecord {
