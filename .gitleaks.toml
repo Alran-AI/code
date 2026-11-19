@@ -74,3 +74,18 @@ condition = "AND"
 paths = ['''(^|/)packages/local-runtime/assets/skills/lark-tools/cli-skills/lark-im/references/lark-im-reactions\.md$''']
 regexTarget = "match"
 regexes = ['''^page_token": "YhljsPiGfUgnVAg9urvRFd-BvSqRLxxxx"$''']
+
+# Fake Stripe-style tokens in the CI Fixer tests (61e0c19), used to check that
+# secrets are masked before a prompt or a log line. They are 12 characters of
+# lowercase letters and digits; a live key is longer and mixes cases.
+[[rules]]
+id = "stripe-access-token"
+
+[[rules.allowlists]]
+description = "Fake sk_live_ test tokens for the CI Fixer masking tests"
+condition = "AND"
+paths = [
+  '''(^|/)packages/ci-fix/test/unit/fixer\.test\.ts$''',
+  '''(^|/)packages/ci-fix/test/unit/logs\.test\.ts$''',
+]
+regexes = ['''^sk_live_[a-z0-9]{12}$''']
