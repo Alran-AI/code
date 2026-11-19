@@ -1,6 +1,8 @@
 import { createInterface } from 'node:readline/promises';
 import { stripVTControlCharacters } from 'node:util';
+import { getConfig } from '@alran/config';
 import { AlranUpdateApplication, type AlranUpdatePlan } from '../update/application.js';
+import { parseAutoUpdateChannel } from '../update/auto-update.js';
 import {
   alranPrefixActivationScheduledMessage,
   alranPrefixJournalScheduleFailedMessage,
@@ -19,12 +21,29 @@ export interface RunAlranUpdateOptions {
   readonly confirm?: (message: string) => Promise<boolean>;
   readonly write?: (value: string) => void;
   readonly schedulePendingPrefixUpdate?: () => Promise<boolean>;
+  /** `alran update --check`: look up the channel and print the result; never install. */
+  readonly check?: boolean;
+  /** `alran update --channel <latest|stable>`: the registry channel to run the command on. */
+  readonly channel?: string;
+  readonly environment?: NodeJS.ProcessEnv;
 }
 
 export async function runAlranUpdate(
   currentVersion: string,
   options: RunAlranUpdateOptions = {},
 ): Promise<void> {
+  if (options.check || options.channel) {
+    const { runAutoUpdateCommand } = await import('../update/auto-update.js');
+    await runAutoUpdateCommand({
+      currentVersion,
+      dataDir: getConfig().dataDir,
+      mode: options.check ? 'check' : 'apply',
+      channel: parseAutoUpdateChannel(options.channel),
+      environment: options.environment ?? process.env,
+      write: options.write ?? ((value: string) => process.stdout.write(value)),
+    });
+    return;
+  }
   const application = options.application ?? new AlranUpdateApplication({ currentVersion });
   const interactive = options.interactive ?? Boolean(process.stdin.isTTY && process.stdout.isTTY);
   const write = options.write ?? ((value: string) => process.stdout.write(value));
