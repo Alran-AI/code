@@ -33,6 +33,7 @@ on:
 ${workflowLines}
     types:
       - completed
+  workflow_dispatch:
 permissions:
   contents: write
   pull-requests: write
@@ -40,9 +41,11 @@ permissions:
 jobs:
   alran-ci-fix:
     # Forks are never fixed: the failing run must come from this repository.
+    # workflow_dispatch runs are manual re-triggers of a verified fix.
     if: >-
-      github.event.workflow_run.conclusion == 'failure' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - name: Check out the failing head commit

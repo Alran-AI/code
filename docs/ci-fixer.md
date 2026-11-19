@@ -75,7 +75,9 @@ the number of fix commits in the recent history. `alran ci disable` sets
 - `timeout_minutes` (default 15): budget for reproduction, the agent run and
   verification.
 - `max_runs_per_day` (default 10): runs of the CI Fix workflow per day.
-- `max_tokens` (default 200000): token budget handed to the headless run.
+- `max_tokens` (default 200000): token budget handed to the headless run. A run
+  that reports more tokens than the budget is stopped without a commit and
+  leaves a comment.
 
 On any limit the run stops without a commit and leaves a comment explaining
 why.
@@ -125,13 +127,17 @@ options, in order of fidelity:
 1. **`ALRAN_CI_PUSH_TOKEN` secret** (a PAT or GitHub App token with `contents:
    write`): the fix push authenticates with it, and the monitored workflow runs
    again on the fix commit. Highest fidelity, one more secret to manage.
-2. **`workflow_dispatch` fallback**: without the token, the fixer re-triggers
-   the monitored workflow manually. This exercises the jobs but not the push
-   event, so push-only paths stay untested.
+2. **`workflow_dispatch` fallback**: without the token, the fixer dispatches
+   the monitored workflows on the fix branch (`gh workflow run <workflow> --ref
+   <branch>`). The installed workflow therefore declares `workflow_dispatch`
+   and runs the same job on manual dispatch. This exercises the jobs but not
+   the push event, so push-only paths stay untested.
 3. **Nothing**: the run ends with a green verification and a comment; the next
    real push re-runs CI normally.
 
-`alran ci doctor` reports which of the three applies.
+`alran ci doctor` reports which of the three applies. When the Action runs
+without `ALRAN_CI_RUN_ID` (a manual dispatch), the fixer falls back to the
+latest failed run of the first monitored workflow for its logs.
 
 ## Costs
 

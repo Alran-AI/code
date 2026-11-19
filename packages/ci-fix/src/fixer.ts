@@ -280,6 +280,18 @@ export async function runCiFix(request: CiFixRequest, ports: CiFixPorts): Promis
   }
 
   const diff = agent.diff || (await ports.git.diff());
+  if (agent.tokensUsed > config.limits.max_tokens) {
+    return finish(
+      'blocked',
+      `token budget exceeded: ${agent.tokensUsed} tokens used of the ${config.limits.max_tokens} limit`,
+      {
+        tokensUsed: agent.tokensUsed,
+        costUsd: agent.costUsd,
+        attempts: attempt,
+        diff,
+      },
+    );
+  }
   const diffLines = countDiffLines(diff);
   if (diffLines > config.limits.max_diff_lines) {
     return finish(

@@ -13,6 +13,7 @@ import { createInterface } from 'node:readline/promises';
 import { Command } from 'commander';
 import * as ciFix from '@alran/ci-fix';
 import { createCiFixPorts, isGhAuthenticated } from './ci-ports.js';
+import { executeRetrigger } from './ci-retrigger.js';
 import {
   detectCommands,
   detectRepo,
@@ -258,7 +259,7 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
 
       if (commandOptions.workflowRun === true) {
         const repo = detectRepo(cwd);
-        const runId = env.ALRAN_CI_RUN_ID ?? '';
+        let runId = env.ALRAN_CI_RUN_ID ?? '';
         let logs = '';
         if (runId) {
           const result = spawnSync('gh', ['run', 'view', runId, '--log-failed'], {
@@ -267,6 +268,31 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
             maxBuffer: 64 * 1024 * 1024,
           });
           logs = result.stdout ?? '';
+        } else {
+          // Without the event's run id (manual dispatch), take the latest
+          // failed run of the first monitored workflow.
+          const monitored = config.config.trigger.workflows[0];
+          const list = spawnSync(
+            'gh',
+            ['run', 'list', '--workflow', monitored, '--status', 'failure', '--limit', '1', '--json', 'databaseId'],
+            { cwd, encoding: 'utf8' },
+          );
+          if (list.status === 0) {
+            try {
+              const parsed = JSON.parse(list.stdout) as Array<{ databaseId: number }>;
+              runId = parsed[0] ? String(parsed[0].databaseId) : '';
+            } catch {
+              runId = '';
+            }
+          }
+          if (runId) {
+            const result = spawnSync('gh', ['run', 'view', runId, '--log-failed'], {
+              cwd,
+              encoding: 'utf8',
+              maxBuffer: 64 * 1024 * 1024,
+            });
+            logs = result.stdout ?? '';
+          }
         }
         const truncated = ciFix.truncateLog(logs, { maxChars: 40_000 });
         const pullRequestNumber = await ports().git.pullRequestNumberForHead(branch);
@@ -287,7 +313,16 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
           },
           ports(),
         );
-        write(`${JSON.stringify({ status: outcome.status, reasons: outcome.reasons, committed: outcome.committed, pushed: outcome.pushed, commented: outcome.commented, retrigger: outcome.retrigger }, null, 2)}\n`);
+        const retrigger = executeRetrigger(
+          outcome.retrigger,
+          config.config.trigger.workflows,
+          branch,
+          (args) => {
+            const result = spawnSync('gh', args, { cwd, encoding: 'utf8' });
+            return { status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+          },
+        );
+        write(`${JSON.stringify({ status: outcome.status, reasons: outcome.reasons, committed: outcome.committed, pushed: outcome.pushed, commented: outcome.commented, retrigger: outcome.retrigger, dispatched: retrigger.executed, dispatchFailures: retrigger.failed }, null, 2)}\n`);
         return;
       }
 

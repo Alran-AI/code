@@ -152,6 +152,20 @@ describe("runCiFix core flow", () => {
     expect(outcome.violations.length).toBeGreaterThan(0);
   });
 
+  it("blocks a fix that blows the token budget", async () => {
+    const ports = createPorts({
+      agent: vi.fn(async () => ({ ok: true, diff: GOOD_DIFF, tokensUsed: 5_000 })),
+    });
+    const outcome = await runCiFix(
+      createRequest({ config: { ...DEFAULT_CI_FIX_CONFIG, limits: { ...DEFAULT_CI_FIX_CONFIG.limits, max_tokens: 1_000 } } }),
+      ports,
+    );
+    expect(outcome.status).toBe("blocked");
+    expect(outcome.reasons[0]).toContain("token budget exceeded");
+    expect(ports.git.commit).not.toHaveBeenCalled();
+    expect(outcome.comment).toContain("token budget exceeded");
+  });
+
   it("blocks oversized diffs", async () => {
     const ports = createPorts();
     const outcome = await runCiFix(
