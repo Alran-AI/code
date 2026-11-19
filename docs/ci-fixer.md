@@ -31,6 +31,10 @@ future GitHub App can reuse the same core.
 
    In the TUI, `/ci` opens the same setup as a wizard.
 
+   Alran can also do this for you: ask it to "set up CI Fix" and the built-in
+   `ci-fixer` skill runs the same steps, verifies them with `alran ci doctor`
+   and shows the dry run before anything is committed.
+
 2. **Store the model API key as a GitHub secret.** The key is never written to
    the repository. If `gh` is signed in, `alran ci init` sets it for you when
    `ALRAN_API_KEY` is in your environment; otherwise it prints the exact steps
