@@ -67,6 +67,9 @@
       "@alran/browser-core": [
         "./packages/browser-core/src/index.ts"
       ],
+      "@alran/ci-fix": [
+        "./packages/ci-fix/src/index.ts"
+      ],
       "@alran/config": [
         "./packages/config/src/index.ts"
       ],
