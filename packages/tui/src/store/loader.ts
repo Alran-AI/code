@@ -77,11 +77,12 @@ export class StoreIndexLoader {
     } catch (error) {
       if (options.signal?.aborted) throw error;
       const message = error instanceof Error ? error.message : String(error);
+      const errorCode = error instanceof StoreError ? error.code : 'SOURCE_UNREACHABLE';
       const index = cache ? tryParse(cache.text, source.url) : undefined;
       if (cache && index) {
-        return { source, index, stale: true, fetchedAtMs: cache.fetchedAtMs, error: message };
+        return { source, index, stale: true, fetchedAtMs: cache.fetchedAtMs, error: message, errorCode };
       }
-      return { source, stale: false, error: message };
+      return { source, stale: false, error: message, errorCode };
     }
   }
 

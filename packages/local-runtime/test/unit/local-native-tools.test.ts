@@ -1147,6 +1147,10 @@ describe('local native turn tools', () => {
   });
 
   it('does not load the CU skill through the model skill tool when the turn snapshot is inactive', async () => {
+    // The Computer Use gate is closed for a prod build, so the skill stays invisible there.
+    // This test checks the turn snapshot, not the build variant: it runs against a non-prod
+    // build env, like the release workflow cannot see.
+    vi.stubEnv('ALRAN_BUILD_ENV', 'test');
     const dataDir = await mkdtemp(join(tmpdir(), 'local-native-cu-skill-'));
     try {
       initSkillService({
@@ -1196,6 +1200,7 @@ describe('local native turn tools', () => {
       );
       expect(loaded.text).toContain('# Computer Use — Desktop Operation Guide');
     } finally {
+      vi.unstubAllEnvs();
       await rm(dataDir, { recursive: true, force: true });
     }
   });

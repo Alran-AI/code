@@ -8,6 +8,7 @@ import {
   searchItems,
 } from '../store/format.js';
 import type { StagedInstall } from '../store/installer.js';
+import { formatCopyAge, formatCopyDate, storeFailureKind } from '../store/status.js';
 
 /** What the store commands need from their surroundings; tests supply their own. */
 export interface StoreCliHost {
@@ -51,10 +52,18 @@ function sourceNotes(catalog: StoreCatalog): string[] {
   const notes: string[] = [];
   for (const status of catalog.sources) {
     if (status.error && status.index) {
-      const when = status.fetchedAtMs ? ` from ${new Date(status.fetchedAtMs).toISOString().slice(0, 10)}` : '';
-      notes.push(`note: store "${status.source.id}" is unreachable (${status.error}); showing the copy${when}.`);
+      const when = status.fetchedAtMs
+        ? ` from ${formatCopyDate(status.fetchedAtMs)} (${formatCopyAge(status.fetchedAtMs)})`
+        : '';
+      const what =
+        storeFailureKind(status.errorCode) === 'rejected'
+          ? 'rejected the new index'
+          : 'could not be reached';
+      notes.push(`note: store "${status.source.id}" ${what} (${status.error}); showing the copy${when}.`);
     } else if (status.error) {
-      notes.push(`note: store "${status.source.id}" could not be read: ${status.error}`);
+      const what =
+        storeFailureKind(status.errorCode) === 'rejected' ? 'rejected the index' : 'could not be read';
+      notes.push(`note: store "${status.source.id}" ${what}: ${status.error}`);
     }
   }
   return notes;

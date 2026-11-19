@@ -89,6 +89,10 @@ export async function packageCliRelease({ tag, out }) {
   try {
     const stage = path.join(temporary, 'package');
     cpSync(dist, stage, { recursive: true, filter: file => path.basename(file) !== 'metafile.json' });
+    // The auto-update announcement counts feat/fix entries of the just-installed version here.
+    if (existsSync(path.join(root, 'packages/tui/CHANGELOG.md'))) {
+      copyFileSync(path.join(root, 'packages/tui/CHANGELOG.md'), path.join(stage, 'CHANGELOG.md'));
+    }
     const manifest = releaseManifest(readExtraction(root).packageRoots.map(directory => path.join(root, directory)), version);
     writeFileSync(path.join(stage, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
     copyLicenses(stage);

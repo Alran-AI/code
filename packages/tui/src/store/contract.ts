@@ -24,11 +24,20 @@ export const STORE_URL_OFF = 'off';
 export const STORE_URL_ENVIRONMENT_VARIABLE = 'ALRAN_STORE_URL';
 
 export const STORE_LIMITS = {
-  indexBytes: 8 * 1024 * 1024,
-  entries: 5_000,
+  /**
+   * The largest index the client accepts, in bytes, measured after the response is decompressed.
+   * The store Ottili hosts holds about 12 MB in 10,577 entries; 64 MiB leaves it room to grow
+   * without making the limit meaningless.
+   */
+  indexBytes: 64 * 1024 * 1024,
+  /**
+   * The most entries one index may hold. The byte limit is the real bound; this one keeps an index
+   * of very many tiny entries from turning into a very long list.
+   */
+  entries: 200_000,
   fetchTimeoutMs: 20_000,
   /** Cached indexes younger than this are used without asking the source again. */
-  freshForMs: 10 * 60 * 1000,
+  freshForMs: 6 * 60 * 60 * 1000,
 } as const;
 
 export type StoreEntryKind = 'plugin' | 'skill';
@@ -124,6 +133,8 @@ export interface StoreSourceStatus {
   readonly stale: boolean;
   readonly fetchedAtMs?: number;
   readonly error?: string;
+  /** Why the last attempt failed, so the Store can say what went wrong. */
+  readonly errorCode?: StoreErrorCode;
 }
 
 export interface InstalledStoreRecord {
@@ -141,6 +152,7 @@ export interface StoreLedger {
 
 export type StoreErrorCode =
   | 'SOURCE_UNREACHABLE'
+  | 'SOURCE_REJECTED'
   | 'SOURCE_INVALID'
   | 'SOURCE_EXISTS'
   | 'SOURCE_NOT_FOUND'

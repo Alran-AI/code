@@ -3,6 +3,7 @@ import { isBuiltIn, type StoreCatalog, type StoreItem } from '../../../store/app
 import type { StoreSourceStatus } from '../../../store/contract.js';
 import { itemMarker, searchItems } from '../../../store/format.js';
 import type { StagedInstall } from '../../../store/installer.js';
+import { formatCopyAge, formatCopyDate, storeFailureKind } from '../../../store/status.js';
 import { Input, matchesKey, VStack } from '../../engine/public.js';
 import type { Component, Focusable } from '../../rendering/component.js';
 import { truncateToWidth, visibleWidth, wrapTextWithAnsi } from '../../rendering/text.js';
@@ -559,11 +560,18 @@ function sourceDetail(status: StoreSourceStatus | undefined, width: number): str
   ];
   if (status.index?.description) lines.push(...clamp(wrap(status.index.description, width), 2, width).map((line) => chalk.hex(colors.muted)(line)));
   if (status.error) {
+    const kind = storeFailureKind(status.errorCode);
+    const when =
+      status.index && status.fetchedAtMs
+        ? ` from ${formatCopyDate(status.fetchedAtMs)} (${formatCopyAge(status.fetchedAtMs)})`
+        : '';
+    const what = status.index
+      ? `${kind === 'rejected' ? 'Rejected' : 'Unreachable'}, showing a cached copy${when}`
+      : kind === 'rejected'
+        ? 'Rejected'
+        : 'Could not be read';
     lines.push(
-      ...wrap(
-        status.index ? `Unreachable, showing a cached copy: ${status.error}` : `Could not be read: ${status.error}`,
-        width,
-      ).slice(0, 3).map((line) => chalk.hex(colors.warning)(line)),
+      ...wrap(`${what}: ${status.error}`, width).slice(0, 3).map((line) => chalk.hex(colors.warning)(line)),
     );
   }
   lines.push(chalk.hex(colors.dim)('Add a store with: alran plugin marketplace add <url>'));

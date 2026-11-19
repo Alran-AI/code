@@ -63,7 +63,7 @@ export interface CreateTuiProgramOptions {
     platformEnv?: 'dev' | 'prod',
   ) => Promise<void>;
   runLogout: (region?: AlranRegion) => Promise<void>;
-  runUpdate: () => Promise<void>;
+  runUpdate: (options: { check?: boolean; channel?: string }) => Promise<void>;
   runProvider?: (request: AlranProviderCliRequest, lane?: string) => Promise<void>;
   runPlugin?: (request: AlranPluginCliRequest, lane?: string) => Promise<void>;
   runSkills?: (request: AlranSkillCliRequest, lane?: string) => Promise<void>;
@@ -234,11 +234,13 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
     .command('update')
     .description('Check for and install an Alran Code update')
     .option('--source <url>', 'self-hosted release source (signed manifests); default: npm or the Ottili release host')
+    .option('--check', 'only check the update channel; do not install')
+    .option('--channel <channel>', "registry channel to update on: 'latest' (default) or 'stable'")
     .allowExcessArguments(false)
-    .action((commandOptions: { source?: string }) => {
+    .action((commandOptions: { source?: string; check?: boolean; channel?: string }) => {
       // The source travels as the documented environment variable, the one place the updater reads it.
       if (commandOptions.source) process.env.ALRAN_UPDATE_SOURCE = commandOptions.source;
-      return options.runUpdate();
+      return options.runUpdate(commandOptions);
     });
 
   const telemetry = program
