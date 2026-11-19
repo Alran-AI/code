@@ -7,18 +7,20 @@
  */
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { Command } from 'commander';
 import * as ciFix from '@alran/ci-fix';
 import { createCiFixPorts, isGhAuthenticated } from './ci-ports.js';
+import { executeRetrigger } from './ci-retrigger.js';
 import {
   detectCommands,
   detectRepo,
   gitText,
   listWorkflows,
   readConfig,
+  workflowFacts,
   writeConfig,
 } from './ci-facts.js';
 
@@ -104,12 +106,17 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
         limits: { max_attempts: Number.isFinite(maxAttempts) && maxAttempts >= 1 ? maxAttempts : 2 },
         model: { name: modelName, base_url: baseUrl },
       });
+      const existed = existsSync(path.join(cwd, ciFix.CI_FIX_CONFIG_PATH));
       for (const file of plan.files) {
         const target = path.join(cwd, file.path);
         mkdirSync(path.dirname(target), { recursive: true });
         writeFileSync(target, file.content);
       }
-      write(`Wrote ${plan.files.map((file) => file.path).join(' and ')}.\n`);
+      write(
+        existed
+          ? `Overwrote the existing ${plan.files.map((file) => file.path).join(' and ')}.\n`
+          : `Wrote ${plan.files.map((file) => file.path).join(' and ')}.\n`,
+      );
       write(`Monitored workflows: ${plan.config.trigger.workflows.join(', ')}\n`);
       write(`Detected commands — test: ${detected.test.join(' | ') || 'none'}, lint: ${detected.lint.join(' | ') || 'none'}, build: ${detected.build.join(' | ') || 'none'}\n`);
       const ghReady = isGhAuthenticated({ cwd, env });
@@ -184,28 +191,20 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
           // Facts stay at their defaults; the checks below report the gaps.
         }
       }
-      const workflowFile = path.join(cwd, ciFix.CI_FIX_WORKFLOW_PATH);
-      const workflowInstalled = existsSync(workflowFile);
-      let permissions: string[] = [];
-      if (workflowInstalled) {
-        const text = readFileSync(workflowFile, 'utf8');
-        const block = text.split('permissions:\n')[1]?.split('\njobs:')[0] ?? '';
-        permissions = block
-          .split('\n')
-          .map((line) => line.trim())
-          .filter((line) => line.includes(':'));
-      }
+      const workflow = workflowFacts(cwd);
       const checks = ciFix.runDoctorChecks({
         ghAuthenticated: ghReady,
         secretPresent,
-        workflowInstalled,
-        workflowPermissions: permissions,
+        workflowInstalled: workflow.installed,
+        workflowPermissions: [...workflow.permissions],
         isFork,
         repositoryWorkflows: listWorkflows(cwd),
         monitoredWorkflows: monitored,
         pushTokenSecretPresent: pushTokenPresent,
         configEnabled: config?.config.enabled ?? false,
         configProblems: config?.problems ?? ['no .alran/ci.yml; run `alran ci init`'],
+        workflowHasForkGuard: workflow.hasForkGuard,
+        workflowHasDispatch: workflow.hasDispatch,
       });
       for (const check of checks) {
         const mark = check.ok ? 'ok ' : check.severity === 'warning' ? 'warn' : 'FAIL';
@@ -258,7 +257,7 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
 
       if (commandOptions.workflowRun === true) {
         const repo = detectRepo(cwd);
-        const runId = env.ALRAN_CI_RUN_ID ?? '';
+        let runId = env.ALRAN_CI_RUN_ID ?? '';
         let logs = '';
         if (runId) {
           const result = spawnSync('gh', ['run', 'view', runId, '--log-failed'], {
@@ -267,9 +266,39 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
             maxBuffer: 64 * 1024 * 1024,
           });
           logs = result.stdout ?? '';
+        } else {
+          // Without the event's run id (manual dispatch), take the latest
+          // failed run of the first monitored workflow.
+          const monitored = config.config.trigger.workflows[0];
+          const list = spawnSync(
+            'gh',
+            ['run', 'list', '--workflow', monitored, '--status', 'failure', '--limit', '1', '--json', 'databaseId'],
+            { cwd, encoding: 'utf8' },
+          );
+          if (list.status === 0) {
+            try {
+              const parsed = JSON.parse(list.stdout) as Array<{ databaseId: number }>;
+              runId = parsed[0] ? String(parsed[0].databaseId) : '';
+            } catch {
+              runId = '';
+            }
+          }
+          if (runId) {
+            const result = spawnSync('gh', ['run', 'view', runId, '--log-failed'], {
+              cwd,
+              encoding: 'utf8',
+              maxBuffer: 64 * 1024 * 1024,
+            });
+            logs = result.stdout ?? '';
+          }
         }
         const truncated = ciFix.truncateLog(logs, { maxChars: 40_000 });
         const pullRequestNumber = await ports().git.pullRequestNumberForHead(branch);
+        // Commands extracted from CI logs are untrusted input; run them only
+        // when they are plain project commands, never shell pipelines.
+        const extracted = ciFix.extractFailedCommand(truncated.text);
+        const effectiveCommand =
+          extracted && ciFix.isSafeProjectCommand(extracted) ? extracted : failingCommand;
         const outcome = await ciFix.runCiFix(
           {
             config: config.config,
@@ -279,7 +308,7 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
             headSha,
             pullRequestNumber,
             baseBranchKind: pullRequestNumber ? 'pull_request' : 'main',
-            failingCommand: ciFix.extractFailedCommand(truncated.text) ?? failingCommand,
+            failingCommand: effectiveCommand,
             failedLogExcerpt: truncated.text,
             workspaceDir: cwd,
             apiKey: env.ALRAN_API_KEY ?? '',
@@ -287,7 +316,25 @@ export function registerCiCommand(program: Command, options: CiCommandOptions = 
           },
           ports(),
         );
-        write(`${JSON.stringify({ status: outcome.status, reasons: outcome.reasons, committed: outcome.committed, pushed: outcome.pushed, commented: outcome.commented, retrigger: outcome.retrigger }, null, 2)}\n`);
+        const retrigger = executeRetrigger(
+          outcome.retrigger,
+          config.config.trigger.workflows,
+          branch,
+          (args) => {
+            const result = spawnSync('gh', args, { cwd, encoding: 'utf8' });
+            return { status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+          },
+        );
+        write(`${JSON.stringify({ status: outcome.status, reasons: outcome.reasons, committed: outcome.committed, pushed: outcome.pushed, commented: outcome.commented, retrigger: outcome.retrigger, dispatched: retrigger.executed, dispatchFailures: retrigger.failed }, null, 2)}\n`);
+        // Surface the run in the GitHub Actions step summary when available.
+        const summaryFile = env.GITHUB_STEP_SUMMARY;
+        if (summaryFile && outcome.comment) {
+          try {
+            appendFileSync(summaryFile, `\n## Alran CI Fix\n\n${outcome.comment}`);
+          } catch {
+            // A missing or unwritable summary file must never fail the run.
+          }
+        }
         return;
       }
 

@@ -13,6 +13,8 @@ const healthy = {
   pushTokenSecretPresent: true,
   configEnabled: true,
   configProblems: [],
+  workflowHasForkGuard: true,
+  workflowHasDispatch: true,
 };
 
 describe("doctor checks", () => {
@@ -23,6 +25,7 @@ describe("doctor checks", () => {
       "api-key-secret",
       "workflow-permissions",
       "fork",
+      "workflow-triggers",
       "monitored-workflows",
       "config",
       "enabled",
@@ -60,6 +63,17 @@ describe("doctor checks", () => {
     expect(token.severity).toBe("warning");
     expect(token.hint).toContain("ALRAN_CI_PUSH_TOKEN");
     expect(doctorIsHealthy(checks)).toBe(true);
+  });
+
+  it("flags a workflow that lost its fork guard or dispatch trigger", () => {
+    const checks = runDoctorChecks({ ...healthy, workflowHasDispatch: false });
+    const triggers = checks.find((check) => check.id === "workflow-triggers")!;
+    expect(triggers.ok).toBe(false);
+    expect(triggers.hint).toContain("alran ci init");
+    expect(doctorIsHealthy(checks)).toBe(false);
+
+    const guarded = runDoctorChecks({ ...healthy, workflowHasForkGuard: false });
+    expect(guarded.find((check) => check.id === "workflow-triggers")?.ok).toBe(false);
   });
 
   it("reports config problems and a disabled installation", () => {

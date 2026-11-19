@@ -33,6 +33,8 @@ export interface CiFixReport {
   readonly violations?: readonly string[];
   readonly commitSubject?: string;
   readonly reason?: string;
+  /** Masked, truncated failure log shown in a collapsed block. */
+  readonly logExcerpt?: string;
 }
 
 const STATUS_EMOJI: Record<CiFixReportStatus, string> = {
@@ -57,6 +59,17 @@ export function buildCiFixComment(report: CiFixReport): string {
   lines.push('');
   lines.push(`- Failing command: \`${report.failingCommand}\``);
   lines.push(`- ${report.summary}`);
+  if (report.logExcerpt && report.logExcerpt.trim().length > 0) {
+    lines.push('');
+    lines.push('<details>');
+    lines.push('<summary>Failure log (truncated, masked)</summary>');
+    lines.push('');
+    lines.push('```');
+    lines.push(report.logExcerpt.trim());
+    lines.push('```');
+    lines.push('');
+    lines.push('</details>');
+  }
   lines.push('');
   lines.push('**What changed**');
   lines.push('');

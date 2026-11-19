@@ -125,4 +125,6 @@ export {
 
 export { doctorIsHealthy, runDoctorChecks, type DoctorCheck, type DoctorFacts } from './doctor.js';
 
+export { isSafeProjectCommand, MAX_PROJECT_COMMAND_LENGTH } from './safety.js';
+
 export { renderCiFixWorkflow, type CiFixWorkflowInput } from './workflow-template.js';

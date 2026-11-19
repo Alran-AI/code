@@ -16,6 +16,7 @@ import {
   detectRepo,
   listWorkflows,
   readConfig,
+  workflowFacts,
   writeConfig,
 } from '../../../cli/ci-facts.js';
 import type { Component } from '../../rendering/component.js';
@@ -142,17 +143,20 @@ export class CiFlow {
     const ghReady = isGhAvailable();
     const fork = ghReady ? ghJson<{ isFork?: boolean }>(['repo', 'view', '--json', 'isFork']) : undefined;
     const secrets = ghReady ? ghText(['secret', 'list']) ?? '' : '';
+    const workflow = workflowFacts(cwd);
     const checks = ciFix.runDoctorChecks({
       ghAuthenticated: ghReady,
       secretPresent: /ALRAN_API_KEY/u.test(secrets),
-      workflowInstalled: existsSync(path.join(cwd, ciFix.CI_FIX_WORKFLOW_PATH)),
-      workflowPermissions: ['contents: write', 'pull-requests: write', 'actions: read'],
+      workflowInstalled: workflow.installed,
+      workflowPermissions: [...workflow.permissions],
       isFork: fork?.isFork === true,
       repositoryWorkflows: listWorkflows(cwd),
       monitoredWorkflows: config?.config.trigger.workflows ?? [],
       pushTokenSecretPresent: /ALRAN_CI_PUSH_TOKEN/u.test(secrets),
       configEnabled: config?.config.enabled ?? false,
       configProblems: config?.problems ?? ['no .alran/ci.yml; run /ci to set up'],
+      workflowHasForkGuard: workflow.hasForkGuard,
+      workflowHasDispatch: workflow.hasDispatch,
     });
     const lines = checks.map((check) => {
       const mark = check.ok ? 'ok ' : check.severity === 'warning' ? 'warn' : 'FAIL';

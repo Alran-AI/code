@@ -53,6 +53,8 @@ function isStandaloneSkillUsable(
   capabilities: ResolvedAgentCapabilities,
 ): boolean {
   switch (skillName) {
+    case 'ci-fixer':
+      return isAgentBuiltinToolEnabled(capabilities, 'bash');
     case 'code-review':
       return isAgentBuiltinToolEnabled(capabilities, 'read');
     case 'deep-research':

@@ -31,6 +31,10 @@ future GitHub App can reuse the same core.
 
    In the TUI, `/ci` opens the same setup as a wizard.
 
+   Alran can also do this for you: ask it to "set up CI Fix" and the built-in
+   `ci-fixer` skill runs the same steps, verifies them with `alran ci doctor`
+   and shows the dry run before anything is committed.
+
 2. **Store the model API key as a GitHub secret.** The key is never written to
    the repository. If `gh` is signed in, `alran ci init` sets it for you when
    `ALRAN_API_KEY` is in your environment; otherwise it prints the exact steps
@@ -40,6 +44,12 @@ future GitHub App can reuse the same core.
    soon as it is on the default branch. `alran ci doctor` checks the whole
    setup (gh login, secret, workflow permissions, fork state, monitored
    workflows) and points at the re-trigger trade-off below.
+
+The PR comment includes a collapsed block with the masked failure log, and the
+Action run writes the same summary to the GitHub step summary, so the outcome
+is visible without opening the PR. The diff guard also inspects the pre-change
+path: renames out of protected paths and deletions of protected files are
+rejected like any other edit.
 
 ## Configuration (`.alran/ci.yml`)
 
@@ -75,7 +85,9 @@ the number of fix commits in the recent history. `alran ci disable` sets
 - `timeout_minutes` (default 15): budget for reproduction, the agent run and
   verification.
 - `max_runs_per_day` (default 10): runs of the CI Fix workflow per day.
-- `max_tokens` (default 200000): token budget handed to the headless run.
+- `max_tokens` (default 200000): token budget handed to the headless run. A run
+  that reports more tokens than the budget is stopped without a commit and
+  leaves a comment.
 
 On any limit the run stops without a commit and leaves a comment explaining
 why.
@@ -104,7 +116,10 @@ why.
 - **Prompt injection.** CI logs, PR text, commit messages and file contents are
   data, never instructions. The CI system prompt states this explicitly, the
   headless run has no web search or web fetch, and the diff guard is the hard
-  enforcement behind the policy.
+  enforcement behind the policy. Commands extracted from CI logs are only
+  executed when they are plain project commands (`isSafeProjectCommand`);
+  anything with shell metacharacters is ignored in favor of the configured
+  test command.
 
 ### Known limits
 
@@ -125,13 +140,17 @@ options, in order of fidelity:
 1. **`ALRAN_CI_PUSH_TOKEN` secret** (a PAT or GitHub App token with `contents:
    write`): the fix push authenticates with it, and the monitored workflow runs
    again on the fix commit. Highest fidelity, one more secret to manage.
-2. **`workflow_dispatch` fallback**: without the token, the fixer re-triggers
-   the monitored workflow manually. This exercises the jobs but not the push
-   event, so push-only paths stay untested.
+2. **`workflow_dispatch` fallback**: without the token, the fixer dispatches
+   the monitored workflows on the fix branch (`gh workflow run <workflow> --ref
+   <branch>`). The installed workflow therefore declares `workflow_dispatch`
+   and runs the same job on manual dispatch. This exercises the jobs but not
+   the push event, so push-only paths stay untested.
 3. **Nothing**: the run ends with a green verification and a comment; the next
    real push re-runs CI normally.
 
-`alran ci doctor` reports which of the three applies.
+`alran ci doctor` reports which of the three applies. When the Action runs
+without `ALRAN_CI_RUN_ID` (a manual dispatch), the fixer falls back to the
+latest failed run of the first monitored workflow for its logs.
 
 ## Costs
 

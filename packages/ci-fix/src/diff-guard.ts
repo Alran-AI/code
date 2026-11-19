@@ -51,6 +51,8 @@ interface DiffHunk {
 
 interface DiffFile {
   readonly path: string;
+  /** Path before the change; differs from `path` on renames. */
+  readonly oldPath: string;
   deleted: boolean;
   readonly hunks: DiffHunk[];
 }
@@ -111,13 +113,15 @@ export function parseUnifiedDiff(diff: string): DiffFile[] {
     if (rawLine.startsWith('diff --git ')) {
       closeFile();
       const headerMatch = /diff --git a\/(.*) b\/(.*)/u.exec(rawLine);
-      const path = headerMatch?.[2] ?? rawLine.slice('diff --git '.length);
-      current = { path, deleted: false, hunks: [] };
+      const oldPath = headerMatch?.[1] ?? rawLine.slice('diff --git '.length);
+      const path = headerMatch?.[2] ?? oldPath;
+      current = { path, oldPath, deleted: false, hunks: [] };
       files.push(current);
     } else if (rawLine.startsWith('deleted file mode')) {
       if (current) current.deleted = true;
     } else if (rawLine.startsWith('+++ ')) {
-      // +++ b/path or +++ /dev/null; path comes from the header.
+      // +++ b/path or +++ /dev/null; a /dev/null target means the file is gone.
+      if (current && rawLine.trim() === '+++ /dev/null') current.deleted = true;
     } else if (rawLine.startsWith('@@')) {
       closeHunk();
       const hunk = /@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/u.exec(rawLine);
@@ -147,7 +151,10 @@ export function guardFixDiff(input: DiffGuardInput): DiffGuardResult {
   const files = parseUnifiedDiff(input.diff);
 
   for (const file of files) {
-    if (isDeniedPath(file.path, input.denyPaths)) {
+    if (
+      isDeniedPath(file.path, input.denyPaths) ||
+      isDeniedPath(file.oldPath, input.denyPaths)
+    ) {
       violations.push({
         code: 'denied-path',
         file: file.path,

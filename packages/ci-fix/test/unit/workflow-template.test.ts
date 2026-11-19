@@ -12,6 +12,7 @@ describe("workflow generator", () => {
             - "CI"
           types:
             - completed
+        workflow_dispatch:
       permissions:
         contents: write
         pull-requests: write
@@ -19,9 +20,11 @@ describe("workflow generator", () => {
       jobs:
         alran-ci-fix:
           # Forks are never fixed: the failing run must come from this repository.
+          # workflow_dispatch runs are manual re-triggers of a verified fix.
           if: >-
-            github.event.workflow_run.conclusion == 'failure' &&
-            github.event.workflow_run.head_repository.full_name == github.repository
+            github.event_name == 'workflow_dispatch' ||
+            (github.event.workflow_run.conclusion == 'failure' &&
+             github.event.workflow_run.head_repository.full_name == github.repository)
           runs-on: ubuntu-latest
           steps:
             - name: Check out the failing head commit
@@ -59,6 +62,12 @@ describe("workflow generator", () => {
     expect(yaml).toContain("github.event.workflow_run.head_sha");
     expect(yaml).toContain("github.event.workflow_run.head_repository.full_name == github.repository");
     expect(yaml).toContain("github.event.workflow_run.conclusion == 'failure'");
+  });
+
+  it("supports workflow_dispatch so a verified fix can re-trigger CI manually", () => {
+    const yaml = renderCiFixWorkflow({ monitoredWorkflows: ["CI"] });
+    expect(yaml).toContain("workflow_dispatch:");
+    expect(yaml).toContain("github.event_name == 'workflow_dispatch'");
   });
 
   it("declares exactly the minimal permission set", () => {

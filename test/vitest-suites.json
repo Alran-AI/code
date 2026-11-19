@@ -359,7 +359,10 @@
       "packages/ci-fix/test/integration/fix-flow.integration.test.ts",
       "packages/tui/test/unit/ci-command.test.ts",
       "packages/tui/test/unit/tui/features/ci/ci-wizard.test.ts",
-      "packages/tui/test/unit/tui/features/ci/ci-flow.test.ts"
+      "packages/tui/test/unit/tui/features/ci/ci-flow.test.ts",
+      "packages/tui/test/unit/ci-retrigger.test.ts",
+      "packages/local-runtime/test/unit/ci-fixer-skill.test.ts",
+      "packages/ci-fix/test/unit/safety.test.ts"
     ],
     "status-contract": [
       "packages/tui/test/unit/tui-build-mode-contract.test.ts"

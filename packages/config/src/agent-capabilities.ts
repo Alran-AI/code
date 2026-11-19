@@ -48,6 +48,7 @@ export type AgentBuiltinMcpToolId = (typeof AGENT_BUILTIN_MCP_TOOL_IDS)[number];
  * outlive the Tool or feature that makes their instructions executable.
  */
 export const AGENT_BUILTIN_SKILL_IDS = [
+  'ci-fixer',
   'code-review',
   'deep-research',
   'deploy-website',
