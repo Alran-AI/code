@@ -3,6 +3,19 @@
 This changelog covers changes that directly affect Alran Code users: the terminal UI, `alran exec`, the
 account commands, models, Plugins, installation and updates.
 
+## Unreleased
+
+### Added
+
+- **Background auto-update.** npm global installs now update silently in the background and become
+  active on the next start, after which one line says what changed (`Updated to 1.1.x – N features,
+  M fixes. Changelog: …`). The check runs at most every 6 hours with a 3 s budget, only from the
+  official npm registry, and only for the `alran` package. Channels: `latest` (default) and `stable`
+  (`autoUpdateChannel` in `~/.alran/config.yaml` or `ALRAN_UPDATE_CHANNEL`). Opt out with
+  `autoUpdate: false` or `ALRAN_DISABLE_AUTOUPDATE=1`; `ALRAN_OFFLINE=1` makes no network call at
+  all. New flags: `alran update --check` and `alran update --channel <latest|stable>`. See
+  `docs/UPDATES.md`.
+
 ## 1.1.0 · 2026-11-18
 
 ### Added

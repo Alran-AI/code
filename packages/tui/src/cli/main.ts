@@ -64,7 +64,10 @@ export interface RunTuiCliDependencies {
     platformEnv?: 'dev' | 'prod',
   ) => Promise<string>;
   readonly runLogout?: (region?: AlranRegion) => Promise<string>;
-  readonly runUpdate?: (version: string) => Promise<void>;
+  readonly runUpdate?: (
+    version: string,
+    options?: { readonly check?: boolean; readonly channel?: string },
+  ) => Promise<void>;
   readonly runProvider?: (
     request: AlranProviderCliRequest,
     version: string,
@@ -167,10 +170,10 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
         processRef.stdout.write(`${await runLogout(region)}\n`);
         completedCommandExitMode = 'natural';
       },
-      runUpdate: async () => {
+      runUpdate: async (updateOptions) => {
         completedCommandExitMode = 'natural';
         const runUpdate = dependencies.runUpdate ?? defaultRunUpdate;
-        await runUpdate(ALRAN_CODE_VERSION);
+        await runUpdate(ALRAN_CODE_VERSION, updateOptions);
       },
       runProvider: async (request, lane) => {
         const runProvider = dependencies.runProvider ?? defaultRunProvider;
@@ -323,9 +326,12 @@ async function defaultRunLogout(_region?: AlranRegion): Promise<string> {
   return 'Logged out.';
 }
 
-async function defaultRunUpdate(version: string): Promise<void> {
+async function defaultRunUpdate(
+  version: string,
+  updateOptions?: { check?: boolean; channel?: string },
+): Promise<void> {
   const { runAlranUpdate } = await import('./update.js');
-  await runAlranUpdate(version);
+  await runAlranUpdate(version, updateOptions);
 }
 
 async function defaultRunProvider(

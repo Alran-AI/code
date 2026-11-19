@@ -54,6 +54,7 @@ import {
   resolveTuiStartupEnvironmentOption,
 } from '../cli/environment.js';
 import { resolveAlranStartupUpdateNotice } from '../update/startup-notice.js';
+import { startAlranAutoUpdate } from '../update/auto-update.js';
 import type { AlranUpdateApplication } from '../update/application.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
 import {
@@ -192,6 +193,17 @@ export async function launchTui(
   const homeDirectory = options.homeDir ?? homedir();
   const workspaceDir = options.workspaceDir ?? process.cwd();
   const dataDir = options.dataDir ?? (await (dependencies.prepareDataDir ?? prepareTuiDataDir)());
+  // Background auto-update: announce a pending update once, then check the registry off the startup
+  // path (never awaited, never blocking, silent on failure).
+  const tuiConfig = getConfig();
+  startAlranAutoUpdate({
+    currentVersion: options.version,
+    dataDir,
+    environment: process.env,
+    autoUpdate: tuiConfig.autoUpdate,
+    autoUpdateChannel: tuiConfig.autoUpdateChannel,
+    write: process.stderr.write.bind(process.stderr),
+  });
   const baseTerminal = options.terminal ?? new ProcessTerminal();
   const tuiMode = options.tuiMode ?? (dependencies.readTuiMode ?? readTuiModeSetting)(dataDir);
   const theme = options.theme ?? (dependencies.readTuiTheme ?? readTuiThemeSetting)(dataDir);
