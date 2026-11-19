@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.2.0 — 2026-11-19
+
+Package `alran` (`npm install -g alran`), binary `alran`.
+
 ### Added
 
 - **CI Fixer.** `alran ci init` sets up automatic repair of red GitHub CI runs:
@@ -11,6 +15,19 @@
   test-weakening diffs. `/ci` opens the same setup as a TUI wizard.
   `alran ci status`, `alran ci doctor`, `alran ci disable` and
   `alran ci fix --dry-run` manage and rehearse it. See [CI Fixer](ci-fixer.md).
+- **Background auto-update.** npm global installs update silently in the background and become active on
+  the next start, after which one line says what changed. The check runs at most every six hours, only from
+  the official npm registry, and only for the `alran` package. Channels: `latest` (default) and `stable`.
+  Opt out with `autoUpdate: false` or `ALRAN_DISABLE_AUTOUPDATE=1`; `ALRAN_OFFLINE=1` makes no network call.
+  `alran update --check` and `alran update --channel <latest|stable>` manage it. See [updates](UPDATES.md).
+
+### Fixed
+
+- **Agent requests are no longer refused as "Credit Budget Exhausted" while the balance is fine.** A
+  company-wide monthly cap refused requests on the AI Platform, and a request was held for its full
+  possible output, so agent turns could be refused where a short chat was not. The cap is gone, and a
+  hold now covers only what the model can produce.
+
 ## 1.1.1 — 2026-11-19
 
 Package `alran` (`npm install -g alran`), binary `alran`.
