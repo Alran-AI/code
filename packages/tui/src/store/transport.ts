@@ -1,5 +1,6 @@
 import { open, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { brotliDecompressSync, gunzipSync, inflateSync } from 'node:zlib';
 
 import { STORE_LIMITS, StoreError } from './contract.js';
 import { formatBytes } from './status.js';
@@ -41,9 +42,10 @@ export function createStoreTransport(options: CreateStoreTransportOptions = {}):
       const response = await request(doFetch, url, timeoutMs, read.signal, {
         ...(read.etag ? { 'if-none-match': read.etag } : {}),
         accept: 'application/json',
+        'accept-encoding': 'gzip, br',
       });
       if (response.status === 304) return { status: 'not-modified' };
-      const body = await readBody(response, read.maxBytes, url);
+      const body = await readBody(response, read.maxBytes, url, true);
       const etag = response.headers.get('etag') ?? undefined;
       return { status: 'ok', text: body.toString('utf8'), ...(etag ? { etag } : {}) };
     },
@@ -51,8 +53,10 @@ export function createStoreTransport(options: CreateStoreTransportOptions = {}):
       if (isFileUrl(url)) return readLocalFile(url, read.maxBytes);
       const response = await request(doFetch, url, timeoutMs, read.signal, {
         accept: 'application/octet-stream',
+        // An archive is hashed byte for byte, so it is asked for as it is.
+        'accept-encoding': 'identity',
       });
-      return readBody(response, read.maxBytes, url);
+      return readBody(response, read.maxBytes, url, false);
     },
   };
 }
@@ -149,7 +153,12 @@ async function request(
   return response;
 }
 
-async function readBody(response: Response, maxBytes: number, url: string): Promise<Buffer> {
+async function readBody(
+  response: Response,
+  maxBytes: number,
+  url: string,
+  decode: boolean,
+): Promise<Buffer> {
   const declared = Number(response.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > maxBytes) throw tooLarge(url, maxBytes);
   if (!response.body) return Buffer.alloc(0);
@@ -174,7 +183,74 @@ async function readBody(response: Response, maxBytes: number, url: string): Prom
       cause: error,
     });
   }
-  return Buffer.concat(chunks, received);
+  const body = Buffer.concat(chunks, received);
+  return decode ? decodeBody(body, response.headers.get('content-encoding'), maxBytes, url) : body;
+}
+
+/**
+ * The body of a response that was compressed on the wire. The limit counts the bytes the client
+ * ends up with, so a small compressed index that expands past the limit is refused as well.
+ */
+function decodeBody(
+  body: Buffer,
+  encoding: string | null,
+  maxBytes: number,
+  url: string,
+): Buffer {
+  const coding = (encoding ?? 'identity').trim().toLowerCase();
+  if (!coding || coding === 'identity' || body.length === 0) return body;
+  try {
+    const decoded = decompress(coding, body, maxBytes);
+    if (decoded.length > maxBytes) throw tooLarge(url, maxBytes);
+    return decoded;
+  } catch (error) {
+    if (error instanceof StoreError) throw error;
+    if (isTooLarge(error)) throw tooLarge(url, maxBytes);
+    throw new StoreError(
+      'SOURCE_UNREACHABLE',
+      `${url} answered with ${coding} that could not be read (${describe(error)}).`,
+      { cause: error },
+    );
+  }
+}
+
+/**
+ * The HTTP client usually decodes a compressed body itself and leaves the `Content-Encoding` header
+ * behind, so a body that is already plain text is never decoded a second time.
+ */
+function decompress(coding: string, body: Buffer, maxBytes: number): Buffer {
+  if (coding === 'gzip' || coding === 'x-gzip') {
+    // A gzip stream starts with these two bytes; plain JSON does not.
+    if (body.length < 2 || body[0] !== 0x1f || body[1] !== 0x8b) return body;
+    return gunzipSync(body, { maxOutputLength: maxBytes });
+  }
+  if (coding === 'deflate') {
+    if (looksLikeJson(body)) return body;
+    return inflateSync(body, { maxOutputLength: maxBytes });
+  }
+  if (coding === 'br') {
+    if (looksLikeJson(body)) return body;
+    return brotliDecompressSync(body, { maxOutputLength: maxBytes });
+  }
+  throw new Error(`unsupported content encoding "${coding}"`);
+}
+
+/** True when the bytes are already a JSON document rather than a compressed one. */
+function looksLikeJson(body: Buffer): boolean {
+  let start = 0;
+  while (start < body.length && body[start]! <= 0x20) start += 1;
+  let end = body.length - 1;
+  while (end > start && body[end]! <= 0x20) end -= 1;
+  return body[start] === 0x7b && body[end] === 0x7d;
+}
+
+function isTooLarge(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'ERR_BUFFER_TOO_LARGE'
+  );
 }
 
 function tooLarge(url: string, maxBytes: number): StoreError {

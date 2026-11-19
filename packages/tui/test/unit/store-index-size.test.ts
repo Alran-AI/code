@@ -1,3 +1,4 @@
+import { gzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 
 import { STORE_LIMITS } from '../../src/store/contract.js';
@@ -88,6 +89,35 @@ describe('the store index size limit', () => {
     await expect(transport.readText(URL, { maxBytes: STORE_LIMITS.indexBytes })).rejects.toMatchObject({
       code: 'SOURCE_REJECTED',
       message: expect.stringContaining(String(STORE_LIMITS.indexBytes)) as unknown as string,
+    });
+  });
+
+  it('stops reading a body that grows past the limit', async () => {
+    const { impl } = fakeFetch([{ body: 'x'.repeat(4_096) }]);
+    const transport = createStoreTransport({ fetch: impl });
+    await expect(transport.readText(URL, { maxBytes: 1_024 })).rejects.toMatchObject({
+      code: 'SOURCE_REJECTED',
+    });
+  });
+
+  it('reads a gzipped index', async () => {
+    const text = JSON.stringify({ schema: 'alran.store/v1', name: 'Gzipped', plugins: [], skills: [] });
+    const { impl, calls } = fakeFetch([
+      { body: gzipSync(Buffer.from(text)), headers: { 'content-encoding': 'gzip' } },
+    ]);
+    const transport = createStoreTransport({ fetch: impl });
+    const read = await transport.readText(URL, { maxBytes: STORE_LIMITS.indexBytes });
+    expect(read).toEqual({ status: 'ok', text });
+    expect(calls[0]?.headers['accept-encoding']).toContain('gzip');
+  });
+
+  it('applies the limit to the decompressed size', async () => {
+    const body = gzipSync(Buffer.from('x'.repeat(8_192)));
+    expect(body.length).toBeLessThan(1_024);
+    const { impl } = fakeFetch([{ body, headers: { 'content-encoding': 'gzip' } }]);
+    const transport = createStoreTransport({ fetch: impl });
+    await expect(transport.readText(URL, { maxBytes: 1_024 })).rejects.toMatchObject({
+      code: 'SOURCE_REJECTED',
     });
   });
 });
