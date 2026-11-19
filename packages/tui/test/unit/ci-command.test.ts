@@ -39,15 +39,15 @@ beforeEach(() => {
   }));
   writeFileSync(path.join(fixture, "test.js"), "console.log('ok');\n");
   writeFileSync(path.join(fixture, ".github/workflows/CI.yml"), "name: CI\n");
+  // The committer identity is passed on the commit itself: CI runners have no global git identity.
   for (const args of [
     ["init"],
     ["add", "."],
-    ["-c", "user.name", "Fixture"],
-    ["-c", "user.email", "fixture@example.test"],
-    ["commit", "-m", "feat: fixture"],
+    ["-c", "user.name=Fixture", "-c", "user.email=fixture@example.test", "commit", "-m", "feat: fixture"],
     ["remote", "add", "origin", "https://github.com/ottili/fixture.git"],
   ]) {
-    spawnSync("git", args, { cwd: fixture, encoding: "utf8" });
+    const result = spawnSync("git", args, { cwd: fixture, encoding: "utf8" });
+    if (result.status !== 0) throw new Error(`fixture git ${args.join(" ")} failed: ${result.stderr}`);
   }
 });
 
