@@ -1,0 +1,23 @@
+{
+  "name": "@alran/ci-fix",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CI Fixer core: config, detection, diff guard, and fix orchestration for Alran Code. GitHub-agnostic so a future GitHub App can reuse it.",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "js-yaml": "^4"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4",
+    "@types/node": "^20",
+    "typescript": "^5"
+  },
+  "private": true,
+  "license": "MIT"
+}

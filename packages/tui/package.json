@@ -24,6 +24,7 @@
     "@earendil-works/pi-coding-agent": "workspace:*",
     "@alran/agent-tools": "workspace:^",
     "@alran/browser-core": "workspace:^",
+    "@alran/ci-fix": "workspace:^",
     "@alran/config": "workspace:^",
     "@alran/local-runtime-v2": "workspace:*",
     "@alran/shared": "workspace:^",

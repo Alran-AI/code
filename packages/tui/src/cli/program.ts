@@ -35,6 +35,7 @@ import {
 import type { AlranTelemetryCliAction } from './telemetry-command.js';
 import { registerMascotCommand } from './mascot-command.js';
 import { registerAccountCommands } from './account-commands.js';
+import { registerCiCommand } from './ci-command.js';
 
 export type { TuiInteractiveLaunchRequest } from './contract.js';
 
@@ -585,6 +586,7 @@ export function createTuiProgram(options: CreateTuiProgramOptions): Command {
   }
 
   registerMascotCommand(program);
+  registerCiCommand(program);
   // The Ottili account: auth, config, models, usage, billing.
   registerAccountCommands(program, undefined, options.version);
 

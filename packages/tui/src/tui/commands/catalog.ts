@@ -139,6 +139,12 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     runAvailability: 'idle',
   },
   {
+    name: 'ci',
+    description: 'Set up and manage the CI Fixer for this repository',
+    category: 'Application',
+    argumentHint: '[init | status | doctor | disable]',
+  },
+  {
     name: 'update',
     description: 'Check for and install an Alran update',
     category: 'Application',

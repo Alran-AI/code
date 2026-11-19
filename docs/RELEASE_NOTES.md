@@ -1,5 +1,16 @@
 # Alran Code — release notes
 
+## Unreleased
+
+### Added
+
+- **CI Fixer.** `alran ci init` sets up automatic repair of red GitHub CI runs:
+  the workflow watches your pipelines, a headless Alran Code session with a
+  restricted toolset reproduces and fixes the failure, and only a verified
+  green run is committed — guarded against forks, protected paths and
+  test-weakening diffs. `/ci` opens the same setup as a TUI wizard.
+  `alran ci status`, `alran ci doctor`, `alran ci disable` and
+  `alran ci fix --dry-run` manage and rehearse it. See [CI Fixer](ci-fixer.md).
 ## 1.1.1 — 2026-11-19
 
 Package `alran` (`npm install -g alran`), binary `alran`.

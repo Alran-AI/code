@@ -26,6 +26,7 @@ import type { TuiTransportAttachment } from '../types/invocation.js';
 import { TuiRunProjection } from './state/run-projection.js';
 import { createTuiState, TuiEffectRunner, TuiStateStore } from './state/index.js';
 import { FeedbackFlow as Feedback } from './controller/product/feedback-flow.js';
+import { CiFlow as Ci } from './features/ci/ci-flow.js';
 import { TranscriptStore } from './transcript/store.js';
 import { TranscriptVisibilityProjection } from './transcript/presentation/visibility.js';
 import { createLocalTranscriptAppender } from './transcript/local-appender.js';
@@ -348,6 +349,13 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     requestInteractionRender,
     () => resolveTuiInteractionMaxRows(terminal.rows),
   );
+  const ciFlow = new Ci({
+    workspaceDir: options.workspaceDir,
+    appendNotice: appendLocalCell,
+    showPanel: (panel) => interactionSurface.show(panel),
+    closePanel: (panel) => interactionSurface.close(panel),
+    requestRender: requestInteractionRender,
+  });
   const admitUpdate = createTuiUpdateAdmission({
     runtime: options.runtime,
     snapshot: () => controller.snapshot(),
@@ -655,6 +663,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     activeRunFlow,
     featureFlow,
     feedbackFlow,
+    ciFlow,
     sessionMutationFlow,
     updateFlow,
     goalFlow,
@@ -957,6 +966,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     permissionModeFlow.stop();
     planModeFlow.stop();
     feedbackFlow.stop();
+    ciFlow.stop();
     updateFlow.stop();
     themeController.dispose();
     activity.dispose();
