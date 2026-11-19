@@ -66,3 +66,31 @@ export function writeConfig(cwd: string, yaml: string): void {
   mkdirSync(path.dirname(file), { recursive: true });
   writeFileSync(file, yaml);
 }
+
+export interface WorkflowFacts {
+  readonly installed: boolean;
+  /** Permission keys the installed workflow declares, e.g. "contents: write". */
+  readonly permissions: readonly string[];
+  readonly hasForkGuard: boolean;
+  readonly hasDispatch: boolean;
+}
+
+/** Reads the installed workflow file and extracts the facts doctor checks. */
+export function workflowFacts(cwd: string): WorkflowFacts {
+  const file = path.join(cwd, ciFix.CI_FIX_WORKFLOW_PATH);
+  if (!existsSync(file)) {
+    return { installed: false, permissions: [], hasForkGuard: false, hasDispatch: false };
+  }
+  const text = readFileSync(file, 'utf8');
+  const block = text.split('permissions:\n')[1]?.split('\njobs:')[0] ?? '';
+  const permissions = block
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.includes(':'));
+  return {
+    installed: true,
+    permissions,
+    hasForkGuard: text.includes('head_repository.full_name == github.repository'),
+    hasDispatch: text.includes('workflow_dispatch:'),
+  };
+}

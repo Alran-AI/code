@@ -20,6 +20,9 @@ export interface DoctorFacts {
   readonly pushTokenSecretPresent: boolean;
   readonly configEnabled: boolean;
   readonly configProblems: readonly string[];
+  /** Workflow guards forks and supports the manual dispatch fallback. */
+  readonly workflowHasForkGuard: boolean;
+  readonly workflowHasDispatch: boolean;
 }
 
 export interface DoctorCheck {
@@ -92,6 +95,19 @@ export function runDoctorChecks(facts: DoctorFacts): readonly DoctorCheck[] {
       ? 'CI Fix never edits forks; install it in the upstream repository instead'
       : undefined,
   });
+
+  if (facts.workflowInstalled) {
+    const ok = facts.workflowHasForkGuard && facts.workflowHasDispatch;
+    checks.push({
+      id: 'workflow-triggers',
+      ok,
+      severity: 'error',
+      detail: ok
+        ? 'workflow guards forks and supports manual dispatch'
+        : 'workflow is missing the fork guard or the workflow_dispatch trigger',
+      hint: ok ? undefined : 're-run `alran ci init` to restore the workflow',
+    });
+  }
 
   const missingWorkflows = facts.monitoredWorkflows.filter(
     (name) => !facts.repositoryWorkflows.includes(name),

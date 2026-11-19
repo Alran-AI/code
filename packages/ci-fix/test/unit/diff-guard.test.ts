@@ -207,6 +207,26 @@ describe("diff guard", () => {
     );
   });
 
+  it("blocks renames out of protected paths and deletions of protected files", () => {
+    const renamed = [
+      "diff --git a/.github/workflows/ci.yml b/docs/ci.yml",
+      "similarity index 90%",
+      "rename from .github/workflows/ci.yml",
+      "rename to docs/ci.yml",
+    ].join("\n");
+    expect(guard(renamed).violations[0].code).toBe("denied-path");
+
+    const deletedSecret = [
+      "diff --git a/.env b/.env",
+      "deleted file mode 100644",
+      "--- a/.env",
+      "+++ /dev/null",
+      "@@ -1 +0,0 @@",
+      "-SECRET=1",
+    ].join("\n");
+    expect(guard(deletedSecret).violations[0].code).toBe("denied-path");
+  });
+
   it("records line numbers for added lines", () => {
     const parsed = parseUnifiedDiff(buildDiff("src/a.ts", ["+ it.skip('x', () => {})"], []));
     expect(parsed[0].hunks[0].added[0].line).toBe(1);

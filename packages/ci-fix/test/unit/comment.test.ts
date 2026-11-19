@@ -32,6 +32,16 @@ describe("comment builder", () => {
     expect(comment).toContain("$0.0123");
   });
 
+  it("embeds the masked failure log in a collapsed block", () => {
+    const comment = buildCiFixComment({
+      ...base,
+      logExcerpt: "expect(received).toBe(3)\nReceived: 4",
+    });
+    expect(comment).toContain("<details>");
+    expect(comment).toContain("Failure log (truncated, masked)");
+    expect(comment).toContain("expect(received).toBe(3)");
+  });
+
   it("lists guard violations with reasons", () => {
     const comment = buildCiFixComment({
       ...base,

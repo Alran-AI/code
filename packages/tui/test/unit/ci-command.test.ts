@@ -87,6 +87,12 @@ describe("alran ci CLI", () => {
     expect(workflow).toContain('- "Rust"');
   });
 
+  it("init announces that it overwrites an existing config", async () => {
+    await run(["ci", "init", "--yes"]);
+    await run(["ci", "init", "--yes"]);
+    expect(output).toContain("Overwrote the existing .alran/ci.yml and .github/workflows/alran-ci-fix.yml");
+  });
+
   it("status reports the configuration and detection", async () => {
     await run(["ci", "status"]);
     expect(output).toContain("CI Fix is not set up yet");

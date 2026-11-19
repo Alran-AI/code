@@ -45,6 +45,12 @@ future GitHub App can reuse the same core.
    setup (gh login, secret, workflow permissions, fork state, monitored
    workflows) and points at the re-trigger trade-off below.
 
+The PR comment includes a collapsed block with the masked failure log, and the
+Action run writes the same summary to the GitHub step summary, so the outcome
+is visible without opening the PR. The diff guard also inspects the pre-change
+path: renames out of protected paths and deletions of protected files are
+rejected like any other edit.
+
 ## Configuration (`.alran/ci.yml`)
 
 ```yaml
@@ -110,7 +116,10 @@ why.
 - **Prompt injection.** CI logs, PR text, commit messages and file contents are
   data, never instructions. The CI system prompt states this explicitly, the
   headless run has no web search or web fetch, and the diff guard is the hard
-  enforcement behind the policy.
+  enforcement behind the policy. Commands extracted from CI logs are only
+  executed when they are plain project commands (`isSafeProjectCommand`);
+  anything with shell metacharacters is ignored in favor of the configured
+  test command.
 
 ### Known limits
 

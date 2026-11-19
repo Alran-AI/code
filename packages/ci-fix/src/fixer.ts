@@ -13,7 +13,7 @@ import { type CiFixConfig } from './config.js';
 import { buildCiFixComment, type CiFixReport, type CiFixReportStatus } from './comment.js';
 import { guardFixDiff } from './diff-guard.js';
 import type { GitHubRepoRef } from './detect-repo.js';
-import { maskCiLog } from './logs.js';
+import { maskCiLog, truncateLog } from './logs.js';
 import { buildCiFixCommitMessage, countCiFixAttempts, evaluateLoopGuard } from './loop-guard.js';
 import {
   CI_FIX_ALLOWED_TOOL_INTENT,
@@ -175,6 +175,10 @@ export async function runCiFix(request: CiFixRequest, ports: CiFixPorts): Promis
       dryRun,
       violations: extra.violations,
       commitSubject: undefined,
+      logExcerpt:
+        request.failedLogExcerpt && request.failedLogExcerpt.length > 0
+          ? truncateLog(maskLogForModel(config, request.failedLogExcerpt), { maxChars: 4_000 }).text
+          : undefined,
     };
     const comment = buildCiFixComment(report);
     let commented = false;
