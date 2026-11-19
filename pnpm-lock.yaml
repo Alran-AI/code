@@ -501,6 +501,22 @@ importers:
         specifier: 4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
+  packages/ci-fix:
+    dependencies:
+      js-yaml:
+        specifier: ^4
+        version: 4.3.2
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^4
+        version: 4.0.9
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
   packages/config:
     dependencies:
       '@alran/shared':
@@ -818,6 +834,9 @@ importers:
       '@alran/browser-core':
         specifier: workspace:^
         version: link:../browser-core
+      '@alran/ci-fix':
+        specifier: workspace:^
+        version: link:../ci-fix
       '@alran/config':
         specifier: workspace:^
         version: link:../config
@@ -5807,7 +5826,7 @@ snapshots:
       obug: 3.0.0
       std-env: 4.3.0
       tinyrainbow: 3.2.0
-      vitest: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+      vitest: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@20.19.43)(@vitest/coverage-v8@5.0.5)(vite@7.3.6(@types/node@20.19.43)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
 
   '@vitest/expect@4.1.11':
     dependencies:
