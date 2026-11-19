@@ -37,7 +37,7 @@ export const STORE_LIMITS = {
   entries: 200_000,
   fetchTimeoutMs: 20_000,
   /** Cached indexes younger than this are used without asking the source again. */
-  freshForMs: 10 * 60 * 1000,
+  freshForMs: 6 * 60 * 60 * 1000,
 } as const;
 
 export type StoreEntryKind = 'plugin' | 'skill';

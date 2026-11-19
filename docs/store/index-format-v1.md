@@ -85,7 +85,8 @@ or an entry that breaks a rule is refused with the path of the offending field.
 
 ## What a client does
 
-1. Read the index (HTTPS, or loopback `http`, or a file) and validate it.
+1. Read the index (HTTPS, or loopback `http`, or a file) and validate it. An index may be up to
+   64 MiB once it is decompressed and hold up to 200,000 entries; a larger one is refused.
 2. To install: download the archive, require its size and SHA-256 to match, read it with the strict V1
    reader, and require the content digest to match.
 3. Inspect the verified files: for a Plugin, list every MCP server command, hook command and
