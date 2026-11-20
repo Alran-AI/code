@@ -308,11 +308,19 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
   plan.json
   goal.json           # criteria, statuses, evidence (goal-driven runs)
   notes.md            # curated run memory, written by integrate
-  spec-tests/         # authored spec tests, awaiting review/copy (goal-driven runs)
+  spec-tests/         # authored spec tests, as committed to ultra/<run>/spec-tests
   rounds/<n>/         # per-round artifacts (goal-driven runs)
   packets/<id>/       # prompt.md, diff.patch, gate.txt, verdict.json
+  runner.json         # pid and log path of the detached runner, when there is one
+  runner.log          # that runner's stdout and stderr
   report.md
 ```
+
+Two things live outside that directory. Each packet is a git worktree under
+`.alran/worktrees/<run-id>/<packet-id>`, on its own `ultra/<run>/<packet>`
+branch. And the run's branches are ordinary git branches: `ultra/<run>` holds the
+integrated result, `ultra/<run>/spec-tests` the frozen checks, and
+`ultra/<run>/round-N` tags mark each round's checkpoint.
 
 Ultra writes `.alran/.gitignore` on the first run so its own state never makes
 the working tree dirty — otherwise the start guard would refuse the next run. A
