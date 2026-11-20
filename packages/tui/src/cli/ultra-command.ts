@@ -20,7 +20,7 @@ import {
   createUltraSpecTestAdapter,
 } from './ultra-exec-adapters.js';
 import { createUltraGoalAdapter, createUltraPlanAdapters } from './ultra-plan-adapters.js';
-import { commitSpecTestsAsBase } from './ultra-spec-base.js';
+import { baseRefForRun, commitSpecTestsAsBase } from './ultra-spec-base.js';
 import { launchUltraRun, startUltraRunInBackground } from './ultra-launch.js';
 
 export interface UltraCommandOptions {
@@ -552,9 +552,17 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       // board's `+`/`-` keys and a later `resume` agree on one number.
       workers: Number(commandOptions.workers ?? store.state.workers ?? 4),
       maxRepairs: Number(commandOptions.maxRepairs ?? 2),
-      ...(typeof commandOptions.base === 'string' && commandOptions.base.length > 0
-        ? { baseRef: commandOptions.base }
-        : {}),
+      // A resumed run has no authoring step in front of it, so the base is read
+      // from the branch that already carries the frozen checks. Passing a bare
+      // `HEAD` here would bring the worktrees back without them and the resumed
+      // run would quietly lose the checks it started with.
+      baseRef: baseRefForRun({
+        cwd,
+        runId: store.state.runId,
+        ...(typeof commandOptions.base === 'string' && commandOptions.base.length > 0
+          ? { requested: commandOptions.base }
+          : {}),
+      }),
       ...(options.execAdapters ? { execAdapters: options.execAdapters } : {}),
       ...(options.integrateAdapters ? { integrateAdapters: options.integrateAdapters } : {}),
       ...(options.roles ? { roles: options.roles } : {}),

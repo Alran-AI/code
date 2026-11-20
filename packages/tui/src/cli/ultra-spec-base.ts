@@ -110,3 +110,40 @@ export function commitSpecTestsAsBase(input: SpecTestCommitInput): SpecTestCommi
     rmSync(indexDir, { recursive: true, force: true });
   }
 }
+
+/** True when git recognises `branch` as a commit-ish. */
+export function specTestBranchExists(
+  cwd: string,
+  branch: string,
+  env?: NodeJS.ProcessEnv,
+): boolean {
+  try {
+    git(cwd, ['rev-parse', '--verify', '--quiet', `${branch}^{commit}`], env);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The commit a run's packets should branch from.
+ *
+ * A fresh run branches from the requested ref (or `HEAD`) until the checks are
+ * frozen, at which point the spec-test branch *is* the base. A resumed run has
+ * no authoring step in front of it, so it has to rediscover that base from the
+ * branch that is already on disk — otherwise the worktrees would come back
+ * without the frozen checks and the resumed run would quietly lose them.
+ */
+export function baseRefForRun(input: {
+  readonly cwd: string;
+  readonly env?: NodeJS.ProcessEnv;
+  readonly runId: string;
+  /** An explicit `--base`, which always wins. */
+  readonly requested?: string;
+}): string {
+  if (input.requested !== undefined && input.requested.trim().length > 0) {
+    return input.requested;
+  }
+  const branch = specTestBranchFor(input.runId);
+  return specTestBranchExists(input.cwd, branch, input.env) ? branch : 'HEAD';
+}

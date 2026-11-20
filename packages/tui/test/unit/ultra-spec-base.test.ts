@@ -11,7 +11,11 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { commitSpecTestsAsBase, specTestBranchFor } from '../../src/cli/ultra-spec-base.js';
+import {
+  baseRefForRun,
+  commitSpecTestsAsBase,
+  specTestBranchFor,
+} from '../../src/cli/ultra-spec-base.js';
 
 const dirs: string[] = [];
 
@@ -130,5 +134,41 @@ describe('commitSpecTestsAsBase', () => {
 
   it('names the branch after the run so a human can find it', () => {
     expect(specTestBranchFor('run-8f2a')).toBe('ultra/run-8f2a/spec-tests');
+  });
+});
+
+describe('baseRefForRun', () => {
+  it('branches from HEAD until the checks are frozen', () => {
+    const dir = gitRepo();
+    expect(baseRefForRun({ cwd: dir, runId: 'run-1' })).toBe('HEAD');
+  });
+
+  it('branches from the frozen checks once they exist (ULT-19)', () => {
+    const dir = gitRepo();
+    const frozen = commitSpecTestsAsBase({
+      cwd: dir,
+      runId: 'run-1',
+      baseRef: 'HEAD',
+      files: FILES,
+    });
+    // This is what a resumed run relies on: it has no authoring step to redo, so
+    // it has to find the base that already carries the checks.
+    expect(baseRefForRun({ cwd: dir, runId: 'run-1' })).toBe(frozen.branch);
+  });
+
+  it('lets an explicit --base win over the frozen branch', () => {
+    const dir = gitRepo();
+    commitSpecTestsAsBase({ cwd: dir, runId: 'run-1', baseRef: 'HEAD', files: FILES });
+    expect(baseRefForRun({ cwd: dir, runId: 'run-1', requested: 'HEAD~0' })).toBe('HEAD~0');
+    // A blank --base is the same as not passing one.
+    expect(baseRefForRun({ cwd: dir, runId: 'run-1', requested: '   ' })).toBe(
+      'ultra/run-1/spec-tests',
+    );
+  });
+
+  it('does not pick up another run’s checks', () => {
+    const dir = gitRepo();
+    commitSpecTestsAsBase({ cwd: dir, runId: 'run-1', baseRef: 'HEAD', files: FILES });
+    expect(baseRefForRun({ cwd: dir, runId: 'run-2' })).toBe('HEAD');
   });
 });

@@ -106,7 +106,9 @@ Implemented and tested:
   ones out of it, so these live in the flow.
 - **Resume** — a killed or paused run redoes only non-terminal packets. A packet
   that is already `done`, `blocked`, `skipped` or `cancelled` is reported, never
-  re-run.
+  re-run. A resumed goal-driven run also rediscovers the branch that carries the
+  frozen checks (`ultra/<run>/spec-tests`) instead of falling back to `HEAD`, so
+  the worktrees it recreates still contain them; an explicit `--base` wins.
 
 Starting a run:
 
