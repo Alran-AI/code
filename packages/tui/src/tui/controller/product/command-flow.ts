@@ -32,6 +32,7 @@ import type { TuiChatController } from '../chat-controller.js';
 import type { TuiFeatureFlow } from './feature-flow.js';
 import type { FeedbackFlow } from './feedback-flow.js';
 import type { CiFlow } from '../../features/ci/ci-flow.js';
+import type { UltraFlow } from '../../features/ultra/ultra-flow.js';
 import type { TuiSessionMutationFlow } from './session-mutation-flow.js';
 import type { TuiInteractionFlow } from '../interaction/interaction-flow.js';
 import type { TuiQueueFlow } from '../run/queue-flow.js';
@@ -86,6 +87,7 @@ export interface TuiCommandFlowOptions {
   readonly featureFlow: TuiFeatureFlow;
   readonly feedbackFlow: FeedbackFlow;
   readonly ciFlow?: CiFlow;
+  readonly ultraFlow?: UltraFlow;
   readonly sessionMutationFlow: Pick<
     TuiSessionMutationFlow,
     | 'startHistory'
@@ -1406,6 +1408,11 @@ export class TuiCommandFlow {
       },
       feedback: async ({ args }) => this.options.feedbackFlow.show(args),
       ci: async ({ args }) => this.options.ciFlow?.show(args),
+      ultra: async ({ args }) => {
+        // Without a flow the command still answers, so typing /ultra is never
+        // reported as an unknown command.
+        await this.options.ultraFlow?.show(args);
+      },
       settings: () => this.showSettingsPicker(),
       statusline: () => this.options.showStatusLine?.(),
       theme: () => this.options.showTheme?.(),

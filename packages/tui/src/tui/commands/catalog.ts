@@ -145,6 +145,12 @@ const COMMAND_SOURCES: readonly TuiCommandSource[] = [
     argumentHint: '[init | status | doctor | disable]',
   },
   {
+    name: 'ultra',
+    description: 'Watch and control an Ultra run',
+    category: 'Application',
+    argumentHint: '[board | status | report | runs | pause | kill | resume] [run-id]',
+  },
+  {
     name: 'update',
     description: 'Check for and install an Alran update',
     category: 'Application',

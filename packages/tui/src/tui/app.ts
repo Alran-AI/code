@@ -21,12 +21,17 @@ import { TuiChromeFlow } from './controller/product/chrome-flow.js';
 import type { TuiDraftLifecycle } from './features/composer/draft-lifecycle.js';
 import { retainAvailableAttachmentPlaceholders } from './features/composer/draft-recovery.js';
 import type { TuiSubmissionSnapshot } from './features/composer/submission.js';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import type { TuiTransportAttachment } from '../types/invocation.js';
 import { TuiRunProjection } from './state/run-projection.js';
 import { createTuiState, TuiEffectRunner, TuiStateStore } from './state/index.js';
 import { FeedbackFlow as Feedback } from './controller/product/feedback-flow.js';
 import { CiFlow as Ci } from './features/ci/ci-flow.js';
+import { UltraFlow } from './features/ultra/ultra-flow.js';
+import { executeUltraPlan } from '../cli/ultra-command.js';
+import { startUltraRunInBackground } from '../cli/ultra-launch.js';
+import * as ultra from '@alran/ultra';
+import type { UltraPlan } from '@alran/ultra';
 import { TranscriptStore } from './transcript/store.js';
 import { TranscriptVisibilityProjection } from './transcript/presentation/visibility.js';
 import { createLocalTranscriptAppender } from './transcript/local-appender.js';
@@ -356,6 +361,51 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     closePanel: (panel) => interactionSurface.close(panel),
     requestRender: requestInteractionRender,
   });
+  const ultraFlow = new UltraFlow({
+    workspaceDir: options.workspaceDir,
+    appendNotice: appendLocalCell,
+    showPanel: (panel) => interactionSurface.show(panel),
+    closePanel: (panel) => interactionSurface.close(panel),
+    requestRender: requestInteractionRender,
+    // Starting a run detaches it: the TUI must not block on a plan that can
+    // take minutes, and the run must survive the TUI closing.
+    start: async (request) => {
+      // Refuse a dirty tree here rather than letting the child fail a minute
+      // later with the reason buried in its log.
+      // No --stash in the wizard: a background run that stashed the tree would
+      // leave the user's changes hidden in a detached process.
+      const guard = ultra.evaluateStartGuard({
+        ...ultra.probeWorkingTree(options.workspaceDir),
+        stash: false,
+      });
+      if (!guard.ok) throw new Error(guard.problems.join(' '));
+      const launched = startUltraRunInBackground(
+        { ...request, maxRepairs: 2 },
+        { cwd: options.workspaceDir, env: process.env },
+      );
+      return {
+        runId: launched.runId,
+        detail:
+          `Ultra run ${launched.runId} started in the background (pid ${String(launched.pid)}). ` +
+          `You can close the TUI; it keeps running. Log: ${launched.logPath}`,
+      };
+    },
+    // Resume runs the CLI's own execute-and-merge path, so the board and
+    // `alran ultra resume` cannot drift apart.
+    resume: async ({ store }) => {
+      const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as UltraPlan;
+      const runStatus = await executeUltraPlan({
+        cwd: options.workspaceDir,
+        env: process.env,
+        store,
+        plan,
+        write: (text) => appendLocalCell(text.trimEnd()),
+        workers: store.state.workers ?? 4,
+        maxRepairs: 2,
+      });
+      return `Resumed ${store.state.runId}: ${runStatus}. Report: ${store.paths.report}`;
+    },
+  });
   const admitUpdate = createTuiUpdateAdmission({
     runtime: options.runtime,
     snapshot: () => controller.snapshot(),
@@ -664,6 +714,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     featureFlow,
     feedbackFlow,
     ciFlow,
+    ultraFlow,
     sessionMutationFlow,
     updateFlow,
     goalFlow,
@@ -967,6 +1018,7 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     planModeFlow.stop();
     feedbackFlow.stop();
     ciFlow.stop();
+    ultraFlow.stop();
     updateFlow.stop();
     themeController.dispose();
     activity.dispose();

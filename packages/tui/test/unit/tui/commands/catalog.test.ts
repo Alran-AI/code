@@ -71,6 +71,23 @@ describe("Alran Code Plugin Store command", () => {
     expect(plugin).toHaveBeenCalledWith(expect.objectContaining({ args: "office" }));
   });
 
+  it.each(["/ultra", "/ultra board", "/ULTRA status run-1"])(
+    "opens the Ultra board for %s",
+    async (input) => {
+      const ultra = vi.fn();
+      const catalog = createTuiCommandCatalog([], { ultra }, () => context);
+      await expect(catalog.dispatch(input)).resolves.toMatchObject({ status: "handled" });
+      expect(ultra).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("passes the Ultra arguments through untouched", async () => {
+    const ultra = vi.fn();
+    const catalog = createTuiCommandCatalog([], { ultra }, () => context);
+    await catalog.dispatch("/ultra board run-8f2a");
+    expect(ultra).toHaveBeenCalledWith(expect.objectContaining({ args: "board run-8f2a" }));
+  });
+
   it("passes `/skills library` through to the Skills command", async () => {
     const skills = vi.fn();
     const catalog = createTuiCommandCatalog([], { skills }, () => context);

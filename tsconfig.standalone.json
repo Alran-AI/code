@@ -319,6 +319,9 @@
       "@alran/system-reminder": [
         "./packages/agent-modules/system-reminder/src/index.ts"
       ],
+      "@alran/ultra": [
+        "./packages/ultra/src/index.ts"
+      ],
       "@earendil-works/pi-agent-core": [
         "./third_party/pi-mono/packages/agent/src/index.ts"
       ],

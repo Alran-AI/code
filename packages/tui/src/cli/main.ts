@@ -6,6 +6,7 @@ import {
 import type { RawTuiExecOptions } from '../headless/invocation.js';
 import type { AlranRegion } from '@alran/config';
 import { createTuiProgram, type TuiInteractiveLaunchRequest } from './program.js';
+import { normalizeUltraArgv } from './ultra-command.js';
 import type { AlranProviderCliRequest } from './provider-command.js';
 import type { AlranPluginCliRequest, AlranSkillCliRequest } from '../plugin/contract.js';
 import { tuiErrorDiagnostic } from '../user-facing-failure.js';
@@ -195,7 +196,12 @@ export async function runTuiCli(dependencies: RunTuiCliDependencies = {}): Promi
         processRef.stdout.write(await runTelemetry(action, ALRAN_CODE_VERSION, processRef.env));
         completedCommandExitMode = 'natural';
       },
-    }).parseAsync(processRef.argv, { from: 'node' });
+      })
+      // `alran ultra "<task>"` is spec 2's primary form. Commander cannot give a
+      // subcommand the flags of the command above it without the parent's option
+      // defaults leaking into every child, so the bare form is normalised here,
+      // before parsing, and then runs through the single `run` path.
+      .parseAsync(normalizeUltraArgv(processRef.argv), { from: 'node' });
 
     if (completedCommandExitMode) {
       const exitCode = typeof processRef.exitCode === 'number' ? processRef.exitCode : 0;

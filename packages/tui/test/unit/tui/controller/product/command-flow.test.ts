@@ -40,6 +40,7 @@ function createReadinessCommandFlow(options: {
   append?: (text: string, kind?: "info" | "warning" | "error") => void;
   queuedCount?: number;
   liveRunId?: () => string | undefined;
+  ultraFlow?: { show(args: string): Promise<void> };
 }) {
   return new TuiCommandFlow({
     workspaceDir: "/workspace",
@@ -60,6 +61,7 @@ function createReadinessCommandFlow(options: {
       exportCurrentTranscript: options.exportCurrentTranscript ?? vi.fn(),
     } as never,
     feedbackFlow: {} as never,
+    ...(options.ultraFlow ? { ultraFlow: options.ultraFlow as never } : {}),
     updateFlow: {} as never,
     interactionFlow: {
       handleCommand: vi.fn(async () => false),
@@ -119,6 +121,16 @@ describe("TuiCommandFlow", () => {
     await vi.waitFor(() => expect(showHelp).toHaveBeenCalledOnce());
     await expect(opening).resolves.toBe("consumed");
     releaseReady?.();
+  });
+
+  it("routes /ultra to the Ultra flow instead of rejecting the command", async () => {
+    const show = vi.fn(async () => undefined);
+    const flow = createReadinessCommandFlow({
+      whenReady: async () => undefined,
+      ultraFlow: { show },
+    });
+    await expect(flow.submit("/ultra board run-8f2a")).resolves.toBe("consumed");
+    expect(show).toHaveBeenCalledWith("board run-8f2a");
   });
 
   it("tells the user to stop an in-flight response before /retry instead of claiming nothing failed (#425)", async () => {
