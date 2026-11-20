@@ -1,3 +1,4 @@
+import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { AlranPluginRuntimeAccess, AlranPluginView } from '../plugin/contract.js';
@@ -10,7 +11,7 @@ import {
   type StoreSource,
   type StoreSourceStatus,
 } from './contract.js';
-import { pathExists, readTextIfExists } from './fs-util.js';
+import { isMissing, readTextIfExistsSync } from './fs-util.js';
 import { locateBundledSkillsDirectory, readBundledSkills, type BundledSkill } from './bundled-skills.js';
 import { readSkillFrontmatter } from './inspect.js';
 import { StoreInstaller, type StagedInstall } from './installer.js';
@@ -25,6 +26,12 @@ import { createStoreTransport, type StoreTransport } from './transport.js';
 export type StoreOrigin = string;
 
 export const BUILT_IN_ORIGIN = 'built-in';
+
+/** What sits under the install directories: what the Store put there, and what someone else did. */
+interface InstalledNames {
+  readonly skill: ReadonlySet<string>;
+  readonly plugin: ReadonlySet<string>;
+}
 
 /** A Skill that ships with Alran Code: always there, not installed by anyone, not removable. */
 export function isBuiltIn(item: Pick<StoreItem, 'origin'>): boolean {
@@ -61,6 +68,14 @@ export interface StoreItem {
 }
 
 export interface StoreCatalog {
+  /**
+   * The Plugins on offer. Built when it is asked for: a store with a hundred thousand Skills would
+   * otherwise build every one of them to show a list of a few hundred Plugins.
+   */
+  readonly plugins: readonly StoreItem[];
+  /** The Skills on offer, built when they are asked for. */
+  readonly skills: readonly StoreItem[];
+  /** Everything on offer, Plugins and Skills. */
   readonly items: readonly StoreItem[];
   readonly sources: readonly StoreSourceStatus[];
 }
@@ -139,23 +154,96 @@ export class AlranStoreApplication {
       this.readInstalledPlugins(),
       this.readOfficialPlugins(),
     ]);
-    const items: StoreItem[] = [];
     const localByName = new Map(
       installedPlugins
         .filter((plugin) => plugin.marketplace === 'local')
         .map((plugin) => [plugin.name, plugin] as const),
     );
-    const builtInNames = new Set((await this.readBundledSkills()).map((skill) => skill.name));
+    const bundledSkills = await this.readBundledSkills();
+    const builtInNames = new Set(bundledSkills.map((skill) => skill.name));
+    const installedNames = await this.installedNames();
+    // The Plugins and the Skills are built apart, and only when they are asked for. A store with a
+    // hundred thousand Skills would otherwise build every one of them to show a list of Plugins,
+    // and a list of Plugins is what `/plugin` opens.
+    let plugins: StoreItem[] | undefined;
+    let skills: StoreItem[] | undefined;
+    let items: StoreItem[] | undefined;
+    const pluginItems = (): StoreItem[] => {
+      plugins ??= this.pluginItems(
+        statuses,
+        ledger,
+        localByName,
+        installedPlugins,
+        officialPlugins,
+        builtInNames,
+        installedNames,
+      );
+      return plugins;
+    };
+    const skillItems = (): StoreItem[] => {
+      skills ??= this.skillItems(statuses, ledger, localByName, builtInNames, installedNames, bundledSkills);
+      return skills;
+    };
+    return {
+      get plugins() {
+        return pluginItems();
+      },
+      get skills() {
+        return skillItems();
+      },
+      get items() {
+        items ??= [...pluginItems(), ...skillItems()];
+        return items;
+      },
+      sources: statuses,
+    };
+  }
+
+  /** The Plugins every source offers, and the ones the Runtime holds that no store accounts for. */
+  private pluginItems(
+    statuses: readonly StoreSourceStatus[],
+    ledger: StoreLedger,
+    localByName: ReadonlyMap<string, AlranPluginView>,
+    installed: readonly AlranPluginView[],
+    official: readonly AlranPluginView[],
+    builtInNames: ReadonlySet<string>,
+    installedNames: InstalledNames,
+  ): StoreItem[] {
+    const items: StoreItem[] = [];
     for (const status of statuses) {
       if (!status.index) continue;
-      for (const entry of [...status.index.plugins, ...status.index.skills]) {
-        items.push(await this.itemFor(entry, status.source, ledger, localByName, builtInNames));
+      for (const entry of status.index.plugins) {
+        items.push(this.itemFor(entry, status.source, ledger, localByName, builtInNames, installedNames));
       }
     }
-    items.push(...this.itemsWithoutEntry(items, ledger, installedPlugins, officialPlugins));
-    items.push(...(await this.orphanedSkills(items, ledger)));
-    items.push(...(await this.builtInItems()));
-    return { items, sources: statuses };
+    items.push(...this.itemsWithoutEntry(items, ledger, installed, official));
+    return items;
+  }
+
+  /**
+   * The Skills every source offers, the ones that were installed from a store that cannot be read
+   * now, and the ones that ship inside Alran Code.
+   */
+  private skillItems(
+    statuses: readonly StoreSourceStatus[],
+    ledger: StoreLedger,
+    localByName: ReadonlyMap<string, AlranPluginView>,
+    builtInNames: ReadonlySet<string>,
+    installedNames: InstalledNames,
+    bundledSkills: readonly BundledSkill[],
+  ): StoreItem[] {
+    const items: StoreItem[] = [];
+    const known = new Set<string>();
+    for (const status of statuses) {
+      if (!status.index) continue;
+      for (const entry of status.index.skills) {
+        known.add(entry.name);
+        items.push(this.itemFor(entry, status.source, ledger, localByName, builtInNames, installedNames));
+      }
+    }
+    items.push(...this.orphanedSkills(known, ledger));
+    items.push(...this.builtInItems(bundledSkills));
+    return items;
   }
 
   /** `name` or `name@store`. Throws NOT_FOUND or AMBIGUOUS. */
@@ -163,8 +251,8 @@ export class AlranStoreApplication {
     const at = selector.lastIndexOf('@');
     const name = at > 0 ? selector.slice(0, at) : selector;
     const origin = at > 0 ? selector.slice(at + 1) : undefined;
-    const matches = catalog.items.filter(
-      (item) => item.kind === kind && item.name === name && (!origin || item.origin === origin),
+    const matches = (kind === 'plugin' ? catalog.plugins : catalog.skills).filter(
+      (item) => item.name === name && (!origin || item.origin === origin),
     );
     if (matches.length === 0) {
       throw new StoreError('NOT_FOUND', `No ${kind} named "${selector}". Try: alran ${kind === 'plugin' ? 'plugin' : 'skills'} search`);
@@ -283,19 +371,39 @@ export class AlranStoreApplication {
     return this.plugins.listMarketplacePlugins({ marketplace: 'official' }).catch(() => []);
   }
 
-  private async itemFor(
+  /**
+   * The names under `<data-dir>/skills` and `<data-dir>/plugins`. The catalogue asks what is
+   * installed for every entry it holds, and a store with a hundred thousand Skills would otherwise
+   * ask the file system a hundred thousand times; two listings answer for all of them.
+   */
+  private async installedNames(): Promise<InstalledNames> {
+    const list = async (kind: StoreEntryKind): Promise<ReadonlySet<string>> => {
+      const directory = path.join(this.options.dataDir, kind === 'plugin' ? 'plugins' : 'skills');
+      try {
+        const entries = await readdir(directory, { withFileTypes: true });
+        return new Set(entries.map((entry) => entry.name));
+      } catch (error) {
+        if (isMissing(error)) return new Set<string>();
+        throw error;
+      }
+    };
+    const [skill, plugin] = await Promise.all([list('skill'), list('plugin')]);
+    return { skill, plugin };
+  }
+
+  private itemFor(
     entry: StoreEntry,
     source: StoreSource,
     ledger: StoreLedger,
     localByName: ReadonlyMap<string, AlranPluginView>,
     builtInNames: ReadonlySet<string>,
-  ): Promise<StoreItem> {
+    installedNames: InstalledNames,
+  ): StoreItem {
     const table = entry.kind === 'plugin' ? ledger.plugins : ledger.skills;
     const record = table[entry.name];
     const owned = record?.source === source.id ? record : undefined;
     const runtimePlugin = entry.kind === 'plugin' ? localByName.get(entry.name) : undefined;
-    const directory = this.installer.installDirectory(entry.kind, entry.name);
-    const present = runtimePlugin !== undefined || (await pathExists(directory));
+    const present = runtimePlugin !== undefined || installedNames[entry.kind].has(entry.name);
     // Something sits under this name and no store recorded it: it is the person's own.
     const conflict =
       entry.kind === 'skill' && builtInNames.has(entry.name)
@@ -304,46 +412,59 @@ export class AlranStoreApplication {
           ? ('local' as const)
           : undefined;
     const installed = owned !== undefined && present;
-    const common = {
-      id: `${entry.kind}:${entry.name}@${source.id}`,
-      kind: entry.kind,
-      name: entry.name,
-      origin: source.id,
-      version: entry.version,
-      installed,
-      // Without a Runtime the on/off state of a Plugin cannot be read; an installed Plugin starts
-      // enabled, so that is what is reported until the Runtime says otherwise.
-      enabled:
-        installed &&
-        (entry.kind === 'skill' || (runtimePlugin ? runtimePlugin.enabled : this.plugins === undefined)),
-      updateAvailable:
-        installed &&
-        owned !== undefined &&
-        (owned.version !== entry.version || owned.contentDigest !== entry.archive.contentDigest),
-      ...(owned ? { installedVersion: owned.version } : {}),
-      ...(conflict ? { conflict } : {}),
-      entry,
-      ...(runtimePlugin ? { plugin: runtimePlugin } : {}),
-    };
+    // Without a Runtime the on/off state of a Plugin cannot be read; an installed Plugin starts
+    // enabled, so that is what is reported until the Runtime says otherwise.
+    const enabled =
+      installed &&
+      (entry.kind === 'skill' || (runtimePlugin ? runtimePlugin.enabled : this.plugins === undefined));
+    const updateAvailable =
+      installed &&
+      owned !== undefined &&
+      (owned.version !== entry.version || owned.contentDigest !== entry.archive.contentDigest);
+    // One shape for every item: a store with a hundred thousand Skills builds a hundred thousand of
+    // them, and a field that is sometimes missing would give each of them a shape of its own.
+    const id = `${entry.kind}:${entry.name}@${source.id}`;
     if (entry.kind === 'plugin') {
       return {
-        ...common,
+        id,
+        kind: 'plugin',
+        name: entry.name,
         displayName: entry.displayName,
         description: entry.description,
         author: entry.author,
         group: entry.category,
-        ...(entry.license ? { license: entry.license } : {}),
+        license: entry.license,
+        origin: source.id,
+        version: entry.version,
+        installedVersion: owned?.version,
+        installed,
+        enabled,
+        updateAvailable,
+        conflict,
         summary: pluginSummary(entry),
+        entry,
+        plugin: runtimePlugin,
       };
     }
     return {
-      ...common,
+      id,
+      kind: 'skill',
+      name: entry.name,
       displayName: entry.title,
       description: entry.description,
-      ...(entry.author ? { author: entry.author } : {}),
+      author: entry.author,
       group: entry.group,
-      ...(entry.license ? { license: entry.license } : {}),
+      license: entry.license,
+      origin: source.id,
+      version: entry.version,
+      installedVersion: owned?.version,
+      installed,
+      enabled,
+      updateAvailable,
+      conflict,
       summary: `${entry.files} ${entry.files === 1 ? 'file' : 'files'}`,
+      entry,
+      plugin: runtimePlugin,
     };
   }
 
@@ -388,34 +509,29 @@ export class AlranStoreApplication {
   }
 
   /** The Skills that ship inside Alran Code. They always win over a store Skill of the same name. */
-  private async builtInItems(): Promise<StoreItem[]> {
-    return (await this.readBundledSkills())
-      .map((skill) => ({
-        id: `skill:${skill.name}@${BUILT_IN_ORIGIN}`,
-        kind: 'skill' as const,
-        name: skill.name,
-        displayName: skill.name,
-        description: skill.description,
-        group: 'Built in',
-        origin: BUILT_IN_ORIGIN,
-        installed: true,
-        enabled: true,
-        updateAvailable: false,
-        summary: '',
-      }));
+  private builtInItems(bundledSkills: readonly BundledSkill[]): StoreItem[] {
+    return bundledSkills.map((skill) => ({
+      id: `skill:${skill.name}@${BUILT_IN_ORIGIN}`,
+      kind: 'skill' as const,
+      name: skill.name,
+      displayName: skill.name,
+      description: skill.description,
+      group: 'Built in',
+      origin: BUILT_IN_ORIGIN,
+      installed: true,
+      enabled: true,
+      updateAvailable: false,
+      summary: '',
+    }));
   }
 
   /** Skills the ledger knows whose store cannot be read right now. */
-  private async orphanedSkills(
-    existing: readonly StoreItem[],
-    ledger: StoreLedger,
-  ): Promise<StoreItem[]> {
-    const known = new Set(existing.filter((item) => item.kind === 'skill').map((item) => item.name));
+  private orphanedSkills(known: ReadonlySet<string>, ledger: StoreLedger): StoreItem[] {
     const result: StoreItem[] = [];
     for (const [name, record] of Object.entries(ledger.skills)) {
       if (known.has(name)) continue;
       const directory = this.installer.installDirectory('skill', name);
-      const text = await readTextIfExists(path.join(directory, 'SKILL.md'));
+      const text = readTextIfExistsSync(path.join(directory, 'SKILL.md'));
       if (text === undefined) continue;
       let description = '';
       try {

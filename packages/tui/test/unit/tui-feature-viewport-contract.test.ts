@@ -74,7 +74,12 @@ const factories: Record<string, Factory> = {
       updateAvailable: false,
       summary: '1 skill',
     }));
-    const catalog = { items, sources: [] };
+    const catalog = {
+      items,
+      plugins: items,
+      skills: [],
+      sources: [],
+    };
     return new TuiStoreScreen({
       catalog,
       actions: {

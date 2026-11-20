@@ -266,14 +266,13 @@ export class TuiStoreScreen implements TuiFeatureScreen, Component, Focusable {
 
   // ------------------------------------------------------------------- state
 
-  private items(tab: StoreTab): StoreItem[] {
-    const all = this.catalog.items;
+  private items(tab: StoreTab): readonly StoreItem[] {
     if (tab === 'plugins') {
-      return all.filter((item) => item.kind === 'plugin' && (item.entry !== undefined || item.origin === 'official'));
+      return this.catalog.plugins.filter((item) => item.entry !== undefined || item.origin === 'official');
     }
-    if (tab === 'skills') return all.filter((item) => item.kind === 'skill');
+    if (tab === 'skills') return this.catalog.skills;
     // Built-in Skills ship with Alran Code; they are in the Library, not among what someone installed.
-    if (tab === 'installed') return all.filter((item) => item.installed && !isBuiltIn(item));
+    if (tab === 'installed') return this.catalog.items.filter((item) => item.installed && !isBuiltIn(item));
     return [];
   }
 

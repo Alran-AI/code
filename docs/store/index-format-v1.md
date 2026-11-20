@@ -63,7 +63,7 @@ and deterministic ZIP, for Plugins and for Skills.
 | `plugins[].category` | One of the Plugin categories of the manifest schema (`Code`, `Business`, …) |
 | `plugins[].exampleQueries` | At most 3 are used |
 | `plugins[].contents` | What the package holds, for display. An install re-derives it from the archive |
-| `skills[].name` | `^[a-z0-9]+(-[a-z0-9]+)*$`, at most 64; equals the `name` in the Skill's `SKILL.md` |
+| `skills[].name` | `^[a-z0-9]+(-[a-z0-9]+)*$`, at most 128; equals the `name` in the Skill's `SKILL.md` |
 | `skills[].group` | The library group shown in the Skill Library |
 | `skills[].files` | Number of files in the archive, 1 to 1,024 |
 | `archive.url` | Relative to the index, or absolute `https:` (plain `http:` only for `localhost`); a `file:` URL only in an index that is itself a file |
@@ -86,7 +86,9 @@ or an entry that breaks a rule is refused with the path of the offending field.
 ## What a client does
 
 1. Read the index (HTTPS, or loopback `http`, or a file) and validate it. An index may be up to
-   64 MiB once it is decompressed and hold up to 200,000 entries; a larger one is refused.
+   256 MiB once it is decompressed and hold up to 200,000 entries; a larger one is refused. A Skill
+   is unpacked into a folder named after it, so its name is a path segment of the package it comes
+   from and is held to the same 128 bytes the package format allows.
 2. To install: download the archive, require its size and SHA-256 to match, read it with the strict V1
    reader, and require the content digest to match.
 3. Inspect the verified files: for a Plugin, list every MCP server command, hook command and

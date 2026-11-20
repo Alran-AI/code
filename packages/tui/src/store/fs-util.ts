@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, renameSync, rmSync } from 'node:fs';
+import { closeSync, mkdirSync, openSync, readFileSync, readSync, renameSync, rmSync } from 'node:fs';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -25,6 +25,45 @@ export async function readTextIfExists(file: string): Promise<string | undefined
   } catch (error) {
     if (isMissing(error)) return undefined;
     throw error;
+  }
+}
+
+/**
+ * The same, read at once. A catalogue that is built while the screen draws reads a handful of
+ * files, and a promise for each of them would hold the screen up.
+ */
+export function readTextIfExistsSync(file: string): string | undefined {
+  try {
+    return readFileSync(file, 'utf8');
+  } catch (error) {
+    if (isMissing(error)) return undefined;
+    throw error;
+  }
+}
+
+/**
+ * The first line of a file, if it has one.
+ *
+ * A file that is written in two parts — a line of what is known about it, and then the rest — is
+ * read without reading the rest. The cache of the Skills of a store holds a line like that in
+ * front of a hundred megabytes of Skills, and the line is all that is needed to know whether the
+ * Skills are the ones the cache expects.
+ */
+export function readFirstLineSync(file: string, maxBytes = 4_096): string | undefined {
+  let handle: number | undefined;
+  try {
+    handle = openSync(file, 'r');
+    const buffer = Buffer.alloc(maxBytes);
+    const read = readSync(handle, buffer, 0, maxBytes, 0);
+    if (read === 0) return undefined;
+    const text = buffer.toString('utf8', 0, read);
+    const end = text.indexOf('\n');
+    return end < 0 ? undefined : text.slice(0, end);
+  } catch {
+    // A file that cannot be read is a cache miss.
+    return undefined;
+  } finally {
+    if (handle !== undefined) closeSync(handle);
   }
 }
 

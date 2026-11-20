@@ -26,10 +26,10 @@ export const STORE_URL_ENVIRONMENT_VARIABLE = 'ALRAN_STORE_URL';
 export const STORE_LIMITS = {
   /**
    * The largest index the client accepts, in bytes, measured after the response is decompressed.
-   * The store Ottili hosts holds about 12 MB in 10,577 entries; 64 MiB leaves it room to grow
+   * The store Ottili hosts holds about 120 MB in 95,469 entries; 256 MiB leaves it room to grow
    * without making the limit meaningless.
    */
-  indexBytes: 64 * 1024 * 1024,
+  indexBytes: 256 * 1024 * 1024,
   /**
    * The most entries one index may hold. The byte limit is the real bound; this one keeps an index
    * of very many tiny entries from turning into a very long list.
@@ -38,6 +38,18 @@ export const STORE_LIMITS = {
   fetchTimeoutMs: 20_000,
   /** Cached indexes younger than this are used without asking the source again. */
   freshForMs: 6 * 60 * 60 * 1000,
+} as const;
+
+/**
+ * The longest names one index may hold. A Skill is unpacked into a folder named after it, so its
+ * name is a path segment of the package it comes from and is held to the same 128 bytes the package
+ * format allows. A Plugin name is not a path segment; it is short by tradition.
+ */
+export const STORE_NAME_LIMITS = {
+  /** A Skill in `skills[]`, and a Skill listed in the contents of a Plugin. */
+  skill: 128,
+  /** A Plugin in `plugins[]`. */
+  plugin: 80,
 } as const;
 
 export type StoreEntryKind = 'plugin' | 'skill';

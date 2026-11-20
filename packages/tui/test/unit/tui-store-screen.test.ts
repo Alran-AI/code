@@ -58,7 +58,14 @@ const staged = (overrides: Record<string, unknown> = {}) =>
   }) as never;
 
 function createScreen(options: { catalog?: Partial<StoreCatalog>; tab?: StoreTab; query?: string } = {}) {
-  const catalog: StoreCatalog = { items, sources: [source('ottili')], ...options.catalog };
+  const merged = { items, sources: [source('ottili')], ...options.catalog };
+  // The Store keeps the Plugins and the Skills apart, so that a list of Plugins does not build
+  // every Skill of the store.
+  const catalog: StoreCatalog = {
+    ...merged,
+    plugins: options.catalog?.plugins ?? merged.items.filter((entry) => entry.kind === 'plugin'),
+    skills: options.catalog?.skills ?? merged.items.filter((entry) => entry.kind === 'skill'),
+  };
   const actions = {
     stage: vi.fn(async () => staged()),
     commit: vi.fn(async () => ({ warnings: [] as string[] })),
@@ -307,7 +314,12 @@ describe('TuiStoreScreen', () => {
 
     it('refreshes the stores with Ctrl+R and reports one that cannot be read', async () => {
       const { screen, actions, text } = createScreen();
-      actions.reload.mockResolvedValue({ items, sources: [source('ottili'), source('acme', { index: undefined, error: 'offline' })] });
+      actions.reload.mockResolvedValue({
+        items,
+        plugins: items.filter((entry) => entry.kind === 'plugin'),
+        skills: items.filter((entry) => entry.kind === 'skill'),
+        sources: [source('ottili'), source('acme', { index: undefined, error: 'offline' })],
+      });
       screen.handleInput(CTRL_R);
       await vi.waitFor(() => expect(actions.reload).toHaveBeenCalledWith({ refresh: true }));
       await vi.waitFor(() => expect(text()).toContain('Refreshed; 1 store could not be read (see Stores).'));

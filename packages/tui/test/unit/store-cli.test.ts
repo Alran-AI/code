@@ -362,11 +362,17 @@ describe('the store index', () => {
     writeFileSync(
       path.join(data, 'store', 'cache', 'ottili.json'),
       JSON.stringify({
+        version: 2,
         url,
         fetchedAtMs,
+        skillsContentMs: fetchedAtMs,
         etag: '"one"',
-        text: JSON.stringify({ schema: 'alran.store/v1', name: 'Cached Store', plugins: [], skills: [] }),
+        index: { schema: 'alran.store/v1', name: 'Cached Store', plugins: [], skills: [] },
       }),
+    );
+    writeFileSync(
+      path.join(data, 'store', 'cache', 'ottili.skills.json'),
+      `${JSON.stringify({ version: 2, url, contentMs: fetchedAtMs })}\n${JSON.stringify({ skills: [] })}`,
     );
     const output = await searchStore(hostForUrl(url), 'plugin', { query: 'play' });
     expect(output).toContain('note: store "ottili" could not be reached');
@@ -379,7 +385,9 @@ describe('the store index', () => {
     truncateSync(big, STORE_LIMITS.indexBytes + 1);
     const output = await searchStore(hostForUrl(big), 'plugin', { query: 'play' });
     expect(output).toContain('note: store "ottili" rejected the index');
-    expect(output).toContain(`larger than the limit of ${STORE_LIMITS.indexBytes} bytes (64 MiB)`);
+    expect(output).toContain(
+      `larger than the limit of ${STORE_LIMITS.indexBytes} bytes (${STORE_LIMITS.indexBytes / 1024 / 1024} MiB)`,
+    );
   });
 });
 

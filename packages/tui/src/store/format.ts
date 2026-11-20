@@ -105,11 +105,39 @@ export function formatConsent(lines: readonly string[]): string {
   return ['  This package will run commands or connect to services:', ...lines.map((line) => `    • ${line}`)].join('\n');
 }
 
+/**
+ * The text of an item in lower case, kept so that a search does not lower it again. A store with a
+ * hundred thousand Skills carries thirty megabytes of description; lowercasing that on every
+ * keystroke is what made the search slow.
+ */
+interface SearchText {
+  readonly name: string;
+  readonly displayName: string;
+  readonly group: string;
+  readonly author: string;
+  readonly description: string;
+}
+
+const searchText = new WeakMap<StoreItem, SearchText>();
+
+function textOf(item: StoreItem): SearchText {
+  const held = searchText.get(item);
+  if (held) return held;
+  const prepared: SearchText = {
+    name: item.name.toLowerCase(),
+    displayName: item.displayName.toLowerCase(),
+    group: (item.group ?? '').toLowerCase(),
+    author: (item.author ?? '').toLowerCase(),
+    description: item.description.toLowerCase(),
+  };
+  searchText.set(item, prepared);
+  return prepared;
+}
+
 const score = (haystack: string, token: string, weight: number): number => {
-  const text = haystack.toLowerCase();
-  if (text === token) return weight * 4;
-  if (text.startsWith(token)) return weight * 3;
-  if (text.includes(token)) return weight * 2;
+  if (haystack === token) return weight * 4;
+  if (haystack.startsWith(token)) return weight * 3;
+  if (haystack.includes(token)) return weight * 2;
   return 0;
 };
 
@@ -123,14 +151,15 @@ export function searchItems(items: readonly StoreItem[], query: string): StoreIt
   if (tokens.length === 0) return [...items];
   const ranked: { item: StoreItem; points: number; index: number }[] = [];
   items.forEach((item, index) => {
+    const text = textOf(item);
     let points = 0;
     for (const token of tokens) {
       const found =
-        score(item.name, token, 50) +
-        score(item.displayName, token, 30) +
-        score(item.group ?? '', token, 10) +
-        score(item.author ?? '', token, 5) +
-        score(item.description, token, 1);
+        score(text.name, token, 50) +
+        score(text.displayName, token, 30) +
+        score(text.group, token, 10) +
+        score(text.author, token, 5) +
+        score(text.description, token, 1);
       if (found === 0) return;
       points += found;
     }
