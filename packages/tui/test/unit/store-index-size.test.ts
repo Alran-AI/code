@@ -1,15 +1,15 @@
 import { gzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 
-import { STORE_LIMITS } from '../../src/store/contract.js';
+import { STORE_LIMITS, STORE_NAME_LIMITS } from '../../src/store/contract.js';
 import { parseStoreIndex } from '../../src/store/index-format.js';
 import { createStoreTransport } from '../../src/store/transport.js';
 
 const URL = 'https://store.example/v1/store/index.json';
 
-/** The live store holds 202 Plugins and 10,375 Skills in about 12 MB. */
-const PLUGINS = 202;
-const SKILLS = 10_375;
+/** The live store holds 416 Plugins and 95,053 Skills in about 120 MB. */
+const PLUGINS = 416;
+const SKILLS = 95_053;
 
 function buildIndex(descriptionBytes: number): string {
   const description = 'd'.repeat(descriptionBytes);
@@ -69,10 +69,10 @@ function fakeFetch(replies: readonly FakeReply[]) {
 }
 
 describe('the store index size limit', () => {
-  it('accepts an index of about 12 MB with 202 Plugins and 10,375 Skills', async () => {
+  it('accepts an index of about 120 MB with 416 Plugins and 95,053 Skills', async () => {
     const text = buildIndex(880);
-    expect(Buffer.byteLength(text)).toBeGreaterThan(11 * 1024 * 1024);
-    expect(Buffer.byteLength(text)).toBeLessThan(13 * 1024 * 1024);
+    expect(Buffer.byteLength(text)).toBeGreaterThan(110 * 1024 * 1024);
+    expect(Buffer.byteLength(text)).toBeLessThan(256 * 1024 * 1024);
 
     const { impl } = fakeFetch([{ body: text }]);
     const transport = createStoreTransport({ fetch: impl });
@@ -119,5 +119,40 @@ describe('the store index size limit', () => {
     await expect(transport.readText(URL, { maxBytes: 1_024 })).rejects.toMatchObject({
       code: 'SOURCE_REJECTED',
     });
+  });
+});
+
+describe('the store index name limits', () => {
+  /** A Skill is unpacked into a folder named after it, so its name is a path segment. */
+  const skillNamed = (name: string) => ({
+    kind: 'skill',
+    name,
+    title: 'Long',
+    version: '1.0.0',
+    description: 'A Skill with a long name.',
+    group: 'Group',
+    files: 1,
+    archive: {
+      url: 'https://store.example/v1/store/archives/skill.zip',
+      size: 22,
+      archiveSha256: 'a'.repeat(64),
+      contentDigest: `sha256-tree-v1:${'b'.repeat(64)}`,
+    },
+  });
+
+  const indexWith = (name: string): string =>
+    JSON.stringify({ schema: 'alran.store/v1', name: 'Store', plugins: [], skills: [skillNamed(name)] });
+
+  it('takes a Skill name as long as a path segment may be', () => {
+    const name = `a-${'b'.repeat(STORE_NAME_LIMITS.skill - 2)}`;
+    expect(name).toHaveLength(STORE_NAME_LIMITS.skill);
+    const index = parseStoreIndex(indexWith(name), URL);
+    expect(index.skills[0]?.name).toBe(name);
+  });
+
+  it('refuses a Skill name that is longer than a path segment', () => {
+    const name = `a-${'b'.repeat(STORE_NAME_LIMITS.skill - 1)}`;
+    expect(name).toHaveLength(STORE_NAME_LIMITS.skill + 1);
+    expect(() => parseStoreIndex(indexWith(name), URL)).toThrow(/at most 128 characters/u);
   });
 });

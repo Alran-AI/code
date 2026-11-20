@@ -70,7 +70,8 @@ function sourceNotes(catalog: StoreCatalog): string[] {
 }
 
 function ofKind(catalog: StoreCatalog, kind: StoreEntryKind): StoreItem[] {
-  return catalog.items.filter((item) => item.kind === kind);
+  // The two lists are kept apart, so that a command about Plugins does not build the Skills.
+  return kind === 'plugin' ? [...catalog.plugins] : [...catalog.skills];
 }
 
 function groupedTable(items: readonly StoreItem[], width: number): string {

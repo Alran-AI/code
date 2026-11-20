@@ -7,6 +7,7 @@ import {
   SKILL_NAME_PATTERN,
   STORE_INDEX_SCHEMA,
   STORE_LIMITS,
+  STORE_NAME_LIMITS,
   StoreError,
   type PluginCategory,
   type StoreArchiveRef,
@@ -19,6 +20,23 @@ import { ARCHIVE_LIMITS } from './archive.js';
 import { oneLine } from './text.js';
 
 type Json = Record<string, unknown>;
+
+/** The address an index was read from, and what may be resolved against it. */
+interface IndexBase {
+  readonly url: URL;
+  /** An index read over the network must not make the client read local files. */
+  readonly remote: boolean;
+}
+
+function readBaseUrl(baseUrl: string): IndexBase {
+  let url: URL;
+  try {
+    url = new URL(baseUrl);
+  } catch {
+    throw invalid('', 'was read from an address that is not a URL');
+  }
+  return { url, remote: url.protocol === 'https:' || url.protocol === 'http:' };
+}
 
 /**
  * Parses and validates a store index. `baseUrl` is the absolute URL (a `file:` URL for a local
@@ -33,15 +51,18 @@ export function parseStoreIndex(text: string, baseUrl: string): StoreIndex {
   } catch (error) {
     throw invalid('', `is not JSON (${error instanceof Error ? error.message : String(error)})`);
   }
+  // The base is read once: an index of a hundred thousand archives would otherwise parse it a
+  // hundred thousand times over.
+  const base = readBaseUrl(baseUrl);
   const root = record(document, '');
   if (root.schema !== STORE_INDEX_SCHEMA) {
     throw invalid('schema', `must be "${STORE_INDEX_SCHEMA}"`);
   }
   const plugins = array(root.plugins ?? [], 'plugins').map((item, index) =>
-    readPlugin(item, `plugins[${index}]`, baseUrl),
+    readPlugin(item, `plugins[${index}]`, base),
   );
   const skills = array(root.skills ?? [], 'skills').map((item, index) =>
-    readSkill(item, `skills[${index}]`, baseUrl),
+    readSkill(item, `skills[${index}]`, base),
   );
   if (plugins.length + skills.length > STORE_LIMITS.entries) {
     throw invalid('', `holds more than ${STORE_LIMITS.entries} entries`);
@@ -60,9 +81,9 @@ export function parseStoreIndex(text: string, baseUrl: string): StoreIndex {
   };
 }
 
-function readPlugin(value: unknown, at: string, baseUrl: string): StorePluginEntry {
+function readPlugin(value: unknown, at: string, base: IndexBase): StorePluginEntry {
   const item = record(value, at);
-  const name = text1(item.name, `${at}.name`, 80);
+  const name = text1(item.name, `${at}.name`, STORE_NAME_LIMITS.plugin);
   if (!PLUGIN_NAME_PATTERN.test(name)) throw invalid(`${at}.name`, 'is not a Plugin name');
   const category = text1(item.category, `${at}.category`, 64);
   if (!(PLUGIN_CATEGORIES as readonly string[]).includes(category)) {
@@ -84,7 +105,7 @@ function readPlugin(value: unknown, at: string, baseUrl: string): StorePluginEnt
       .slice(0, 3)
       .map((query, index) => text1(query, `${at}.exampleQueries[${index}]`, 500)),
     contents: readContents(item.contents, `${at}.contents`),
-    archive: readArchive(item.archive, `${at}.archive`, baseUrl),
+    archive: readArchive(item.archive, `${at}.archive`, base),
   };
 }
 
@@ -95,7 +116,7 @@ function readContents(value: unknown, at: string): StorePluginContents {
       const entry = record(skill, `${at}.skills[${index}]`);
       const description = optionalText(entry.description, `${at}.skills[${index}].description`, 4_000);
       return {
-        name: text1(entry.name, `${at}.skills[${index}].name`, 80),
+        name: text1(entry.name, `${at}.skills[${index}].name`, STORE_NAME_LIMITS.skill),
         ...(description ? { description } : {}),
       };
     }),
@@ -109,9 +130,9 @@ function readContents(value: unknown, at: string): StorePluginContents {
   };
 }
 
-function readSkill(value: unknown, at: string, baseUrl: string): StoreSkillEntry {
+function readSkill(value: unknown, at: string, base: IndexBase): StoreSkillEntry {
   const item = record(value, at);
-  const name = text1(item.name, `${at}.name`, 64);
+  const name = text1(item.name, `${at}.name`, STORE_NAME_LIMITS.skill);
   if (!SKILL_NAME_PATTERN.test(name)) throw invalid(`${at}.name`, 'is not a Skill name');
   const author = optionalText(item.author, `${at}.author`, 200);
   const license = optionalText(item.license, `${at}.license`, 128);
@@ -125,25 +146,23 @@ function readSkill(value: unknown, at: string, baseUrl: string): StoreSkillEntry
     ...(author ? { author } : {}),
     ...(license ? { license } : {}),
     files: integer(item.files, `${at}.files`, 1, ARCHIVE_LIMITS.files),
-    archive: readArchive(item.archive, `${at}.archive`, baseUrl),
+    archive: readArchive(item.archive, `${at}.archive`, base),
   };
 }
 
-function readArchive(value: unknown, at: string, baseUrl: string): StoreArchiveRef {
+function readArchive(value: unknown, at: string, base: IndexBase): StoreArchiveRef {
   const item = record(value, at);
   const rawUrl = text1(item.url, `${at}.url`, 2_048);
   let resolved: URL;
   try {
-    resolved = new URL(rawUrl, baseUrl);
+    resolved = new URL(rawUrl, base.url);
   } catch {
     throw invalid(`${at}.url`, 'is not a URL');
   }
-  // An index read over the network must not make the client read local files.
-  const remote = /^https?:$/u.test(new URL(baseUrl).protocol);
   if (resolved.protocol !== 'https:' && resolved.protocol !== 'http:' && resolved.protocol !== 'file:') {
     throw invalid(`${at}.url`, 'must be an https or file URL');
   }
-  if (remote && resolved.protocol === 'file:') {
+  if (base.remote && resolved.protocol === 'file:') {
     throw invalid(`${at}.url`, 'must not be a file URL in an index that was fetched');
   }
   const url = resolved.toString();
