@@ -75,6 +75,10 @@ Text fields are single-line: whitespace is collapsed and control characters (inc
 escapes and bidi overrides) are replaced by a visible `\u{…}` escape when the index is read. An index
 or an entry that breaks a rule is refused with the path of the offending field.
 
+The name of an archive carries a part of the hash of its bytes (`<name>-<version>-<8 hex digits>.zip`).
+The same content keeps the same name, changed content gets a new one: a CDN that still holds the bytes
+of an earlier build under the old name can then never answer a request for the new content.
+
 ## Archives
 
 - A **Plugin** archive has `.alran-plugin/plugin.json` at its root. The manifest's `name` and `version`
