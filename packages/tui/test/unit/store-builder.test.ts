@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -89,6 +90,23 @@ function build() {
   return buildStore({ source }) as { files: Map<string, Buffer>; summary: { plugins: number; skills: number } };
 }
 
+type BuiltIndex = {
+  plugins: { name: string; archive: { url: string } }[];
+  skills: { name: string; archive: { url: string } }[];
+};
+
+/** The index a build wrote, as the builder writes it. */
+function indexOf(files: Map<string, Buffer>): BuiltIndex {
+  return JSON.parse(files.get('index.json')?.toString('utf8') ?? '{}') as BuiltIndex;
+}
+
+/** The archive of the Skill or Plugin of that name: the index says what it is called. */
+function archiveOf(files: Map<string, Buffer>, kind: 'plugins' | 'skills', name: string): Buffer {
+  const entry = indexOf(files)[kind].find((item) => item.name === name);
+  if (!entry) throw new Error(`the build holds no ${kind} entry named ${name}`);
+  return files.get(entry.archive.url) as Buffer;
+}
+
 function buildError(): string {
   try {
     build();
@@ -114,7 +132,7 @@ describe('store builder', () => {
   it('leaves excluded Skills and build leftovers out', () => {
     const { files } = build();
     expect([...files.keys()].some((name) => name.includes('ref-alpha'))).toBe(false);
-    const archive = parsePluginArchive(files.get('archives/skill-alpha-1.0.0.zip') as Buffer);
+    const archive = parsePluginArchive(archiveOf(files, 'skills', 'alpha'));
     expect(archive.entries.map((entry) => entry.path).sort()).toEqual([
       'SKILL.md',
       'references/notes.md',
@@ -194,7 +212,7 @@ describe('store builder', () => {
       const index = JSON.parse(files.get('index.json')?.toString('utf8') ?? '{}');
       expect(index.skills.map((entry: { name: string }) => entry.name)).toEqual(['gamma']);
       expect([...files.keys()].some((name) => name.includes('skill-alpha'))).toBe(false);
-      const plugin = parsePluginArchive(files.get('archives/plugin-bundle-one-1.0.0.zip') as Buffer);
+      const plugin = parsePluginArchive(archiveOf(files, 'plugins', 'bundle-one'));
       expect(plugin.entries.map((entry) => entry.path)).toContain('skills/alpha/SKILL.md');
       expect(plugin.entries.map((entry) => entry.path)).toContain('skills/beta/SKILL.md');
     });
@@ -208,7 +226,7 @@ describe('store builder', () => {
         files: [{ from: 'shared/LICENSE.txt', to: 'LICENSE.txt' }],
       };
       write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ plugins: [plugin] })));
-      const archive = parsePluginArchive(build().files.get('archives/plugin-bundle-one-1.0.0.zip') as Buffer);
+      const archive = parsePluginArchive(archiveOf(build().files, 'plugins', 'bundle-one'));
       const paths = archive.entries.map((entry) => entry.path);
       expect(paths).toContain('references/security.md');
       expect(paths).toContain('LICENSE.txt');
@@ -231,8 +249,13 @@ describe('store builder', () => {
       const index = JSON.parse(build().files.get('index.json')?.toString('utf8') ?? '{}');
       const versions = Object.fromEntries(index.skills.map((entry: { name: string; version: string }) => [entry.name, entry.version]));
       expect(versions).toEqual({ alpha: '2026.11.13+abc1234', beta: '2026.11.13+abc1234', gamma: '1.0.0' });
-      // The archive file name carries the version without the "+" of its build metadata.
-      expect(index.skills[0].archive.url).toBe('archives/skill-alpha-2026.11.13-abc1234.zip');
+      // The archive file name carries the version without the "+" of its build metadata, and a
+      // part of the hash of its bytes: the same content keeps the same name, changed content gets
+      // a new one, and a CDN that holds the bytes of an earlier build cannot answer for them.
+      const url = index.skills[0].archive.url;
+      expect(url).toMatch(/^archives\/skill-alpha-2026\.11\.13-abc1234-[0-9a-f]{8}\.zip$/u);
+      const bytes = build().files.get(url) as Buffer;
+      expect(url.endsWith(`-${createHash('sha256').update(bytes).digest('hex').slice(0, 8)}.zip`)).toBe(true);
       write(path.join(source, 'store', 'store.config.json'), JSON.stringify(config({ skills: skillsConfig({ versions: { one: 'latest' } }) })));
       expect(buildError()).toMatch(/version "latest" is not SemVer/u);
     });
