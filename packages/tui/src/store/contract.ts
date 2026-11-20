@@ -52,6 +52,13 @@ export const STORE_NAME_LIMITS = {
   plugin: 80,
 } as const;
 
+/**
+ * The most files the archive of one Skill may hold, as the index says it. A Skill is a folder of
+ * documents; a Plugin of the Store is a whole source of Skills and is bounded by the archive
+ * limits of the reader instead.
+ */
+export const STORE_SKILL_FILES = 1_024;
+
 export type StoreEntryKind = 'plugin' | 'skill';
 
 export const PLUGIN_CATEGORIES = [

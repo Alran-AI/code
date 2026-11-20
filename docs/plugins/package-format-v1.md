@@ -36,7 +36,10 @@ The manifest follows `schemas/plugins/plugin-v1.schema.json`. V1 has four kinds 
 - `mcpServers`: one or more `*.mcp.json` files (`schemas/plugins/mcp-v1.schema.json`) of the form
   `{ "schemaVersion": 1, "mcpServers": { "<name>": <config> } }`.
 - `skills`: `skills/<skill-name>/SKILL.md`. The file is UTF-8 without a BOM and starts with YAML
-  frontmatter that has a `name` equal to the directory name and a non-empty `description`.
+  frontmatter that has a `name` equal to the directory name and a non-empty `description`. A
+  frontmatter that YAML cannot read, or a `name` or `description` that YAML reads as something
+  other than text, is read field by field: the rules are about the fields, and a Skill is written
+  by whoever wrote it.
 - `hooks` (optional): one or more JSON files of the form
   `{"hooks":{"<Event>":[{"matcher":"...","hooks":[...]}]}}`. Only handlers of `type=command` without
   `async=true` run and count; a package has at most 64 of them, and a handler's `timeout` is 1 to 10
@@ -119,13 +122,17 @@ closed:
 | Item | V1 limit |
 | --- | ---: |
 | raw archive bytes | 64 MiB |
-| archive entries (with directories) | 2,048 |
-| regular files | 1,024 |
+| archive entries (with directories) | 16,384 |
+| regular files | 16,384 |
 | bytes of one unpacked file | 16 MiB |
 | bytes of all regular files unpacked | 64 MiB |
 | path bytes | 512 |
 | segment bytes | 128 |
 | path segments | 16 |
+
+A Plugin of the Alran Store is a whole source of Skills rather than one package, so it holds many
+files: the largest one in the store holds 10,691. The entry and file limits leave room for it, and
+the bytes of the archive are still what bounds the work of unpacking one.
 
 A V1 archive is a ZIP without a wrapper directory and with `STORE` (method 0) only:
 

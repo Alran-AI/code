@@ -8,8 +8,10 @@ import { isMiniAppRuntimePayloadExcludedPath, isPathCoveredByRoots } from './min
 
 export const PLUGIN_PACKAGE_V1_LIMITS = {
   maxArchiveBytes: 64 * 1024 * 1024,
-  maxArchiveEntries: 2_048,
-  maxFiles: 1_024,
+  // A Plugin of the Store is a whole source of Skills, not one package: the largest one holds
+  // 10,691 files. The bytes of the archive are what bound the work of unpacking it.
+  maxArchiveEntries: 16_384,
+  maxFiles: 16_384,
   maxFileBytes: 16 * 1024 * 1024,
   maxTotalBytes: 64 * 1024 * 1024,
   maxPathBytes: 512,

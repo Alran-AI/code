@@ -8,6 +8,7 @@ import {
   STORE_INDEX_SCHEMA,
   STORE_LIMITS,
   STORE_NAME_LIMITS,
+  STORE_SKILL_FILES,
   StoreError,
   type PluginCategory,
   type StoreArchiveRef,
@@ -145,7 +146,7 @@ function readSkill(value: unknown, at: string, base: IndexBase): StoreSkillEntry
     group: text1(item.group, `${at}.group`, 80),
     ...(author ? { author } : {}),
     ...(license ? { license } : {}),
-    files: integer(item.files, `${at}.files`, 1, ARCHIVE_LIMITS.files),
+    files: integer(item.files, `${at}.files`, 1, STORE_SKILL_FILES),
     archive: readArchive(item.archive, `${at}.archive`, base),
   };
 }
