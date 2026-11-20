@@ -124,6 +124,28 @@ describe('store archive reader', () => {
     expect(readStoreArchive(withDirectory).contentDigest).toBe(computeContentDigest([file('a.txt', '1')]));
   });
 
+  it('reads a Plugin that holds a whole source of Skills', () => {
+    // The largest Plugin of the Store holds 10,691 files; it used to be refused as too many.
+    const files = Array.from({ length: 3_000 }, (_value, index) =>
+      file(`skills/skill-${index}/SKILL.md`, `name: skill-${index}`),
+    );
+    const archive = buildArchive(files) as Buffer;
+
+    const mine = readStoreArchive(archive);
+    const runtime = parsePluginArchive(archive);
+
+    expect(mine.files).toHaveLength(3_000);
+    expect(mine.contentDigest).toBe(runtime.digest.contentDigest);
+  });
+
+  it('refuses an archive with more files than the limit', () => {
+    const files = Array.from({ length: 16_385 }, (_value, index) =>
+      file(`skills/skill-${index}/SKILL.md`, 'x'),
+    );
+    const archive = buildArchive(files) as Buffer;
+    expect(errorCode(() => readStoreArchive(archive))).toBe('TOO_MANY_ENTRIES');
+  });
+
   it('checks portable paths on their own', () => {
     expect(() => assertPortablePath('skills/research/SKILL.md')).not.toThrow();
     expect(() => assertPortablePath('a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q')).toThrow(StoreArchiveError);

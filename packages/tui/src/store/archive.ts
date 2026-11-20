@@ -10,8 +10,15 @@ import { createHash } from 'node:crypto';
 
 export const ARCHIVE_LIMITS = {
   archiveBytes: 64 * 1024 * 1024,
-  entries: 2_048,
-  files: 1_024,
+  /**
+   * The most entries and the most files one archive may hold.
+   *
+   * A Skill holds a handful of files, but a Plugin of the Store is a whole source of Skills: the
+   * largest one holds 10,691 files. The limits are the same ones the package format sets, and
+   * the bytes of an archive are still what bounds the work of unpacking it.
+   */
+  entries: 16_384,
+  files: 16_384,
   fileBytes: 16 * 1024 * 1024,
   totalBytes: 64 * 1024 * 1024,
   pathBytes: 512,

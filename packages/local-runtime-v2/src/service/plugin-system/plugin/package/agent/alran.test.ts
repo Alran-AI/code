@@ -208,6 +208,34 @@ describe('Alran Plugin Agents', () => {
   });
 });
 
+describe('Alran Plugin Skills', () => {
+  it('reads a Skill whose frontmatter YAML cannot read', async () => {
+    const root = await pluginRoot('alran-skill-frontmatter');
+    await writePluginTree(
+      root,
+      alranPluginFiles(
+        { skills: ['skills/research/SKILL.md', 'skills/notes/SKILL.md'] },
+        {
+          // A plain value that holds a colon and a space is not YAML.
+          'skills/research/SKILL.md':
+            '---\nname: research\ndescription: Trigger words: research, plan\n---\nGo.\n',
+          // A value that was written as a list is a list to YAML, and text to the Store.
+          'skills/notes/SKILL.md': '---\nname: notes\ndescription: [TODO: write this]\n---\nGo.\n',
+        },
+      ),
+    );
+
+    const plugin = await readAlranPlugin(root, { source: 'LOCAL_ALRAN' });
+
+    expect(plugin.diagnostics).toEqual([]);
+    expect(plugin.skills.map((skill) => skill.name)).toEqual(['research', 'notes']);
+    expect(plugin.skills.map((skill) => skill.description)).toEqual([
+      'Trigger words: research, plan',
+      '[TODO: write this]',
+    ]);
+  });
+});
+
 async function pluginRoot(label: string): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), `${label}-`));
   roots.push(root);
