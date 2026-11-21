@@ -1084,20 +1084,45 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
    * count: enough for the worker and the verifier to proceed, with no model and
    * no network. The gate is a real shell command, so it still runs.
    */
-  function stubAlran(): readonly string[] {
+  function stubAlran(options: { readonly tokens?: number } = {}): readonly string[] {
     const dir = tempDir();
     const script = path.join(dir, 'stub-alran.mjs');
     writeFileSync(
       script,
       [
+        'import { appendFileSync } from "node:fs";',
         'process.stdin.resume();',
         'process.stdin.on("data", () => {});',
-        'process.stdout.write(JSON.stringify({ output: "PASS", usage: { totalTokens: 120 } }));',
+        '// Each call is one billed step, so a test can count worker runs across a resume.',
+        'if (process.env.ULTRA_STUB_COUNTER) appendFileSync(process.env.ULTRA_STUB_COUNTER, "call\\n");',
+        `process.stdout.write(JSON.stringify({ output: "PASS", usage: { totalTokens: ${String(options.tokens ?? 120)} } }));`,
         '',
       ].join('\n'),
     );
     return [process.execPath, script];
   }
+
+  /** Two packets, one after the other, and no planning cost to muddy the budget. */
+  const sequentialPorts: UltraPlanPorts = {
+    scope: async () => ({ ok: true, reason: 'big' }),
+    explore: async (brief) => ({ role: brief.role, text: 'x' }),
+    plan: async () => ({
+      packets: [
+        { id: 'p1', title: 'First', goal: 'Do it', scope: ['src/p1/**'], depends_on: [], accept: [{ cmd: 'true' }] },
+        {
+          id: 'p2',
+          title: 'Second',
+          goal: 'Then this',
+          scope: ['src/p2/**'],
+          depends_on: ['p1'],
+          accept: [{ cmd: 'true' }],
+        },
+      ],
+    }),
+    critique: async () => ({ ok: true, problems: [] }),
+    // Integrate refuses to succeed without a project-wide suite.
+    readGateSources: async () => ({ packageJson: { scripts: { test: 'true' } } }),
+  };
 
   /** Real adapters; only the model calls are stubbed, git and the gates are real. */
   function realAdapters(cwd: string) {
@@ -1120,6 +1145,43 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
     expect(output()).toMatch(/Integrate: succeeded/iu);
     // `exitCodes` is empty on success; asserting it keeps a silent failure loud.
     expect(exitCodes).toEqual([]);
+    expect(protectedRefs(repo, remote)).toBe(before);
+  });
+
+  it('pauses at the cap and resumes without repeating finished packets (ULT-04)', async () => {
+    const { repo, remote } = repoWithRemote();
+    const before = protectedRefs(repo, remote);
+    // Counting calls is the point: a resume that redoes a finished packet would
+    // show up here as a second worker run for p1.
+    const counter = path.join(tempDir(), 'worker-calls.txt');
+    const env = { ...process.env, ULTRA_STUB_COUNTER: counter };
+    const calls = (): number =>
+      existsSync(counter) ? readFileSync(counter, 'utf8').split('\n').filter(Boolean).length : 0;
+
+    const context = { cwd: repo, env, alranCommand: stubAlran({ tokens: 120 }) };
+    const adapters = {
+      execAdapters: createUltraExecAdapters(context),
+      integrateAdapters: createUltraIntegrateAdapters(context),
+      planPorts: sequentialPorts,
+    };
+
+    // Each model call is 120 tokens = $0.0012, so a $0.002 cap is spent by the
+    // first packet's worker and verifier. The next packet must pause, not fail.
+    const first = harness(repo, adapters);
+    await first.program.parseAsync(['ultra', 'a big task', '--budget', '0.002'], { from: 'user' });
+    expect(first.output()).toMatch(/paused/iu);
+    const runId = runDirs(repo)[0]!;
+    // p1's worker, p1's verifier, and the final review of the partial merge.
+    expect(calls()).toBe(3);
+
+    // Resuming with a raised cap finishes the run, and p1 is not redone.
+    const second = harness(repo, adapters);
+    await second.program.parseAsync(['ultra', 'resume', runId, '--budget', '1'], { from: 'user' });
+    expect(second.output()).toMatch(/succeeded/iu);
+    // p2's worker, p2's verifier, and the review of the completed run: p1 was
+    // not called again, which is the whole point of resuming.
+    expect(calls()).toBe(6);
+    // The finished packet's work is on the run branch, and nothing touched main.
     expect(protectedRefs(repo, remote)).toBe(before);
   });
 

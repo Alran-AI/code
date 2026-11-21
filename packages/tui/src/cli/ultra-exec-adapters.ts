@@ -403,18 +403,23 @@ export function createUltraExecAdapters(context: UltraExecAdapterContext): Ultra
         timeoutMs: 10 * 60_000,
         permission: 'off',
       });
+      // The verifier is a billed step like any other. Dropping its cost here
+      // would understate every packet's spend, so the budget would pause later
+      // than the money actually ran out.
+      const cost = result.costUsd !== undefined ? { costUsd: result.costUsd } : {};
       if (!result.ok) {
         return {
           pass: false,
           reasons: [`verifier failed to run: ${result.error ?? 'unknown error'}`],
           tokensUsed: result.tokensUsed,
           model: input.model,
+          ...cost,
           // A throttled verifier is retryable, not a verdict against the change.
           ...(result.rateLimited ? { rateLimited: true } : {}),
         };
       }
       const verdict = parseVerdict(result.text);
-      return { ...verdict, tokensUsed: result.tokensUsed, model: input.model };
+      return { ...verdict, tokensUsed: result.tokensUsed, model: input.model, ...cost };
     },
   };
 
@@ -461,22 +466,43 @@ export function createUltraIntegrateAdapters(
   const gateTimeoutMs = context.gateTimeoutMs ?? 15 * 60_000;
   const runDir = path.join(context.worktreesDir ?? path.join(context.cwd, '.alran', 'worktrees'), '_integrate');
 
+  /**
+   * Drops the scratch worktree, if a previous pass left one behind.
+   *
+   * It has to go before the run branch is reset: git refuses to force-update a
+   * branch that is checked out somewhere ("cannot force update the branch ...
+   * used by worktree at ..."), so a resumed run whose first pass reached
+   * integrate could never integrate again. The tree is disposable — it holds
+   * only the merge in progress — so removing it loses nothing.
+   */
+  const removeScratchWorktree = (): void => {
+    if (existsSync(runDir)) {
+      try {
+        git(context.cwd, ['worktree', 'remove', '--force', runDir], context.env);
+      } catch {
+        // Not registered (or already gone); the rm below still clears the path.
+      }
+      rmSync(runDir, { recursive: true, force: true });
+    }
+    try {
+      git(context.cwd, ['worktree', 'prune'], context.env);
+    } catch {
+      // Best effort: a stale registration is harmless once the path is gone.
+    }
+  };
+
   const gitPorts: ultra.IntegratePorts['git'] = {
     async createRunBranch({ branch, baseRef }) {
+      removeScratchWorktree();
       mkdirSync(runDir, { recursive: true });
-      // `-B` resets the branch to the base commit, so a re-run after a failed
+      // `-f` resets the branch to the base commit, so a re-run after a failed
       // integrate starts from the packets' real base rather than a half-merge.
       git(context.cwd, ['branch', '-f', branch, baseRef], context.env);
     },
     async merge({ packetId, branch, packetBranch }) {
       // Merge inside a scratch worktree checked out on the run branch, so the
       // user's own working tree is never touched by integrate.
-      if (existsSync(runDir)) rmSync(runDir, { recursive: true, force: true });
-      try {
-        git(context.cwd, ['worktree', 'prune'], context.env);
-      } catch {
-        // Best effort; add -B below still handles the branch.
-      }
+      removeScratchWorktree();
       try {
         git(context.cwd, ['worktree', 'add', runDir, branch], context.env);
       } catch (error) {
