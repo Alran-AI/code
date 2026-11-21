@@ -83,6 +83,25 @@ describe('plan phase', () => {
     expect(result.plan.packets).toEqual([]);
   });
 
+  it('plans anyway when the human forces it past a scope decline', async () => {
+    // The routing call is conservative by design, and a live run declined three
+    // tasks with good reasons. A human who knows the repository needs to be able
+    // to overrule it — but the report must still say the router disagreed.
+    const ports = fakePorts({
+      scope: async () => ({ ok: false, reason: 'two modules, no fan-out' }),
+    });
+    const result = await runPlanPhase({
+      goal: 'migrate everything',
+      recipe: 'auto',
+      roles,
+      ports,
+      forceScope: true,
+    });
+    expect(result.declined).toBeUndefined();
+    expect(result.forcedScope).toContain('no fan-out');
+    expect(result.plan.packets.length).toBeGreaterThan(0);
+  });
+
   it('surfaces an invalid draft through the critic instead of throwing', async () => {
     const ports = fakePorts({
       plan: async () => ({

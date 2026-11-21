@@ -115,6 +115,17 @@ function runId(now: Date): string {
  * become an unlimited run.
  */
 /**
+ * The model every Ultra role uses unless one is configured.
+ *
+ * Empty means "the model this CLI is configured with", which is what the rest of
+ * the product does when you pass no `--model`. A hard-coded provider-qualified id
+ * here is a silent assumption about which providers the user is signed in to, and
+ * that is exactly what a live run hit: the explorers, which pass no model, worked
+ * while the planner died with `401 This session is not valid`.
+ */
+const DEFAULT_ROLE_MODEL = '';
+
+/**
  * The recipe files for a repository, or nothing if there are none (spec §8).
  *
  * A broken file throws, which the command turns into a failed run: a rule the
@@ -213,8 +224,8 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
     config: {
       workers: input.workers,
       maxRepairs: input.maxRepairs,
-      workerModel: input.roles?.planner ?? 'alran/Alran-Werk',
-      verifierModel: input.roles?.critic ?? 'alran/Alran-Werk',
+      workerModel: input.roles?.planner ?? DEFAULT_ROLE_MODEL,
+      verifierModel: input.roles?.critic ?? DEFAULT_ROLE_MODEL,
     },
     ...(input.sleep ? { sleep: input.sleep } : {}),
     ...(input.baseRef ? { baseRef: input.baseRef } : {}),
@@ -253,7 +264,7 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
     config: {
       baseRef: input.baseRef ?? 'HEAD',
       runBranch: ultra.runBranchFor(store.state.runId),
-      reviewModel: input.roles?.critic ?? 'alran/Alran-Werk',
+      reviewModel: input.roles?.critic ?? DEFAULT_ROLE_MODEL,
     },
   });
 
@@ -509,6 +520,11 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       .option('--max-repairs <count>', 'repair attempts per packet', '2')
       .option('--base <ref>', 'commit to branch from (default: current HEAD)')
       .option('--stash', 'allow starting on a dirty tree by snapshotting it')
+      .option('--model <id>', 'model for every Ultra role (default: the configured model)')
+      .option(
+        '--force-scope',
+        'plan and run even when the scope check says the task does not need Ultra',
+      )
       .option('--yes', 'skip the cost confirmation (the budget cap still applies)')
       .option('--detach', 'start the run in the background and return at once')
       // Internal: the detached child continues the run the parent already
@@ -750,20 +766,25 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       return;
     }
 
+    // One model for every role unless `--model` names one. Empty means "the
+    // configured default", so Ultra runs on the same model as the rest of the CLI.
+    const roleModel =
+      typeof commandOptions.model === 'string' && commandOptions.model.trim().length > 0
+        ? commandOptions.model.trim()
+        : DEFAULT_ROLE_MODEL;
+
     let result: ultra.PlanRunResult;
     try {
       result = await planner({
         goal,
         recipe,
         roles: options.roles ?? {
-          // `alran/Alran-Werk` is the provider-qualified identity `alran exec
-          // --model` resolves; the gateway id `ottili/werk-1.1` is not a
-          // configured provider and the run would fail before planning.
-          planner: 'alran/Alran-Werk',
-          critic: 'alran/Alran-Werk',
+          planner: roleModel,
+          critic: roleModel,
           explorers: 3,
         },
         ports: options.planPorts as ultra.UltraPlanPorts,
+        ...(commandOptions.forceScope === true ? { forceScope: true } : {}),
       });
     } catch (error) {
       // A failed planner call is a failed run, not an unhandled rejection: the
@@ -772,6 +793,13 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       store.transition('failed');
       exit(1);
       return;
+    }
+
+    if (result.forcedScope) {
+      write(
+        `Scope check said this task does not need Ultra (${result.forcedScope})\n` +
+          'Continuing anyway because --force-scope was given.\n',
+      );
     }
 
     if (result.declined) {
@@ -941,7 +969,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
           goal: task,
           recipe,
           ...(structure.text.trim().length > 0 ? { structure: structure.text } : {}),
-          model: options.roles?.planner ?? 'alran/Alran-Werk',
+          model: options.roles?.planner ?? DEFAULT_ROLE_MODEL,
         });
         if (authored.costUsd !== undefined && authored.costUsd > 0) {
           ultra.Ledger.open(store.paths.ledger).append({
@@ -1061,8 +1089,8 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
             // the board's `+`/`-` keys and a later `resume` agree on one number.
             workers: Number(commandOptions.workers ?? store.state.workers ?? 4),
             maxRepairs: Number(commandOptions.maxRepairs ?? 2),
-            workerModel: options.roles?.planner ?? 'alran/Alran-Werk',
-            verifierModel: options.roles?.critic ?? 'alran/Alran-Werk',
+            workerModel: options.roles?.planner ?? DEFAULT_ROLE_MODEL,
+            verifierModel: options.roles?.critic ?? DEFAULT_ROLE_MODEL,
             specTestDir: ultra.SPEC_TEST_DIR,
           },
           ...(options.sleep ? { sleep: options.sleep } : {}),
@@ -1082,7 +1110,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
           config: {
             baseRef,
             runBranch: ultra.runBranchFor(store.state.runId),
-            reviewModel: options.roles?.critic ?? 'alran/Alran-Werk',
+            reviewModel: options.roles?.critic ?? DEFAULT_ROLE_MODEL,
             round,
           },
           notes: {

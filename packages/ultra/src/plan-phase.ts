@@ -89,6 +89,16 @@ export interface PlanRunInput {
   readonly ports: UltraPlanPorts;
   /** Overrides auto-detected gates; the plan shows whichever wins. */
   readonly gateOverrides?: Partial<UltraGates>;
+  /**
+   * Plan anyway when the scope check says the task does not need Ultra.
+   *
+   * The routing call is a judgement, and it is a conservative one: a live run
+   * declined three tasks with good reasons, which is correct for those tasks and
+   * useless to a human who knows their repository better than a two-minute
+   * routing call does. `--force-scope` is that override, and it is explicit
+   * because the run it authorises can be long and expensive.
+   */
+  readonly forceScope?: boolean;
 }
 
 export interface PlanRunResult {
@@ -99,6 +109,11 @@ export interface PlanRunResult {
   readonly costUsd: number;
   /** Present when the scope check said this task is not worth Ultra. */
   readonly declined?: string;
+  /**
+   * Present when the run was forced past a "no" from the scope check; carries
+   * the reason that was overruled, so the report can print it.
+   */
+  readonly forcedScope?: string;
 }
 
 const EXPLORER_PROMPTS: Record<ExplorerBrief['role'], string> = {
@@ -127,7 +142,11 @@ export async function runPlanPhase(input: PlanRunInput): Promise<PlanRunResult> 
   });
 
   const scope = await ports.scope({ goal: input.goal, structure: structure.text });
-  if (!scope.ok) {
+  // A forced run still records that the routing call disagreed. Silently
+  // ignoring the verdict would be worse than either following it or overriding
+  // it: the report has to say the human overruled the router.
+  const forcedScope = !scope.ok && input.forceScope === true ? scope.reason : undefined;
+  if (!scope.ok && forcedScope === undefined) {
     return {
       plan: { goal: input.goal, recipe: input.recipe, packets: [] },
       validation: { ok: false, problems: [scope.reason], waves: [] },
@@ -178,7 +197,7 @@ export async function runPlanPhase(input: PlanRunInput): Promise<PlanRunResult> 
     (draft.costUsd ?? 0) +
     (critic.costUsd ?? 0);
 
-  return { plan, validation, findings, critic, costUsd };
+  return { plan, validation, findings, critic, costUsd, ...(forcedScope ? { forcedScope } : {}) };
 }
 
 function mergeGates(sources: UltraGateSources, overrides: Partial<UltraGates>): UltraGates {

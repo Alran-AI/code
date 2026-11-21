@@ -256,6 +256,29 @@ describe('alran ultra CLI', () => {
     expect(exitCodes).toContain(1);
   });
 
+  it('can be forced past a scope decline, and says that it was', async () => {
+    const dir = gitRepo();
+    // A scope check that always declines, so the flag is the only thing that can
+    // get this run to plan.
+    const decliningPorts: UltraPlanPorts = {
+      ...fakePorts,
+      scope: async () => ({ ok: false, reason: 'two modules, one call site' }),
+    };
+
+    const plain = harness(dir, { planPorts: decliningPorts });
+    await plain.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    expect(plain.output()).toMatch(/does not need Ultra/iu);
+    // A decline is a routing decision, not a crash: it says so and stops.
+    expect(plain.output()).not.toMatch(/Plan is valid/iu);
+
+    const forced = harness(dir, { planPorts: decliningPorts });
+    await forced.program.parseAsync(['ultra', 'plan', 'a task', '--force-scope'], { from: 'user' });
+    // The router's verdict is overruled, not hidden: the human sees both.
+    expect(forced.output()).toMatch(/Scope check said this task does not need Ultra/iu);
+    expect(forced.output()).toContain('Continuing anyway because --force-scope was given.');
+    expect(forced.output()).toMatch(/Plan is valid/iu);
+  });
+
   it('lists its subcommands', () => {
     const { program } = harness(tempDir());
     const names = program.commands.find((c) => c.name() === 'ultra')?.commands.map((c) => c.name());
