@@ -114,6 +114,16 @@ function runId(now: Date): string {
  * on what `none` and a typo mean. Throws on a typo: a bad cap must not silently
  * become an unlimited run.
  */
+/**
+ * The recipe files for a repository, or nothing if there are none (spec §8).
+ *
+ * A broken file throws, which the command turns into a failed run: a rule the
+ * author wrote and nobody followed is exactly what this must not allow.
+ */
+function loadRecipeOverridesFor(cwd: string): ultra.RecipeOverrides {
+  return ultra.loadRecipeOverrides(path.join(cwd, '.alran', 'recipes')).overrides;
+}
+
 function parseBudget(raw: string | boolean | undefined): number | null {
   return ultra.parseBudgetUsd(typeof raw === 'string' ? raw : raw === undefined ? '2' : String(raw));
 }
@@ -136,6 +146,8 @@ function formatUsd(value: number): string {
 }
 
 export interface ExecuteUltraPlanInput {
+  /** Per-repository recipe files (spec §8); loaded from cwd when absent. */
+  readonly recipeOverrides?: ultra.RecipeOverrides;
   readonly cwd: string;
   readonly env: NodeJS.ProcessEnv;
   readonly store: ultra.RunStore;
@@ -161,8 +173,21 @@ export interface ExecuteUltraPlanInput {
  */
 export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ultra.RunStatus> {
   const { store, plan, write } = input;
+  // Recipe files are loaded before anything runs: a broken file must stop the
+  // run, not quietly fall back to the built-in rules.
+  let recipeOverrides: ultra.RecipeOverrides;
+  try {
+    recipeOverrides = input.recipeOverrides ?? loadRecipeOverridesFor(input.cwd);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    write(`Recipe file error: ${message}\n`);
+    store.transition('failed');
+    return 'failed';
+  }
   const ledger = ultra.Ledger.open(store.paths.ledger);
-  const adapters = input.execAdapters ?? createUltraExecAdapters({ cwd: input.cwd, env: input.env });
+  const adapters =
+    input.execAdapters ??
+    createUltraExecAdapters({ cwd: input.cwd, env: input.env, recipeOverrides });
   store.transition('running');
   write(`Executing ${plan.packets.length} packet(s)…\n`);
 
@@ -198,7 +223,12 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
   // full suite and put the combined diff through a final review. This is the
   // only step that may call the run `succeeded`.
   const integrateAdapters =
-    input.integrateAdapters ?? createUltraIntegrateAdapters({ cwd: input.cwd, env: input.env });
+    input.integrateAdapters ??
+    createUltraIntegrateAdapters({
+      cwd: input.cwd,
+      env: input.env,
+      recipeOverrides,
+    });
   const integrated = await ultra.runIntegrate({
     plan,
     ports: integrateAdapters,
@@ -409,6 +439,24 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     }
     throw new Error(`could not allocate a unique Ultra run id in ${dir}`);
   };
+
+  /**
+   * Recipe files for this run (spec §8).
+   *
+   * Loaded once and handed to every adapter, so the planner's prompt, the
+   * verifier's checklist and the packets' readonly paths all agree on the same
+   * definition. A broken file fails the command instead of quietly running the
+   * built-in: a rule the author wrote and nobody followed is the failure this
+   * guards against.
+   */
+  let recipeOverrides: ultra.RecipeOverrides;
+  try {
+    recipeOverrides = loadRecipeOverridesFor(cwd);
+  } catch (error) {
+    write(`Recipe file error: ${error instanceof Error ? error.message : String(error)}\n`);
+    exit(1);
+    return;
+  }
 
   const openRun = (id?: string): ultra.RunStore => {
     if (!existsSync(stateDir)) {
@@ -670,6 +718,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
             createUltraPlanAdapters({
               cwd,
               env: process.env,
+              recipeOverrides,
               // A reader who attaches should see the run move, not a silent
               // screen while the model works.
               onProgress: (message) => write(`  ${message}…\n`),
@@ -963,7 +1012,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     const auditEvery = Number(commandOptions.auditEvery ?? 3);
     const adapters = options.execAdapters ?? createUltraExecAdapters({ cwd, env: process.env });
     const integrateAdapters =
-      options.integrateAdapters ?? createUltraIntegrateAdapters({ cwd, env: process.env });
+      options.integrateAdapters ?? createUltraIntegrateAdapters({ cwd, env: process.env, recipeOverrides });
     const ledger = ultra.Ledger.open(store.paths.ledger);
 
     const ports: ultra.LoopPorts = {

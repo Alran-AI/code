@@ -24,6 +24,8 @@ export interface UltraExecAdapterContext {
   readonly alranCommand?: readonly string[];
   readonly gateTimeoutMs?: number;
   readonly workerTimeoutMs?: number;
+  /** Per-repository recipe files (spec §8). */
+  readonly recipeOverrides?: ultra.RecipeOverrides;
 }
 
 export interface UltraExecAdapters {
@@ -374,7 +376,7 @@ export function createUltraExecAdapters(context: UltraExecAdapterContext): Ultra
       // The recipe's extra checks (spec 8) are appended, not merged into the
       // fixed checklist: a migration verifier has to look for leftover old-API
       // calls, which the generic fake-fix checklist does not mention.
-      const recipeChecks = ultra.recipeVerifierChecks(input.recipe);
+      const recipeChecks = ultra.recipeVerifierChecks(input.recipe, context.recipeOverrides ?? {});
       const prompt = [
         'Goal:',
         input.packet.goal,

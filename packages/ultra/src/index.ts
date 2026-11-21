@@ -52,6 +52,12 @@ export {
   specTestBranchFor,
 } from './branches.js';
 
+export {
+  loadRecipeOverrides,
+  parseRecipeFile,
+  recipeFor,
+} from './recipe-files.js';
+
 export { Ledger } from './ledger.js';
 
 export {
@@ -237,6 +243,7 @@ export {
 
 export {
   buildRecipePromptBlock,
+  type RecipeOverrides,
   isUltraRecipe,
   parseRecipeChoice,
   recipeCriteriaSeeds,

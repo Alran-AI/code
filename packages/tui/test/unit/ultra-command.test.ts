@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { Command } from 'commander';
@@ -28,6 +28,13 @@ function gitRepo(): string {
   execFileSync('git', ['add', 'a.txt'], { cwd: dir });
   execFileSync('git', ['commit', '-qm', 'init'], { cwd: dir });
   return dir;
+}
+
+/** Writes a recipe file into a repository's `.alran/recipes/`. */
+function writeRecipe(repo: string, name: string, text: string): void {
+  const dir = path.join(repo, '.alran', 'recipes');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, name), text);
 }
 
 afterEach(() => {
@@ -182,6 +189,51 @@ describe('alran ultra CLI', () => {
     // a budget that only counted workers would understate the run from minute one.
     expect(planning).toHaveLength(1);
     expect(planning[0]!.costUsd).toBeCloseTo(0.06, 10);
+  });
+
+  it('applies a recipe file from .alran/recipes to the packets of a run', async () => {
+    const dir = gitRepo();
+    // The recipe makes the packet's own scope read-only. Without this file the
+    // same fake worker output (src/p1/x.ts) is inside scope and the packet
+    // passes — which is what the first test in this file asserts — so the
+    // blocked packet here can only come from the recipe.
+    writeRecipe(
+      dir,
+      'refactor.md',
+      [
+        '---',
+        'title: Careful refactor',
+        'summary: Nobody touches the packet scope.',
+        'readonly_paths:',
+        '  - src/p1/**',
+        '---',
+        '',
+        'Extract first, then move.',
+        '',
+      ].join('\n'),
+    );
+    // A recipe is part of the repository, so it is committed like any other
+    // file — and an untracked one is exactly the dirt the start guard refuses.
+    execFileSync('git', ['add', '-A'], { cwd: dir });
+    execFileSync('git', ['commit', '-qm', 'add recipe'], { cwd: dir });
+
+    const { program, output } = harness(dir, { planPorts: fakePorts });
+    await program.parseAsync(['ultra', 'a big task', '--recipe', 'refactor'], { from: 'user' });
+
+    expect(output()).toMatch(/scope violation|blocked/iu);
+  });
+
+  it('refuses a broken recipe file instead of running the built-in', async () => {
+    const dir = gitRepo();
+    writeRecipe(dir, 'refactor.md', ['---', 'title: X', '---', ''].join('\n'));
+
+    const { program, output, exitCodes } = harness(dir, { planPorts: fakePorts });
+    await program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+
+    // A rule the author wrote and nobody followed is the failure to avoid, so a
+    // bad file stops the run rather than silently falling back.
+    expect(output()).toMatch(/summary/iu);
+    expect(exitCodes).toContain(1);
   });
 
   it('writes the report and exits non-zero when integrate ends partial', async () => {

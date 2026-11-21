@@ -34,6 +34,8 @@ export interface UltraPlanAdapterContext {
   readonly plannerTimeoutMs?: number;
   readonly criticTimeoutMs?: number;
   readonly goalAuthorTimeoutMs?: number;
+  /** Per-repository recipe files (spec §8). */
+  readonly recipeOverrides?: ultra.RecipeOverrides;
   /**
    * Called before each slow model call, so a caller can say what is happening.
    * A detached run has no terminal to print to, but it does have a log, and a
@@ -131,6 +133,8 @@ export function buildPlannerPrompt(input: {
   readonly goal: string;
   readonly recipe: ultra.UltraRecipeChoice;
   readonly findings: readonly ultra.ExplorerFinding[];
+  /** Per-repository recipe files (spec §8). */
+  readonly recipeOverrides?: ultra.RecipeOverrides;
 }): string {
   const findings = input.findings
     .map((finding) => `### ${finding.role}\n${finding.text}`)
@@ -143,7 +147,9 @@ export function buildPlannerPrompt(input: {
     '',
     // The recipe is a constraint, not a label: it states how to cut the packets
     // and what a separate verifier will check afterwards (spec 8).
-    ultra.buildRecipePromptBlock(ultra.selectRecipe(input.recipe, input.goal)),
+    ultra.buildRecipePromptBlock(
+      ultra.selectRecipe(input.recipe, input.goal, input.recipeOverrides ?? {}),
+    ),
     '',
     'Explorer findings:',
     findings.length > 0 ? findings : '(none)',
@@ -168,6 +174,8 @@ export function buildCriticPrompt(input: {
   readonly recipe: ultra.UltraRecipeChoice;
   readonly draft: readonly ultra.PlanPacket[];
   readonly validation: ultra.PlanValidation;
+  /** Per-repository recipe files (spec §8). */
+  readonly recipeOverrides?: ultra.RecipeOverrides;
 }): string {
   const packets = input.draft
     .map(
@@ -175,7 +183,7 @@ export function buildCriticPrompt(input: {
         `- ${packet.id}: ${packet.title} scope=${packet.scope.join(',')} after=[${packet.depends_on.join(',')}]`,
     )
     .join('\n');
-  const recipe = ultra.selectRecipe(input.recipe, input.goal).recipe;
+  const recipe = ultra.selectRecipe(input.recipe, input.goal, input.recipeOverrides ?? {}).recipe;
   return [
     'You are reviewing a proposed work plan before any code is written.',
     '',

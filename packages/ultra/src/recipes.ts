@@ -167,6 +167,15 @@ export const ULTRA_RECIPES: Readonly<Record<UltraRecipe, UltraRecipeDefinition>>
   audit: AUDIT,
 });
 
+/**
+ * Per-repository replacements for the built-in definitions (spec §8).
+ *
+ * Loaded from `.alran/recipes/*.md`; absent ids keep the built-in definition.
+ * A closed union of ids is deliberate: the value is in tuning the five shapes a
+ * project already has, not in inventing new ones the planner could not describe.
+ */
+export type RecipeOverrides = Partial<Record<UltraRecipe, UltraRecipeDefinition>>;
+
 export const ULTRA_RECIPE_IDS: readonly UltraRecipe[] = Object.freeze([
   'migrate',
   'bughunt',
@@ -223,11 +232,15 @@ export interface RecipePrompt {
   readonly suggestion: UltraRecipe | null;
 }
 
-export function selectRecipe(choice: UltraRecipeChoice, goal?: string): RecipePrompt {
+export function selectRecipe(
+  choice: UltraRecipeChoice,
+  goal?: string,
+  overrides: RecipeOverrides = {},
+): RecipePrompt {
   if (choice === 'auto') {
     return { choice, recipe: null, suggestion: goal === undefined ? null : suggestRecipe(goal) };
   }
-  return { choice, recipe: ULTRA_RECIPES[choice], suggestion: null };
+  return { choice, recipe: overrides[choice] ?? ULTRA_RECIPES[choice], suggestion: null };
 }
 
 /**
@@ -274,16 +287,25 @@ export function buildRecipePromptBlock(selection: RecipePrompt): string {
 }
 
 /** The extra checklist the verifier prompt appends for the chosen recipe. */
-export function recipeVerifierChecks(choice: UltraRecipeChoice): readonly string[] {
-  return choice === 'auto' ? [] : ULTRA_RECIPES[choice].verifierChecks;
+export function recipeVerifierChecks(
+  choice: UltraRecipeChoice,
+  overrides: RecipeOverrides = {},
+): readonly string[] {
+  return choice === 'auto' ? [] : (overrides[choice] ?? ULTRA_RECIPES[choice]).verifierChecks;
 }
 
 /** Paths a packet of this recipe must not change, on top of its own readonly list. */
-export function recipeReadonlyPaths(choice: UltraRecipeChoice): readonly string[] {
-  return choice === 'auto' ? [] : ULTRA_RECIPES[choice].readonlyPaths;
+export function recipeReadonlyPaths(
+  choice: UltraRecipeChoice,
+  overrides: RecipeOverrides = {},
+): readonly string[] {
+  return choice === 'auto' ? [] : (overrides[choice] ?? ULTRA_RECIPES[choice]).readonlyPaths;
 }
 
 /** Seed criteria for a goal document driven by this recipe. */
-export function recipeCriteriaSeeds(choice: UltraRecipeChoice): readonly string[] {
-  return choice === 'auto' ? [] : ULTRA_RECIPES[choice].criteriaSeeds;
+export function recipeCriteriaSeeds(
+  choice: UltraRecipeChoice,
+  overrides: RecipeOverrides = {},
+): readonly string[] {
+  return choice === 'auto' ? [] : (overrides[choice] ?? ULTRA_RECIPES[choice]).criteriaSeeds;
 }

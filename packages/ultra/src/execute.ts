@@ -18,7 +18,7 @@ import { packetBranchFor } from './branches.js';
 import { BudgetTracker } from './budget.js';
 import type { Ledger } from './ledger.js';
 import { RunStore } from './run-state.js';
-import { recipeReadonlyPaths } from './recipes.js';
+import { recipeReadonlyPaths, type RecipeOverrides } from './recipes.js';
 import {
   checkScope,
   describeScopeViolations,
@@ -127,6 +127,8 @@ export interface ExecuteConfig {
   readonly specTestDir?: string;
   /** Hard budget in USD; a null means unlimited. Defaults to the run's stored cap. */
   readonly budgetUsd?: number | null;
+  /** Per-repository recipe files (spec §8); absent recipes keep the built-ins. */
+  readonly recipeOverrides?: RecipeOverrides;
   /**
    * Consecutive 429 retries per attempt before the packet treats the limit as a
    * real failure. Without a cap a permanently throttled upstream would spin.
@@ -183,7 +185,7 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
   const denyPaths = [
     ...ULTRA_DENY_PATHS,
     ...specTestDenyPaths(config.specTestDir),
-    ...recipeReadonlyPaths(plan.recipe),
+    ...recipeReadonlyPaths(plan.recipe, config.recipeOverrides ?? {}),
     ...(config.denyPaths ?? []),
   ];
 

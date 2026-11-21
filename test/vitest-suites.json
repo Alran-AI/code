@@ -387,6 +387,7 @@
       "packages/ultra/test/unit/acceptance.test.ts",
       "packages/ultra/test/unit/notes.test.ts",
       "packages/ultra/test/unit/spec-tests.test.ts",
+      "packages/ultra/test/unit/recipe-files.test.ts",
       "packages/ultra/test/unit/recipes.test.ts",
       "packages/ultra/test/unit/board.test.ts",
       "packages/tui/test/unit/tui/features/ultra/ultra-board.test.ts",

@@ -131,9 +131,18 @@ Not implemented, and not claimed:
 - **`--stash` in the TUI.** The wizard does not offer stashing: a detached run
   that stashed the tree would leave the user's changes hidden inside a process
   they cannot see. Use the CLI for that.
-- **Recipes as data.** The five recipes are built in; the markdown-with-frontmatter
-  format (so they can later ship through the Alran Store as skills) is not read.
-- **Recipes as Alran Store skills** — see "Recipes as data" above.
+- **Recipes as data.** The five recipes are built in; a repository can override any
+  of them from `.alran/recipes/<id>.md` — markdown with a small YAML frontmatter
+  (`title`, `summary`, `decomposition`, `ordering`, `verifier_checks`,
+  `criteria_seeds`, `readonly_paths`). The body is the decomposition if no key
+  sets one, and a key the file omits keeps the built-in rule, so a small override
+  does not have to restate the whole recipe. The format is a deliberate subset:
+  anything else is refused with file and line rather than guessed at, and a file
+  whose name is not one of the five is an error instead of a silent no-op. New
+  *kinds* of recipe are not supported — the value is in tuning the five shapes a
+  project already has.
+- **Recipes as Alran Store skills** — the file format exists and is read, but
+  distribution through the Alran Store is not built.
 - **A real price per token.** `alran exec --output-format json` reports tokens,
   not dollars, so every cost figure is an estimate derived from the single
   declared constant `PLAN_TOKENS_PER_USD` (the same constant plan sizing uses).
