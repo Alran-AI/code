@@ -527,13 +527,17 @@ export function createUltraIntegrateAdapters(
       // The full suite runs in the merged tree, so what is verified is what the
       // human would merge, not each packet in isolation.
       const results = commands.map((cmd) => {
-        const result = runSpawn(cmd, [], { cwd: context.cwd, env: context.env, timeoutMs: gateTimeoutMs });
+        // Through a shell, like the packet gate: a project's commands are shell
+        // strings ("npm run test", "pnpm -r typecheck"), and spawning them
+        // without one looks for a binary literally named "npm run test" — which
+        // fails with no exit code at all, so the run ends `failed` on a suite
+        // that never ran.
+        const result = runShell(cmd, context.cwd, context.env, gateTimeoutMs);
+        const output = [result.stdout, result.stderr].filter((part) => part.trim().length > 0).join('\n');
         return {
           cmd,
           exitCode: result.code,
-          output: result.timedOut
-            ? `${[result.stdout, result.stderr].filter(Boolean).join('\n')}\n(timed out after ${gateTimeoutMs}ms)`
-            : [result.stdout, result.stderr].filter((part) => part.trim().length > 0).join('\n'),
+          output: result.timedOut ? `${output}\n(timed out after ${gateTimeoutMs}ms)` : output,
           ...(result.timedOut ? { timedOut: true } : {}),
         };
       });

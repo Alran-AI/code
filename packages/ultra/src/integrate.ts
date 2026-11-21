@@ -21,6 +21,7 @@
  */
 
 import type { Ledger } from './ledger.js';
+import { checkpointTagFor, packetBranchFor } from './branches.js';
 import { buildNotes } from './notes.js';
 import { RunStore } from './run-state.js';
 import type {
@@ -201,7 +202,9 @@ export async function runIntegrate(input: IntegrateInput): Promise<IntegrateResu
   let conflict: string | undefined;
 
   for (const packet of dependencyOrder(plan.packets)) {
-    const branch = `${config.runBranch}/${packet.id}`;
+    // Same helper the scheduler used to create the branch: the two must agree,
+    // or the merge asks for a ref that was never created.
+    const branch = packetBranchFor(store.state.runId, packet.id);
     if (!doneIds.has(packet.id)) {
       // Not merged and not an error: the packet never finished, so integrate
       // reports it with the reason the scheduler recorded and leaves the branch
@@ -334,7 +337,7 @@ export async function runIntegrate(input: IntegrateInput): Promise<IntegrateResu
   if (runStatus === 'succeeded') {
     // The checkpoint is only meaningful for a round that actually landed.
     try {
-      const tag = `ultra/${store.state.runId}/round-${round}`;
+      const tag = checkpointTagFor(store.state.runId, round);
       await ports.git.tag({ runId: store.state.runId, tag });
       record({ kind: 'run', role: 'integrate', status: 'tagged', note: tag });
     } catch (error) {

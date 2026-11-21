@@ -8,6 +8,7 @@ import {
   normalizeUltraArgv,
   registerUltraCommand,
 } from '../../src/cli/ultra-command.js';
+import { createUltraExecAdapters, createUltraIntegrateAdapters } from '../../src/cli/ultra-exec-adapters.js';
 import type { ExecutePorts, IntegratePorts, PlanRunResult, UltraPlanPorts } from '@alran/ultra';
 
 const dirs: string[] = [];
@@ -254,7 +255,7 @@ describe('alran ultra CLI', () => {
     // The checks are frozen on a branch the packets start from, so the gate can
     // run them and no worker can edit one.
     expect(output()).toContain('frozen on ultra/run-');
-    const frozen = execFileSync('git', ['ls-tree', '-r', '--name-only', `ultra/${runId}/spec-tests`], {
+    const frozen = execFileSync('git', ['ls-tree', '-r', '--name-only', `ultra/${runId}-spec-tests`], {
       cwd: dir,
       encoding: 'utf8',
     });
@@ -1027,6 +1028,133 @@ describe('alran ultra CLI', () => {
     expect(report.output()).toContain('Cost: $0.06');
     expect(report.output()).toContain('planning: $0.06');
     expect(report.output()).toMatch(/## Packets/iu);
+  });
+});
+
+/**
+ * ULT-08: "`main` and all remotes unchanged after any run, including `failed`
+ * and `killed`".
+ *
+ * This is the guarantee the whole design rests on — workers run in worktrees on
+ * their own branches and the human merges — so it is worth testing against real
+ * git rather than a fake: real worktrees, real merges, a real bare remote, and
+ * only the model calls stubbed out. A run that moved `main` or wrote to the
+ * remote would be a data-loss bug, not a cosmetic one.
+ */
+describe('ultra leaves the user’s branches alone (ULT-08)', () => {
+  /** A repo on `main` with an `origin` remote that has `main` pushed. */
+  function repoWithRemote(): { repo: string; remote: string } {
+    const repo = tempDir();
+    execFileSync('git', ['init', '-q', '-b', 'main'], { cwd: repo });
+    execFileSync('git', ['config', 'user.email', 'ultra@example.invalid'], { cwd: repo });
+    execFileSync('git', ['config', 'user.name', 'Ultra Test'], { cwd: repo });
+    writeFileSync(path.join(repo, 'a.txt'), 'one\n');
+    // Integrate refuses to declare success without a project-wide suite, so the
+    // fixture has one that passes; `true` keeps it dependency-free. It is part
+    // of the initial commit, because Ultra refuses to start on a dirty tree.
+    writeFileSync(
+      path.join(repo, 'package.json'),
+      `${JSON.stringify({ scripts: { test: 'true' } }, null, 2)}\n`,
+    );
+    execFileSync('git', ['add', 'a.txt', 'package.json'], { cwd: repo });
+    execFileSync('git', ['commit', '-qm', 'init'], { cwd: repo });
+    const remote = path.join(tempDir(), 'origin.git');
+    execFileSync('git', ['init', '-q', '--bare', remote]);
+    execFileSync('git', ['remote', 'add', 'origin', remote], { cwd: repo });
+    execFileSync('git', ['push', '-q', '-u', 'origin', 'main'], { cwd: repo });
+    return { repo, remote };
+  }
+
+  /** The refs a run must not move, as `ref sha` lines. */
+  function protectedRefs(repo: string, remote: string): string {
+    const local = execFileSync('git', ['for-each-ref', '--format=%(refname) %(objectname)', 'refs/heads/main'], {
+      cwd: repo,
+      encoding: 'utf8',
+    }).trim();
+    const onRemote = execFileSync(
+      'git',
+      ['--git-dir', remote, 'for-each-ref', '--format=%(refname) %(objectname)'],
+      { encoding: 'utf8' },
+    ).trim();
+    return `${local}\n${onRemote}`;
+  }
+
+  /**
+   * A stand-in `alran` that answers every headless call with `PASS` and a token
+   * count: enough for the worker and the verifier to proceed, with no model and
+   * no network. The gate is a real shell command, so it still runs.
+   */
+  function stubAlran(): readonly string[] {
+    const dir = tempDir();
+    const script = path.join(dir, 'stub-alran.mjs');
+    writeFileSync(
+      script,
+      [
+        'process.stdin.resume();',
+        'process.stdin.on("data", () => {});',
+        'process.stdout.write(JSON.stringify({ output: "PASS", usage: { totalTokens: 120 } }));',
+        '',
+      ].join('\n'),
+    );
+    return [process.execPath, script];
+  }
+
+  /** Real adapters; only the model calls are stubbed, git and the gates are real. */
+  function realAdapters(cwd: string) {
+    const context = { cwd, env: process.env, alranCommand: stubAlran() };
+    return {
+      execAdapters: createUltraExecAdapters(context),
+      integrateAdapters: createUltraIntegrateAdapters(context),
+      planPorts: fakePorts,
+    };
+  }
+
+  it('leaves main and the remote untouched after a successful run', async () => {
+    const { repo, remote } = repoWithRemote();
+    const before = protectedRefs(repo, remote);
+
+    const { program, output, exitCodes } = harness(repo, realAdapters(repo));
+    await program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+
+    writeFileSync('/tmp/ultra-out2.txt', output());
+    expect(output()).toMatch(/Integrate: succeeded/iu);
+    // `exitCodes` is empty on success; asserting it keeps a silent failure loud.
+    expect(exitCodes).toEqual([]);
+    expect(protectedRefs(repo, remote)).toBe(before);
+  });
+
+  it('leaves main and the remote untouched after a failed run', async () => {
+    const { repo, remote } = repoWithRemote();
+    const before = protectedRefs(repo, remote);
+
+    // The gate always fails, so every packet ends `blocked` and the run is
+    // `partial`: the case where a careless implementation would be most tempted
+    // to touch the user's branch to "finish".
+    const adapters = realAdapters(repo);
+    const { program, output } = harness(repo, {
+      ...adapters,
+      planPorts: {
+        ...adapters.planPorts,
+        plan: async () => ({
+          packets: [
+            {
+              id: 'p1',
+              title: 'Doomed',
+              goal: 'This cannot pass',
+              scope: ['src/p1/**'],
+              depends_on: [],
+              accept: [{ cmd: 'exit 3' }],
+              max_repairs: 0,
+            },
+          ],
+          costUsd: 0.02,
+        }),
+      },
+    });
+    await program.parseAsync(['ultra', 'a task that fails'], { from: 'user' });
+
+    expect(output()).toMatch(/blocked|partial/iu);
+    expect(protectedRefs(repo, remote)).toBe(before);
   });
 });
 

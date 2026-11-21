@@ -11,6 +11,7 @@
  * The live counter during the run is the number to trust.
  */
 
+import { runBranchFor } from './branches.js';
 import type { GoalDocument } from './goal.js';
 import type { UltraPlan } from './types.js';
 import type { UltraRecipeChoice } from './types.js';
@@ -119,7 +120,7 @@ export function renderUltraConfirmation(input: UltraConfirmationInput): string {
   }
 
   lines.push('');
-  lines.push(clip(`Nothing is merged into main. Work lands on branch ultra/${input.runId}.`, width));
+  lines.push(clip(`Nothing is merged into main. Work lands on branch ${runBranchFor(input.runId)}.`, width));
   lines.push('');
   lines.push(confirmationQuestion());
   return lines.join('\n');

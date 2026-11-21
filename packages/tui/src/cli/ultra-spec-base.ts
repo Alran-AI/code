@@ -8,7 +8,7 @@
  * the first worker starts and that no worker may edit them.
  *
  * This module makes that real without touching the user's working tree: it
- * commits the authored files onto a branch of their own, `ultra/<run>/spec-tests`,
+ * commits the authored files onto a branch of their own, `ultra/<run>-spec-tests`,
  * built from the run's base commit. Every packet worktree is then created from
  * that branch, so:
  *
@@ -24,6 +24,7 @@
  */
 
 import { spawnSync } from 'node:child_process';
+import { specTestBranchFor } from '@alran/ultra';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -46,10 +47,13 @@ export interface SpecTestCommitResult {
   readonly commit: string;
 }
 
-/** The branch that carries the authored checks for one run. */
-export function specTestBranchFor(runId: string): string {
-  return `ultra/${runId}/spec-tests`;
-}
+/**
+ * The branch that carries the authored checks for one run.
+ *
+ * Re-exported from the core so the naming rule (a sibling of the run branch, or
+ * git cannot create the run branch at all) has exactly one definition.
+ */
+export { specTestBranchFor };
 
 function git(
   cwd: string,
@@ -71,7 +75,7 @@ function git(
 }
 
 /**
- * Commits `files` on `ultra/<run>/spec-tests`, based on `baseRef`.
+ * Commits `files` on `ultra/<run>-spec-tests`, based on `baseRef`.
  *
  * Throws when git refuses, because a run whose acceptance checks were not
  * committed would silently fall back to judging itself on the workers' tests.

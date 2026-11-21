@@ -16,6 +16,7 @@
  * the wording are testable without touching a file.
  */
 
+import { runBranchFor } from './branches.js';
 import { PLAN_TOKENS_PER_USD } from './plan-budget.js';
 import type { Ledger } from './ledger.js';
 import { goalCounts, type GoalDocument } from './goal.js';
@@ -241,7 +242,7 @@ export function buildReport(input: ReportInput): string {
   lines.push('Nothing was pushed and `main` was not touched. To review and merge:');
   lines.push('');
   lines.push('```sh');
-  lines.push(`git merge ultra/${state.runId}`);
+  lines.push(`git merge ${runBranchFor(state.runId)}`);
   lines.push('```');
   lines.push('');
 

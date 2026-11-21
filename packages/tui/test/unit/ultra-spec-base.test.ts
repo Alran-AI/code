@@ -62,7 +62,7 @@ describe('commitSpecTestsAsBase', () => {
       files: FILES,
     });
 
-    expect(result.branch).toBe('ultra/run-1/spec-tests');
+    expect(result.branch).toBe('ultra/run-1-spec-tests');
     // The branch is one commit ahead of the base and adds both files.
     expect(git(dir, ['rev-parse', `${result.branch}^`])).toBe(base);
     const listed = git(dir, ['ls-tree', '-r', '--name-only', result.branch]);
@@ -133,7 +133,7 @@ describe('commitSpecTestsAsBase', () => {
   });
 
   it('names the branch after the run so a human can find it', () => {
-    expect(specTestBranchFor('run-8f2a')).toBe('ultra/run-8f2a/spec-tests');
+    expect(specTestBranchFor('run-8f2a')).toBe('ultra/run-8f2a-spec-tests');
   });
 });
 
@@ -162,7 +162,7 @@ describe('baseRefForRun', () => {
     expect(baseRefForRun({ cwd: dir, runId: 'run-1', requested: 'HEAD~0' })).toBe('HEAD~0');
     // A blank --base is the same as not passing one.
     expect(baseRefForRun({ cwd: dir, runId: 'run-1', requested: '   ' })).toBe(
-      'ultra/run-1/spec-tests',
+      'ultra/run-1-spec-tests',
     );
   });
 

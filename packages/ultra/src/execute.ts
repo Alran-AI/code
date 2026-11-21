@@ -14,6 +14,7 @@
  */
 
 import { guardFixDiff } from '@alran/ci-fix';
+import { packetBranchFor } from './branches.js';
 import { BudgetTracker } from './budget.js';
 import type { Ledger } from './ledger.js';
 import { RunStore } from './run-state.js';
@@ -249,7 +250,7 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
 
   /** One packet end-to-end with the repair loop. Returns after setting a terminal status. */
   const runPacket = async (packet: PlanPacket): Promise<void> => {
-    const branch = `ultra/${ports.store.state.runId}/${packet.id}`;
+    const branch = packetBranchFor(ports.store.state.runId, packet.id);
     let dir = '';
     try {
       ({ dir } = await ports.worktree.create({ packetId: packet.id, runId: ports.store.state.runId, branch, baseRef }));

@@ -625,11 +625,11 @@ export class UltraFlow {
     const done = store.state.packets.filter((packet) => packet.status === 'done');
     if (done.length === 0) return 'No packet has finished yet, so there is nothing to diff.';
 
-    const runBranch = `ultra/${store.state.runId}`;
+    const runBranch = ultra.runBranchFor(store.state.runId);
     const refs = gitRef(this.options.workspaceDir, runBranch)
       ? [{ ref: runBranch, label: `branch ${runBranch}` }]
       : done.map((packet) => ({
-          ref: `ultra/${store.state.runId}/${packet.id}`,
+          ref: ultra.packetBranchFor(store.state.runId, packet.id),
           label: packet.id,
         }));
 

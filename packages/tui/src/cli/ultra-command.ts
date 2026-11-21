@@ -206,7 +206,7 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
     ledger,
     config: {
       baseRef: input.baseRef ?? 'HEAD',
-      runBranch: `ultra/${store.state.runId}`,
+      runBranch: ultra.runBranchFor(store.state.runId),
       reviewModel: input.roles?.critic ?? 'alran/Alran-Werk',
     },
   });
@@ -219,7 +219,9 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
   );
   write(formatIntegrate(integrated));
   write(`\nReport: ${store.paths.report}\n`);
-  write(`Review the branch with \`git merge ultra/${store.state.runId}\`; nothing was pushed.\n`);
+  write(
+    `Review the branch with \`git merge ${ultra.runBranchFor(store.state.runId)}\`; nothing was pushed.\n`,
+  );
 
   return integrated.runStatus;
 }
@@ -1013,7 +1015,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
           ledger,
           config: {
             baseRef,
-            runBranch: `ultra/${store.state.runId}`,
+            runBranch: ultra.runBranchFor(store.state.runId),
             reviewModel: options.roles?.critic ?? 'alran/Alran-Werk',
             round,
           },

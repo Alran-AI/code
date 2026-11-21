@@ -363,6 +363,7 @@
       "packages/tui/test/unit/ci-retrigger.test.ts",
       "packages/local-runtime/test/unit/ci-fixer-skill.test.ts",
       "packages/ci-fix/test/unit/safety.test.ts",
+      "packages/ultra/test/unit/branches.test.ts",
       "packages/ultra/test/unit/budget.test.ts",
       "packages/ultra/test/unit/ledger.test.ts",
       "packages/ultra/test/unit/plan-schema.test.ts",

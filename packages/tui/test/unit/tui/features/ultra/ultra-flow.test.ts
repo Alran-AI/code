@@ -435,7 +435,7 @@ describe('UltraFlow board actions', () => {
     await press('\u001b');
     await flow.show('board');
     await press('d');
-    expect(notices.join('\n')).toContain('ultra/run-a/p1');
+    expect(notices.join('\n')).toContain('ultra/run-a-p1');
   });
 
   it('shows the newest log lines on the board itself', async () => {
@@ -610,7 +610,7 @@ describe('UltraFlow board actions', () => {
       store.setPackets([{ id: 'p1', title: 'A change', status: 'done' }]);
 
       // The packet's branch, holding one real change.
-      spawnSync('git', ['checkout', '-qb', 'ultra/run-git/p1'], { cwd: repo });
+      spawnSync('git', ['checkout', '-qb', 'ultra/run-git-p1'], { cwd: repo });
       writeFileSync(path.join(repo, 'a.txt'), 'one\ntwo\n');
       spawnSync('git', ['commit', '-qam', 'change'], { cwd: repo });
       spawnSync('git', ['checkout', '-q', '-'], { cwd: repo });

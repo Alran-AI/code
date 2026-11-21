@@ -116,7 +116,7 @@ describe('integrate', () => {
 
     // A dependency must land before the packet that builds on it. Independent
     // packets (p1 and p3) may come in either order, so only the edge is pinned.
-    expect(h.merged.indexOf('ultra/r1/p1')).toBeLessThan(h.merged.indexOf('ultra/r1/p2'));
+    expect(h.merged.indexOf('ultra/r1-p1')).toBeLessThan(h.merged.indexOf('ultra/r1-p2'));
     expect(h.merged).toHaveLength(3);
     expect(result.runStatus).toBe('succeeded');
     expect(store.state.status).toBe('succeeded');
@@ -128,7 +128,7 @@ describe('integrate', () => {
     const h = harness(store);
     const result = await integrate(store, h);
 
-    expect(h.merged).not.toContain('ultra/r1/p2');
+    expect(h.merged).not.toContain('ultra/r1-p2');
     expect(result.runStatus).toBe('partial');
     expect(result.packets.find((entry) => entry.id === 'p2')?.status).toBe('skipped');
     // The report names the scheduler's reason, not a generic placeholder.

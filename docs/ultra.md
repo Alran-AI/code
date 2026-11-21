@@ -23,7 +23,7 @@ Implemented and tested:
   `repair_reserve` fraction is held back, and a `must` that does not fit is
   reported instead of being dropped silently.
 - **Execution** — a dependency-ordered scheduler, one git worktree per packet on
-  `ultra/<run>/<packet>`, scope enforcement, a no-LLM gate, a deterministic
+  `ultra/<run>-<packet>`, scope enforcement, a no-LLM gate, a deterministic
   fake-fix pre-check, an LLM verifier, a repair loop and 429 backoff.
 - **Packet evidence** — `packets/<id>/prompt.md`, `diff.patch`, `gate.txt` and
   `verdict.json` are written for every packet that reaches the gate.
@@ -49,7 +49,7 @@ Implemented and tested:
   could reach that directory is rejected at validation, and a worker that edits
   a spec test anyway has the change reverted as a repair. A `spec_tester` agent
   authors the files (one per criterion) and they are committed to
-  `ultra/<run>/spec-tests`, the branch every packet worktree starts from, so the
+  `ultra/<run>-spec-tests`, the branch every packet worktree starts from, so the
   gate can run them and no worker's diff can contain them. The acceptor is told
   where they are and to run them first: a check that fails makes its criterion
   `unmet` however convincing the diff looks. If authoring fails, the run stops
@@ -107,7 +107,7 @@ Implemented and tested:
 - **Resume** — a killed or paused run redoes only non-terminal packets. A packet
   that is already `done`, `blocked`, `skipped` or `cancelled` is reported, never
   re-run. A resumed goal-driven run also rediscovers the branch that carries the
-  frozen checks (`ultra/<run>/spec-tests`) instead of falling back to `HEAD`, so
+  frozen checks (`ultra/<run>-spec-tests`) instead of falling back to `HEAD`, so
   the worktrees it recreates still contain them; an explicit `--base` wins.
 
 Starting a run:
@@ -146,7 +146,7 @@ Not implemented, and not claimed:
   number to watch. A preview would only be as good as the plan's `est_tokens`,
   which is exactly what the ledger exists to calibrate.
 - **Placing authored spec tests into the working tree.** They are frozen on
-  `ultra/<run>/spec-tests`, a branch every packet worktree starts from, so the
+  `ultra/<run>-spec-tests`, a branch every packet worktree starts from, so the
   gate can run them and no worker can edit one. They are *not* copied into the
   user's checkout: that would put unreviewed files into a tree the run does not
   own. They arrive with `git merge ultra/<run>` like everything else.
@@ -310,7 +310,7 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
   plan.json
   goal.json           # criteria, statuses, evidence (goal-driven runs)
   notes.md            # curated run memory, written by integrate
-  spec-tests/         # authored spec tests, as committed to ultra/<run>/spec-tests
+  spec-tests/         # authored spec tests, as committed to ultra/<run>-spec-tests
   rounds/<n>/         # per-round artifacts (goal-driven runs)
   packets/<id>/       # prompt.md, diff.patch, gate.txt, verdict.json
   runner.json         # pid and log path of the detached runner, when there is one
@@ -319,10 +319,18 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
 ```
 
 Two things live outside that directory. Each packet is a git worktree under
-`.alran/worktrees/<run-id>/<packet-id>`, on its own `ultra/<run>/<packet>`
+`.alran/worktrees/<run-id>/<packet-id>`, on its own `ultra/<run>-<packet>`
 branch. And the run's branches are ordinary git branches: `ultra/<run>` holds the
-integrated result, `ultra/<run>/spec-tests` the frozen checks, and
+integrated result, `ultra/<run>-<packet>` one per packet, `ultra/<run>-spec-tests` the frozen checks, and
 `ultra/<run>/round-N` tags mark each round's checkpoint.
+
+The naming is not cosmetic. Git stores a ref as a file, so `ultra/<run>` and
+anything *under* `ultra/<run>/` cannot coexist: creating a packet branch named
+`ultra/<run>/<packet>` makes the run branch impossible to create, and every
+integrate then fails with `cannot lock ref 'refs/heads/ultra/<run>'`. Packet and
+spec-test branches are therefore siblings of the run branch, and all four names
+come from one module (`packages/ultra/src/branches.ts`) so a new kind of ref
+cannot be added without seeing that rule.
 
 Ultra writes `.alran/.gitignore` on the first run so its own state never makes
 the working tree dirty — otherwise the start guard would refuse the next run. A
@@ -357,11 +365,12 @@ on open. Secret-looking values are masked before they reach disk.
 | ULT-05 | the ledger and state survive a simulated crash and resume does not repeat finished work | `ledger.test.ts`, `run-state.test.ts` |
 | ULT-06 | a 429 lowers parallelism, backs off and still finishes; a throttled verifier does not cost a repair | `execute.test.ts` |
 | ULT-07 | overlapping parallel scope, unknown dependencies, cycles and duplicate ids are rejected | `plan-schema.test.ts` |
+| ULT-08 | `main` and all remotes are unchanged after a run that succeeds and after one whose packets all end `blocked` (real git, a real bare remote, only the model stubbed) | `ultra-command.test.ts`, `branches.test.ts` |
 | ULT-09 | a blocked packet skips its dependents, independents continue, the run ends `partial` | `execute.test.ts` |
 | ULT-10 | only integrate.ts may set `succeeded` (static scan), and the state layer refuses `running → succeeded` | `integrate.test.ts` |
 | ULT-11 | a dirty tree is refused without `--stash`, and Ultra's own output is not "dirt" | `start-guard.test.ts` |
 | ULT-12 | cost in the report is the arithmetic sum of the ledger entries, per role and per round, and the report says the figures are estimates from tokens unless a price was reported | `report.test.ts`, `ledger.test.ts`, `budget.test.ts`, `ultra-command.test.ts` |
-| ULT-13 | spec tests are authored before workers start, are frozen on `ultra/<run>/spec-tests` so every worktree starts with them, and cannot be edited: a plan reaching that directory is rejected, a worker that edits one is reverted, and the acceptor is told to run them | `spec-tests.test.ts`, `spec-authoring.test.ts`, `ultra-spec-base.test.ts`, `plan-schema.test.ts`, `execute.test.ts`, `acceptance.test.ts`, `ultra-command.test.ts` |
+| ULT-13 | spec tests are authored before workers start, are frozen on `ultra/<run>-spec-tests` so every worktree starts with them, and cannot be edited: a plan reaching that directory is rejected, a worker that edits one is reverted, and the acceptor is told to run them | `spec-tests.test.ts`, `spec-authoring.test.ts`, `ultra-spec-base.test.ts`, `plan-schema.test.ts`, `execute.test.ts`, `acceptance.test.ts`, `ultra-command.test.ts` |
 | ULT-14 | green gates with an unmet `must` start another round, not `succeeded` | `loop.test.ts` |
 | ULT-15 | a criterion cannot be `met` without evidence; an evidence-free claim is rejected | `goal.test.ts` |
 | ULT-16 | no criterion improves for `stall_rounds` rounds ⇒ the run ends `stalled` | `loop.test.ts` |
@@ -370,8 +379,18 @@ on open. Secret-looking values are masked before they reach disk.
 | ULT-19 | a crash at a round boundary replays the ledger and leaves the run resumable | `loop.test.ts` |
 | ULT-20 | an open `needs_human` `must` ends the run `partial`, not `succeeded` | `goal.test.ts`, `loop.test.ts` |
 
-Not yet covered: ULT-08 (`main` and remotes unchanged, which needs a real git
-run), and any live-model or end-to-end CLI test against a real provider. The
+Two of the ULT tests run against real git rather than a fake, because the fakes
+could not see the failure they were hiding: `ultra-command.test.ts` creates a
+repository with a bare remote, runs a whole pass with real worktrees, real merges
+and real gates (only the model calls are stubbed), and asserts that `main` and the
+remote are byte-for-byte unchanged — both for a run that succeeds and for one
+whose packets all end `blocked` (ULT-08). That is what caught two defects the
+unit suites could not: packet branches named `ultra/<run>/<packet>` made the run
+branch `ultra/<run>` impossible to create at all, and the integrate gate spawned
+command strings without a shell, so a real suite (`npm run test`) exited with no
+code and the run ended `failed` on a suite that never ran.
+
+Not yet covered: any live-model or end-to-end CLI test against a real provider. The
 acceptance *parser* is tested against fixed replies; the acceptor agent's own
 judgement is not. The report's cost arithmetic is covered at the writer level and
 the CLI's `report` subcommand is covered end to end, including rebuilding a

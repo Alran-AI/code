@@ -45,6 +45,13 @@ export {
   type GoalAuthorInput,
 } from './goal-authoring.js';
 
+export {
+  checkpointTagFor,
+  packetBranchFor,
+  runBranchFor,
+  specTestBranchFor,
+} from './branches.js';
+
 export { Ledger } from './ledger.js';
 
 export {

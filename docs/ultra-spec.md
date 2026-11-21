@@ -117,7 +117,10 @@ the normal agent. Also refuses to start on a dirty tree unless `--stash` is give
 
 ### 3.3 Execute
 
-- Each packet runs in its own **git worktree** on branch `ultra/<run>/<packet>`.
+- Each packet runs in its own **git worktree** on branch `ultra/<run>-<packet>`.
+  (A packet branch must be a *sibling* of the run branch, not a child: git stores
+  a ref as a file, so `ultra/<run>/<packet>` would make the run branch
+  `ultra/<run>` impossible to create at all.)
 - The scheduler starts packets whose dependencies are `done`, up to `--workers`.
 - Worker prompt is self-contained: goal, scope, readonly paths, acceptance
   commands, constraints. Nothing else leaks in.
