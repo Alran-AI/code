@@ -525,6 +525,10 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         '--force-scope',
         'plan and run even when the scope check says the task does not need Ultra',
       )
+      .option(
+        '--force-critic',
+        'execute a plan the critic rejected (its objections are still printed)',
+      )
       .option('--yes', 'skip the cost confirmation (the budget cap still applies)')
       .option('--detach', 'start the run in the background and return at once')
       // Internal: the detached child continues the run the parent already
@@ -828,6 +832,21 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       store.transition('failed');
       exit(1);
       return;
+    }
+    // The critic is not a second opinion to print and ignore: every packet below
+    // would be built on a plan it just rejected. Stop here, having shown the
+    // plan and the objections, and let a human fix it or overrule it.
+    if (!result.critic.ok && commandOptions.forceCritic !== true) {
+      write(
+        'The critic rejected this plan. Nothing was executed.\n' +
+          'Rework the plan, or re-run with --force-critic to execute it anyway.\n',
+      );
+      store.transition('failed');
+      exit(1);
+      return;
+    }
+    if (!result.critic.ok) {
+      write('Executing a plan the critic rejected, because --force-critic was given.\n');
     }
     // Persist the plan so a later `resume` can execute without re-planning.
     writeFileSync(store.paths.plan, `${JSON.stringify(result.plan, null, 2)}\n`);

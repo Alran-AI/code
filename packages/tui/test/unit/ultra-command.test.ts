@@ -279,6 +279,31 @@ describe('alran ultra CLI', () => {
     expect(forced.output()).toMatch(/Plan is valid/iu);
   });
 
+  it('stops when the critic rejects the plan, and only proceeds when forced', async () => {
+    const dir = gitRepo();
+    // A planner whose plan the critic tears apart, which is exactly what a live
+    // run produced: six correct objections, and the run printed them and carried
+    // on to execute the plan anyway.
+    const criticised: UltraPlanPorts = {
+      ...fakePorts,
+      critique: async () => ({
+        ok: false,
+        problems: ['ordering leaves the tree red between p2 and p4'],
+      }),
+    };
+
+    const plain = harness(dir, { planPorts: criticised });
+    await plain.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    expect(plain.output()).toMatch(/Critic objections/iu);
+    expect(plain.output()).toMatch(/The critic rejected this plan/iu);
+    expect(plain.output()).not.toMatch(/Plan is valid/iu);
+
+    const forced = harness(dir, { planPorts: criticised });
+    await forced.program.parseAsync(['ultra', 'plan', 'a task', '--force-critic'], { from: 'user' });
+    expect(forced.output()).toMatch(/because --force-critic was given/iu);
+    expect(forced.output()).toMatch(/Plan is valid/iu);
+  });
+
   it('lists its subcommands', () => {
     const { program } = harness(tempDir());
     const names = program.commands.find((c) => c.name() === 'ultra')?.commands.map((c) => c.name());
