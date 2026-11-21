@@ -223,6 +223,9 @@ the packet table.
 | `--base` | current HEAD | commit to branch from |
 | `--stash` | off | allow starting on a dirty tree by snapshotting it |
 | `--yes` | off | skip the confirmation step (the budget cap still applies) |
+| `--model` | the configured model | model for every Ultra role at once |
+| `--force-scope` | off | plan and run even when the scope check says the task does not need Ultra |
+| `--force-critic` | off | execute a plan the critic rejected (its objections are still printed) |
 
 Before a run executes it shows the plan, the goal criteria and where the work will
 land, and asks `Continue with this plan? [y/N]`. Only an explicit yes proceeds; an
@@ -230,6 +233,29 @@ empty line, a typo or a non-interactive shell is a no, because starting a run
 spends money. `--yes` skips the question. A cost preview is deliberately not
 shown: a preview is only as good as the plan's `est_tokens` (O-7), and a
 confident wrong number is worse than none.
+
+## When Ultra says no
+
+Two checks can stop a run before any packet starts, and both can be overruled by a
+human because both are judgements rather than facts.
+
+- **The scope check** (spec 3.1) asks whether the task justifies a multi-agent
+  run. It is deliberately conservative, and in live use it declined three tasks
+  in a row with good reasons. A human who knows the repository better than a
+  two-minute routing call needs the override: `--force-scope` plans anyway, and
+  the router's verdict is still printed, because a run that hides having
+  overruled its own routing check is worse than one that follows it or stops.
+- **The critic** (spec 3.2) reviews the drafted packets before anything is
+  written. A rejected plan is no longer printed and executed anyway: the run
+  stops with the objections on screen, and `--force-critic` executes it for
+  someone who has read them and disagrees.
+
+Every Ultra role runs on the model the CLI is configured with, the same as the
+rest of the product; `--model` pins one model for all roles instead. An earlier
+build hard-coded a provider-qualified id here, which is a silent assumption about
+which providers a user is signed in to — a live run died at the planner with
+`401 This session is not valid` while the explorers, which passed no model,
+worked.
 
 `alran ultra board` takes `--width <columns>` (40-200, default 100): every row is
 truncated to fit, so the board can go into a fixed-width terminal or a log without
