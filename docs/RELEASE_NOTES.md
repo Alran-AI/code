@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+Package `alran` (`npm install -g alran`), binary `alran`.
+
+### Added
+
+- **Ultra** — `alran ultra "<task>"` runs a task that is too large for one agent loop: it plans a DAG
+  of bounded work packets, runs each in its own git worktree on its own branch behind a scope check, a
+  gate and an independent verifier, and hands back one reviewable branch plus a report that names what
+  is done, what is blocked and what it cost. `alran ultra plan` plans without executing; `goal` keeps
+  planning rounds until a written goal document is satisfied; `board`, `status`, `pause`, `resume`,
+  `kill`, `attach` and `report` follow a run, from the CLI or from `/ultra` in the TUI. A run is bounded
+  by a budget cap that pauses rather than kills, a worker cap, a repair cap and a round cap; it never
+  touches `main` and never pushes. Recipes for migrations, bug hunts, refactors, test generation and
+  audits can be overridden per repository from `.alran/recipes/<id>.md`. See [Ultra](ultra.md).
+
 ## 1.2.0 — 2026-11-19
 
 Package `alran` (`npm install -g alran`), binary `alran`.
