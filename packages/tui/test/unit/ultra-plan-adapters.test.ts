@@ -18,6 +18,7 @@ import {
   buildPlannerPrompt,
   buildScopePrompt,
   buildCriticPrompt,
+  parseScopeVerdict,
   buildExplorerPrompt,
   createUltraPlanAdapters,
   parsePlanDraft,
@@ -201,6 +202,27 @@ describe('createUltraPlanAdapters', () => {
     expect(typeof ports.plan).toBe('function');
     expect(typeof ports.critique).toBe('function');
     expect(typeof ports.readGateSources).toBe('function');
+  });
+
+  it('separates "the model said no" from "the model did not answer"', () => {
+    // A live run answered the scope check with a work report. Reading that as a
+    // "no" ended the run with "this task does not need Ultra", which points at
+    // the wrong problem: the routing call was broken, not the task.
+    expect(parseScopeVerdict('YES — it touches three modules')).toEqual({
+      decided: true,
+      ok: true,
+      reason: 'YES — it touches three modules',
+    });
+    expect(parseScopeVerdict('No, a small change.')).toEqual({
+      decided: true,
+      ok: false,
+      reason: 'No, a small change.',
+    });
+
+    const undecided = parseScopeVerdict('Implemented it via TDD.\n\nChanges:\n- src/a.ts');
+    expect(undecided.decided).toBe(false);
+    // The reply is kept as the reason, so the failure says what came back.
+    expect(undecided.reason).toContain('Implemented it via TDD');
   });
 
   it('the planner schema requires the fields the core validates', () => {

@@ -124,6 +124,22 @@ function loadRecipeOverridesFor(cwd: string): ultra.RecipeOverrides {
   return ultra.loadRecipeOverrides(path.join(cwd, '.alran', 'recipes')).overrides;
 }
 
+/**
+ * Reports paths a read-only role changed and the guard reverted.
+ *
+ * Loud on purpose: a planning agent that writes files is a model doing something
+ * it was told not to do, and the human running the plan should know it happened
+ * rather than finding out from a diff later.
+ */
+function reportUnexpectedWrite(write: (text: string) => void, paths: readonly string[]): void {
+  const shown = paths.slice(0, 5).join(', ');
+  const rest = paths.length > 5 ? `, +${String(paths.length - 5)} more` : '';
+  write(
+    `warning: a read-only planning step changed ${String(paths.length)} file(s) (${shown}${rest}); ` +
+      'the change was reverted.\n',
+  );
+}
+
 function parseBudget(raw: string | boolean | undefined): number | null {
   return ultra.parseBudgetUsd(typeof raw === 'string' ? raw : raw === undefined ? '2' : String(raw));
 }
@@ -906,6 +922,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
             cwd,
             env: process.env,
             onProgress: (message) => write(`  ${message}…\n`),
+            onUnexpectedWrite: (paths) => reportUnexpectedWrite(write, paths),
           });
         const structure = await ports.explore({
           role: 'structure',

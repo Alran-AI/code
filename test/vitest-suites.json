@@ -393,6 +393,7 @@
       "packages/tui/test/unit/tui/features/ultra/ultra-board.test.ts",
       "packages/tui/test/unit/tui/features/ultra/ultra-flow.test.ts",
       "packages/ultra/test/unit/runner.test.ts",
+      "packages/tui/test/unit/read-only-guard.test.ts",
       "packages/tui/test/unit/ultra-launch.test.ts",
       "packages/tui/test/unit/tui/features/ultra/ultra-wizard.test.ts",
       "packages/ultra/test/unit/runner-log.test.ts",

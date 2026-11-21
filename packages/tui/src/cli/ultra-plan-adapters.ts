@@ -24,6 +24,7 @@ import path from 'node:path';
 import * as ultra from '@alran/ultra';
 import type { UltraGateSources } from '@alran/ultra';
 import { normalizeLLMError, toLLMRetryDecision } from '@alran/shared/llm-error-classifier';
+import { restoreTree, snapshotTree } from './read-only-guard.js';
 
 export interface UltraPlanAdapterContext {
   readonly cwd: string;
@@ -42,6 +43,12 @@ export interface UltraPlanAdapterContext {
    * reader who attaches should see the run move instead of a frozen screen.
    */
   readonly onProgress?: (message: string) => void;
+  /**
+   * Called when a read-only role changed the tree anyway, with the paths the
+   * guard reverted. The caller decides how loud to be; the guarantee is that the
+   * tree is already clean by the time this runs.
+   */
+  readonly onUnexpectedWrite?: (paths: readonly string[]) => void;
 }
 
 /** The planner's structured output schema, kept next to the parser that reads it. */
@@ -211,6 +218,26 @@ export function buildCriticPrompt(input: {
     'Answer with exactly one line first: `OK` or `PROBLEMS`. Then one problem per',
     'line beginning with `- `.',
   ].join('\n');
+}
+
+/**
+ * Reads a scope-check reply.
+ *
+ * `decided` separates "the model said NO" from "the model did not answer the
+ * question", because those need opposite handling: a no ends the run politely, an
+ * unreadable reply is a broken run.
+ */
+export function parseScopeVerdict(text: string): { readonly decided: boolean; readonly ok: boolean; readonly reason: string } {
+  const trimmed = text.trim();
+  const verdict = /^\s*(YES|NO)\b/iu.exec(trimmed);
+  if (!verdict) {
+    return { decided: false, ok: false, reason: trimmed.slice(0, 300) || 'no reason given' };
+  }
+  return {
+    decided: true,
+    ok: verdict[1]!.toUpperCase() === 'YES',
+    reason: trimmed.slice(0, 300) || 'no reason given',
+  };
 }
 
 /** Reads the well-known project files so gate detection matches the CI Fixer. */
@@ -448,19 +475,37 @@ export function createUltraPlanAdapters(context: UltraPlanAdapterContext): ultra
   const plannerTimeoutMs = context.plannerTimeoutMs ?? 20 * 60_000;
   const criticTimeoutMs = context.criticTimeoutMs ?? 10 * 60_000;
 
+  /**
+   * One read-only planning call.
+   *
+   * `permission: 'off'` is used because a headless run cannot answer a prompt —
+   * but note what it means: it *skips* permission review, so it does not stop a
+   * model that decides to edit files. The guard around the call is what makes
+   * the read-only claim true: the tree is fingerprinted before and restored
+   * after, and only paths that were clean beforehand are touched.
+   */
   const call = (
     input: { systemPrompt: string; prompt: string; timeoutMs: number; model: string },
-  ): HeadlessResult =>
-    runHeadless(context, {
-      systemPrompt: input.systemPrompt,
-      prompt: input.prompt,
-      workspaceDir: context.cwd,
-      model: input.model,
-      timeoutMs: input.timeoutMs,
-      // Planning only reads the repository; `off` keeps a planning call from
-      // making changes the plan would then be built on top of.
-      permission: 'off',
-    });
+  ): HeadlessResult => {
+    const before = snapshotTree(context.cwd, context.env);
+    try {
+      return runHeadless(context, {
+        systemPrompt: input.systemPrompt,
+        prompt: input.prompt,
+        workspaceDir: context.cwd,
+        model: input.model,
+        timeoutMs: input.timeoutMs,
+        permission: 'off',
+      });
+    } finally {
+      if (before) {
+        const { reverted } = restoreTree(context.cwd, before, context.env);
+        if (reverted.length > 0) {
+          context.onUnexpectedWrite?.(reverted);
+        }
+      }
+    }
+  };
 
   return {
     async scope(input) {
@@ -473,10 +518,16 @@ export function createUltraPlanAdapters(context: UltraPlanAdapterContext): ultra
         model: '',
       });
       if (!result.ok) return { ok: false, reason: `scope check failed: ${result.error ?? 'unknown error'}` };
-      const verdict = /^\s*(YES|NO)\b/iu.exec(result.text);
-      const ok = verdict?.[1]?.toUpperCase() === 'YES';
-      const reason = result.text.trim().slice(0, 300) || 'no reason given';
-      return { ok, reason };
+      const verdict = parseScopeVerdict(result.text);
+      if (!verdict.decided) {
+        // An answer that is neither YES nor NO is not a "no". Reading it as one
+        // turns a broken routing call into "this task does not need Ultra" and
+        // stops the run with a reason that points at the wrong problem.
+        throw new Error(
+          `the scope check did not answer YES or NO: ${verdict.reason}`,
+        );
+      }
+      return { ok: verdict.ok, reason: verdict.reason };
     },
 
     async explore(brief) {
