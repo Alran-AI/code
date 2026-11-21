@@ -361,7 +361,7 @@ on open. Secret-looking values are masked before they reach disk.
 | ULT-01 | a worker's success claim never beats a failing gate, and the verifier never runs on a red gate | `execute.test.ts` |
 | ULT-02 | an out-of-scope change resets the worktree, restarts the worker and counts as a repair | `execute.test.ts`, `scope-guard.test.ts` |
 | ULT-03 | a deleted test is caught by the diff guard before the LLM, and a hard-coded value is caught by the verifier | `execute.test.ts` |
-| ULT-04 | the budget pauses at 100 % and the paused packet stays resumable, including when spend is derived from token counts | `budget.test.ts`, `execute.test.ts` |
+| ULT-04 | the budget pauses at 100 % and the paused packet stays resumable, including when spend is derived from token counts; at CLI level a resumed pass finishes the run without re-executing the packet that was already done (real git, calls counted) | `budget.test.ts`, `execute.test.ts`, `ultra-command.test.ts` |
 | ULT-05 | the ledger and state survive a simulated crash and resume does not repeat finished work | `ledger.test.ts`, `run-state.test.ts` |
 | ULT-06 | a 429 lowers parallelism, backs off and still finishes; a throttled verifier does not cost a repair | `execute.test.ts` |
 | ULT-07 | overlapping parallel scope, unknown dependencies, cycles and duplicate ids are rejected | `plan-schema.test.ts` |
@@ -379,16 +379,31 @@ on open. Secret-looking values are masked before they reach disk.
 | ULT-19 | a crash at a round boundary replays the ledger and leaves the run resumable | `loop.test.ts` |
 | ULT-20 | an open `needs_human` `must` ends the run `partial`, not `succeeded` | `goal.test.ts`, `loop.test.ts` |
 
-Two of the ULT tests run against real git rather than a fake, because the fakes
-could not see the failure they were hiding: `ultra-command.test.ts` creates a
-repository with a bare remote, runs a whole pass with real worktrees, real merges
-and real gates (only the model calls are stubbed), and asserts that `main` and the
-remote are byte-for-byte unchanged — both for a run that succeeds and for one
-whose packets all end `blocked` (ULT-08). That is what caught two defects the
-unit suites could not: packet branches named `ultra/<run>/<packet>` made the run
-branch `ultra/<run>` impossible to create at all, and the integrate gate spawned
-command strings without a shell, so a real suite (`npm run test`) exited with no
-code and the run ended `failed` on a suite that never ran.
+Three ULT tests run against real git rather than a fake, because the fakes could
+not see the failures they were hiding. `ultra-command.test.ts` creates a
+repository with a bare remote and runs whole passes with real worktrees, real
+merges and real gates (only the model calls are stubbed, and they append to a
+counter file so a test can count model calls). It asserts that `main` and the
+remote are byte-for-byte unchanged after a successful run and after one whose
+packets all end `blocked` (ULT-08), and that a run paused at the cap resumes
+without re-executing the packet that was already done (ULT-04).
+
+That is what caught four defects the unit suites could not:
+
+- packet branches named `ultra/<run>/<packet>` made the run branch
+  `ultra/<run>` impossible to create at all — git stores a ref as a file;
+- the integrate gate spawned command strings without a shell, so a real suite
+  (`npm run test`) exited with no code and the run ended `failed` on a suite
+  that never ran;
+- the verifier dropped `costUsd`, so its tokens were recorded but never priced
+  and the cap paused later than the money ran out;
+- a resumed run kept integrate's scratch worktree registered on the run branch,
+  and git refuses to force-update a branch that is checked out — so any run that
+  reached integrate and was then resumed could never integrate again.
+
+Each fix has a test that fails without it. None of them was visible to the
+in-memory ports the rest of the suite uses, which is the argument for keeping the
+real-git tests even though they are slower.
 
 Not yet covered: any live-model or end-to-end CLI test against a real provider. The
 acceptance *parser* is tested against fixed replies; the acceptor agent's own
