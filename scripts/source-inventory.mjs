@@ -26,6 +26,10 @@ const skipped = new Set([
   ".pytest_cache",
   ".mypy_cache",
   ".ruff_cache",
+  // Ultra's run state (spec 4.3). A run writes here on every invocation, so a
+  // checkout that has ever run Ultra would otherwise fail check:source with a
+  // list of ledgers and runner logs — and none of it is source.
+  ".alran",
 ]);
 function filesIn(directory, prefix = "") {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
