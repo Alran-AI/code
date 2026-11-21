@@ -9,7 +9,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -123,12 +123,58 @@ describe('ultraChildArgs', () => {
 
 describe('alranCommandFor', () => {
   it('prefers the running entry point over whatever is on PATH', () => {
-    expect(alranCommandFor('/opt/alran/dist/cli.js')).toEqual([process.execPath, '/opt/alran/dist/cli.js']);
+    // A path that does not exist is not returned: the command has to be
+    // spawnable, and an entry point we cannot open is the fallback's problem.
+    const dir = tempDir();
+    const entry = path.join(dir, 'dist', 'cli.js');
+    mkdirSync(path.dirname(entry), { recursive: true });
+    writeFileSync(entry, '// entry\n');
+    expect(alranCommandFor(entry)).toEqual([process.execPath, entry]);
+    expect(alranCommandFor('/opt/alran/dist/cli.js')).toEqual(['alran']);
   });
 
   it('falls back to the installed command', () => {
     expect(alranCommandFor(undefined)).toEqual(['alran']);
     expect(alranCommandFor('/usr/bin/node')).toEqual(['alran']);
+  });
+
+  it('resolves the entry point through a symlink (the global-install shim)', () => {
+    // `process.argv[1]` for a globally installed CLI is the bin shim, not the
+    // script. Matching only the raw string would fall back to `alran` from PATH,
+    // which can be a different, older binary — and the detached child then dies
+    // with `unknown option '--adopt'` in a log nobody reads.
+    const dir = tempDir();
+    const real = path.join(dir, 'dist', 'cli.js');
+    mkdirSync(path.dirname(real), { recursive: true });
+    writeFileSync(real, '// entry\n');
+    const shim = path.join(dir, 'alran');
+    symlinkSync(real, shim);
+
+    expect(alranCommandFor(shim)).toEqual([process.execPath, real]);
+  });
+});
+
+describe('launchUltraRun with an unknown alran on PATH', () => {
+  it('refuses to start a run that would die at once with a commander error', () => {
+    const dir = tempDir();
+    // A stand-in `alran` that is not Ultra at all: it answers --help successfully
+    // but never mentions the command, exactly like an older installed build.
+    const bin = path.join(dir, 'bin');
+    mkdirSync(bin, { recursive: true });
+    const script = path.join(bin, 'alran');
+    writeFileSync(script, '#!/bin/sh\necho "Alran Code — terminal coding agent"\nexit 0\n', { mode: 0o755 });
+    const env = { ...process.env, PATH: `${bin}:${process.env.PATH ?? ''}` };
+
+    // argv[1] under the test runner is not a cli.js, so the launcher falls back
+    // to `alran` from PATH — which is the case this guards.
+    expect(() =>
+      launchUltraRun(
+        { mode: 'run', task: 't', runId: 'run-1', budgetUsd: 2, recipe: 'auto', workers: 4, maxRepairs: 2 },
+        { cwd: dir, env },
+      ),
+    ).toThrow(/does not know the ultra command/iu);
+    // Nothing was spawned and no runner record claims a live pid.
+    expect(existsSync(path.join(dir, '.alran', 'ultra', 'run-1', 'runner.json'))).toBe(false);
   });
 });
 

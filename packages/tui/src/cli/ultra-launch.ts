@@ -23,8 +23,8 @@
  * the parent already created the directory to have somewhere to put the log.
  */
 
-import { closeSync, mkdirSync, openSync } from 'node:fs';
-import { spawn } from 'node:child_process';
+import { closeSync, existsSync, mkdirSync, openSync, realpathSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import * as ultra from '@alran/ultra';
 
@@ -65,13 +65,36 @@ export interface UltraLaunchResult {
 /**
  * How to invoke this CLI again.
  *
- * Prefers the running entry point (`node dist/cli.js`) so a checkout under
- * development drives itself rather than whatever `alran` is on PATH. Falls back
- * to `alran` when the entry point is not recognisable.
+ * Prefers the running entry point, resolved through symlinks, so the detached
+ * child is the *same installation* that started it. That matters: `process.argv[1]`
+ * for a globally installed CLI is the bin shim (`/usr/local/bin/alran`), and
+ * matching only the raw string meant falling back to whatever `alran` PATH
+ * resolved to next — which can be a different, older binary. The child then died
+ * with `unknown option '--adopt'` and the run looked started but was not.
+ *
+ * Falls back to `alran` only when no entry point can be resolved; callers that
+ * use that fallback verify the binary understands `ultra` before spawning it.
  */
 export function alranCommandFor(entry: string | undefined = process.argv[1]): readonly string[] {
-  if (entry && /cli\.[cm]?js$/u.test(entry)) return [process.execPath, entry];
-  return ['alran'];
+  const resolved = resolveCliEntry(entry);
+  return resolved ? [process.execPath, resolved] : ['alran'];
+}
+
+/** The CLI's own entry point, if this process was started by one. */
+export function resolveCliEntry(entry: string | undefined = process.argv[1]): string | undefined {
+  if (!entry) return undefined;
+  for (const candidate of [entry, realpathOrUndefined(entry)]) {
+    if (candidate && /cli\.[cm]?js$/u.test(candidate) && existsSync(candidate)) return candidate;
+  }
+  return undefined;
+}
+
+function realpathOrUndefined(entry: string): string | undefined {
+  try {
+    return realpathSync(entry);
+  } catch {
+    return undefined;
+  }
 }
 
 /** The argv the detached child runs, after the command itself. */
@@ -141,6 +164,24 @@ export function launchUltraRun(
   mkdirSync(paths.root, { recursive: true });
   const [command, ...prefix] = options.alranCommand ?? alranCommandFor();
   const args = [...prefix, 'ultra', ...ultraChildArgs(request)];
+  // When the entry point could not be resolved we are about to trust `alran` from
+  // PATH. If that is an older build it does not know `ultra`, and the child would
+  // die with a commander error in a log nobody is watching. Say so instead.
+  if (options.alranCommand === undefined && resolveCliEntry() === undefined) {
+    const probe = spawnSync(command, [...prefix, 'ultra', '--help'], {
+      env: options.env ?? process.env,
+      encoding: 'utf8',
+      timeout: 15_000,
+    });
+    const help = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
+    if (probe.status !== 0 || !/Ultra/iu.test(help)) {
+      throw new Error(
+        `the alran on PATH (${command}) does not know the ultra command, so the detached run would ` +
+          'die at once. Start the run from the Alran Code build that has Ultra, or pass an explicit ' +
+          'command.',
+      );
+    }
+  }
 
   // Append, so a resumed run keeps the log of the attempt before it.
   const fd = openSync(logPath, 'a');
