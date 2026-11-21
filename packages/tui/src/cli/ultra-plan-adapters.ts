@@ -430,6 +430,61 @@ export function parsePlanDraft(text: string): { packets: ultra.PlanPacket[] } {
   return { packets: packets.map((entry, index) => parsePacket(entry, index)) };
 }
 
+/**
+ * Parses a plan reply, keeping the packets that are usable.
+ *
+ * The strict `parsePlanDraft` throws on the first malformed packet, which means
+ * one bad packet from the model discards every good one beside it — a live run
+ * lost a six-packet plan to a single `p6` with an empty scope. A packet with no
+ * scope cannot be enforced (spec 3.3), so it is genuinely unusable and dropping
+ * it is safe; what is not acceptable is dropping the rest of the plan with it.
+ *
+ * The dropped packets are returned rather than swallowed, so the caller can print
+ * them: a run that quietly plans less than the model proposed is the failure
+ * mode this feature exists to avoid.
+ */
+export function parsePlanDraftLenient(text: string): {
+  readonly packets: ultra.PlanPacket[];
+  readonly dropped: readonly { readonly id: string; readonly reason: string }[];
+} {
+  let parsed: unknown;
+  try {
+    parsed = parseJsonReply(text);
+  } catch (error) {
+    throw new Error(`could not read the plan reply as JSON: ${String(error)}`);
+  }
+  if (!parsed || typeof parsed !== 'object' || !('packets' in parsed)) {
+    throw new Error('the plan reply has no packets array');
+  }
+  const entries = (parsed as { packets?: unknown }).packets;
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error('the plan reply has no packets');
+  }
+
+  const packets: ultra.PlanPacket[] = [];
+  const dropped: { id: string; reason: string }[] = [];
+  entries.forEach((entry, index) => {
+    const id =
+      entry && typeof entry === 'object' && typeof (entry as { id?: unknown }).id === 'string'
+        ? (entry as { id: string }).id.trim()
+        : `packet ${String(index + 1)}`;
+    try {
+      packets.push(parsePacket(entry, index));
+    } catch (error) {
+      dropped.push({ id, reason: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Nothing usable is not a plan: fail loudly rather than starting a run with an
+    // empty packet list, which every gate would pass.
+  if (packets.length === 0) {
+    throw new Error(
+      `the planner produced no usable packets: ${dropped.map((entry) => entry.reason).join('; ')}`,
+    );
+  }
+  return { packets, dropped };
+}
+
 function parsePacket(entry: unknown, index: number): ultra.PlanPacket {
   const record = entry && typeof entry === 'object' ? (entry as Record<string, unknown>) : {};
   const id = typeof record.id === 'string' ? record.id.trim() : '';
@@ -564,7 +619,10 @@ export function createUltraPlanAdapters(context: UltraPlanAdapterContext): ultra
         model: input.model,
       });
       if (!result.ok) throw new Error(`planner failed: ${result.error ?? 'unknown error'}`);
-      const draft = parsePlanDraft(result.text);
+      const draft = parsePlanDraftLenient(result.text);
+      for (const entry of draft.dropped) {
+        context.onProgress?.(`dropping ${entry.id}: ${entry.reason}`);
+      }
       return {
         packets: draft.packets,
         tokensUsed: result.tokensUsed,

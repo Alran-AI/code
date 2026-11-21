@@ -18,6 +18,7 @@ import {
   buildPlannerPrompt,
   buildScopePrompt,
   buildCriticPrompt,
+  parsePlanDraftLenient,
   parseScopeVerdict,
   buildExplorerPrompt,
   createUltraPlanAdapters,
@@ -155,6 +156,41 @@ describe('parsePlanDraft', () => {
     );
     const result = validatePlan({ goal: 'g', recipe: 'auto', packets: draft.packets });
     expect(result.ok).toBe(true);
+  });
+});
+
+describe('parsePlanDraftLenient', () => {
+  it('keeps the usable packets when one is malformed', () => {
+    // A live run lost a six-packet plan because p6 had an empty scope. One bad
+    // packet must not cost the other five.
+    const text = JSON.stringify({
+      packets: [
+        { id: 'p1', title: 'A', goal: 'do a', scope: ['src/a/**'], depends_on: [] },
+        { id: 'p6', title: 'Bad', goal: 'do f', scope: [], depends_on: [] },
+      ],
+    });
+
+    const draft = parsePlanDraftLenient(text);
+
+    expect(draft.packets.map((packet) => packet.id)).toEqual(['p1']);
+    expect(draft.dropped).toHaveLength(1);
+    expect(draft.dropped[0]!.id).toBe('p6');
+    expect(draft.dropped[0]!.reason).toMatch(/empty scope/iu);
+  });
+
+  it('still fails when no packet is usable', () => {
+    // An empty plan would pass every gate by doing nothing.
+    const text = JSON.stringify({
+      packets: [{ id: 'p6', title: 'Bad', goal: 'do f', scope: [], depends_on: [] }],
+    });
+    expect(() => parsePlanDraftLenient(text)).toThrow(/no usable packets/iu);
+  });
+
+  it('keeps the strict parser strict for callers that want the old behaviour', () => {
+    const text = JSON.stringify({
+      packets: [{ id: 'p6', title: 'Bad', goal: 'do f', scope: [], depends_on: [] }],
+    });
+    expect(() => parsePlanDraft(text)).toThrow(/empty scope/iu);
   });
 });
 
