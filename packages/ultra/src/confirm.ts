@@ -119,6 +119,32 @@ export function renderUltraConfirmation(input: UltraConfirmationInput): string {
     }
   }
 
+  // The project-wide gates, shown because they are the commands the run will
+  // execute against the merged tree (spec 3.2). Detection is a guess about a
+  // repository it has never seen; a reader who recognises a wrong guess needs
+  // to see it here, before the money is spent, and not in the failure at the
+  // end of the run.
+  const gates = input.plan.gates;
+  if (gates) {
+    const groups: readonly (readonly [string, readonly string[]])[] = [
+      ['test', gates.test],
+      ['lint', gates.lint],
+      ['build', gates.build],
+    ];
+    const commands = groups.flatMap(([, list]) => list);
+    lines.push('');
+    if (commands.length === 0) {
+      lines.push(clip('Project-wide gates: none detected — the run will not claim a green build.', width));
+    } else {
+      lines.push(clip('Project-wide gates (run on the merged tree):', width));
+      for (const [group, list] of groups) {
+        for (const command of list) {
+          lines.push(clip(`  ${group}: ${command}`, width));
+        }
+      }
+    }
+  }
+
   lines.push('');
   lines.push(clip(`Nothing is merged into main. Work lands on branch ${runBranchFor(input.runId)}.`, width));
   lines.push('');

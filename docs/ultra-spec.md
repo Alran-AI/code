@@ -84,6 +84,9 @@ TUI: `/ultra <task>` with the same flags.
 | `--base` | current HEAD | commit to branch from |
 | `--stash` | off | allow start on a dirty tree by snapshotting it |
 | `--reviewers` | 3 (max 8) | lenses in the review fleet (§14) |
+| `--test-gate` | detected | replace the detected project-wide test gate (repeatable) |
+| `--lint-gate` | detected | replace the detected project-wide lint gate (repeatable) |
+| `--build-gate` | detected | replace the detected project-wide build gate (repeatable) |
 
 The confirmation step shows the plan and goal document (§13.1). A cost preview in
 the confirmation is **open (O-7)**; the live cost counter is always shown.
@@ -117,7 +120,12 @@ the normal agent. Also refuses to start on a dirty tree unless `--stash` is give
   schema and refuses plans where two parallel packets have overlapping `scope`.
 - Gate commands are **auto-detected** from the repo (package.json, pyproject,
   Cargo.toml, Makefile …) and shown in the plan; the user can edit them before
-  execution.
+  execution. Detection is a guess about a repository the harness has never
+  seen, so the guess is shown before the money is spent and can be replaced
+  (`--test-gate`, `--lint-gate`, `--build-gate`; an override replaces the
+  detected group rather than adding to it). A plan edited on disk is validated
+  again before it runs: an edit may change what the run does, never which
+  checks it has to pass.
 
 ### 3.3 Execute
 

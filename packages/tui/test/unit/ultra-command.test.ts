@@ -9,7 +9,7 @@ import {
   registerUltraCommand,
 } from '../../src/cli/ultra-command.js';
 import { createUltraExecAdapters, createUltraIntegrateAdapters } from '../../src/cli/ultra-exec-adapters.js';
-import type { ExecutePorts, IntegratePorts, PlanRunResult, UltraPlanPorts } from '@alran/ultra';
+import type { ExecutePorts, IntegratePorts, PlanRunResult, UltraPlan, UltraPlanPorts } from '@alran/ultra';
 
 const dirs: string[] = [];
 
@@ -1750,5 +1750,84 @@ describe('stopping a run that is under way', () => {
     // A request left over from a run that was killed before it could read it
     // would pause this resume before it began.
     expect(existsSync(store.paths.control)).toBe(false);
+  });
+});
+
+describe('the project-wide gates', () => {
+  it('are shown in the confirmation, so a wrong detection is visible before the money is spent', async () => {
+    const dir = gitRepo();
+    const cli = harness(dir, { planPorts: fakePorts });
+    await cli.program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    // The confirmation is what the reader sees before answering.
+    expect(cli.output()).toContain('Project-wide gates');
+  });
+
+  it('are replaced by the reader when they say so', async () => {
+    const dir = gitRepo();
+    const cli = harness(dir, { planPorts: fakePorts });
+    await cli.program.parseAsync(
+      ['ultra', 'a big task', '--test-gate', 'pnpm test:unit'],
+      { from: 'user' },
+    );
+
+    const runId = runDirs(dir)[0]!;
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+    // An override replaces the detected group: the reader said that command
+    // and not the one detection guessed.
+    expect(plan.gates?.test).toEqual(['pnpm test:unit']);
+    expect(cli.output()).toContain('pnpm test:unit');
+  });
+
+  it('are replaced on a resume too, so a planned run can be corrected without planning again', async () => {
+    const dir = gitRepo();
+    const planning = harness(dir, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    const resume = harness(dir, { planPorts: fakePorts });
+    await resume.program.parseAsync(
+      ['ultra', 'resume', runId, '--lint-gate', 'pnpm lint:ci'],
+      { from: 'user' },
+    );
+
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+    expect(plan.gates?.lint).toEqual(['pnpm lint:ci']);
+  });
+
+  it('refuses a plan on disk that does not validate, so editing it cannot bypass the rules', async () => {
+    const dir = gitRepo();
+    const planning = harness(dir, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+    // Two parallel packets with overlapping scopes are refused at plan
+    // validation (ULT-07). A plan edited on disk must not slip past that.
+    writeFileSync(
+      store.paths.plan,
+      JSON.stringify(
+        {
+          ...plan,
+          packets: [
+            { ...plan.packets[0]!, scope: ['src/shared/**'] },
+            { ...plan.packets[0]!, id: 'p2', title: 'Second', scope: ['src/shared/**'] },
+          ],
+        },
+        null,
+        2,
+      ),
+    );
+
+    const resume = harness(dir, { planPorts: fakePorts });
+    await resume.program.parseAsync(['ultra', 'resume', runId], { from: 'user' });
+
+    expect(resume.output()).toMatch(/not valid/iu);
+    expect(resume.exitCodes).toContain(1);
   });
 });

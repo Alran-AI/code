@@ -386,6 +386,44 @@ function claimDriver(
 }
 
 /**
+ * Collects a repeatable option into a list.
+ *
+ * Commander overwrites a plain option when it is given twice, so a repeatable
+ * one needs a collector that keeps what came before.
+ */
+function collectGate(value: string, previous: readonly string[]): string[] {
+  return [...previous, value];
+}
+
+/**
+ * The gate groups the reader overrode, or `undefined` when none were.
+ *
+ * An override replaces the detected group rather than adding to it: a reader
+ * who says `--test-gate "pnpm test:unit"` means that command and not the one
+ * detection guessed.
+ */
+function gateOverridesFrom(
+  options: Record<string, string | boolean | undefined>,
+): Partial<ultra.UltraGates> | undefined {
+  const test = toCommandList(options.testGate);
+  const lint = toCommandList(options.lintGate);
+  const build = toCommandList(options.buildGate);
+  if (test.length === 0 && lint.length === 0 && build.length === 0) return undefined;
+  return {
+    ...(test.length > 0 ? { test } : {}),
+    ...(lint.length > 0 ? { lint } : {}),
+    ...(build.length > 0 ? { build } : {}),
+  };
+}
+
+/** One option, given once or many times, as a list of commands. */
+function toCommandList(value: string | boolean | undefined): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.filter((entry): entry is string => typeof entry === 'string');
+  return [];
+}
+
+/**
  * Turns Ctrl+C into a pause request instead of a dead process.
  *
  * Without a handler the terminal's SIGINT kills the CLI outright: the run stays
@@ -693,6 +731,13 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       )
       .option('--yes', 'skip the cost confirmation (the budget cap still applies)')
       .option('--detach', 'start the run in the background and return at once')
+      // The project-wide gates are detected from the repository, which is a
+      // guess about a project the harness has never seen. These replace the
+      // detected group, so `--test-gate "pnpm test:unit"` means exactly that
+      // command and nothing else.
+      .option('--test-gate <cmd>', 'replace the detected project-wide test gate', collectGate, [])
+      .option('--lint-gate <cmd>', 'replace the detected project-wide lint gate', collectGate, [])
+      .option('--build-gate <cmd>', 'replace the detected project-wide build gate', collectGate, [])
       // Internal: the detached child continues the run the parent already
       // created instead of allocating a second one.
       .addOption(new Option('--adopt <run-id>', 'continue an existing run').hideHelp())
@@ -825,6 +870,9 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     commandOptions: Record<string, string | boolean | undefined>,
     executeAfter: boolean,
   ): Promise<void> => {
+    // The gate overrides are read before anything else: they change the plan,
+    // so they have to be in hand before the planner runs.
+    const gateOverrides = gateOverridesFrom(commandOptions);
     const guard = ultra.evaluateStartGuard({
       ...ultra.probeWorkingTree(cwd),
       stash: commandOptions.stash === true,
@@ -952,6 +1000,9 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         },
         ports: options.planPorts as ultra.UltraPlanPorts,
         ...(commandOptions.forceScope === true ? { forceScope: true } : {}),
+        // The gates the reader overrode, if any. The plan carries whichever
+        // wins, so the confirmation shows what will actually run.
+        ...(gateOverrides ? { gateOverrides } : {}),
       });
     } catch (error) {
       // A failed planner call is a failed run, not an unhandled rejection: the
@@ -1354,7 +1405,11 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       // decides whether the merged round is green. Detect the repo's own commands
       // so a plan that omitted them still has a real gate.
       const gateSources = await createUltraPlanAdapters({ cwd, env: process.env }).readGateSources();
-      const gates = ultra.detectUltraGates(gateSources);
+      const detected = ultra.detectUltraGates(gateSources);
+      // The reader's overrides replace the detected group, the same way they do
+      // for a single-round run.
+      const goalGateOverrides = gateOverridesFrom(commandOptions);
+      const gates = ultra.applyGateOverrides(detected, goalGateOverrides ?? {});
       const firstRoundPlan: ultra.UltraPlan = {
         goal: task,
         recipe,
@@ -1733,6 +1788,11 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     .command('resume')
     .description('Resume a paused or killed run without repeating finished packets')
     .option('--budget <usd>', 'raise the hard cost cap for this resumed pass (or "none")')
+    // A run that was planned before the reader knew which gate the project
+    // uses can be corrected here, without planning the whole thing again.
+    .option('--test-gate <cmd>', 'replace the project-wide test gate of the plan', collectGate, [])
+    .option('--lint-gate <cmd>', 'replace the project-wide lint gate of the plan', collectGate, [])
+    .option('--build-gate <cmd>', 'replace the project-wide build gate of the plan', collectGate, [])
     .argument('<run-id>', 'run to resume')
     .action(async (id: string, commandOptions: Record<string, string | boolean | undefined>) => {
       const store = ultra.RunStore.open(stateDir, id);
@@ -1772,10 +1832,35 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       }
       write(`Resuming ${id}. Pending packets: ${resumable.length > 0 ? resumable.join(', ') : 'none'}\n`);
       const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+      // The plan on disk is the plan the human may have edited before the
+      // execution (spec 3.2), so it is validated again here. An edited plan
+      // that breaks the rules — two parallel packets with overlapping scopes,
+      // an empty scope, a dependency that does not exist — must not slip past
+      // the checks the planner passed.
+      const validation = ultra.validatePlan(plan);
+      if (!validation.ok) {
+        write(`The plan in ${store.paths.plan} is not valid:\n`);
+        for (const problem of validation.problems) write(`  - ${problem}\n`);
+        exit(1);
+        return;
+      }
       // Even when every packet is already done, the pass still integrates: a
       // run that was killed between the packets and the merge has finished its
       // work and would otherwise never be merged at all.
-      await executeRun(store, plan, {});
+      const resumeGateOverrides = gateOverridesFrom(commandOptions);
+      if (resumeGateOverrides) {
+        // The plan of record is written back: the gates that ran are the gates
+        // the plan says, so the report and the board read the truth.
+        const gates = ultra.applyGateOverrides(plan.gates, resumeGateOverrides);
+        writeFileSync(store.paths.plan, `${JSON.stringify({ ...plan, gates }, null, 2)}\n`);
+        write(`Project-wide gates replaced: ${gates.test.join(' ')} ${gates.lint.join(' ')} ${gates.build.join(' ')}\n`);
+        await executeRun(store, { ...plan, gates }, {});
+      } else {
+        // Even when every packet is already done, the pass still integrates: a
+        // run that was killed between the packets and the merge has finished
+        // its work and would otherwise never be merged at all.
+        await executeRun(store, plan, {});
+      }
     });
 
   root

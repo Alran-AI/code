@@ -10,7 +10,7 @@
  * plan-only mode is a first-class entry point.
  */
 
-import { detectUltraGates, type UltraGateSources } from './gates.js';
+import { applyGateOverrides, detectUltraGates, type UltraGateSources } from './gates.js';
 import { validatePlan } from './plan-schema.js';
 import type {
   PlanPacket,
@@ -201,12 +201,7 @@ export async function runPlanPhase(input: PlanRunInput): Promise<PlanRunResult> 
 }
 
 function mergeGates(sources: UltraGateSources, overrides: Partial<UltraGates>): UltraGates {
-  const detected = detectUltraGates(sources);
-  return {
-    test: overrides.test ?? detected.test,
-    lint: overrides.lint ?? detected.lint,
-    build: overrides.build ?? detected.build,
-  };
+  return applyGateOverrides(detectUltraGates(sources), overrides);
 }
 
 /**

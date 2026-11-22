@@ -104,6 +104,7 @@ export {
 } from './start-guard.js';
 
 export {
+  applyGateOverrides,
   detectUltraGates,
   type UltraGateSources,
 } from './gates.js';

@@ -18,6 +18,17 @@ Implemented and tested:
   repository's real project files and calls headless `alran exec` for each role;
   the planner's reply is parsed strictly, so a malformed plan is rejected rather
   than guessed at.
+- **The project-wide gates are shown and can be changed** — the commands the
+  merge will be checked against are detected from the repository (`package.json`,
+  `pyproject`, `Cargo.toml`, `Makefile` …), shown in the confirmation and in
+  `/ultra status`, and replaced by the reader when detection guessed wrong:
+  `--test-gate`, `--lint-gate` and `--build-gate` take a command each, and an
+  override *replaces* the detected group rather than adding to it. The same
+  flags work on `resume`, so a run that was planned before the reader knew
+  which gate the project uses can be corrected without planning it again. A
+  plan edited on disk is validated again before it runs, so an edit cannot
+  bypass the rules the planner passed (two parallel packets with overlapping
+  scopes stay refused).
 - **Budget-aware planning** — the plan is sized to `--budget` before any worker
   starts. Criteria are kept by priority (must → should → could), a
   `repair_reserve` fraction is held back, and a `must` that does not fit is
@@ -303,6 +314,9 @@ the packet table.
 | `--force-scope` | off | plan and run even when the scope check says the task does not need Ultra |
 | `--force-critic` | off | execute a plan the critic rejected (its objections are still printed) |
 | `--reviewers` | `3` | `review` only: how many lenses of the fleet to run (1-8) |
+| `--test-gate` | detected | replace the detected project-wide test gate (repeatable) |
+| `--lint-gate` | detected | replace the detected project-wide lint gate (repeatable) |
+| `--build-gate` | detected | replace the detected project-wide build gate (repeatable) |
 
 Before a run executes it shows the plan, the goal criteria and where the work will
 land, and asks `Continue with this plan? [y/N]`. Only an explicit yes proceeds; an

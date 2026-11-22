@@ -178,3 +178,40 @@ describe('isConfirmationAccepted', () => {
     }
   });
 });
+
+describe('the confirmation shows the project-wide gates', () => {
+  it('lists the commands that will run against the merged tree', () => {
+    // Detection is a guess about a repository the harness has never seen. A
+    // reader who recognises a wrong guess has to see it here, before the
+    // money is spent — not in the failure at the end of the run (spec 3.2).
+    const text = renderUltraConfirmation({
+      runId: 'run-1',
+      goal: 'build the widget',
+      plan: {
+        ...plan(),
+        gates: { test: ['pnpm test'], lint: ['pnpm lint'], build: ['pnpm build'] },
+      },
+      goalDoc,
+      budgetUsd: 2,
+      workers: 4,
+      recipe: 'auto',
+    });
+    expect(text).toContain('Project-wide gates');
+    expect(text).toContain('pnpm test');
+    expect(text).toContain('pnpm lint');
+    expect(text).toContain('pnpm build');
+  });
+
+  it('says so when no gate was detected, instead of claiming a green build', () => {
+    const text = renderUltraConfirmation({
+      runId: 'run-1',
+      goal: 'build the widget',
+      plan: { ...plan(), gates: { test: [], lint: [], build: [] } },
+      goalDoc,
+      budgetUsd: 2,
+      workers: 4,
+      recipe: 'auto',
+    });
+    expect(text).toMatch(/none detected/iu);
+  });
+});

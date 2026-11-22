@@ -28,3 +28,22 @@ export function detectUltraGates(sources: UltraGateSources): UltraGates {
     build: [...commands.build],
   };
 }
+
+/**
+ * The gates with the reader's overrides applied.
+ *
+ * An override *replaces* the detected group rather than adding to it: a
+ * reader who says "the test gate is `pnpm test:unit`" means that command and
+ * not the one detection guessed. A group nobody overrode keeps what it had.
+ */
+export function applyGateOverrides(
+  gates: UltraGates | undefined,
+  overrides: Partial<UltraGates>,
+): UltraGates {
+  const base = gates ?? { test: [], lint: [], build: [] };
+  return {
+    test: overrides.test ?? base.test,
+    lint: overrides.lint ?? base.lint,
+    build: overrides.build ?? base.build,
+  };
+}

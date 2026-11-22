@@ -361,9 +361,33 @@ export class UltraFlow {
     for (const packet of state.packets) {
       lines.push(`  ${packet.id}  ${packet.status.padEnd(10)} ${packet.title}`);
     }
+    // The project-wide gates: the commands the merge will be checked against.
+    // Detection is a guess about a repository, so the reader is better off
+    // seeing it than wondering what the run will consider green.
+    const gates = this.planGates(store);
+    if (gates) {
+      const commands = [...gates.test, ...gates.lint, ...gates.build];
+      lines.push(
+        commands.length > 0
+          ? `Project-wide gates: ${commands.join(' · ')}`
+          : 'Project-wide gates: none detected',
+      );
+    }
     const resumable = store.resumablePacketIds();
     if (resumable.length > 0) lines.push(`Resumable: ${resumable.join(', ')}`);
     this.options.appendNotice(lines.join('\n'));
+  }
+
+  /** The plan's project-wide gates, or `undefined` when there is no plan yet. */
+  private planGates(store: ultra.RunStore): ultra.UltraGates | undefined {
+    if (!existsSync(store.paths.plan)) return undefined;
+    try {
+      const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+      return plan.gates;
+    } catch {
+      // A malformed plan file must not hide the packet table.
+      return undefined;
+    }
   }
 
   private showReport(runId?: string): void {
