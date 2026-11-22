@@ -34,7 +34,10 @@ Implemented and tested:
   which gate the project uses can be corrected without planning it again. A
   plan edited on disk is validated again before it runs, so an edit cannot
   bypass the rules the planner passed (two parallel packets with overlapping
-  scopes stay refused). The TUI's start wizard shows the detected gates too —
+  scopes stay refused). The check happens in the one function both surfaces
+  run, so the board cannot execute a plan the CLI would refuse, and a plan file
+  that is not a plan any more is refused with its reasons instead of a parse
+  error. The TUI's start wizard shows the detected gates too —
   the same detection, read from the same files — so both surfaces show the
   guess before the money is spent.
 - **Budget-aware planning** — the plan is sized to `--budget` before any worker
@@ -51,12 +54,31 @@ Implemented and tested:
   committed. The run reported `succeeded`, the report said so, and the branch
   the human was told to merge was empty. The change is now committed when the
   verifier passes, and a real-git test asserts the file is on the run branch.
+- **Only the approved paths are committed.** The scope guard looks at the worktree
+  as it was when the worker stopped. A gate that writes into the worktree
+  afterwards — a formatter with `--write`, a test that leaves a fixture behind —
+  adds files that no scope check ever saw, and committing "everything that
+  changed" put those files on the packet's branch and, through the merge, into
+  the run's branch: unverified work that the scope guard would have rejected.
+  The commit now names the paths the scope check approved, and the adapter stages
+  exactly those, as literal pathspecs and in chunks.
+- **A commit that fails is not the worker's fault.** The gate passed and the
+  verifier passed, so the work is good; re-running the worker would throw good
+  work away and charge it for a git problem. The commit is tried once more — a
+  locked index is the usual reason — and the packet is blocked with the reason
+  if it fails again.
 - **Live progress.** A pass used to print one line and then nothing until it
   finished — minutes of a frozen terminal. Every decision point the scheduler
   makes (attempt, worker finished, gate ok, verifier passed, repair, done,
-  blocked, skipped, throttled, budget pause) is now written as it happens, in
-  the foreground, in the TUI and in the detached runner's log. The lines say
-  what the harness observed and never repeat the worker's own claim.
+  blocked, skipped, throttled, budget warning, budget pause) is now written as
+  it happens, in the foreground, in the TUI and in the detached runner's log.
+  The lines say what the harness observed and never repeat the worker's own
+  claim.
+- **The budget warns before it stops the run.** The cap is hard and the run
+  pauses at it, so the warning is what lets a human raise it *before* the pause
+  instead of after it: the pass prints a warning line when the spend crosses
+  80 % of the cap, and the board shows `Budget: N % of the cap spent` from the
+  same point on.
 - **Packet evidence** — `packets/<id>/prompt.md`, `diff.patch`, `gate.txt` and
   `verdict.json` are written for every packet that reaches the gate.
 - **Integrate** — the merge agent merges `done` packets into `ultra/<run>` in
@@ -152,6 +174,19 @@ Implemented and tested:
   would otherwise never be merged at all. The one exception is a running run
   whose process is *gone*: `status` calls that `interrupted` and tells the
   reader to resume it, so the resume must not refuse it.
+- **A run that died in the merge can still be merged.** The interrupt handler is
+  released before INTEGRATE, so a crash in the merge left the run `integrating`
+  — and `status` told the reader to resume exactly that run, while the resume
+  refused it with "still planning". A run in `integrating` or `accepting` whose
+  driver is gone may be continued: every packet is already `done`, so the
+  resumed pass executes nothing and only finishes the merge. A run that is
+  merging right now is still refused — a second pass would race the first — and
+  the status says which of the two it is.
+- **One process drives a run.** A pass claims the run before it starts: if
+  another live process already holds it, the pass does not start at all. Two
+  passes over the same worktrees fight over the same files, and the loser would
+  merge a half-written branch into the run. The detached child claims the run
+  its parent recorded for it, which keeps a background run a background run.
 - **Stopping a run that is under way.** `alran ultra pause` and `alran ultra
   kill` used to do nothing to a run that was actually running. The run's
   `state.json` belongs to the process that drives the run, so a second process
@@ -163,6 +198,15 @@ Implemented and tested:
   run with no driver gets its state changed straight away, so `pause` on a run
   whose process died still means what it says. The TUI's `p` and `k` keys use
   the same rule and the same code.
+- **A stop request is consumed, not just read.** The driver reads the request at
+  its next safe point and clears it, so a request that was honoured cannot stop
+  the *next* pass before it began — which is how a paused run could never be
+  continued. The board's resume and the CLI's resume both clear a request left
+  behind by an earlier pass before they start.
+- **A killed run stays killed.** `pause` on a run that was already stopped is
+  refused: relabelling it `paused` would make `state.json` disagree with the
+  report that was written from it, and would make a stopped run look like it was
+  waiting to be continued.
 - **Ctrl+C pauses a run instead of orphaning it.** Without a handler, Ctrl+C
   killed the CLI outright and left the run saying `running` with nobody behind
   it — a state `resume` refused, so the work was stranded until somebody
@@ -451,7 +495,8 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
   packets/<id>/       # prompt.md, diff.patch, gate.txt, verdict.json
   runner.json         # pid and log path of the process driving the run
   runner.log          # that runner's stdout and stderr
-  control.json        # a stop request left for the process driving the run
+  control.json        # a stop request left for the process driving the run; the
+                      # driver clears it when it reads it
   report.md
   review.md           # the review fleet's report, when the run has been reviewed
   review.json         # its findings, for other tools to read
@@ -564,14 +609,17 @@ The suites live in `packages/ultra/test/unit`,
 `packages/tui/test/unit/ultra-command.test.ts`,
 `packages/tui/test/unit/ultra-plan-adapters.test.ts`,
 `packages/tui/test/unit/ultra-spec-base.test.ts`,
-`packages/tui/test/unit/ultra-diff.test.ts` and
+`packages/tui/test/unit/ultra-diff.test.ts`,
+`packages/tui/test/unit/ultra-exec-adapters.test.ts` and
 `packages/tui/test/unit/ultra-review-adapters.test.ts`, and run in the
 `capability` gate.
 
 The behaviours the spec does not number are covered outside the ULT table:
 `progress.test.ts` (the narration of a run), `runs.test.ts` (the listing of the
 runs on disk, including one whose state cannot be read), `resume.test.ts` (the
-one rule about what may be continued) and `review.test.ts` (the fleet: the
+one rule about what may be continued), `plan-file.test.ts` (reading the plan of
+record: a missing file, a file that is not JSON and a plan that breaks the
+rules are all explained rather than raised) and `review.test.ts` (the fleet: the
 lenses, the merge of duplicate findings, the verification, the budget, and the
 fail-closed parsing of both replies).
 

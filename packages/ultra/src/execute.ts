@@ -71,6 +71,19 @@ export interface ExecutePorts {
       readonly packetId: string;
       readonly dir: string;
       readonly message: string;
+      /**
+       * The paths the scope check approved, and the only ones that may be
+       * committed.
+       *
+       * The scope guard looks at the worktree as it was when the worker
+       * stopped. A gate that writes into the worktree afterwards — a
+       * formatter with `--write`, a test that leaves a fixture behind — adds
+       * files that no scope check ever saw. Committing "everything that
+       * changed" would put those files on the packet's branch and, through
+       * the merge, into the run's branch: unverified work that the scope
+       * guard would have rejected.
+       */
+      readonly paths: readonly string[];
     }): Promise<{ readonly commit: string }>;
     /** Unified diff of the worktree against its base commit. */
     diff(input: {
@@ -700,23 +713,46 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
       // branch only carries commits. A packet whose work was never committed
       // would merge to nothing and the run would hand back an empty branch
       // while claiming to have succeeded.
+      //
+      // Only the paths the scope guard approved are committed. A gate that
+      // wrote into the worktree added files that no scope check saw, and they
+      // do not belong on the packet's branch.
+      //
+      // A commit that fails is not the worker's fault: the gate passed and the
+      // verifier passed, so the work itself is good. Re-running the worker
+      // would throw good work away and charge the worker for a git problem,
+      // so the commit is tried once more — a locked index or a hook that was
+      // still running is the usual reason — and the packet is blocked if it
+      // fails again.
+      const commitWork = async (): Promise<string> => {
+        const message = `ultra(${packet.id}): ${packet.title}`;
+        try {
+          const first = await ports.worktree.commit({
+            packetId: packet.id,
+            dir,
+            message,
+            paths: changed,
+          });
+          return first.commit;
+        } catch {
+          const second = await ports.worktree.commit({
+            packetId: packet.id,
+            dir,
+            message,
+            paths: changed,
+          });
+          return second.commit;
+        }
+      };
+
       let commit: string;
       try {
-        ({ commit } = await ports.worktree.commit({
-          packetId: packet.id,
-          dir,
-          message: `ultra(${packet.id}): ${packet.title}`,
-        }));
+        commit = await commitWork();
       } catch (error) {
         const output = `could not commit the work on the packet's branch: ${errorMessage(error)}`;
         record({ kind: 'step', role: 'scheduler', packetId: packet.id, status: 'commit_error', note: output });
-        if (repairs >= maxRepairs) {
-          block(packet, output, repairs, dir, branch);
-          return;
-        }
-        repairs += 1;
-        failure = { kind: 'gate', output };
-        continue;
+        block(packet, output, repairs, dir, branch);
+        return;
       }
 
       writeEvidence(
@@ -724,6 +760,9 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         'verdict.json',
         `${JSON.stringify({ pass: true, reasons: [], model: config.verifierModel }, null, 2)}\n`,
       );
+      // The commit that carries the work, so a reader can look at exactly the
+      // tree the gate and the verifier saw.
+      if (commit.length > 0) writeEvidence(packet.id, 'commit.txt', `${commit}\n`);
       setStatus(packet.id, 'done', undefined, repairs);
       outcomes.set(packet.id, outcomeFor(packet, 'done', repairs, undefined, dir, branch));
       record({ kind: 'packet', packetId: packet.id, status: 'done', note: worker.summary, role: 'scheduler' });

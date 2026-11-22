@@ -13,6 +13,7 @@
 
 import { runBranchFor } from './branches.js';
 import { resumeRefusal } from './resume.js';
+import type { UltraControlDriver } from './control.js';
 import type { RunState } from './types.js';
 
 export type UltraNextStep =
@@ -28,14 +29,18 @@ export type UltraNextStep =
  *
  * A successful run is the case that matters most: it is the one the reader
  * waited for, and the merge is the only thing left to do with it.
+ *
+ * `driver` says whether something is still behind the run. A run that nobody
+ * is driving any more — the process died in the middle of it — has work left,
+ * and the command that continues it has to be named.
  */
-export function nextStepFor(state: RunState): UltraNextStep {
+export function nextStepFor(state: RunState, driver?: UltraControlDriver): UltraNextStep {
   if (state.status === 'succeeded') {
     return { kind: 'merge', branch: runBranchFor(state.runId) };
   }
   // A run that may be continued is a run with work left, whether it paused at
   // its budget cap, was killed, or is waiting for a confirmation.
-  if (resumeRefusal(state) === undefined) {
+  if (resumeRefusal(state, driver) === undefined) {
     return { kind: 'resume' };
   }
   return { kind: 'none' };

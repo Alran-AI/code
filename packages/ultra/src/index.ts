@@ -160,12 +160,15 @@ export {
   decideControl,
   driverFromRunnerStatus,
   readControl,
+  takeControl,
   writeControl,
   type UltraControlDecision,
   type UltraControlDriver,
   type UltraControlRecord,
   type UltraControlRequest,
 } from './control.js';
+
+export { readPlanFile, type UltraPlanFile } from './plan-file.js';
 
 export {
   buildReviewReport,

@@ -53,6 +53,21 @@ const CONTINUABLE: ReadonlySet<RunStatus> = new Set([
 ]);
 
 /**
+ * Statuses that mean a process is in the middle of the run, and what it is
+ * doing there.
+ *
+ * `running`, `integrating` and `accepting` are all "the run is going right
+ * now". They differ in what the run was doing, and the reader needs to know
+ * which: "it is already merging the packets" and "it is already running" are
+ * different situations with different ways out.
+ */
+const IN_FLIGHT: ReadonlyMap<RunStatus, string> = new Map([
+  ['running', 'is already running; pause it first'],
+  ['integrating', 'is already merging the packets; wait for it to finish'],
+  ['accepting', 'is already checking the goal; wait for it to finish'],
+]);
+
+/**
  * Why this run must not be continued, or `undefined` when it can be.
  *
  * The message names the way out, because a refusal that only says "no" leaves
@@ -69,12 +84,15 @@ export function resumeRefusal(state: RunState, driver?: UltraControlDriver): str
   if (status === 'succeeded') {
     return `Run ${state.runId} already finished as succeeded; there is nothing left to resume.`;
   }
-  if (status === 'running') {
+  const inFlight = IN_FLIGHT.get(status);
+  if (inFlight !== undefined) {
     if (driver === 'dead') {
       // The process that was driving the run is gone. Nothing can race it now.
+      // This is the run that died inside the merge: every packet is done, so
+      // the resumed pass has nothing to execute and only finishes the merge.
       return undefined;
     }
-    return `Run ${state.runId} is already running; pause it first.`;
+    return `Run ${state.runId} ${inFlight}.`;
   }
   return `Run ${state.runId} is still planning; it has no plan to execute yet.`;
 }

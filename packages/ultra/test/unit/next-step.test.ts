@@ -36,6 +36,13 @@ describe('nextStepFor', () => {
     }
   });
 
+  it('names the resume for a run whose driver died while merging', () => {
+    // The run is stuck in the merge because the process died there. The
+    // status has to say what to do about it, and the answer is the resume.
+    expect(nextStepFor(state('integrating'), 'dead').kind).toBe('resume');
+    expect(nextStepFor(state('accepting'), 'dead').kind).toBe('resume');
+  });
+
   it('says nothing for a run that is going, or that never got a plan', () => {
     // A running run needs no instruction, and a run that is still planning has
     // nothing to resume yet.

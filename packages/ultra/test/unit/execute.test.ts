@@ -56,6 +56,8 @@ interface Harness {
   readonly order: string[];
   /** The packets whose work was committed on their branch. */
   readonly commits: string[];
+  /** The paths each commit was allowed to stage, in order. */
+  readonly commitPaths: readonly (readonly string[])[];
   /** The recipe each verifier call received, in order. */
   readonly verifierRecipes: (UltraPlan['recipe'] | undefined)[];
 }
@@ -65,6 +67,7 @@ interface HarnessOptions {
   readonly gate?: (packetId: string, attempt: number) => GateResult;
   readonly changedFiles?: (packetId: string, attempt: number) => readonly string[];
   readonly diff?: (packetId: string, attempt: number) => string;
+  readonly commit?: (packetId: string, attempt: number) => { readonly commit: string };
   readonly verdict?: (
     packetId: string,
   ) => { pass: boolean; reasons: readonly string[]; rateLimited?: boolean };
@@ -81,6 +84,8 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
   const order: string[] = [];
   /** The packets whose work was committed on their branch. */
   const commits: string[] = [];
+  /** The paths each commit was allowed to stage, in order. */
+  const commitPaths: (readonly string[])[] = [];
   const attempts = new Map<string, number>();
 
   const attemptOf = (id: string): number => {
@@ -116,7 +121,9 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
       },
       commit: async (input) => {
         commits.push(input.packetId);
-        return { commit: `commit-${input.packetId}` };
+        commitPaths.push(input.paths);
+        const attempt = Math.max(0, (attempts.get(input.packetId) ?? 1) - 1);
+        return options.commit?.(input.packetId, attempt) ?? { commit: `commit-${input.packetId}` };
       },
     },
     worker: {
@@ -156,7 +163,7 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
     ledger: Ledger.open(store.paths.ledger),
     evidence: ultraEvidence(store),
   };
-  return { ports, log, created, resets, gates, diffs, verdicts, verifierRecipes, order, commits };
+  return { ports, log, created, resets, gates, diffs, verdicts, verifierRecipes, order, commits, commitPaths };
 }
 
 function storeFor(packets: readonly PlanPacket[]): RunStore {
@@ -733,6 +740,51 @@ describe('the packet’s work is committed before the packet is done', () => {
 
     expect(h.commits).toEqual([]);
     expect(statusOf(store, 'p1')).toBe('blocked');
+  });
+
+  it('commits only the paths the scope check approved', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store, { changedFiles: () => ['src/p1/x.ts', 'src/p1/y.ts'] });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    // A gate that wrote into the worktree (a formatter with `--write`, a test
+    // that leaves a fixture behind) added files that no scope check ever saw.
+    // Committing "everything that changed" would put them on the packet's
+    // branch and, through the merge, into the run's branch.
+    expect(h.commitPaths).toEqual([['src/p1/x.ts', 'src/p1/y.ts']]);
+  });
+
+  it('does not re-run the worker when the commit fails', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store, {
+      commit: () => {
+        throw new Error('index.lock: could not write');
+      },
+    });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    // The gate passed and the verifier passed, so the work itself is good.
+    // Charging the worker for a git problem would throw good work away and
+    // blame it for something it did not do.
+    expect(h.order).toEqual(['p1']);
+    expect(statusOf(store, 'p1')).toBe('blocked');
+  });
+
+  it('tries the commit again before it gives up', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    let tries = 0;
+    const h = harness(store, {
+      commit: () => {
+        tries += 1;
+        // A locked index is the usual reason, and it clears itself.
+        if (tries === 1) throw new Error('index.lock: could not write');
+        return { commit: 'commit-p1' };
+      },
+    });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    expect(tries).toBe(2);
+    expect(statusOf(store, 'p1')).toBe('done');
   });
 
   it('blocks the packet when the work cannot be committed', async () => {

@@ -381,7 +381,7 @@ export class UltraFlow {
     if (resumable.length > 0) lines.push(`Resumable: ${resumable.join(', ')}`);
     // What to do next, so the status is the end of the answer and not the
     // beginning of another question.
-    const step = ultra.nextStepFor(state);
+    const step = ultra.nextStepFor(state, this.driverFor(store));
     if (step.kind === 'resume') {
       lines.push(`Next: resume it with /ultra resume ${state.runId}`);
     } else if (step.kind === 'merge') {
@@ -429,6 +429,20 @@ export class UltraFlow {
   }
 
   /**
+   * Who is driving this run right now.
+   *
+   * `live` means a process is behind it, `dead` that one was and is gone, and
+   * `unknown` that the run was started in the foreground and nobody knows.
+   */
+  private driverFor(store: ultra.RunStore): ultra.UltraControlDriver {
+    const classification = ultra.classifyRunner({
+      record: ultra.readRunner(store.paths),
+      runStatus: store.state.status,
+    });
+    return ultra.driverFromRunnerStatus(classification.status);
+  }
+
+  /**
    * Why this run must not be resumed, or `undefined` when it can be.
    *
    * The rule lives in the core, because the CLI applies the same one: the two
@@ -438,14 +452,7 @@ export class UltraFlow {
   private resumeRefusal(store: ultra.RunStore): string | undefined {
     // The same driver check the CLI applies: a run whose process died is not
     // "already running", it is a run waiting to be picked up again.
-    const classification = ultra.classifyRunner({
-      record: ultra.readRunner(store.paths),
-      runStatus: store.state.status,
-    });
-    return ultra.resumeRefusal(
-      store.state,
-      ultra.driverFromRunnerStatus(classification.status),
-    );
+    return ultra.resumeRefusal(store.state, this.driverFor(store));
   }
 
   /**

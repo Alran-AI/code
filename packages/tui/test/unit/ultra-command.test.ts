@@ -5,6 +5,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  executeUltraPlan,
   normalizeUltraArgv,
   registerUltraCommand,
 } from '../../src/cli/ultra-command.js';
@@ -1609,36 +1610,36 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
 
 export type { PlanRunResult };
 
-describe('stopping a run that is under way', () => {
-  /** A run in `running` state with a runner record, as a live run has. */
-  async function runningRun(
-    repo: string,
-    options: { readonly alive: boolean },
-  ): Promise<{ runId: string; stateDir: string }> {
-    const planning = harness(repo, { planPorts: fakePorts });
-    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
-    const runId = runDirs(repo)[0]!;
-    const stateDir = path.join(repo, '.alran', 'ultra');
-    const { RunStore, writeRunner } = await import('@alran/ultra');
-    const store = RunStore.open(stateDir, runId);
-    store.transition('running');
-    writeRunner(store.paths, {
-      runId,
-      mode: 'run',
-      // A pid of the test process: alive, and it does not matter that it is not
-      // really driving the run, because the liveness probe is injected.
-      pid: process.pid,
-      startedAt: '2026-11-19T12:00:00.000Z',
-      logPath: 'runner.log',
-      task: 'a task',
-      budgetUsd: 2,
-      recipe: 'auto',
-      workers: 4,
-    });
-    void options;
-    return { runId, stateDir };
-  }
+/** A run in `running` state with a runner record, as a live run has. */
+async function runningRun(
+  repo: string,
+  options: { readonly alive: boolean },
+): Promise<{ runId: string; stateDir: string }> {
+  const planning = harness(repo, { planPorts: fakePorts });
+  await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+  const runId = runDirs(repo)[0]!;
+  const stateDir = path.join(repo, '.alran', 'ultra');
+  const { RunStore, writeRunner } = await import('@alran/ultra');
+  const store = RunStore.open(stateDir, runId);
+  store.transition('running');
+  writeRunner(store.paths, {
+    runId,
+    mode: 'run',
+    // A pid of the test process: alive, and it does not matter that it is not
+    // really driving the run, because the liveness probe is injected.
+    pid: process.pid,
+    startedAt: '2026-11-19T12:00:00.000Z',
+    logPath: 'runner.log',
+    task: 'a task',
+    budgetUsd: 2,
+    recipe: 'auto',
+    workers: 4,
+  });
+  void options;
+  return { runId, stateDir };
+}
 
+describe('stopping a run that is under way', () => {
   it('asks a live run to stop instead of writing its state file', async () => {
     const dir = gitRepo();
     const { runId, stateDir } = await runningRun(dir, { alive: true });
@@ -1857,6 +1858,114 @@ describe('the project-wide gates', () => {
 
     expect(resume.output()).toMatch(/not valid/iu);
     expect(resume.exitCodes).toContain(1);
+  });
+});
+
+describe('the execute path both surfaces share', () => {
+  /**
+   * The TUI board resumes through `executeUltraPlan`, exactly as the CLI does.
+   * These cases are about that one function, because a rule that lives in the
+   * CLI only is a rule the board gets wrong.
+   */
+  it('does not let a stop request left over from an earlier pass stop this one', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore, writeControl } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    store.transition('paused');
+    // A run that was stopped before it could read the request leaves it behind.
+    writeControl(store.paths, 'pause');
+
+    const chunks: string[] = [];
+    const status = await executeUltraPlan({
+      cwd: dir,
+      env: process.env,
+      store,
+      plan: JSON.parse(readFileSync(store.paths.plan, 'utf8')) as UltraPlan,
+      write: (text) => chunks.push(text),
+      execAdapters: fakeExecAdapters(),
+      integrateAdapters: fakeIntegrateAdapters(),
+      workers: 2,
+      maxRepairs: 1,
+    });
+
+    // The packet ran. A request that survived would have stopped the pass
+    // before it began, with every packet still pending.
+    expect(status).not.toBe('paused');
+    expect(store.state.packets.filter((packet) => packet.status === 'done')).toHaveLength(1);
+  });
+
+  it('refuses a second pass while another live process drives the run', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: true });
+    const { RunStore, writeRunner } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    // Another process holds the run: a second pass would fight it over the
+    // same worktrees.
+    writeRunner(store.paths, {
+      runId,
+      mode: 'run',
+      pid: process.pid + 1,
+      startedAt: '2026-11-19T12:00:00.000Z',
+      logPath: 'runner.log',
+      task: 'a task',
+      budgetUsd: 2,
+      recipe: 'auto',
+      workers: 4,
+    });
+
+    const chunks: string[] = [];
+    const status = await executeUltraPlan({
+      cwd: dir,
+      env: process.env,
+      store,
+      plan: JSON.parse(readFileSync(store.paths.plan, 'utf8')) as UltraPlan,
+      write: (text) => chunks.push(text),
+      execAdapters: fakeExecAdapters(),
+      integrateAdapters: fakeIntegrateAdapters(),
+      workers: 2,
+      maxRepairs: 1,
+      isAlive: () => true,
+    });
+
+    expect(chunks.join('')).toMatch(/already driving this run/iu);
+    // Nothing ran, and the run still belongs to the process that has it.
+    expect(store.state.packets.every((packet) => packet.status !== 'done')).toBe(true);
+    expect(status).toBe('running');
+  });
+
+  it('refuses a plan that does not validate, before a single worktree exists', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as UltraPlan;
+    // Two parallel packets with overlapping scopes break the plan rules
+    // (ULT-07). A plan that breaks them must not run, on any surface.
+    const broken: UltraPlan = {
+      ...plan,
+      packets: [
+        { ...plan.packets[0]!, scope: ['src/shared/**'] },
+        { ...plan.packets[0]!, id: 'p2', title: 'Second', scope: ['src/shared/**'] },
+      ],
+    };
+
+    const chunks: string[] = [];
+    const status = await executeUltraPlan({
+      cwd: dir,
+      env: process.env,
+      store,
+      plan: broken,
+      write: (text) => chunks.push(text),
+      execAdapters: fakeExecAdapters(),
+      integrateAdapters: fakeIntegrateAdapters(),
+      workers: 2,
+      maxRepairs: 1,
+    });
+
+    expect(status).toBe('failed');
+    expect(chunks.join('')).toMatch(/not valid/iu);
+    expect(store.state.packets.every((packet) => packet.status !== 'done')).toBe(true);
   });
 });
 

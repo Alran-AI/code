@@ -213,6 +213,23 @@ export interface ExecuteUltraPlanInput {
  */
 export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ultra.RunStatus> {
   const { store, plan, write } = input;
+  // The plan is checked here, at the one place every surface goes through, so
+  // the CLI and the TUI cannot disagree about what may run. A plan that was
+  // edited after the planner wrote it — or a plan that was written by an
+  // older, broken version of Ultra — is refused before a single worktree
+  // exists, with the reasons spelled out.
+  const validation = ultra.validatePlan(plan);
+  if (!validation.ok) {
+    write('The plan of this run is not valid, so nothing was executed:\n');
+    for (const problem of validation.problems) write(`  - ${problem}\n`);
+    store.transition('failed');
+    return 'failed';
+  }
+  // A stop request that was left behind — by a run that was killed before it
+  // could read it, or by a `pause` that arrived between the last safe point
+  // and the end of the pass — must not stop this pass before it starts. The
+  // request belongs to the pass that was running; this one is a new one.
+  ultra.clearControl(store.paths);
   // Recipe files are loaded before anything runs: a broken file must stop the
   // run, not quietly fall back to the built-in rules.
   let recipeOverrides: ultra.RecipeOverrides;
@@ -228,13 +245,24 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
   const adapters =
     input.execAdapters ??
     createUltraExecAdapters({ cwd: input.cwd, env: input.env, recipeOverrides });
-  claimDriver(
-    store,
-    input.mode ?? 'run',
-    store.state.goal,
-    plan.recipe,
-    input.isAlive,
-  );
+  // Only one process may drive a run. Two passes over the same worktrees
+  // would fight over the same files, and the loser would merge a half-written
+  // branch into the run.
+  if (
+    !claimDriver(
+      store,
+      input.mode ?? 'run',
+      store.state.goal,
+      plan.recipe,
+      input.isAlive,
+    )
+  ) {
+    write(
+      'Another process is already driving this run; this pass did not start. ' +
+        'Wait for that one to finish, or stop it first.\n',
+    );
+    return store.state.status;
+  }
   store.transition('running');
   write(`Executing ${plan.packets.length} packet(s)…\n`);
 
@@ -259,7 +287,9 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
           progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
           // The stop request: `alran ultra pause`/`kill` from another terminal
           // and the Ctrl+C handler below both arrive as a file next to the run.
-          control: () => ultra.readControl(store.paths)?.request,
+          // It is consumed when it is read, so a request that this pass has
+          // already honoured cannot stop the next one.
+          control: () => ultra.takeControl(store.paths),
         },
         config: {
           workers: input.workers,
@@ -359,6 +389,9 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
  * Only the first writer wins: a detached child was already recorded by the
  * process that spawned it, and a child that claimed the run would make
  * `status` call a background run a foreground one.
+ *
+ * The return value is the claim. `false` means another live process is already
+ * driving the run, and the caller must not start a second pass.
  */
 function claimDriver(
   store: ultra.RunStore,
@@ -366,8 +399,8 @@ function claimDriver(
   task: string,
   recipe: string,
   isAlive?: (pid: number) => boolean,
-): void {
-  ultra.claimRunner(
+): boolean {
+  return ultra.claimRunner(
     store.paths,
     {
       runId: store.state.runId,
@@ -1322,8 +1355,15 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         );
         store.transition('running');
         // The same record a foreground run needs, so `status` can say whether
-        // anything is still driving it.
-        claimDriver(store, 'goal', store.state.goal, plan.recipe, options.isAlive);
+        // anything is still driving it. The claim is honoured: a second
+        // process must not run a second pass over the same worktrees.
+        if (!claimDriver(store, 'goal', store.state.goal, plan.recipe, options.isAlive)) {
+          write(
+            'Another process is already driving this run; this round did not start. ' +
+              'The run stays resumable.\n',
+          );
+          return { donePacketIds: [], runStatus: 'paused' };
+        }
         // The same stop channel as the single-round path: a pause request from
         // another terminal, or Ctrl+C, stops the round at its next safe point
         // and leaves the run resumable.
@@ -1340,7 +1380,9 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
               // Same narration as the single-round path, so a goal run reads the
               // same way a run does.
               progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
-              control: () => ultra.readControl(store.paths)?.request,
+              // The stop request is consumed when it is read, so a request
+              // this pass has honoured cannot stop the next one.
+              control: () => ultra.takeControl(store.paths),
             },
             config: {
               // The stored cap wins when the caller did not pass `--workers`, so
@@ -1583,7 +1625,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       if (remaining.length > 0) write(`Resumable: ${remaining.join(', ')}\n`);
       // What to do next, so the status is the end of the answer and not the
       // beginning of another question.
-      const step = ultra.nextStepFor(state);
+      const step = ultra.nextStepFor(state, stopDriver(store));
       if (step.kind === 'resume') {
         write(`Next: resume it with \`alran ultra resume ${state.runId}\`\n`);
       } else if (step.kind === 'merge') {
@@ -1871,25 +1913,18 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       }
 
       const resumable = store.resumablePacketIds();
-      if (!existsSync(store.paths.plan)) {
-        throw new Error(
-          `run ${id} has no plan.json; it stopped before a plan was written, so there is nothing to resume`,
-        );
-      }
-      write(`Resuming ${id}. Pending packets: ${resumable.length > 0 ? resumable.join(', ') : 'none'}\n`);
-      const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
-      // The plan on disk is the plan the human may have edited before the
-      // execution (spec 3.2), so it is validated again here. An edited plan
-      // that breaks the rules — two parallel packets with overlapping scopes,
-      // an empty scope, a dependency that does not exist — must not slip past
-      // the checks the planner passed.
-      const validation = ultra.validatePlan(plan);
-      if (!validation.ok) {
-        write(`The plan in ${store.paths.plan} is not valid:\n`);
-        for (const problem of validation.problems) write(`  - ${problem}\n`);
+      // The plan of record is read *and* checked here. A plan that was edited
+      // after the planner wrote it — or a plan file that is not a plan any
+      // more — is refused with its reasons, instead of a raw parse error.
+      const read = ultra.readPlanFile(store.paths.plan);
+      if (!read.ok) {
+        write(`The plan of run ${id} cannot be used, because it is not valid:\n`);
+        for (const problem of read.problems) write(`  - ${problem}\n`);
         exit(1);
         return;
       }
+      const plan = read.plan;
+      write(`Resuming ${id}. Pending packets: ${resumable.length > 0 ? resumable.join(', ') : 'none'}\n`);
       // Even when every packet is already done, the pass still integrates: a
       // run that was killed between the packets and the merge has finished its
       // work and would otherwise never be merged at all.

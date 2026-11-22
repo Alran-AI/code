@@ -49,6 +49,21 @@ describe('resumeRefusal', () => {
     expect(resumeRefusal(state('running'), 'dead')).toBeUndefined();
   });
 
+  it('lets a run that was interrupted while merging be continued', () => {
+    // The interrupt handler is released before INTEGRATE, so a crash in the
+    // merge leaves the run `integrating` — and `status` tells the reader to
+    // resume exactly that run. A resume that refuses it contradicts the run's
+    // own advice, and the merged branch never arrives.
+    expect(resumeRefusal(state('integrating'), 'dead')).toBeUndefined();
+    expect(resumeRefusal(state('accepting'), 'dead')).toBeUndefined();
+  });
+
+  it('refuses a run that is merging or checking the goal right now', () => {
+    expect(resumeRefusal(state('integrating'), 'live')).toMatch(/merging the packets/iu);
+    expect(resumeRefusal(state('integrating'), 'unknown')).toMatch(/merging the packets/iu);
+    expect(resumeRefusal(state('accepting'), 'live')).toMatch(/checking the goal/iu);
+  });
+
   it('refuses a successful run, so its verdict is not thrown away', () => {
     const refusal = resumeRefusal(state('succeeded'));
     expect(refusal).toMatch(/already finished as succeeded/iu);

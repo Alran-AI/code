@@ -11,6 +11,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  claimRunner,
   classifyRunner,
   processAlive,
   readRunner,
@@ -83,6 +84,38 @@ describe('runner record on disk', () => {
     const root = tempDir();
     writeFileSync(paths(root).runner, `${JSON.stringify({ runId: 'run-1' })}\n`);
     expect(readRunner(paths(root))).toBeUndefined();
+  });
+});
+
+describe('claimRunner', () => {
+  it('refuses the claim while another live process is driving the run', () => {
+    // Two passes over the same worktrees fight each other. The second one has
+    // to know that it lost the claim.
+    const root = tempDir();
+    writeRunner(paths(root), record({ pid: 4242 }));
+    const claimed = claimRunner(paths(root), record({ pid: 5151 }), () => true);
+    expect(claimed).toBe(false);
+    // The record still names the process that is driving the run.
+    expect(readRunner(paths(root))?.pid).toBe(4242);
+  });
+
+  it('lets the process that is already driving the run claim it again', () => {
+    // The detached child picks up the record its parent wrote for it. The
+    // claim has to succeed, and the record has to stay as it is: a child that
+    // rewrote it would make a background run look like a foreground one.
+    const root = tempDir();
+    writeRunner(paths(root), record({ pid: 4242 }));
+    const claimed = claimRunner(paths(root), record({ pid: 4242, foreground: true }), () => true);
+    expect(claimed).toBe(true);
+    expect(readRunner(paths(root))?.foreground).toBeUndefined();
+  });
+
+  it('takes over a run whose driver is gone', () => {
+    const root = tempDir();
+    writeRunner(paths(root), record({ pid: 4242 }));
+    const claimed = claimRunner(paths(root), record({ pid: 5151 }), () => false);
+    expect(claimed).toBe(true);
+    expect(readRunner(paths(root))?.pid).toBe(5151);
   });
 });
 

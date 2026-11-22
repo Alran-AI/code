@@ -7,6 +7,7 @@ import {
   decideControl,
   driverFromRunnerStatus,
   readControl,
+  takeControl,
   writeControl,
 } from '../../src/control.js';
 import { RunStore } from '../../src/run-state.js';
@@ -49,6 +50,18 @@ describe('the control request', () => {
     writeControl(store.paths, 'pause');
     clearControl(store.paths);
     expect(readControl(store.paths)).toBeUndefined();
+  });
+
+  it('is consumed by the driver that read it', () => {
+    const store = storeFor();
+    writeControl(store.paths, 'pause');
+
+    // The driver reads the request at its next safe point. It must not see it
+    // again: a request that survived would stop the *next* pass before it
+    // began, which is how a paused run could never be continued.
+    expect(takeControl(store.paths)).toBe('pause');
+    expect(readControl(store.paths)).toBeUndefined();
+    expect(takeControl(store.paths)).toBeUndefined();
   });
 
   it('ignores a file that is not a request, so a corrupt file cannot stop a run', () => {
@@ -105,6 +118,16 @@ describe('deciding what a stop request means', () => {
     const killed = decideControl({ request: 'kill', runStatus: 'killed', driver: 'dead' });
     expect(killed.refusal).toBe('run is already killed');
     expect(killed.apply).toBe(false);
+  });
+
+  it('refuses to pause a run that was already stopped', () => {
+    // A killed run stays killed. Relabelling it `paused` would make the state
+    // disagree with the report that was written from it, and would make a
+    // stopped run look like it was waiting to be continued.
+    const decision = decideControl({ request: 'pause', runStatus: 'killed', driver: 'dead' });
+    expect(decision.apply).toBe(false);
+    expect(decision.request).toBe(false);
+    expect(decision.refusal).toMatch(/already stopped/iu);
   });
 });
 

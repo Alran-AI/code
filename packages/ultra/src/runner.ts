@@ -107,11 +107,17 @@ export function writeRunner(paths: RunPaths, record: UltraRunnerRecord): void {
  * A detached run is claimed by the process that spawned the child, so the
  * child must not claim it again — and it must not, because a child that
  * claimed the run would make `status` call a background run a foreground one.
+ * The child still needs the run to be *its* run, so the same process that the
+ * record already names may claim it again: it keeps the record as it is,
+ * which is what keeps the "background" wording.
  *
  * A record whose process is *gone* is a different case: the run was orphaned,
  * and whoever picks it up (a `resume`) is the one driving it now. The record
  * is taken over, so `status` stops calling a run that is being worked on
  * "interrupted".
+ *
+ * The return value is the claim: `false` means somebody else is driving the
+ * run, and a second execute pass would fight over the same worktrees.
  */
 export function claimRunner(
   paths: RunPaths,
@@ -119,7 +125,15 @@ export function claimRunner(
   isAlive: (pid: number) => boolean = processAlive,
 ): boolean {
   const existing = readRunner(paths);
-  if (existing && isAlive(existing.pid)) return false;
+  if (existing) {
+    if (existing.pid === record.pid) {
+      // The same process claims the run it is already recorded as driving.
+      // The record is left alone: it was written by the process that spawned
+      // this one, and it says "background" for a reason.
+      return true;
+    }
+    if (isAlive(existing.pid)) return false;
+  }
   writeRunner(paths, record);
   return true;
 }

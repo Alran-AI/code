@@ -21,7 +21,7 @@ import { TuiChromeFlow } from './controller/product/chrome-flow.js';
 import type { TuiDraftLifecycle } from './features/composer/draft-lifecycle.js';
 import { retainAvailableAttachmentPlaceholders } from './features/composer/draft-recovery.js';
 import type { TuiSubmissionSnapshot } from './features/composer/submission.js';
-import { readFileSync, statSync } from 'node:fs';
+import { statSync } from 'node:fs';
 import type { TuiTransportAttachment } from '../types/invocation.js';
 import { TuiRunProjection } from './state/run-projection.js';
 import { createTuiState, TuiEffectRunner, TuiStateStore } from './state/index.js';
@@ -33,7 +33,6 @@ import { alranCommandFor } from '../cli/ultra-headless.js';
 import { reviewUltraRun } from '../cli/ultra-review.js';
 import { startUltraRunInBackground } from '../cli/ultra-launch.js';
 import * as ultra from '@alran/ultra';
-import type { UltraPlan } from '@alran/ultra';
 import { TranscriptStore } from './transcript/store.js';
 import { TranscriptVisibilityProjection } from './transcript/presentation/visibility.js';
 import { createLocalTranscriptAppender } from './transcript/local-appender.js';
@@ -395,12 +394,20 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
     // Resume runs the CLI's own execute-and-merge path, so the board and
     // `alran ultra resume` cannot drift apart.
     resume: async ({ store }) => {
-      const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as UltraPlan;
+      // The plan is read through the shared reader, so a plan that was edited
+      // into an invalid state is refused with its reasons instead of a parse
+      // error — and the CLI refuses the same plan.
+      const read = ultra.readPlanFile(store.paths.plan);
+      if (!read.ok) {
+        throw new Error(
+          `the plan of run ${store.state.runId} cannot be used: ${read.problems.join(' ')}`,
+        );
+      }
       const runStatus = await executeUltraPlan({
         cwd: options.workspaceDir,
         env: process.env,
         store,
-        plan,
+        plan: read.plan,
         write: (text) => appendLocalCell(text.trimEnd()),
         workers: store.state.workers ?? 4,
         maxRepairs: 2,

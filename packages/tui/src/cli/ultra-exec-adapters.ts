@@ -87,6 +87,29 @@ function git(cwd: string, args: readonly string[], env: NodeJS.ProcessEnv): stri
   return result.stdout;
 }
 
+/** How many paths one `git add` may carry. */
+const MAX_ADD_PATHS = 100;
+
+/**
+ * Splits the approved paths into chunks git can take.
+ *
+ * A packet that touches hundreds of files would otherwise produce a command
+ * line longer than the operating system allows. Every path is written as a
+ * literal pathspec, so a file called `report[1].md` is that file and not a
+ * wildcard that happens to match it.
+ */
+function chunkPaths(paths: readonly string[]): readonly (readonly string[])[] {
+  const chunks: string[][] = [];
+  for (const file of paths) {
+    const current = chunks[chunks.length - 1];
+    if (!current || current.length >= MAX_ADD_PATHS) {
+      chunks.push([]);
+    }
+    chunks[chunks.length - 1].push(`:(literal)${file}`);
+  }
+  return chunks;
+}
+
 function alranCommandFor(context: UltraExecAdapterContext): readonly string[] {
   if (context.alranCommand) return context.alranCommand;
   const entry = process.argv[1];
@@ -336,10 +359,21 @@ export function createUltraExecAdapters(context: UltraExecAdapterContext): Ultra
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
     },
-    async commit({ dir, message }) {
-      // Everything the worker changed is already staged by the diff port; stage
-      // again so a file written after the diff cannot slip past the commit.
-      git(dir, ['add', '-A'], context.env);
+    async commit({ dir, message, paths }) {
+      // Only the paths the scope guard approved may be committed.
+      //
+      // The diff port staged everything so that new files would show up in the
+      // diff. That staging is thrown away first: a gate that wrote into the
+      // worktree (a formatter with `--write`, a test that leaves a fixture
+      // behind) added files that no scope check ever saw, and they must not
+      // reach the packet's branch.
+      //
+      // `reset` keeps the working tree — only the index is emptied, so the
+      // work is still there to be staged again, path by path.
+      git(dir, ['reset'], context.env);
+      for (const chunk of chunkPaths(paths)) {
+        git(dir, ['add', '-A', '--', ...chunk], context.env);
+      }
       const staged = git(dir, ['diff', '--cached', '--name-only'], context.env).trim();
       if (staged.length === 0) {
         // A packet that changed nothing has nothing to commit. An empty commit

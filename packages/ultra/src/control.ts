@@ -113,6 +113,19 @@ export function clearControl(paths: RunPaths): void {
 }
 
 /**
+ * Reads the pending request and clears it.
+ *
+ * The request is consumed by the driver that read it. A leftover request would
+ * stop the *next* pass before it began, which is how a run that was paused
+ * once could never be continued.
+ */
+export function takeControl(paths: RunPaths): UltraControlRequest | undefined {
+  const request = readControl(paths)?.request;
+  if (request) clearControl(paths);
+  return request;
+}
+
+/**
  * Decides what a stop request means for this run.
  *
  * The rule is the same on every surface:
@@ -132,6 +145,17 @@ export function decideControl(input: {
   readonly runStatus: RunStatus;
   readonly driver: UltraControlDriver;
 }): UltraControlDecision {
+  if (input.runStatus === 'killed') {
+    // The run was already stopped on purpose. Relabelling it `paused` would
+    // make the state disagree with the report that was written from it, and
+    // would make a stopped run look like it was waiting to be continued.
+    return {
+      request: false,
+      apply: false,
+      refusal:
+        input.request === 'kill' ? 'run is already killed' : 'run was already stopped',
+    };
+  }
   if (VERDICT_RUN_STATUS.has(input.runStatus)) {
     return {
       request: false,
@@ -147,9 +171,8 @@ export function decideControl(input: {
   if (input.request === 'pause' && input.runStatus === 'paused') {
     return { request: false, apply: false, refusal: 'run is already paused' };
   }
-  if (input.request === 'kill' && input.runStatus === 'killed') {
-    return { request: false, apply: false, refusal: 'run is already killed' };
-  }
+  // A run that was killed is handled above: it stays killed, whatever is asked
+  // of it.
 
   if (input.driver === 'live') {
     // The driver owns the state file. Two writers would fight over it.
