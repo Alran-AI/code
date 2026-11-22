@@ -235,12 +235,29 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
   let rateLimitEvents = 0;
   /** Set when the budget stopped a packet; promotes the run to `paused` at the end. */
   let pausedByBudget = false;
+  /** Set once the 80 % warning has been said, so it is said once. */
+  let budgetWarned = false;
   const outcomes = new Map<string, PacketExecutionOutcome>();
 
   const record = (entry: LedgerEntry): void => {
     ports.ledger.append(entry);
     if (typeof entry.costUsd === 'number' && entry.costUsd > 0) {
       budget.record({ usd: entry.costUsd, role: entry.role });
+      // The cap is hard and the run pauses at it, so the warning is what lets
+      // a human raise it before the pause instead of after it. It is said
+      // once: a warning per step would be noise, and a warning nobody reads
+      // is worse than none.
+      const cap = config.budgetUsd ?? ports.store.state.budgetUsd;
+      if (!budgetWarned && cap !== null && cap > 0 && budget.level === 'warn') {
+        budgetWarned = true;
+        progress({
+          kind: 'budget_warn',
+          packetId: '--',
+          detail:
+            `$${budget.spentUsd.toFixed(2)} of $${cap.toFixed(2)} spent ` +
+            `(80 %); the run pauses at the cap`,
+        });
+      }
     }
   };
 

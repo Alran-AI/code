@@ -957,3 +957,67 @@ describe('stopping a run that is under way', () => {
     expect(result.packets.find((entry) => entry.id === 'p1')?.status).toBe('done');
   });
 });
+
+describe('the budget warning', () => {
+  /** Collects the progress events of one pass. */
+  function collectingBudget(
+    store: RunStore,
+    options: HarnessOptions = {},
+  ): { readonly ports: ExecutePorts; readonly events: readonly UltraProgressEvent[] } {
+    const h = harness(store, options);
+    const events: UltraProgressEvent[] = [];
+    const ports: ExecutePorts = {
+      ...h.ports,
+      progress: (event) => {
+        events.push(event);
+      },
+    };
+    return { ports, events };
+  }
+
+  it('says once when the run passes 80 % of its cap', async () => {
+    // The cap is hard and the run pauses at it, so the warning is what lets a
+    // human raise it before the pause rather than after it.
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collectingBudget(store, {
+      worker: () => ({ ok: true, summary: 'done', costUsd: 0.9, tokensUsed: 100 }),
+    });
+    await runExecute({
+      plan: plan([packet({ id: 'p1' })]),
+      ports: c.ports,
+      config: { ...config, budgetUsd: 1 },
+    });
+
+    const warnings = c.events.filter((event) => event.kind === 'budget_warn');
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.detail).toMatch(/0\.90 of \$1\.00/iu);
+  });
+
+  it('stays quiet while the run is under the cap', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collectingBudget(store, {
+      worker: () => ({ ok: true, summary: 'done', costUsd: 0.1, tokensUsed: 100 }),
+    });
+    await runExecute({
+      plan: plan([packet({ id: 'p1' })]),
+      ports: c.ports,
+      config: { ...config, budgetUsd: 5 },
+    });
+
+    expect(c.events.filter((event) => event.kind === 'budget_warn')).toEqual([]);
+  });
+
+  it('stays quiet when the run has no cap', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collectingBudget(store, {
+      worker: () => ({ ok: true, summary: 'done', costUsd: 99, tokensUsed: 100 }),
+    });
+    await runExecute({
+      plan: plan([packet({ id: 'p1' })]),
+      ports: c.ports,
+      config: { ...config, budgetUsd: null },
+    });
+
+    expect(c.events.filter((event) => event.kind === 'budget_warn')).toEqual([]);
+  });
+});

@@ -44,6 +44,13 @@ export type UltraProgressKind =
   | 'rate_limited'
   /** The budget stopped the run at 100 %. */
   | 'budget_paused'
+  /**
+   * The run passed 80 % of its budget cap.
+   *
+   * The cap is a hard one and the run pauses at it, so the warning is what
+   * lets a human raise it before the pause rather than after it.
+   */
+  | 'budget_warn'
   /** The run was asked to stop and stopped at its next safe point. */
   | 'stopped';
 
@@ -117,6 +124,8 @@ export function renderProgressEvent(event: UltraProgressEvent): string {
       return `${head} rate limited${suffix}`;
     case 'budget_paused':
       return `  --    budget paused${suffix}`;
+    case 'budget_warn':
+      return `  --    budget warning${suffix}`;
     case 'stopped':
       return `${head} stopped${suffix}`;
     default:

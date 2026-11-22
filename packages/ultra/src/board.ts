@@ -248,6 +248,19 @@ export function renderUltraBoard(input: UltraBoardInput): string {
 
   const goal = truncate(flatten(input.goal), width);
   if (goal.length > 0) lines.push(`Goal: ${goal}`);
+  // The budget warning belongs on the board: it is the live view of a run that
+  // is spending money, and the cap is hard — the run pauses at it.
+  if (input.budgetUsd !== null && input.budgetUsd > 0) {
+    const ratio = input.costUsd / input.budgetUsd;
+    if (ratio >= 0.8) {
+      lines.push(
+        truncate(
+          `Budget: ${Math.round(ratio * 100)} % of the cap spent — the run pauses at 100 %`,
+          width,
+        ),
+      );
+    }
+  }
   if (input.runner) lines.push(truncate(flatten(input.runner), width));
   const criteria = criteriaLine(input.criteria);
   if (criteria.length > 0) lines.push(truncate(criteria, width));
