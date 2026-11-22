@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import * as ultra from '@alran/ultra';
 import { normalizeLLMError, toLLMRetryDecision } from '@alran/shared/llm-error-classifier';
+import { isInterruptedRun } from './ultra-headless.js';
 
 export interface UltraExecAdapterContext {
   readonly cwd: string;
@@ -46,6 +47,8 @@ interface SpawnResult {
   readonly stdout: string;
   readonly stderr: string;
   readonly timedOut: boolean;
+  /** The signal that killed the child, when a signal killed it. */
+  readonly signal: string | null;
 }
 
 function runSpawn(
@@ -72,6 +75,7 @@ function runSpawn(
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
     timedOut: result.error !== undefined && result.status === null,
+    signal: result.signal ?? null,
   };
 }
 
@@ -105,6 +109,7 @@ function runShell(command: string, cwd: string, env: NodeJS.ProcessEnv, timeoutM
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
     timedOut: result.error !== undefined && result.status === null,
+    signal: result.signal ?? null,
   };
 }
 
@@ -136,6 +141,8 @@ interface HeadlessResult {
   readonly tokensUsed: number;
   readonly costUsd?: number;
   readonly rateLimited: boolean;
+  /** The run was cut short by an interrupt; it did not fail on its own. */
+  readonly interrupted?: boolean;
   readonly error?: string;
 }
 
@@ -198,6 +205,8 @@ function runHeadless(
         text: '',
         tokensUsed: 0,
         rateLimited,
+        // An interrupt is not a failure: the scheduler must stop, not repair.
+        interrupted: isInterruptedRun(result),
         error: message || `headless run exited with ${String(result.code)}`,
       };
     }
@@ -389,6 +398,7 @@ export function createUltraExecAdapters(context: UltraExecAdapterContext): Ultra
         tokensUsed: result.tokensUsed,
         model: input.model,
         ...(result.rateLimited ? { rateLimited: true } : {}),
+        ...(result.interrupted ? { interrupted: true } : {}),
       };
     },
   };

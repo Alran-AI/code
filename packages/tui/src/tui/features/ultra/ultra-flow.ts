@@ -393,22 +393,6 @@ export class UltraFlow {
   }
 
   /**
-   * Why this run must not be killed, or `undefined` when it can be.
-   *
-   * `RunStore` only guards the transition *into* `succeeded`, so killing a
-   * finished run would relabel a success as `killed` and lose the verdict the
-   * report was written from.
-   */
-  private killRefusal(store: ultra.RunStore): string | undefined {
-    const status = store.state.status;
-    if (status === 'killed') return `Run ${store.state.runId} is already killed.`;
-    if (TERMINAL.has(status)) {
-      return `Run ${store.state.runId} already finished as ${status}; there is nothing left to kill.`;
-    }
-    return undefined;
-  }
-
-  /**
    * Why this run must not be resumed, or `undefined` when it can be.
    *
    * The rule lives in the core, because the CLI applies the same one: the two
@@ -416,7 +400,16 @@ export class UltraFlow {
    * them is a rule one of them gets wrong.
    */
   private resumeRefusal(store: ultra.RunStore): string | undefined {
-    return ultra.resumeRefusal(store.state);
+    // The same driver check the CLI applies: a run whose process died is not
+    // "already running", it is a run waiting to be picked up again.
+    const classification = ultra.classifyRunner({
+      record: ultra.readRunner(store.paths),
+      runStatus: store.state.status,
+    });
+    return ultra.resumeRefusal(
+      store.state,
+      ultra.driverFromRunnerStatus(classification.status),
+    );
   }
 
   /**
@@ -462,26 +455,61 @@ export class UltraFlow {
     return ledger;
   }
 
+  /**
+   * Decides what a stop request means for this run.
+   *
+   * The same rule the CLI applies, from the same core function: the run's
+   * state file belongs to the process that drives the run, so a request from
+   * this process travels through a file of its own and the driver stops at its
+   * next safe point.
+   */
+  private stopDecision(
+    store: ultra.RunStore,
+    request: ultra.UltraControlRequest,
+  ): ultra.UltraControlDecision {
+    const classification = ultra.classifyRunner({
+      record: ultra.readRunner(store.paths),
+      runStatus: store.state.status,
+    });
+    return ultra.decideControl({
+      request,
+      runStatus: store.state.status,
+      driver: ultra.driverFromRunnerStatus(classification.status),
+    });
+  }
   private pause(runId?: string): void {
     const store = this.open(runId);
-    if (store.state.status !== 'running') {
-      this.options.appendNotice(
-        `Run ${store.state.runId} is ${store.state.status}, not running; there is nothing to pause.`,
-        'warning',
-      );
+    const decision = this.stopDecision(store, 'pause');
+    if (decision.refusal) {
+      this.options.appendNotice(`Run ${store.state.runId}: ${decision.refusal}.`, 'warning');
       return;
     }
-    store.transition('paused');
+    if (decision.request) ultra.writeControl(store.paths, 'pause');
+    if (decision.apply) store.transition('paused');
     this.options.appendNotice(
-      `Paused ${store.state.runId}. Resume it with /ultra resume ${store.state.runId}.`,
+      decision.request && decision.apply
+        ? `Paused ${store.state.runId}. A process that is still driving it stops at the next safe point; resume it with /ultra resume ${store.state.runId}.`
+        : decision.request
+          ? `Pause requested for ${store.state.runId}. The run stops at the next safe point.`
+          : `Paused ${store.state.runId}. Resume it with /ultra resume ${store.state.runId}.`,
     );
   }
 
   private kill(runId?: string): void {
     const store = this.open(runId);
-    store.transition('killed');
+    const decision = this.stopDecision(store, 'kill');
+    if (decision.refusal) {
+      this.options.appendNotice(`Run ${store.state.runId}: ${decision.refusal}.`, 'warning');
+      return;
+    }
+    if (decision.request) ultra.writeControl(store.paths, 'kill');
+    if (decision.apply) store.transition('killed');
     this.options.appendNotice(
-      `Killed ${store.state.runId}. Its worktrees and ledger are kept for inspection.`,
+      decision.request && decision.apply
+        ? `Killed ${store.state.runId}. A process that is still driving it stops at the next safe point; its worktrees and ledger are kept for inspection.`
+        : decision.request
+          ? `Stop requested for ${store.state.runId}. The run stops at the next safe point; its worktrees and ledger are kept for inspection.`
+          : `Killed ${store.state.runId}. Its worktrees and ledger are kept for inspection.`,
     );
   }
 
@@ -555,19 +583,24 @@ export class UltraFlow {
   private actionsFor(store: ultra.RunStore): UltraBoardActions {
     return {
       pause: () => {
-        if (store.state.status !== 'running') {
-          return `Run ${store.state.runId} is ${store.state.status}, not running; nothing to pause.`;
-        }
-        store.transition('paused');
+        const decision = this.stopDecision(store, 'pause');
+        if (decision.refusal) return `Run ${store.state.runId}: ${decision.refusal}.`;
+        if (decision.request) ultra.writeControl(store.paths, 'pause');
+        if (decision.apply) store.transition('paused');
         this.options.requestRender();
-        return `Paused ${store.state.runId}.`;
+        return decision.request
+          ? `Pause requested for ${store.state.runId}; the run stops at the next safe point.`
+          : `Paused ${store.state.runId}.`;
       },
       kill: () => {
-        const refused = this.killRefusal(store);
-        if (refused) return refused;
-        store.transition('killed');
+        const decision = this.stopDecision(store, 'kill');
+        if (decision.refusal) return `Run ${store.state.runId}: ${decision.refusal}.`;
+        if (decision.request) ultra.writeControl(store.paths, 'kill');
+        if (decision.apply) store.transition('killed');
         this.options.requestRender();
-        return `Killed ${store.state.runId}; worktrees and ledger are kept.`;
+        return decision.request
+          ? `Stop requested for ${store.state.runId}; the run stops at the next safe point.`
+          : `Killed ${store.state.runId}; worktrees and ledger are kept.`;
       },
       resume: () => {
         if (!this.options.resume) {

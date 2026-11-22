@@ -26,6 +26,7 @@ import {
 } from './scope-guard.js';
 import { describeSpecTestViolation, isSpecTestPath, specTestDenyPaths } from './spec-tests.js';
 import type { UltraProgressEvent } from './progress.js';
+import type { UltraControlRequest } from './control.js';
 import { buildWorkerPrompt, buildWorkerSystemPrompt } from './worker-prompt.js';
 import type {
   ExecuteRunResult,
@@ -136,6 +137,15 @@ export interface ExecutePorts {
    * Absent port means no narration, which is what the pure unit tests want.
    */
   readonly progress?: (event: UltraProgressEvent) => void;
+  /**
+   * Asks whether the run should stop, and why.
+   *
+   * The scheduler calls this at its safe points — between packets and between
+   * repair attempts — and stops when it says `pause` or `kill`. It is a
+   * function rather than a signal so the core stays pure and a test can drive
+   * a stop without a process table.
+   */
+  readonly control?: () => UltraControlRequest | undefined;
 }
 
 export interface ExecuteConfig {
@@ -282,6 +292,51 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
     ...(branch ? { branch } : {}),
   });
 
+  /**
+   * The stop request, read once and then remembered.
+   *
+   * A request is not a hint: once the run has seen it, the run stops. Reading
+   * it repeatedly would be a way to miss it, and a run that keeps working after
+   * the person asked it to stop is the one failure this whole mechanism
+   * exists to prevent.
+   */
+  let stopRequest: UltraControlRequest | undefined;
+  const controlRequest = (): UltraControlRequest | undefined => {
+    if (stopRequest !== undefined) return stopRequest;
+    try {
+      stopRequest = ports.control?.();
+    } catch {
+      // A probe that throws must not take the run down. The request is simply
+      // not known yet; the next safe point asks again.
+    }
+    return stopRequest;
+  };
+
+  /**
+   * Stops the pass at a safe point and says so.
+   *
+   * The work in flight is left alone: a packet that was interrupted keeps its
+   * status and is redone by `resume`, because a half-finished worktree is not
+   * evidence of anything.
+   */
+  const stop = (request: UltraControlRequest, packet?: PlanPacket): void => {
+    stopRequest = request;
+    const reason = request === 'kill' ? 'the run was killed' : 'the run was paused';
+    record({
+      kind: 'step',
+      role: 'scheduler',
+      ...(packet ? { packetId: packet.id } : {}),
+      status: request === 'kill' ? 'killed' : 'paused',
+      note: reason,
+    });
+    progress({
+      kind: 'stopped',
+      packetId: packet?.id ?? '--',
+      ...(packet ? { title: packet.title } : {}),
+      detail: reason,
+    });
+  };
+
   /** Blocks a packet and, separately, the dependents that can never start. */
   const block = (packet: PlanPacket, reason: string, repairs: number, dir?: string, branch?: string): void => {
     setStatus(packet.id, 'blocked', reason, repairs);
@@ -308,6 +363,14 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
     let rateLimitRetries = 0;
 
     for (;;) {
+      const requested = controlRequest();
+      if (requested) {
+        // A stop between attempts: the packet keeps its status and `resume`
+        // redoes it. Nothing is thrown away and no repair is spent.
+        stop(requested, packet);
+        return;
+      }
+
       if (budget.shouldPause) {
         // Pause, never block: `blocked` is terminal for resume, so the packet
         // keeps its current status and a resume after raising the cap redoes it.
@@ -368,6 +431,14 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         ...(typeof worker.costUsd === 'number' ? { costUsd: worker.costUsd } : {}),
         ...(typeof worker.tokensUsed === 'number' ? { tokensUsed: worker.tokensUsed } : {}),
       });
+      // A worker that was cut short by an interrupt did not fail: it was
+      // stopped. Spending a repair on it would blame the worker for the
+      // person's decision, and retrying it would ignore the request to stop.
+      if (worker.interrupted) {
+        stop('pause', packet);
+        return;
+      }
+
       // The worker finished. What it says about its own work is not repeated
       // here: the gate and the verifier decide, and this line only says the
       // attempt is over.
@@ -675,6 +746,14 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
   for (const id of skip) doneIds.add(id);
 
   while (true) {
+    const requested = controlRequest();
+    if (requested) {
+      // Stop between packets: everything finished so far is kept, and the
+      // packets that did not start stay `pending` for the resume.
+      stop(requested);
+      break;
+    }
+
     const eligible = plan.packets.filter(
       (packet) =>
         !outcomes.has(packet.id) &&
@@ -729,11 +808,21 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
   // INTEGRATE may set `succeeded`, and integrate is a later step. A run that
   // still has pending work (budget pause) is `paused`, not `failed`.
   const anyPending = packets.some((entry) => entry.status === 'pending');
-  const runStatus: RunStatus = pausedByBudget && anyPending
-    ? 'paused'
-    : allDone || anyBlocked || packets.some((entry) => entry.status === 'skipped')
-      ? 'partial'
-      : 'failed';
+  // Work that is neither done nor finished for good: still to do, or caught in
+  // the middle. A packet that was interrupted keeps its status, and a run that
+  // still holds one of those is not finished — it is waiting to be resumed.
+  const anyUnfinished = packets.some(
+    (entry) => entry.status !== 'done' && entry.status !== 'blocked' && entry.status !== 'skipped' && entry.status !== 'cancelled',
+  );
+  const runStatus: RunStatus = stopRequest === 'kill'
+    ? 'killed'
+    : stopRequest === 'pause' && anyUnfinished
+      ? 'paused'
+      : pausedByBudget && anyPending
+        ? 'paused'
+        : allDone || anyBlocked || packets.some((entry) => entry.status === 'skipped')
+          ? 'partial'
+          : 'failed';
 
   const costUsd = ports.ledger
     .entries()

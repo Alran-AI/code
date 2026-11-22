@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Ledger, RunStore } from '@alran/ultra';
+import { Ledger, RunStore, writeRunner } from '@alran/ultra';
 import type { Component } from '../../../../../src/tui/rendering/component.js';
 import { UltraFlow } from '../../../../../src/tui/features/ultra/ultra-flow.js';
 
@@ -172,7 +172,36 @@ describe('UltraFlow subcommands', () => {
 
     notices = [];
     await flow.show('pause');
-    expect(notices.join('\n')).toMatch(/not running/iu);
+    // A run that is already paused has nothing to pause, and the notice says
+    // so instead of pretending the run was stopped again.
+    expect(notices.join('\n')).toMatch(/already paused/iu);
+  });
+
+  it('asks a live run to stop instead of writing its state file', async () => {
+    const store = newRun('run-a');
+    store.transition('running');
+    // A runner record with a live pid: the run is being driven by a process.
+    writeRunner(store.paths, {
+      runId: 'run-a',
+      mode: 'run',
+      pid: process.pid,
+      startedAt: '2026-11-20T09:00:00.000Z',
+      logPath: 'runner.log',
+      task: 'Build the widget',
+      budgetUsd: 2,
+      recipe: 'auto',
+      workers: 4,
+    });
+
+    const flow = createFlow();
+    await flow.show('pause');
+
+    // The driver owns the state file, so the request travels through a file of
+    // its own; the driver stops at its next safe point and records the outcome.
+    expect(RunStore.open(path.join(dir, '.alran', 'ultra'), 'run-a').state.status).toBe('running');
+    const request = JSON.parse(readFileSync(store.paths.control, 'utf8')) as { request: string };
+    expect(request.request).toBe('pause');
+    expect(notices.join('\n')).toMatch(/next safe point/iu);
   });
 
   it('kill stops a run and keeps its evidence on disk', async () => {

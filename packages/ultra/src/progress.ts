@@ -43,7 +43,9 @@ export type UltraProgressKind =
   /** The upstream was rate limited; parallelism was lowered. */
   | 'rate_limited'
   /** The budget stopped the run at 100 %. */
-  | 'budget_paused';
+  | 'budget_paused'
+  /** The run was asked to stop and stopped at its next safe point. */
+  | 'stopped';
 
 export interface UltraProgressEvent {
   readonly kind: UltraProgressKind;
@@ -115,6 +117,8 @@ export function renderProgressEvent(event: UltraProgressEvent): string {
       return `${head} rate limited${suffix}`;
     case 'budget_paused':
       return `  --    budget paused${suffix}`;
+    case 'stopped':
+      return `${head} stopped${suffix}`;
     default:
       return `${head} ${event.kind}`;
   }

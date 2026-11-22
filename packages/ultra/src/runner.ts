@@ -36,6 +36,15 @@ export interface UltraRunnerRecord {
   readonly budgetUsd: number | null;
   readonly recipe: UltraRecipeChoice;
   readonly workers: number;
+  /**
+   * True when the process behind the run is the one the person started in the
+   * foreground, rather than a detached child.
+   *
+   * Both are recorded, because both can be alive and both can die: a
+   * foreground run that was killed with the terminal still has to say that
+   * nobody is driving it any more.
+   */
+  readonly foreground?: boolean;
 }
 
 export type UltraRunnerStatus =
@@ -83,6 +92,29 @@ export function writeRunner(paths: RunPaths, record: UltraRunnerRecord): void {
 }
 
 /**
+ * Records the process that is driving the run, unless someone else is.
+ *
+ * A detached run is claimed by the process that spawned the child, so the
+ * child must not claim it again — and it must not, because a child that
+ * claimed the run would make `status` call a background run a foreground one.
+ *
+ * A record whose process is *gone* is a different case: the run was orphaned,
+ * and whoever picks it up (a `resume`) is the one driving it now. The record
+ * is taken over, so `status` stops calling a run that is being worked on
+ * "interrupted".
+ */
+export function claimRunner(
+  paths: RunPaths,
+  record: UltraRunnerRecord,
+  isAlive: (pid: number) => boolean = processAlive,
+): boolean {
+  const existing = readRunner(paths);
+  if (existing && isAlive(existing.pid)) return false;
+  writeRunner(paths, record);
+  return true;
+}
+
+/**
  * The default liveness probe.
  *
  * `process.kill(pid, 0)` sends no signal; it only checks that the process exists
@@ -123,21 +155,27 @@ export function classifyRunner(input: {
   }
 
   if (alive(record.pid)) {
-    return { status: 'running', detail: `running in the background (pid ${String(record.pid)})`, record };
+    return {
+      status: 'running',
+      detail: record.foreground
+        ? `running in the foreground (pid ${String(record.pid)})`
+        : `running in the background (pid ${String(record.pid)})`,
+      record,
+    };
   }
 
   if (runStatus === 'succeeded' || runStatus === 'partial' || runStatus === 'stalled') {
-    return { status: 'finished', detail: `background run finished as ${runStatus}`, record };
+    return { status: 'finished', detail: `the run finished as ${runStatus}`, record };
   }
   if (runStatus === 'failed' || runStatus === 'killed') {
-    return { status: 'failed', detail: `background run ended as ${runStatus}`, record };
+    return { status: 'failed', detail: `the run ended as ${runStatus}`, record };
   }
   // The process is gone and the run never finished: a crash, a reboot, or a
   // closed laptop. The run is resumable, and saying so is the point.
   return {
     status: 'interrupted',
     detail:
-      `interrupted: the background runner is gone and the run is ${runStatus}; ` +
+      `interrupted: the process driving the run is gone and the run is ${runStatus}; ` +
       `resume it with \`alran ultra resume ${record.runId}\``,
     record,
   };

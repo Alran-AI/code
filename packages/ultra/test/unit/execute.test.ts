@@ -869,3 +869,91 @@ describe('live progress', () => {
     expect(result.packets.find((entry) => entry.id === 'p1')?.status).toBe('done');
   });
 });
+
+describe('stopping a run that is under way', () => {
+  it('stops between packets and leaves the run paused', async () => {
+    const store = storeFor([packet({ id: 'p1' }), packet({ id: 'p2' })]);
+    const h = harness(store);
+    // The request arrives after the first packet: the run must stop there and
+    // leave the second packet for the resume.
+    let seen = 0;
+    const ports: ExecutePorts = {
+      ...h.ports,
+      control: () => (seen > 0 ? 'pause' : undefined),
+    };
+    const original = ports.worker.run;
+    ports.worker.run = async (input) => {
+      seen += 1;
+      return original(input);
+    };
+
+    const result = await runExecute({
+      plan: plan([packet({ id: 'p1' }), packet({ id: 'p2' })]),
+      ports,
+      config,
+    });
+
+    expect(result.runStatus).toBe('paused');
+    expect(statusOf(store, 'p1')).toBe('done');
+    // The second packet never started, so it stays pending and a resume redoes
+    // it rather than reporting it as attempted.
+    expect(statusOf(store, 'p2')).toBe('pending');
+    expect(h.order).toEqual(['p1']);
+  });
+
+  it('stops on a kill request and reports the run as killed', async () => {
+    const store = storeFor([packet({ id: 'p1' }), packet({ id: 'p2' })]);
+    const h = harness(store);
+    let seen = 0;
+    const ports: ExecutePorts = {
+      ...h.ports,
+      control: () => (seen > 0 ? 'kill' : undefined),
+    };
+    const original = ports.worker.run;
+    ports.worker.run = async (input) => {
+      seen += 1;
+      return original(input);
+    };
+
+    const result = await runExecute({
+      plan: plan([packet({ id: 'p1' }), packet({ id: 'p2' })]),
+      ports,
+      config,
+    });
+
+    expect(result.runStatus).toBe('killed');
+    expect(statusOf(store, 'p1')).toBe('done');
+    expect(statusOf(store, 'p2')).toBe('pending');
+  });
+
+  it('does not spend a repair on a worker that was interrupted', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store, {
+      // The worker was cut short by Ctrl+C: it did not fail on its own work.
+      worker: () => ({ ok: false, summary: 'terminated', interrupted: true }),
+    });
+
+    const result = await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    // A repair would blame the worker for the person's decision to stop.
+    expect(h.log.filter((line) => line.startsWith('worker:p1'))).toHaveLength(1);
+    expect(h.gates).toEqual([]);
+    expect(result.runStatus).toBe('paused');
+    // The packet keeps its status, so the resume redoes it.
+    expect(statusOf(store, 'p1')).toBe('running');
+  });
+
+  it('keeps the run alive when the control probe throws', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store);
+    const ports: ExecutePorts = {
+      ...h.ports,
+      control: () => {
+        throw new Error('the request file is gone');
+      },
+    };
+
+    const result = await runExecute({ plan: plan([packet({ id: 'p1' })]), ports, config });
+    expect(result.packets.find((entry) => entry.id === 'p1')?.status).toBe('done');
+  });
+});

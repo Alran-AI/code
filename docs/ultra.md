@@ -114,9 +114,10 @@ Implemented and tested:
   contradict the run's state instead of writing nonsense into it: a finished run
   cannot be killed (that would relabel a success as `killed` and lose the
   verdict), a run that is still running cannot be resumed (that would start a
-  second execute pass over the same worktrees), and only a paused or killed run
-  can be resumed. `RunStore` guards the transition *into* `succeeded` but not the
-  ones out of it, so these live in the flow.
+  second execute pass over the same worktrees), and only a run that is not
+  already in the requested state can be paused or killed. `RunStore` guards the
+  transition *into* `succeeded` but not the ones out of it, so these live in the
+  flow.
 - **Resume** — a killed or paused run redoes only non-terminal packets. A packet
   that is already `done`, `blocked`, `skipped` or `cancelled` is reported, never
   re-run. A resumed goal-driven run also rediscovers the branch that carries the
@@ -129,7 +130,32 @@ Implemented and tested:
   has a verdict, and moving it to `running` threw that verdict away — the CLI
   used to do exactly that). A run with nothing left to execute still integrates:
   a run killed between its packets and its merge has finished its work and
-  would otherwise never be merged at all.
+  would otherwise never be merged at all. The one exception is a running run
+  whose process is *gone*: `status` calls that `interrupted` and tells the
+  reader to resume it, so the resume must not refuse it.
+- **Stopping a run that is under way.** `alran ultra pause` and `alran ultra
+  kill` used to do nothing to a run that was actually running. The run's
+  `state.json` belongs to the process that drives the run, so a second process
+  writing that file had its change overwritten by the driver's next save: the
+  command wrote `paused`, the driver wrote `running` a second later, and the
+  run carried on as if it had never been asked. The request now travels through
+  a file of its own (`control.json`), the driver reads it at its next safe
+  point — between packets, and before a repair is spent — and stops there. A
+  run with no driver gets its state changed straight away, so `pause` on a run
+  whose process died still means what it says. The TUI's `p` and `k` keys use
+  the same rule and the same code.
+- **Ctrl+C pauses a run instead of orphaning it.** Without a handler, Ctrl+C
+  killed the CLI outright and left the run saying `running` with nobody behind
+  it — a state `resume` refused, so the work was stranded until somebody
+  edited the state by hand. The CLI now writes the stop request and lets the
+  scheduler stop at the next safe point; a second Ctrl+C quits at once. A
+  worker that was cut short by the interrupt is not a failure: it does not
+  spend a repair, and the packet is redone by the resume.
+- **A stopped pass is not integrated.** A paused or killed run keeps the
+  packets that have not run, so integrating them would merge a half-finished
+  plan, spend the budget the pause was protecting, and write a verdict over a
+  run that is waiting to be resumed. The run stays `paused` (or `killed`), its
+  report is written, and the resume continues from exactly there.
 - **Finding a run again.** `alran ultra runs` lists every run on disk, newest
   first, with its status, its packets, its criteria and its spend. The CLI's
   `status` refuses to guess between several runs, and that refusal is only fair
@@ -218,8 +244,8 @@ alran ultra board  [run-id]  # the board: round, cost and every packet at a glan
 alran ultra diff   [run-id]  # what the run produced, and the command for the full patch
 alran ultra review [run-id]  # a fleet of independent reviewers, every finding verified
 alran ultra run    "<task>" --detach   # start it in the background, return at once
-alran ultra pause <run-id>
-alran ultra kill  <run-id>
+alran ultra pause <run-id>    # stop the run at its next safe point, resumable
+alran ultra kill  <run-id>    # stop it and keep the worktrees for inspection
 alran ultra resume <run-id>
 alran ultra report <run-id>
 alran ultra attach [run-id]  # follow the run's log live (Ctrl+C to stop)
@@ -399,8 +425,9 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
   spec-tests/         # authored spec tests, as committed to ultra/<run>-spec-tests
   rounds/<n>/         # per-round artifacts (goal-driven runs)
   packets/<id>/       # prompt.md, diff.patch, gate.txt, verdict.json
-  runner.json         # pid and log path of the detached runner, when there is one
+  runner.json         # pid and log path of the process driving the run
   runner.log          # that runner's stdout and stderr
+  control.json        # a stop request left for the process driving the run
   report.md
   review.md           # the review fleet's report, when the run has been reviewed
   review.json         # its findings, for other tools to read

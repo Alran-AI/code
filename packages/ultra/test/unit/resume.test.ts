@@ -35,6 +35,20 @@ describe('resumeRefusal', () => {
     expect(refusal).toMatch(/pause it first/iu);
   });
 
+  it('refuses a running run while something is still driving it', () => {
+    // A live driver and a second execute pass would fight over the same
+    // worktrees, so the resume waits.
+    expect(resumeRefusal(state('running'), 'live')).toMatch(/already running/iu);
+    // A foreground run has no runner record, so nobody can prove it is gone.
+    expect(resumeRefusal(state('running'), 'unknown')).toMatch(/already running/iu);
+  });
+
+  it('lets a running run whose driver is gone be continued', () => {
+    // The process that was driving the run died and left it behind. `status`
+    // tells the reader to resume such a run, so the resume must not refuse it.
+    expect(resumeRefusal(state('running'), 'dead')).toBeUndefined();
+  });
+
   it('refuses a successful run, so its verdict is not thrown away', () => {
     const refusal = resumeRefusal(state('succeeded'));
     expect(refusal).toMatch(/already finished as succeeded/iu);

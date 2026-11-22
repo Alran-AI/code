@@ -197,6 +197,10 @@ export interface ExecuteUltraPlanInput {
   readonly workers: number;
   readonly maxRepairs: number;
   readonly baseRef?: string;
+  /** Whether this pass belongs to a single-run or a goal-driven run. */
+  readonly mode?: 'run' | 'goal';
+  /** Liveness probe for the driver record; injected so a test need not use a real pid. */
+  readonly isAlive?: (pid: number) => boolean;
 }
 
 /**
@@ -224,33 +228,55 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
   const adapters =
     input.execAdapters ??
     createUltraExecAdapters({ cwd: input.cwd, env: input.env, recipeOverrides });
+  claimDriver(
+    store,
+    input.mode ?? 'run',
+    store.state.goal,
+    plan.recipe,
+    input.isAlive,
+  );
   store.transition('running');
   write(`Executing ${plan.packets.length} packet(s)…\n`);
 
-  const result = await ultra.runExecute({
-    plan,
-    ports: {
-      ...adapters,
-      store,
-      ledger,
-      evidence: ultra.createFileEvidenceWriter(store.paths.packets),
-      // A long pass must not look frozen. Every decision point the scheduler
-      // makes is written out as it happens; the same lines land in the
-      // detached runner's log, so `alran ultra attach` shows them too.
-      progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
-    },
-    config: {
-      workers: input.workers,
-      maxRepairs: input.maxRepairs,
-      workerModel: input.roles?.planner ?? DEFAULT_ROLE_MODEL,
-      verifierModel: input.roles?.critic ?? DEFAULT_ROLE_MODEL,
-    },
-    ...(input.sleep ? { sleep: input.sleep } : {}),
-    ...(input.baseRef ? { baseRef: input.baseRef } : {}),
-    skipPacketIds: store.state.packets
-      .filter((packet) => packet.status === 'done')
-      .map((packet) => packet.id),
-  });
+  const result = await (async () => {
+    // Ctrl+C must pause the run, not kill the process. A dead process leaves
+    // the run saying `running` with nobody behind it, and `resume` refuses a
+    // running run — the work would be stranded until somebody edited the state
+    // by hand. The handler writes the stop request; the scheduler stops at its
+    // next safe point and leaves a run that `resume` can pick up.
+    const releaseInterrupt = installInterruptHandler({ store, write });
+    try {
+      return await ultra.runExecute({
+        plan,
+        ports: {
+          ...adapters,
+          store,
+          ledger,
+          evidence: ultra.createFileEvidenceWriter(store.paths.packets),
+          // A long pass must not look frozen. Every decision point the scheduler
+          // makes is written out as it happens; the same lines land in the
+          // detached runner's log, so `alran ultra attach` shows them too.
+          progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
+          // The stop request: `alran ultra pause`/`kill` from another terminal
+          // and the Ctrl+C handler below both arrive as a file next to the run.
+          control: () => ultra.readControl(store.paths)?.request,
+        },
+        config: {
+          workers: input.workers,
+          maxRepairs: input.maxRepairs,
+          workerModel: input.roles?.planner ?? DEFAULT_ROLE_MODEL,
+          verifierModel: input.roles?.critic ?? DEFAULT_ROLE_MODEL,
+        },
+        ...(input.sleep ? { sleep: input.sleep } : {}),
+        ...(input.baseRef ? { baseRef: input.baseRef } : {}),
+        skipPacketIds: store.state.packets
+          .filter((packet) => packet.status === 'done')
+          .map((packet) => packet.id),
+      });
+    } finally {
+      releaseInterrupt();
+    }
+  })();
 
   // Persist the outcome so `status` and `report` reflect the real run state
   // instead of leaving the run stuck on `running` after this pass returns.
@@ -263,6 +289,27 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
     `\nPackets: ${String(done.length)} done, ${String(blocked.length)} blocked, ` +
       `${String(result.packets.filter((p) => p.status === 'skipped').length)} skipped.\n`,
   );
+
+  // A stopped pass is not integrated. The packets that did not run are still to
+  // do, and integrating a half-finished plan would merge a partial tree and
+  // write a verdict over a run that is waiting to be resumed — the very thing
+  // the stop was for.
+  if (result.runStatus === 'paused' || result.runStatus === 'killed') {
+    writeFileSync(
+      store.paths.report,
+      ultra.buildReport({
+        state: store.state,
+        ledger,
+        plan,
+        ...(result.runStatus === 'killed' ? { killed: true } : {}),
+      }),
+    );
+    write(
+      `\nRun ${store.state.runId} is ${result.runStatus}. ` +
+        `Resume it with \`alran ultra resume ${store.state.runId}\`; the packets that already passed are not repeated.\n`,
+    );
+    return result.runStatus;
+  }
 
   // INTEGRATE (spec 3.6): merge the done packets into the run branch, run the
   // full suite and put the combined diff through a final review. This is the
@@ -299,6 +346,101 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
   );
 
   return integrated.runStatus;
+}
+
+/**
+ * Records that this process is the one driving the run.
+ *
+ * A run started in the foreground has no runner record, so `status` cannot tell
+ * whether it is still going — it says "running" about a run whose process died
+ * with the terminal. The record says who is driving it, so an interrupted run
+ * can be reported as interrupted and resumed.
+ *
+ * Only the first writer wins: a detached child was already recorded by the
+ * process that spawned it, and a child that claimed the run would make
+ * `status` call a background run a foreground one.
+ */
+function claimDriver(
+  store: ultra.RunStore,
+  mode: 'run' | 'goal',
+  task: string,
+  recipe: string,
+  isAlive?: (pid: number) => boolean,
+): void {
+  ultra.claimRunner(
+    store.paths,
+    {
+      runId: store.state.runId,
+      mode,
+      pid: process.pid,
+      startedAt: new Date().toISOString(),
+      logPath: 'runner.log',
+      task,
+      budgetUsd: store.state.budgetUsd,
+      recipe: recipe as ultra.UltraRecipeChoice,
+      workers: store.state.workers ?? 4,
+      foreground: true,
+    },
+    isAlive ?? ultra.processAlive,
+  );
+}
+
+/**
+ * Turns Ctrl+C into a pause request instead of a dead process.
+ *
+ * Without a handler the terminal's SIGINT kills the CLI outright: the run stays
+ * `running` in its state file with nobody behind it, and `resume` refuses a
+ * running run. The work is then stranded until somebody edits the state by
+ * hand. With the handler the request travels to the scheduler, which stops at
+ * the next safe point and leaves a run that `resume` can pick up.
+ *
+ * A second signal means the person is not willing to wait for a safe point: it
+ * quits at once. The run stays resumable either way, because the request was
+ * already written before the second signal.
+ */
+export function installInterruptHandler(input: {
+  readonly store: ultra.RunStore;
+  readonly write: (text: string) => void;
+}): () => void {
+  let asked = false;
+  const handler = (signal: NodeJS.Signals): void => {
+    const stoppedRunId = input.store.state.runId;
+    if (asked) {
+      // The process is about to die, so the run must not be left saying
+      // `running`: nobody would be behind it, and a run in that state cannot
+      // be resumed. The state is written here, because the scheduler will not
+      // get the chance to.
+      try {
+        input.store.transition('paused');
+      } catch {
+        // The state machine refused it; the run keeps the status it has.
+      }
+      // The person is not waiting for a safe point. Our handler steps aside and
+      // the signal is raised again, so whatever the host does with it — the
+      // TUI's graceful stop, or the default terminate — still happens. An
+      // abrupt exit here would skip the host's own shutdown.
+      input.write(`\n${signal} again: leaving now. The run stays resumable — \`alran ultra resume ${stoppedRunId}\`.\n`);
+      process.off(signal, handler);
+      process.kill(process.pid, signal);
+      return;
+    }
+    asked = true;
+    try {
+      ultra.writeControl(input.store.paths, 'pause');
+    } catch {
+      // The request could not be delivered. Saying so is better than a
+      // cheerful message that the run is about to stop when it is not.
+      input.write(`\n${signal} received, but the stop request could not be written; the run keeps going.\n`);
+      return;
+    }
+    input.write(`\n${signal} received: the run stops at the next safe point. Press Ctrl+C again to quit now.\n`);
+  };
+  process.on('SIGINT', handler);
+  process.on('SIGTERM', handler);
+  return () => {
+    process.off('SIGINT', handler);
+    process.off('SIGTERM', handler);
+  };
 }
 
 function formatExecution(result: ultra.ExecuteRunResult): string {
@@ -673,6 +815,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       ...(options.integrateAdapters ? { integrateAdapters: options.integrateAdapters } : {}),
       ...(options.roles ? { roles: options.roles } : {}),
       ...(options.sleep ? { sleep: options.sleep } : {}),
+      ...(options.isAlive ? { isAlive: options.isAlive } : {}),
     });
     if (integrated !== 'succeeded') exit(1);
   };
@@ -1115,33 +1258,49 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
           })),
         );
         store.transition('running');
-        const result = await ultra.runExecute({
-          plan,
-          ports: {
-            ...adapters,
-            store,
-            ledger,
-            evidence: ultra.createFileEvidenceWriter(store.paths.packets),
-            // Same narration as the single-round path, so a goal run reads the
-            // same way a run does.
-            progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
-          },
-          config: {
-            // The stored cap wins when the caller did not pass `--workers`, so
-            // the board's `+`/`-` keys and a later `resume` agree on one number.
-            workers: Number(commandOptions.workers ?? store.state.workers ?? 4),
-            maxRepairs: Number(commandOptions.maxRepairs ?? 2),
-            workerModel: options.roles?.planner ?? DEFAULT_ROLE_MODEL,
-            verifierModel: options.roles?.critic ?? DEFAULT_ROLE_MODEL,
-            specTestDir: ultra.SPEC_TEST_DIR,
-          },
-          ...(options.sleep ? { sleep: options.sleep } : {}),
-          baseRef,
-          skipPacketIds: store.state.packets
-            .filter((packet) => packet.status === 'done')
-            .map((packet) => packet.id),
-        });
-        return { donePacketIds: result.packets.filter((p) => p.status === 'done').map((p) => p.id) };
+        // The same record a foreground run needs, so `status` can say whether
+        // anything is still driving it.
+        claimDriver(store, 'goal', store.state.goal, plan.recipe, options.isAlive);
+        // The same stop channel as the single-round path: a pause request from
+        // another terminal, or Ctrl+C, stops the round at its next safe point
+        // and leaves the run resumable.
+        const releaseInterrupt = installInterruptHandler({ store, write });
+        let result: ultra.ExecuteRunResult;
+        try {
+          result = await ultra.runExecute({
+            plan,
+            ports: {
+              ...adapters,
+              store,
+              ledger,
+              evidence: ultra.createFileEvidenceWriter(store.paths.packets),
+              // Same narration as the single-round path, so a goal run reads the
+              // same way a run does.
+              progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
+              control: () => ultra.readControl(store.paths)?.request,
+            },
+            config: {
+              // The stored cap wins when the caller did not pass `--workers`, so
+              // the board's `+`/`-` keys and a later `resume` agree on one number.
+              workers: Number(commandOptions.workers ?? store.state.workers ?? 4),
+              maxRepairs: Number(commandOptions.maxRepairs ?? 2),
+              workerModel: options.roles?.planner ?? DEFAULT_ROLE_MODEL,
+              verifierModel: options.roles?.critic ?? DEFAULT_ROLE_MODEL,
+              specTestDir: ultra.SPEC_TEST_DIR,
+            },
+            ...(options.sleep ? { sleep: options.sleep } : {}),
+            baseRef,
+            skipPacketIds: store.state.packets
+              .filter((packet) => packet.status === 'done')
+              .map((packet) => packet.id),
+          });
+        } finally {
+          releaseInterrupt();
+        }
+        return {
+          donePacketIds: result.packets.filter((p) => p.status === 'done').map((p) => p.id),
+          runStatus: result.runStatus,
+        };
       },
       integrate: async ({ round, plan }) => {
         const integrated = await ultra.runIntegrate({
@@ -1491,17 +1650,60 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       );
     });
 
+  /**
+   * Who is driving this run right now.
+   *
+   * `live` means a process is behind it, `dead` that one was and is gone, and
+   * `unknown` that the run was started in the foreground and nobody knows.
+   */
+  const stopDriver = (store: ultra.RunStore): ultra.UltraControlDriver => {
+    const classification = ultra.classifyRunner({
+      record: ultra.readRunner(store.paths),
+      runStatus: store.state.status,
+      ...(options.isAlive ? { isAlive: options.isAlive } : {}),
+    });
+    return ultra.driverFromRunnerStatus(classification.status);
+  };
+
+  /**
+   * Decides what a stop request means for this run.
+   *
+   * The run's `state.json` belongs to the process that drives it, so a second
+   * process cannot stop it by writing that file: the driver overwrites the
+   * change with its next save. The request therefore travels through a file of
+   * its own, and only a run with no driver gets its state changed here.
+   */
+  const stopDecision = (
+    store: ultra.RunStore,
+    request: ultra.UltraControlRequest,
+  ): ultra.UltraControlDecision =>
+    ultra.decideControl({
+      request,
+      runStatus: store.state.status,
+      driver: stopDriver(store),
+    });
+
   root
     .command('pause')
     .description('Pause a running run at the next safe point')
     .argument('<run-id>', 'run to pause')
     .action((id: string) => {
       const store = ultra.RunStore.open(stateDir, id);
-      if (store.state.status !== 'running') {
-        throw new Error(`run ${id} is ${store.state.status}, not running`);
+      const decision = stopDecision(store, 'pause');
+      if (decision.refusal) {
+        write(`${decision.refusal}\n`);
+        exit(1);
+        return;
       }
-      store.transition('paused');
-      write(`Paused ${id}. Resume with \`alran ultra resume ${id}\`.\n`);
+      if (decision.request) ultra.writeControl(store.paths, 'pause');
+      if (decision.apply) store.transition('paused');
+      write(
+        decision.request && decision.apply
+          ? `Paused ${id}. A process that is still driving it stops at the next safe point. Resume with \`alran ultra resume ${id}\`.\n`
+          : decision.request
+            ? `Pause requested for ${id}. The run stops at the next safe point. Resume with \`alran ultra resume ${id}\`.\n`
+            : `Paused ${id}. Resume with \`alran ultra resume ${id}\`.\n`,
+      );
     });
 
   root
@@ -1510,8 +1712,21 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     .argument('<run-id>', 'run to stop')
     .action((id: string) => {
       const store = ultra.RunStore.open(stateDir, id);
-      store.transition('killed');
-      write(`Killed ${id}. Worktrees and ledger are kept for inspection.\n`);
+      const decision = stopDecision(store, 'kill');
+      if (decision.refusal) {
+        write(`${decision.refusal}\n`);
+        exit(1);
+        return;
+      }
+      if (decision.request) ultra.writeControl(store.paths, 'kill');
+      if (decision.apply) store.transition('killed');
+      write(
+        decision.request && decision.apply
+          ? `Killed ${id}. A process that is still driving it stops at the next safe point. Worktrees and ledger are kept for inspection.\n`
+          : decision.request
+            ? `Stop requested for ${id}. The run stops at the next safe point. Worktrees and ledger are kept for inspection.\n`
+            : `Killed ${id}. Worktrees and ledger are kept for inspection.\n`,
+      );
     });
 
   root
@@ -1525,8 +1740,12 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       // A run that has a verdict must not be relabelled as `running`: the
       // report and the board are written from that verdict. The TUI applies the
       // same rule, so the two surfaces cannot disagree about a run.
-      const refusal = ultra.resumeRefusal(store.state);
+      const refusal = ultra.resumeRefusal(store.state, stopDriver(store));
       if (refusal) throw new Error(refusal);
+
+      // A stop request that was left behind — by a run that was killed before
+      // it could read it — must not pause this resume before it starts.
+      ultra.clearControl(store.paths);
 
       // Spec 6: a budget pause is resumed by raising the cap. Without this the
       // run would immediately pause again at the old cap.

@@ -33,6 +33,8 @@ export interface HeadlessResult {
   /** Estimated USD for this call; see `ultra.usdForTokens`. */
   readonly costUsd?: number;
   readonly rateLimited: boolean;
+  /** The run was cut short by an interrupt; it did not fail on its own. */
+  readonly interrupted?: boolean;
   readonly error?: string;
 }
 
@@ -42,6 +44,24 @@ export function alranCommandFor(context?: UltraHeadlessContext): readonly string
   const entry = process.argv[1];
   if (entry && /cli\.[cm]?js$/u.test(entry)) return [process.execPath, entry];
   return ['alran'];
+}
+
+/**
+ * Whether a headless run was cut short by an interrupt.
+ *
+ * Two shapes mean the same thing: the child was killed by the signal
+ * (`signal` is set), or it caught the signal itself and exited with the
+ * conventional 128 + signal code. An interrupted run did not fail, and the
+ * scheduler must not spend a repair on it — the person asked the run to stop.
+ */
+export function isInterruptedRun(result: {
+  readonly code?: number | null;
+  readonly status?: number | null;
+  readonly signal?: string | null;
+}): boolean {
+  if (result.signal === 'SIGINT' || result.signal === 'SIGTERM') return true;
+  const code = result.code ?? result.status ?? null;
+  return code === 130 || code === 143;
 }
 
 /** One headless `alran exec` call with a system prompt file and a text answer. */
@@ -109,6 +129,8 @@ export function runHeadless(
         text: '',
         tokensUsed: 0,
         rateLimited,
+        // An interrupt is not a failure: the scheduler must stop, not repair.
+        interrupted: isInterruptedRun({ status: result.status, signal: result.signal ?? null }),
         error: message || `headless run exited with ${String(result.status)}`,
       };
     }

@@ -63,7 +63,7 @@ alran ultra plan "<task>"                  # plan only, no execution
 alran ultra "<task>" --recipe migrate --budget 3 --workers 4 --yes
 alran ultra status [run-id]
 alran ultra runs                            # every run on disk, newest first
-alran ultra pause|kill <run-id>
+alran ultra pause|kill <run-id>             # stop a running run at its next safe point
 alran ultra resume <run-id> [--budget N]   # resume, optionally with a raised budget
 alran ultra report <run-id>
 alran ultra diff [run-id]                   # what the run produced
@@ -259,9 +259,30 @@ quality: stronger model for `planner`, `critic`, `verifier`, `acceptor`.
 | Tools | workers get local tools only (files, shell inside worktree); network tools off by default |
 | Success | only INTEGRATE/ACCEPT can set `succeeded`; a packet is `done` only after gate **and** verifier |
 | Failure | blocked packet ⇒ dependents `skipped`; independent packets continue; report lists everything honestly |
-| Kill | `kill` stops workers, keeps worktrees and ledger for inspection |
+| Kill | `kill` stops workers, keeps worktrees and ledger for inspection. A stop request from another process reaches the driver through its own file, because the run's state belongs to the driver |
 | Secrets | `.env*` and key files are in `readonly`/denylist by default; ledger redacts secret-looking strings |
 | Long runs | round cap, stagnation stop, optional wall-clock cap; budget `none` is explicit opt-in |
+
+### 6.1 Stopping a run
+
+`pause` and `kill` are commands in one process; the run is another. The run's
+`state.json` belongs to the process that drives the run, so a second process
+cannot stop it by writing that file — the driver would overwrite the change
+with its next save. The request therefore travels through a file of its own,
+and the driver reads it at its next safe point: between packets, and before a
+repair is spent. A run with no driver behind it gets its state changed
+straight away, so `pause` on a run whose process died still means what it says.
+
+Two rules follow from that:
+
+- **A stopped pass is not integrated.** The packets that did not run are still
+  to do. Merging them would spend the budget a pause was protecting and write
+  a verdict over a run that is waiting to be resumed.
+- **An interrupted worker is not a failure.** A worker cut short by Ctrl+C did
+  not fail on its own work, so it does not spend a repair; the packet is redone
+  by the resume. The same Ctrl+C leaves the run `paused` rather than `running`
+  with nobody behind it — a state the resume refuses, which would strand the
+  work until somebody edited the state by hand.
 
 ## 7. TUI board
 

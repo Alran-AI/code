@@ -163,6 +163,14 @@ export interface WorkerOutcome {
   readonly model?: string;
   /** Upstream HTTP 429 / rate limit; the scheduler backs off and lowers parallelism. */
   readonly rateLimited?: boolean;
+  /**
+   * The worker was cut short by an interrupt (SIGINT/SIGTERM), not by its own
+   * work failing.
+   *
+   * An interrupted attempt is not a repair: the person asked the run to stop,
+   * and spending a repair on it would punish the worker for their decision.
+   */
+  readonly interrupted?: boolean;
 }
 
 /** One verifier verdict over a packet's diff. */

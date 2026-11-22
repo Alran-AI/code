@@ -35,7 +35,17 @@ export interface LoopPorts {
     readonly round: number;
     readonly plan: UltraPlan;
     readonly packets: readonly PlanPacket[];
-  }) => Promise<{ readonly donePacketIds: readonly string[] }>;
+  }) => Promise<{
+    readonly donePacketIds: readonly string[];
+    /**
+     * The status of the execute pass.
+     *
+     * A pass that was paused or killed did not finish its packets, so the loop
+     * stops there. Integrating a half-finished round would merge a partial
+     * tree and write a verdict over a run that is waiting to be resumed.
+     */
+    readonly runStatus?: RunStatus;
+  }>;
   readonly integrate: (input: { readonly round: number; readonly plan: UltraPlan }) => Promise<IntegrateResult>;
   /**
    * Exercises the real result against the goal document and returns findings.
@@ -114,7 +124,20 @@ export async function runGoalLoop(input: {
     }
 
     store.transition('running');
-    await ports.execute({ round, plan, packets: plan.packets });
+    const executed = await ports.execute({ round, plan, packets: plan.packets });
+
+    // A round that was stopped on purpose is not integrated. The packets that
+    // did not run are still to do, and the run stays resumable: `resume` picks
+    // up exactly where the stop happened.
+    if (executed.runStatus === 'paused' || executed.runStatus === 'killed') {
+      store.transition(executed.runStatus);
+      return {
+        runStatus: executed.runStatus,
+        rounds,
+        reason: executed.runStatus === 'killed' ? 'the run was killed' : 'the run was paused',
+        costUsd: total(ledger),
+      };
+    }
 
     store.transition('integrating');
     const integrate = await ports.integrate({ round, plan });

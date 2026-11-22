@@ -39,6 +39,14 @@ export interface RunPaths {
   readonly review: string;
   /** The review fleet's findings as JSON, for other tools to read. */
   readonly reviewJson: string;
+  /**
+   * The stop request another process left for the driver of this run.
+   *
+   * It is a file of its own because the run's `state.json` belongs to the
+   * driver: a second process writing that file would have its change
+   * overwritten by the driver's next save.
+   */
+  readonly control: string;
   /** Who is driving this run, if it was started in the background. */
   readonly runner: string;
   /** Where a background runner's output goes. */
@@ -102,6 +110,7 @@ function runPaths(baseDir: string, runId: string): RunPaths {
     report: path.join(root, 'report.md'),
     review: path.join(root, 'review.md'),
     reviewJson: path.join(root, 'review.json'),
+    control: path.join(root, 'control.json'),
     runner: path.join(root, 'runner.json'),
     runnerLog: path.join(root, 'runner.log'),
   };

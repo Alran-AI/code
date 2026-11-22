@@ -1528,8 +1528,10 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
     await first.program.parseAsync(['ultra', 'a big task', '--budget', '0.002'], { from: 'user' });
     expect(first.output()).toMatch(/paused/iu);
     const runId = runDirs(repo)[0]!;
-    // p1's worker, p1's verifier, and the final review of the partial merge.
-    expect(calls()).toBe(3);
+    // p1's worker and p1's verifier. A paused pass is not integrated: merging
+    // a half-finished plan would spend the budget the pause was protecting and
+    // write a verdict over a run that is waiting to be resumed.
+    expect(calls()).toBe(2);
 
     // Resuming with a raised cap finishes the run, and p1 is not redone.
     const second = harness(repo, adapters);
@@ -1537,7 +1539,7 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
     expect(second.output()).toMatch(/succeeded/iu);
     // p2's worker, p2's verifier, and the review of the completed run: p1 was
     // not called again, which is the whole point of resuming.
-    expect(calls()).toBe(6);
+    expect(calls()).toBe(5);
     // The finished packet's work is on the run branch, and nothing touched main.
     expect(protectedRefs(repo, remote)).toBe(before);
   });
@@ -1578,3 +1580,175 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
 });
 
 export type { PlanRunResult };
+
+describe('stopping a run that is under way', () => {
+  /** A run in `running` state with a runner record, as a live run has. */
+  async function runningRun(
+    repo: string,
+    options: { readonly alive: boolean },
+  ): Promise<{ runId: string; stateDir: string }> {
+    const planning = harness(repo, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+    const stateDir = path.join(repo, '.alran', 'ultra');
+    const { RunStore, writeRunner } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    store.transition('running');
+    writeRunner(store.paths, {
+      runId,
+      mode: 'run',
+      // A pid of the test process: alive, and it does not matter that it is not
+      // really driving the run, because the liveness probe is injected.
+      pid: process.pid,
+      startedAt: '2026-11-19T12:00:00.000Z',
+      logPath: 'runner.log',
+      task: 'a task',
+      budgetUsd: 2,
+      recipe: 'auto',
+      workers: 4,
+    });
+    void options;
+    return { runId, stateDir };
+  }
+
+  it('asks a live run to stop instead of writing its state file', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: true });
+    const { RunStore } = await import('@alran/ultra');
+
+    const cli = harness(dir, { isAlive: () => true });
+    await cli.program.parseAsync(['ultra', 'pause', runId], { from: 'user' });
+
+    // The driver owns the state file: a change written here would be
+    // overwritten by the driver's next save, so the request travels through a
+    // file of its own.
+    const store = RunStore.open(stateDir, runId);
+    expect(store.state.status).toBe('running');
+    const request = JSON.parse(readFileSync(store.paths.control, 'utf8')) as { request: string };
+    expect(request.request).toBe('pause');
+    expect(cli.output()).toContain('stops at the next safe point');
+  });
+
+  it('pauses a run whose driver is gone', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore } = await import('@alran/ultra');
+
+    const cli = harness(dir, { isAlive: () => false });
+    await cli.program.parseAsync(['ultra', 'pause', runId], { from: 'user' });
+
+    expect(RunStore.open(stateDir, runId).state.status).toBe('paused');
+    expect(cli.output()).toContain('Paused');
+  });
+
+  it('refuses to kill a run that already finished', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    // Only INTEGRATE may write `succeeded`, and the state machine enforces it.
+    store.transition('integrating');
+    store.transition('succeeded');
+
+    const cli = harness(dir, { isAlive: () => false });
+    await cli.program.parseAsync(['ultra', 'kill', runId], { from: 'user' });
+
+    // A report that says `killed` about work that succeeded is a lie.
+    expect(RunStore.open(stateDir, runId).state.status).toBe('succeeded');
+    expect(cli.exitCodes).toContain(1);
+    expect(cli.output()).toMatch(/nothing to kill/iu);
+  });
+
+  it('does not integrate a run whose packets were interrupted', async () => {
+    const dir = gitRepo();
+    const merges: string[] = [];
+    const interrupted = harness(dir, {
+      planPorts: fakePorts,
+      execAdapters: {
+        ...fakeExecAdapters(),
+        // The worker was cut short by Ctrl+C: it did not fail on its own work.
+        worker: { run: async () => ({ ok: false, summary: 'terminated', interrupted: true }) },
+      },
+      integrateAdapters: fakeIntegrateAdapters({
+        git: {
+          ...fakeIntegrateAdapters().git,
+          merge: async (input) => {
+            merges.push(input.branch);
+            return { ok: true, conflicts: [], output: 'merged' };
+          },
+        },
+      }),
+    });
+    await interrupted.program.parseAsync(['ultra', 'run', 'a task'], { from: 'user' });
+
+    const runId = runDirs(dir)[0]!;
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    // The run stays resumable: integrating a half-finished plan would write a
+    // verdict over a run that is waiting to be resumed.
+    expect(store.state.status).toBe('paused');
+    expect(merges).toEqual([]);
+    expect(interrupted.output()).toContain('is paused');
+    expect(interrupted.output()).toContain(`alran ultra resume ${runId}`);
+  });
+
+  it('records the process that is driving a foreground run', async () => {
+    const dir = gitRepo();
+    const cli = harness(dir, { planPorts: fakePorts });
+    await cli.program.parseAsync(['ultra', 'run', 'a task'], { from: 'user' });
+
+    const runId = runDirs(dir)[0]!;
+    const { RunStore, readRunner } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    const record = readRunner(store.paths);
+    // A foreground run has to say who is driving it: otherwise `status` cannot
+    // tell a running run from one whose process died with the terminal.
+    expect(record?.pid).toBe(process.pid);
+    expect(record?.foreground).toBe(true);
+  });
+
+  it('reports a run whose driver died as interrupted, and names the resume', async () => {
+    const dir = gitRepo();
+    const { runId } = await runningRun(dir, { alive: true });
+
+    const cli = harness(dir, { isAlive: () => false });
+    await cli.program.parseAsync(['ultra', 'status', runId], { from: 'user' });
+
+    expect(cli.output()).toMatch(/interrupted/iu);
+    expect(cli.output()).toContain(`alran ultra resume ${runId}`);
+  });
+
+  it('resumes a run whose driver died, instead of refusing the command it was told to run', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore } = await import('@alran/ultra');
+    // The run says `running`, but the process that was driving it is gone: a
+    // closed laptop, a killed terminal. `status` calls that `interrupted` and
+    // names this very command, so the command must not refuse it.
+    const store = RunStore.open(stateDir, runId);
+    store.setPackets([{ id: 'p1', title: 'Only' }]);
+
+    const cli = harness(dir, { isAlive: () => false, planPorts: fakePorts });
+    await cli.program.parseAsync(['ultra', 'resume', runId], { from: 'user' });
+
+    expect(cli.output()).toContain('Resuming');
+    expect(cli.exitCodes).not.toContain(1);
+  });
+
+  it('clears a stop request that was left behind when a run is resumed', async () => {
+    const dir = gitRepo();
+    const { runId, stateDir } = await runningRun(dir, { alive: false });
+    const { RunStore, writeControl } = await import('@alran/ultra');
+    const store = RunStore.open(stateDir, runId);
+    // The run was paused and a request was left behind by the pause.
+    store.transition('paused');
+    writeControl(store.paths, 'pause');
+
+    const cli = harness(dir, { isAlive: () => false });
+    await cli.program.parseAsync(['ultra', 'resume', runId], { from: 'user' });
+
+    // A request left over from a run that was killed before it could read it
+    // would pause this resume before it began.
+    expect(existsSync(store.paths.control)).toBe(false);
+  });
+});

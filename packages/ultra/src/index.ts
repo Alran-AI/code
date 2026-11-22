@@ -86,6 +86,7 @@ export {
 export {
   classifyRunner,
   processAlive,
+  claimRunner,
   readRunner,
   writeRunner,
   type UltraRunnerClassification,
@@ -148,6 +149,18 @@ export {
 } from './runs.js';
 
 export { resumeRefusal } from './resume.js';
+
+export {
+  clearControl,
+  decideControl,
+  driverFromRunnerStatus,
+  readControl,
+  writeControl,
+  type UltraControlDecision,
+  type UltraControlDriver,
+  type UltraControlRecord,
+  type UltraControlRequest,
+} from './control.js';
 
 export {
   buildReviewReport,
