@@ -25,6 +25,19 @@ Implemented and tested:
 - **Execution** — a dependency-ordered scheduler, one git worktree per packet on
   `ultra/<run>-<packet>`, scope enforcement, a no-LLM gate, a deterministic
   fake-fix pre-check, an LLM verifier, a repair loop and 429 backoff.
+- **The work reaches the branch.** A packet is `done` only after its work is
+  **committed** on its own branch. This was the worst defect the build had: the
+  diff was read from the worktree's index, and the index is not something a
+  later `git merge` can carry, so every run merged branches that had never been
+  committed. The run reported `succeeded`, the report said so, and the branch
+  the human was told to merge was empty. The change is now committed when the
+  verifier passes, and a real-git test asserts the file is on the run branch.
+- **Live progress.** A pass used to print one line and then nothing until it
+  finished — minutes of a frozen terminal. Every decision point the scheduler
+  makes (attempt, worker finished, gate ok, verifier passed, repair, done,
+  blocked, skipped, throttled, budget pause) is now written as it happens, in
+  the foreground, in the TUI and in the detached runner's log. The lines say
+  what the harness observed and never repeat the worker's own claim.
 - **Packet evidence** — `packets/<id>/prompt.md`, `diff.patch`, `gate.txt` and
   `verdict.json` are written for every packet that reaches the gate.
 - **Integrate** — the merge agent merges `done` packets into `ultra/<run>` in
@@ -109,6 +122,31 @@ Implemented and tested:
   re-run. A resumed goal-driven run also rediscovers the branch that carries the
   frozen checks (`ultra/<run>-spec-tests`) instead of falling back to `HEAD`, so
   the worktrees it recreates still contain them; an explicit `--base` wins.
+- **One rule about what may be continued.** The CLI and the TUI apply the same
+  rule, and it lives in the core: a planned, paused, killed, partial, failed or
+  stalled run may be continued; a running run may not (a second execute pass
+  would race the first over the same worktrees); a successful run may not (it
+  has a verdict, and moving it to `running` threw that verdict away — the CLI
+  used to do exactly that). A run with nothing left to execute still integrates:
+  a run killed between its packets and its merge has finished its work and
+  would otherwise never be merged at all.
+- **Finding a run again.** `alran ultra runs` lists every run on disk, newest
+  first, with its status, its packets, its criteria and its spend. The CLI's
+  `status` refuses to guess between several runs, and that refusal is only fair
+  if the user can see them; `/ultra runs` prints the same list.
+- **Seeing what a run produced.** `alran ultra diff <run-id>` shows the diff
+  against HEAD and the command for the full patch. It is the same function the
+  board's `d` key uses, so the two surfaces cannot drift.
+- **Reviewing a run** — `alran ultra review <run-id>` puts a *fleet* of
+  independent reviewers over what the run produced. Each reviewer gets its own
+  lens (correctness, safety, tests, compatibility, concurrency), because N
+  reviewers with the same prompt are an echo, not a second opinion. Every
+  finding is then checked by a separate agent that sees the claim and the code
+  but not the reviewer's reasoning; a finding that cannot be confirmed is
+  dropped with the reason. The report (`review.md`, `review.json` in the run
+  directory) lists the confirmed findings with their evidence *and* the
+  rejected ones, because a report that only shows what survived hides how much
+  the fleet argued with itself.
 
 Starting a run:
 
@@ -128,6 +166,13 @@ Starting a run:
 
 Not implemented, and not claimed:
 
+- **A review of something other than a run.** `alran ultra review` reviews what
+  an Ultra run produced. Reviewing an arbitrary branch, a directory or a pull
+  request is not built; the run is the unit the rest of Ultra works in.
+- **A review that reads the whole change.** The reviewers see the diff, the
+  list of changed files and the repository. The diff is truncated at 40 000
+  characters, and the report says so when it was: a review that silently saw
+  half the change is worse than one that admits it.
 - **`--stash` in the TUI.** The wizard does not offer stashing: a detached run
   that stashed the tree would leave the user's changes hidden inside a process
   they cannot see. Use the CLI for that.
@@ -168,7 +213,10 @@ alran ultra plan "<task>"    # plan only; no execution, nothing changes
 alran ultra run  "<task>"    # plan, execute, integrate and report
 alran ultra goal "<task>"    # plan against a goal document, then loop rounds
 alran ultra status [run-id]
+alran ultra runs             # every run on disk, newest first
 alran ultra board  [run-id]  # the board: round, cost and every packet at a glance
+alran ultra diff   [run-id]  # what the run produced, and the command for the full patch
+alran ultra review [run-id]  # a fleet of independent reviewers, every finding verified
 alran ultra run    "<task>" --detach   # start it in the background, return at once
 alran ultra pause <run-id>
 alran ultra kill  <run-id>
@@ -179,20 +227,22 @@ alran ultra attach [run-id]  # follow the run's log live (Ctrl+C to stop)
 
 In the TUI, `/ultra "<task>"` starts a run and `/ultra` opens the start wizard;
 `/ultra board` opens the same board and keeps it live. `/ultra status`,
-`/ultra attach`, `/ultra report`, `/ultra runs`, `/ultra pause`, `/ultra kill` and
-`/ultra resume` mirror the CLI subcommands, and `p` `k` `+` `-` `d` `l` `g` `r`
-`s` act on the open board. `l` opens the log itself rather than pasting it, and it
-keeps repainting while the run writes. Anything `/ultra` does not recognise as a subcommand is treated as
-the task to run, so `/ultra build a drawing app` works.
+`/ultra attach`, `/ultra report`, `/ultra runs`, `/ultra diff`, `/ultra review`,
+`/ultra pause`, `/ultra kill` and `/ultra resume` mirror the CLI subcommands, and
+`p` `k` `+` `-` `d` `l` `g` `r` `s` act on the open board. `l` opens the log
+itself rather than pasting it, and it keeps repainting while the run writes.
+Anything `/ultra` does not recognise as a subcommand is treated as the task to
+run, so `/ultra build a drawing app` works.
 
 A run started from the TUI or with `--detach` keeps running after the terminal
 closes. `alran ultra status <run-id>` and the board header say who is driving
 it; if that process is gone and the run never finished, they say `interrupted`
 and name the command that resumes it.
 
-`/ultra runs` lists every run on disk, newest first, with its status and packet
-count; it exists only in the TUI because the CLI's `status` already takes a run
-id and `openRun` refuses to guess between several runs.
+`/ultra runs` and `alran ultra runs` print the same list: every run on disk,
+newest first, with its status, its packets, its criteria and its spend. The CLI
+has it too, because a CLI whose `status` refuses to guess between several runs
+owes the user a way to see them.
 
 With no run id, every `/ultra` subcommand acts on the newest run on disk — the
 flow keeps no memory of the last board it showed, so `/ultra pause` can never act
@@ -226,6 +276,7 @@ the packet table.
 | `--model` | the configured model | model for every Ultra role at once |
 | `--force-scope` | off | plan and run even when the scope check says the task does not need Ultra |
 | `--force-critic` | off | execute a plan the critic rejected (its objections are still printed) |
+| `--reviewers` | `3` | `review` only: how many lenses of the fleet to run (1-8) |
 
 Before a run executes it shows the plan, the goal criteria and where the work will
 land, and asks `Continue with this plan? [y/N]`. Only an explicit yes proceeds; an
@@ -351,6 +402,8 @@ or the optional wall-clock cap is hit (`partial`), or when the budget runs out
   runner.json         # pid and log path of the detached runner, when there is one
   runner.log          # that runner's stdout and stderr
   report.md
+  review.md           # the review fleet's report, when the run has been reviewed
+  review.json         # its findings, for other tools to read
 ```
 
 Two things live outside that directory. Each packet is a git worktree under
@@ -436,6 +489,16 @@ That is what caught four defects the unit suites could not:
   and git refuses to force-update a branch that is checked out — so any run that
   reached integrate and was then resumed could never integrate again.
 
+A fifth one was waiting for the same kind of test. The run's work was never
+**committed**: the diff was read from the packet worktree's index, and the
+integrate merged the packet *branches*. A branch carries commits, not an
+index, so every merge was "Already up to date". The run reported `succeeded`,
+the report said so, and the branch the human was told to merge was empty. The
+real-git suite did not see it because it asserted that `main` and the remote
+were untouched — never that the run branch held the work. The test now asserts
+that the file the worker wrote is on the run branch, and it fails without the
+commit step.
+
 Each fix has a test that fails without it. None of them was visible to the
 in-memory ports the rest of the suite uses, which is the argument for keeping the
 real-git tests even though they are slower.
@@ -448,9 +511,18 @@ missing report.
 
 The suites live in `packages/ultra/test/unit`,
 `packages/tui/test/unit/ultra-command.test.ts`,
-`packages/tui/test/unit/ultra-plan-adapters.test.ts` and
-`packages/tui/test/unit/ultra-spec-base.test.ts`, and run in the `capability`
-gate.
+`packages/tui/test/unit/ultra-plan-adapters.test.ts`,
+`packages/tui/test/unit/ultra-spec-base.test.ts`,
+`packages/tui/test/unit/ultra-diff.test.ts` and
+`packages/tui/test/unit/ultra-review-adapters.test.ts`, and run in the
+`capability` gate.
+
+The behaviours the spec does not number are covered outside the ULT table:
+`progress.test.ts` (the narration of a run), `runs.test.ts` (the listing of the
+runs on disk, including one whose state cannot be read), `resume.test.ts` (the
+one rule about what may be continued) and `review.test.ts` (the fleet: the
+lenses, the merge of duplicate findings, the verification, the budget, and the
+fail-closed parsing of both replies).
 
 Two behaviours are covered outside the ULT table because the spec describes the
 outcome without numbering it: `goal-authoring.test.ts` (the authoring turn keeps

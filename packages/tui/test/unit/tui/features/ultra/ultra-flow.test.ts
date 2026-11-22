@@ -195,6 +195,8 @@ describe('UltraFlow subcommands', () => {
   it('resume delegates to the host port and reports its result', async () => {
     const store = newRun('run-a');
     store.transition('running');
+    store.transition('paused');
+    writeFileSync(store.paths.plan, JSON.stringify({ goal: 'g', recipe: 'auto', packets: [] }));
     const seen: string[] = [];
     const flow = createFlow({
       resume: async ({ runId }) => {
@@ -462,7 +464,7 @@ describe('UltraFlow board actions', () => {
     notices = [];
     await press('s');
     expect(resume).not.toHaveBeenCalled();
-    expect(notices.join('\n')).toMatch(/only a paused or killed/iu);
+    expect(notices.join('\n')).toMatch(/already finished as succeeded/iu);
   });
 
   it('refuses to resume a run that is still running', async () => {
@@ -473,6 +475,49 @@ describe('UltraFlow board actions', () => {
     await press('s');
     expect(resume).not.toHaveBeenCalled();
     expect(notices.join('\n')).toMatch(/already running; pause it first/iu);
+  });
+
+  it('continues a planned run that never started, like the CLI does', async () => {
+    const store = newRun('run-a');
+    // `alran ultra plan` leaves the run waiting for a yes, with a plan on disk.
+    store.transition('awaiting_confirm');
+    writeFileSync(store.paths.plan, JSON.stringify({ goal: 'g', recipe: 'auto', packets: [] }));
+    const resume = vi.fn(async () => 'resumed');
+    const flow = createFlow({ resume });
+    await flow.show('board');
+    await press('s');
+    // The CLI can execute that plan later, so the TUI must be able to as well.
+    expect(resume).toHaveBeenCalled();
+    expect(notices.join('\n')).toMatch(/resumed/iu);
+  });
+
+  it('says so when a run has no plan to execute', async () => {
+    const store = newRun('run-a');
+    store.transition('running');
+    store.transition('paused');
+    const resume = vi.fn(async () => 'resumed');
+    const flow = createFlow({ resume });
+    await flow.show('board');
+    await press('s');
+    expect(resume).not.toHaveBeenCalled();
+    expect(notices.join('\n')).toMatch(/no plan yet/iu);
+  });
+
+  it('reviews a run through the host port', async () => {
+    newRun('run-a');
+    const review = vi.fn(async () => 'Review: 1 confirmed');
+    const flow = createFlow({ review });
+    await flow.show('review');
+    expect(review).toHaveBeenCalled();
+    expect(notices.join('\n')).toMatch(/1 confirmed/iu);
+  });
+
+  it('says so when the host cannot review a run', async () => {
+    newRun('run-a');
+    const flow = createFlow();
+    await flow.show('review');
+    expect(notices.join('\n')).toMatch(/cannot review/iu);
+    expect(notices.join('\n')).toContain('alran ultra review');
   });
 
   it('says a run has no packets yet rather than that there is no run', async () => {

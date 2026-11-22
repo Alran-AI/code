@@ -28,7 +28,9 @@ import { createTuiState, TuiEffectRunner, TuiStateStore } from './state/index.js
 import { FeedbackFlow as Feedback } from './controller/product/feedback-flow.js';
 import { CiFlow as Ci } from './features/ci/ci-flow.js';
 import { UltraFlow } from './features/ultra/ultra-flow.js';
-import { executeUltraPlan } from '../cli/ultra-command.js';
+import { DEFAULT_ROLE_MODEL, executeUltraPlan } from '../cli/ultra-command.js';
+import { alranCommandFor } from '../cli/ultra-headless.js';
+import { reviewUltraRun } from '../cli/ultra-review.js';
 import { startUltraRunInBackground } from '../cli/ultra-launch.js';
 import * as ultra from '@alran/ultra';
 import type { UltraPlan } from '@alran/ultra';
@@ -404,6 +406,22 @@ export function createTuiApp(options: CreateTuiAppOptions): TuiApp {
         maxRepairs: 2,
       });
       return `Resumed ${store.state.runId}: ${runStatus}. Report: ${store.paths.report}`;
+    },
+    // The review fleet runs the same code the CLI's `alran ultra review` runs,
+    // so the board and the shell produce the same report.
+    review: async ({ store }) => {
+      const { result, reportPath } = await reviewUltraRun({
+        cwd: options.workspaceDir,
+        env: process.env,
+        store,
+        // The same binary as the rest of the TUI's Ultra actions.
+        alranCommand: alranCommandFor(),
+        reviewers: 3,
+        budgetUsd: 2,
+        model: DEFAULT_ROLE_MODEL,
+        onProgress: (message) => appendLocalCell(message),
+      });
+      return `${ultra.formatReviewSummary(result)}\n\nReview: ${reportPath}`;
     },
   });
   const admitUpdate = createTuiUpdateAdmission({

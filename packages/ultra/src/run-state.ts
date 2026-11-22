@@ -35,6 +35,10 @@ export interface RunPaths {
   readonly notes: string;
   readonly rounds: string;
   readonly report: string;
+  /** The review fleet's report for this run, when it has been reviewed. */
+  readonly review: string;
+  /** The review fleet's findings as JSON, for other tools to read. */
+  readonly reviewJson: string;
   /** Who is driving this run, if it was started in the background. */
   readonly runner: string;
   /** Where a background runner's output goes. */
@@ -96,6 +100,8 @@ function runPaths(baseDir: string, runId: string): RunPaths {
     notes: path.join(root, 'notes.md'),
     rounds: path.join(root, 'rounds'),
     report: path.join(root, 'report.md'),
+    review: path.join(root, 'review.md'),
+    reviewJson: path.join(root, 'review.json'),
     runner: path.join(root, 'runner.json'),
     runnerLog: path.join(root, 'runner.log'),
   };

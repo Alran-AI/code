@@ -1,7 +1,7 @@
 # alran Code — Ultra Mode (Spec v1.1, CLI first)
 
 Status: draft v1.1, 2026-11-19 · Owner: Willi · Scope: alran Code CLI.
-IDE extension and cloud runs are out of scope for now (see §14 for ideas).
+IDE extension and cloud runs are out of scope for now (see §15 for ideas).
 
 > **Implementation status lives in [ultra.md](ultra.md)**, not here. This file is
 > the design record: it says what Ultra is for and why each rule exists. Where the
@@ -62,9 +62,12 @@ alran ultra "<task>"                       # plan → (confirm) → execute
 alran ultra plan "<task>"                  # plan only, no execution
 alran ultra "<task>" --recipe migrate --budget 3 --workers 4 --yes
 alran ultra status [run-id]
+alran ultra runs                            # every run on disk, newest first
 alran ultra pause|kill <run-id>
 alran ultra resume <run-id> [--budget N]   # resume, optionally with a raised budget
 alran ultra report <run-id>
+alran ultra diff [run-id]                   # what the run produced
+alran ultra review [run-id]                 # review fleet (§14)
 ```
 
 TUI: `/ultra <task>` with the same flags.
@@ -80,6 +83,7 @@ TUI: `/ultra <task>` with the same flags.
 | `--yes` | off | skip the confirmation step (budget cap still applies) |
 | `--base` | current HEAD | commit to branch from |
 | `--stash` | off | allow start on a dirty tree by snapshotting it |
+| `--reviewers` | 3 (max 8) | lenses in the review fleet (§14) |
 
 The confirmation step shows the plan and goal document (§13.1). A cost preview in
 the confirmation is **open (O-7)**; the live cost counter is always shown.
@@ -325,8 +329,9 @@ Alran Store as skills.
    checkpoints (§13.3–13.5).** — done
 8. **Budget-aware planning (§13.6).** — done
 9. **TUI board + recipes.** — done
-10. Later: `alran ultra review` (review fleet with independent verification),
-    model-written orchestration scripts, ideas of §14.
+10. **Review fleet** (`alran ultra review`): independent reviewers with
+    different lenses, every finding verified by a separate agent. — done
+11. Later: model-written orchestration scripts, ideas of §15.
 
 ## 11. Open decisions
 
@@ -335,7 +340,7 @@ Alran Store as skills.
 | O-1 | Trademark/domain check for "Ultra"; avoid Anthropic's compound names (Ultracode, Ultraplan, Ultrareview) | do before public announcement (Willi: not a priority) |
 | O-3 | Default verifier model | different from worker; BYOK strong model optional |
 | O-4 | Default budget cap | 2 USD, confirm above 5 USD even with `--yes` |
-| O-5 | Cloud runs and background persistence | idea only, see §14 |
+| O-5 | Cloud runs and background persistence | idea only, see §15 |
 | O-7 | Cost preview in the confirmation step: keep or drop | decide after dogfooding the finished feature; the live cost counter stays either way. A preview is only as good as the plan's `est_tokens`, calibrated against ledger history (plan estimate vs. actual) |
 | O-8 | How does the acceptor exercise web UIs (browser agent, Playwright MCP) | reuse existing computer-use/Playwright tooling if available; criteria it cannot check are `needs_human` |
 
@@ -448,7 +453,37 @@ The planner receives `budget_usd` as an input and sizes the plan to fit it:
 - if the budget still runs out, the run pauses; the report lists the open criteria
   and `resume --budget N` continues.
 
-## 14. Ideas for later (not planned, no date)
+## 14. The review fleet (`alran ultra review`)
+
+A run ends with a branch and a report. The question that follows is the one no
+gate can answer: *is this change actually good?* Gates say the tests pass; they
+do not say the change is correct, safe or complete.
+
+The review answers it the way the rest of Ultra answers everything — with
+independent agents and evidence:
+
+- **A fleet, not one reviewer.** Each reviewer gets its own *lens*:
+  correctness, safety, tests, compatibility, concurrency. N reviewers with the
+  same prompt produce N copies of the same opinion; N reviewers with different
+  lenses produce N different opinions.
+- **Independent verification.** A reviewer's finding is a claim. Every finding
+  is checked by a separate agent that sees the finding and the code, not the
+  reviewer's reasoning. A finding that cannot be confirmed is dropped with the
+  reason it was dropped.
+- **Fail closed.** A malformed reply, a crashed reviewer, an unreadable verdict:
+  none of these become a finding. A review that cannot confirm a problem does
+  not report one.
+- **Bounded.** The review has its own budget (`--budget`), and the diff it
+  reads is truncated with the truncation stated in the report.
+- **Honest output.** `review.md` lists the confirmed findings with their
+  evidence *and* the rejected ones with the reason they went. A report that
+  only shows what survived hides how much the fleet argued with itself.
+
+The review reads only; it never changes the code it reviews. The reviewers run
+under the same read-only guard as the planning roles, because a reviewer that
+"helpfully" fixed the bug it found would have destroyed the evidence of it.
+
+## 15. Ideas for later (not planned, no date)
 
 - **Cloud runs on the Ottili AI Platform:** run Ultra in the Platform's agent
   sandbox so long runs do not depend on a laptop. Simplest form: the same binary
@@ -457,7 +492,5 @@ The planner receives `budget_usd` as an input and sizes the plan to fit it:
   sandbox/mission layer and on an adapter for the harness this CLI builds on;
   should only run with paid credit (abuse risk). An audit of what exists today is
   the first step when this is picked up.
-- **`alran ultra review`:** review fleet with independent verification of
-  findings.
 - **Recipes as Alran Store skills.**
 - **Model-written orchestration scripts** once recipes are proven.

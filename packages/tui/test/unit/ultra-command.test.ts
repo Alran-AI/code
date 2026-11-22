@@ -111,6 +111,7 @@ function fakeExecAdapters(): Omit<ExecutePorts, 'store' | 'ledger' | 'evidence'>
       remove: async () => {},
       diff: async () => '',
       changedFiles: async (input) => [`src/${input.packetId}/x.ts`],
+      commit: async (input) => ({ commit: `commit-${input.packetId}` }),
     },
     worker: { run: async () => ({ ok: true, summary: 'done', costUsd: 0.01, tokensUsed: 5 }) },
     gate: {
@@ -308,8 +309,120 @@ describe('alran ultra CLI', () => {
     const { program } = harness(tempDir());
     const names = program.commands.find((c) => c.name() === 'ultra')?.commands.map((c) => c.name());
     expect(names).toEqual(
-      expect.arrayContaining(['plan', 'run', 'goal', 'status', 'board', 'pause', 'kill', 'resume', 'report']),
+      expect.arrayContaining([
+        'plan',
+        'run',
+        'goal',
+        'status',
+        'runs',
+        'board',
+        'diff',
+        'review',
+        'pause',
+        'kill',
+        'resume',
+        'report',
+      ]),
     );
+  });
+
+  it('narrates the packets while they run, so a long pass is not a frozen screen', async () => {
+    const dir = gitRepo();
+    const { program, output } = harness(dir, { planPorts: fakePorts });
+    await program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+
+    // The execute phase used to print one line and then nothing until the
+    // whole pass finished. Every decision point is now written as it happens.
+    expect(output()).toMatch(/p1\s+attempt 1/u);
+    expect(output()).toMatch(/p1\s+gate ok/u);
+    expect(output()).toMatch(/p1\s+done/u);
+  });
+
+  it('lists the runs on disk, so a run id can be found again', async () => {
+    const dir = gitRepo();
+    const first = harness(dir, { planPorts: fakePorts });
+    await first.program.parseAsync(['ultra', 'plan', 'the first task'], { from: 'user' });
+    const second = harness(dir, { planPorts: fakePorts });
+    await second.program.parseAsync(['ultra', 'plan', 'the second task'], { from: 'user' });
+
+    const list = harness(dir, { planPorts: fakePorts });
+    await list.program.parseAsync(['ultra', 'runs'], { from: 'user' });
+
+    // Both runs are listed with the goal, so "which run was that?" has an
+    // answer without guessing an id.
+    expect(list.output()).toMatch(/the first task/u);
+    expect(list.output()).toMatch(/the second task/u);
+    expect(list.output()).toMatch(/run-/u);
+  });
+
+  it('points at `runs` when a command cannot choose between several runs', async () => {
+    const dir = gitRepo();
+    const first = harness(dir, { planPorts: fakePorts });
+    await first.program.parseAsync(['ultra', 'plan', 'the first task'], { from: 'user' });
+    const second = harness(dir, { planPorts: fakePorts });
+    await second.program.parseAsync(['ultra', 'plan', 'the second task'], { from: 'user' });
+
+    const status = harness(dir, { planPorts: fakePorts });
+    // The refusal names the way out; refusing to guess is only fair if the
+    // user can see the runs.
+    await expect(
+      status.program.parseAsync(['ultra', 'status'], { from: 'user' }),
+    ).rejects.toThrow(/alran ultra runs/u);
+  });
+
+  it('refuses to review a run that produced nothing', async () => {
+    const dir = gitRepo();
+    const { program } = harness(dir, { planPorts: fakePorts });
+    await program.parseAsync(['ultra', 'plan', 'a big task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    const review = harness(dir, { planPorts: fakePorts });
+    await review.program.parseAsync(['ultra', 'review', runId], { from: 'user' });
+    // A plan that never ran has no change to review. Saying so is better than
+    // a review of nothing that finds nothing and looks like a clean bill.
+    expect(review.output()).toMatch(/nothing to review/iu);
+  });
+
+  it('refuses to resume a run that already finished, and keeps its verdict', async () => {
+    const dir = gitRepo();
+    const { program } = harness(dir, { planPorts: fakePorts });
+    await program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    const resume = harness(dir, { planPorts: fakePorts });
+    // The run has a verdict. Resuming it would relabel a finished run as
+    // `running` and lose that verdict.
+    await expect(
+      resume.program.parseAsync(['ultra', 'resume', runId], { from: 'user' }),
+    ).rejects.toThrow(/already finished/iu);
+
+    const stateFile = path.join(dir, '.alran', 'ultra', runId, 'state.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf8')) as { status: string };
+    expect(state.status).toBe('succeeded');
+  });
+
+  it('merges a run that was killed between its packets and its merge', async () => {
+    const dir = gitRepo();
+    const first = harness(dir, { planPorts: fakePorts });
+    await first.program.parseAsync(['ultra', 'plan', 'a big task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    // The crash this reproduces: the packet finished and the merge never ran.
+    // The run is `partial` with every packet done.
+    const stateFile = path.join(dir, '.alran', 'ultra', runId, 'state.json');
+    const state = JSON.parse(readFileSync(stateFile, 'utf8')) as {
+      status: string;
+      packets: { id: string; status: string }[];
+    };
+    state.status = 'partial';
+    state.packets = state.packets.map((packet) => ({ ...packet, status: 'done' }));
+    writeFileSync(stateFile, `${JSON.stringify(state, null, 2)}\n`);
+
+    const resume = harness(dir, { planPorts: fakePorts });
+    await resume.program.parseAsync(['ultra', 'resume', runId], { from: 'user' });
+    // There is nothing left to execute, but the run still has to be merged:
+    // skipping the merge would leave a finished run unmerged forever.
+    expect(resume.output()).toMatch(/Integrate/iu);
   });
 
   it('freezes the authored criteria in goal.json and charges the authoring turn', async () => {
@@ -1184,18 +1297,57 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
    * count: enough for the worker and the verifier to proceed, with no model and
    * no network. The gate is a real shell command, so it still runs.
    */
-  function stubAlran(options: { readonly tokens?: number } = {}): readonly string[] {
+  function stubAlran(
+    options: {
+      readonly tokens?: number;
+      readonly writeInWorktree?: boolean;
+      /** Answer the review fleet's roles as well as the run's. */
+      readonly review?: boolean;
+    } = {},
+  ): readonly string[] {
     const dir = tempDir();
     const script = path.join(dir, 'stub-alran.mjs');
     writeFileSync(
       script,
       [
-        'import { appendFileSync } from "node:fs";',
+        'import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";',
+        'import path from "node:path";',
         'process.stdin.resume();',
         'process.stdin.on("data", () => {});',
         '// Each call is one billed step, so a test can count worker runs across a resume.',
         'if (process.env.ULTRA_STUB_COUNTER) appendFileSync(process.env.ULTRA_STUB_COUNTER, "call\\n");',
-        `process.stdout.write(JSON.stringify({ output: "PASS", usage: { totalTokens: ${String(options.tokens ?? 120)} } }));`,
+        // The worker runs with `--cwd <worktree>`; the process itself is',
+        // still in the repository, so the directory comes from the args.',
+        options.writeInWorktree
+          ? [
+              'const cwdIndex = process.argv.indexOf("--cwd");',
+              'const target = cwdIndex >= 0 ? process.argv[cwdIndex + 1] : "";',
+              'if (target && target.includes(".alran/worktrees")) {',
+              '  const packet = path.basename(target);',
+              '  mkdirSync(path.join(target, "src", packet), { recursive: true });',
+              '  writeFileSync(path.join(target, "src", packet, "changed.ts"), "export const changed = true;\\n");',
+              '}',
+            ].join('\n')
+          : '',
+        options.review
+          ? [
+              // The stub answers in the shape the role asked for. The role is',
+              // named by its system prompt, which the CLI passes in a file.',
+              'const systemIndex = process.argv.indexOf("--system-prompt-file");',
+              'const system = systemIndex >= 0 ? readFileSync(process.argv[systemIndex + 1], "utf8") : "";',
+              'let payload = "PASS";',
+              'if (system.includes("independent verifier")) {',
+              '  payload = JSON.stringify({ confirmed: true, reason: "the code really does it" });',
+              '} else if (system.includes("code reviewer")) {',
+              '  payload = JSON.stringify({',
+              '    findings: [',
+              '      { severity: "major", title: "A real problem", detail: "It breaks", file: "src/p1/changed.ts", line: 1, evidence: "export const changed = true;" },',
+              '    ],',
+              '  });',
+              '}',
+              `process.stdout.write(JSON.stringify({ output: payload, usage: { totalTokens: ${String(options.tokens ?? 120)} } }));`,
+            ].join('\n')
+          : `process.stdout.write(JSON.stringify({ output: "PASS", usage: { totalTokens: ${String(options.tokens ?? 120)} } }));`,
         '',
       ].join('\n'),
     );
@@ -1225,8 +1377,11 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
   };
 
   /** Real adapters; only the model calls are stubbed, git and the gates are real. */
-  function realAdapters(cwd: string) {
-    const context = { cwd, env: process.env, alranCommand: stubAlran() };
+  function realAdapters(
+    cwd: string,
+    options: { readonly writeInWorktree?: boolean; readonly review?: boolean } = {},
+  ) {
+    const context = { cwd, env: process.env, alranCommand: stubAlran(options) };
     return {
       execAdapters: createUltraExecAdapters(context),
       integrateAdapters: createUltraIntegrateAdapters(context),
@@ -1246,6 +1401,108 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
     // `exitCodes` is empty on success; asserting it keeps a silent failure loud.
     expect(exitCodes).toEqual([]);
     expect(protectedRefs(repo, remote)).toBe(before);
+  });
+
+  it('puts the packet’s work on the run branch, so there is something to merge', async () => {
+    const { repo } = repoWithRemote();
+    const adapters = realAdapters(repo, { writeInWorktree: true });
+
+    const { program, output } = harness(repo, adapters);
+    await program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+    expect(output()).toMatch(/Integrate: succeeded/iu);
+
+    // The promise of Ultra is a branch with the work on it. A diff read from
+    // the index is not a commit, and a merge cannot carry an index: without
+    // this step the run branch stayed empty while the run reported success.
+    const tree = execFileSync('git', ['ls-tree', '-r', '--name-only', `ultra/${runId}`], {
+      cwd: repo,
+      encoding: 'utf8',
+    });
+    expect(tree).toContain('src/p1/changed.ts');
+  });
+
+  it('shows what a run produced, so the review step is not a guess', async () => {
+    const { repo } = repoWithRemote();
+    const adapters = realAdapters(repo);
+
+    const first = harness(repo, adapters);
+    await first.program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+
+    // The review step is the last thing a user does with a run. It used to
+    // exist only as the board's `d` key; the CLI could not show it at all.
+    const diff = harness(repo, adapters);
+    await diff.program.parseAsync(['ultra', 'diff', runId], { from: 'user' });
+    // After integrate the run branch exists, so that is the ref to read.
+    expect(diff.output()).toMatch(/branch ultra\//u);
+    expect(diff.output()).toMatch(/Full patch: git diff HEAD\.\.ultra\//u);
+  });
+
+  it('reviews what a run produced, and verifies every finding before reporting it', async () => {
+    const { repo } = repoWithRemote();
+    const adapters = realAdapters(repo, { writeInWorktree: true });
+
+    const first = harness(repo, adapters);
+    await first.program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+
+    // Three lenses report the same problem; the fleet merges them into one
+    // finding and checks it once.
+    const review = harness(repo, {
+      ...adapters,
+      reviewPorts: {
+        reviewer: {
+          review: async ({ lens }) => ({
+            findings: [
+              {
+                severity: 'major' as const,
+                title: `${lens.title} problem`,
+                detail: 'the value is used before it is checked',
+                file: 'src/p1/changed.ts',
+                line: 1,
+              },
+            ],
+            costUsd: 0.01,
+          }),
+        },
+        verifier: {
+          verify: async () => ({ confirmed: true, reason: 'the line really does read the value' }),
+        },
+      },
+    });
+    await review.program.parseAsync(['ultra', 'review', runId], { from: 'user' });
+
+    expect(review.output()).toMatch(/1 confirmed/u);
+    const report = readFileSync(path.join(repo, '.alran', 'ultra', runId, 'review.md'), 'utf8');
+    expect(report).toContain('## Confirmed findings (1)');
+    expect(report).toContain('src/p1/changed.ts');
+    // The finding was checked, and the report says who checked it.
+    expect(report).toContain('the line really does read the value');
+  });
+
+  it('reviews a run end to end, through the runtime adapters', async () => {
+    const { repo } = repoWithRemote();
+    const adapters = realAdapters(repo, { writeInWorktree: true, review: true });
+
+    const first = harness(repo, adapters);
+    await first.program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+
+    // No injected ports this time: the reviewers and the verifier answer
+    // through the stubbed CLI, and the report is built from their replies.
+    // The path from "headless call" to "finding in the report" is the one
+    // that has to work in the field.
+    const review = harness(repo, { ...adapters, alranCommand: stubAlran({ review: true }) });
+    await review.program.parseAsync(['ultra', 'review', runId], { from: 'user' });
+
+    expect(review.output()).toMatch(/confirmed/u);
+    const report = readFileSync(path.join(repo, '.alran', 'ultra', runId, 'review.md'), 'utf8');
+    expect(report).toContain('## Confirmed findings (1)');
+    expect(report).toContain('A real problem');
+    // The verifier's reason is in the report: a confirmed finding without one
+    // would be a claim, not a result.
+    expect(report).toContain('the code really does it');
   });
 
   it('pauses at the cap and resumes without repeating finished packets (ULT-04)', async () => {

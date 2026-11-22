@@ -20,11 +20,18 @@ import {
   createUltraSpecTestAdapter,
 } from './ultra-exec-adapters.js';
 import { createUltraGoalAdapter, createUltraPlanAdapters } from './ultra-plan-adapters.js';
+import { renderUltraRunDiff, ultraRefExists } from './ultra-diff.js';
+import { reviewUltraRun } from './ultra-review.js';
 import { baseRefForRun, commitSpecTestsAsBase } from './ultra-spec-base.js';
 import { launchUltraRun, startUltraRunInBackground } from './ultra-launch.js';
 
 export interface UltraCommandOptions {
   readonly cwd?: string;
+  /**
+   * The command that starts Alran Code; defaults to the running entry point.
+   * Injected by tests so a review does not reach for the real binary.
+   */
+  readonly alranCommand?: readonly string[];
   readonly write?: (text: string) => void;
   readonly exit?: (code: number) => void;
   readonly now?: () => Date;
@@ -70,6 +77,8 @@ export interface UltraCommandOptions {
     readonly goal: ultra.GoalDocument;
     readonly notes: string;
   }) => Promise<{ readonly findings: ultra.AuditFinding[] }>;
+  /** Injected by tests: the review fleet's ports, so a review needs no model. */
+  readonly reviewPorts?: ultra.ReviewPorts;
   readonly sleep?: (ms: number) => Promise<void>;
   /**
    * Starts a detached runner. Injected so a test can assert what a background
@@ -123,7 +132,7 @@ function runId(now: Date): string {
  * that is exactly what a live run hit: the explorers, which pass no model, worked
  * while the planner died with `401 This session is not valid`.
  */
-const DEFAULT_ROLE_MODEL = '';
+export const DEFAULT_ROLE_MODEL = '';
 
 /**
  * The recipe files for a repository, or nothing if there are none (spec §8).
@@ -220,7 +229,16 @@ export async function executeUltraPlan(input: ExecuteUltraPlanInput): Promise<ul
 
   const result = await ultra.runExecute({
     plan,
-    ports: { ...adapters, store, ledger, evidence: ultra.createFileEvidenceWriter(store.paths.packets) },
+    ports: {
+      ...adapters,
+      store,
+      ledger,
+      evidence: ultra.createFileEvidenceWriter(store.paths.packets),
+      // A long pass must not look frozen. Every decision point the scheduler
+      // makes is written out as it happens; the same lines land in the
+      // detached runner's log, so `alran ultra attach` shows them too.
+      progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
+    },
     config: {
       workers: input.workers,
       maxRepairs: input.maxRepairs,
@@ -327,7 +345,9 @@ export const ULTRA_SUBCOMMANDS: readonly string[] = Object.freeze([
   'run',
   'goal',
   'status',
+  'runs',
   'board',
+  'review',
   'attach',
   'pause',
   'kill',
@@ -499,7 +519,7 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         throw new Error(
           ids.length === 0
             ? `no Ultra runs in ${STATE_DIR}`
-            : `several Ultra runs exist; pass a run id: ${ids.join(', ')}`,
+            : `several Ultra runs exist; pass a run id: ${ids.join(', ')} (see \`alran ultra runs\`)`,
         );
       }
       return ultra.RunStore.open(stateDir, ids[0]!);
@@ -1102,6 +1122,9 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
             store,
             ledger,
             evidence: ultra.createFileEvidenceWriter(store.paths.packets),
+            // Same narration as the single-round path, so a goal run reads the
+            // same way a run does.
+            progress: (event) => write(`${ultra.renderProgressEvent(event)}\n`),
           },
           config: {
             // The stored cap wins when the caller did not pass `--workers`, so
@@ -1317,6 +1340,89 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     });
 
   root
+    .command('runs')
+    .description('List every Ultra run on disk, newest first')
+    .option('--width <columns>', 'list width in columns (40-200)', '100')
+    .action((commandOptions: Record<string, string | boolean | undefined> = {}) => {
+      // The listing is derived from the runs' own state files, so it cannot
+      // claim a run that does not exist — and a run whose state cannot be read
+      // is listed as unreadable instead of silently disappearing.
+      const listing = ultra.listUltraRuns(stateDir);
+      const requested = Number(commandOptions.width ?? 100);
+      const width = Number.isFinite(requested)
+        ? Math.min(200, Math.max(40, Math.floor(requested)))
+        : 100;
+      write(`${ultra.renderRunList(listing, width)}\n`);
+    });
+
+  root
+    .command('review')
+    .description('Review what a run produced: a fleet of independent reviewers, every finding verified')
+    .option('--reviewers <count>', 'how many lenses to run (1-8)', '3')
+    .option('--budget <usd>', 'hard cost cap in USD for the review', '2')
+    .option('--model <id>', 'model for the reviewers and the verifier')
+    .argument('[run-id]', 'run to review')
+    .action(async (id: string | undefined, commandOptions: Record<string, string | boolean | undefined>) => {
+      const store = openRun(id);
+      let budgetUsd: number | null;
+      try {
+        budgetUsd = parseBudget(commandOptions.budget);
+      } catch (error) {
+        write(`${error instanceof Error ? error.message : String(error)}\n`);
+        exit(1);
+        return;
+      }
+      const requested = Number(commandOptions.reviewers ?? 3);
+      const reviewers = Number.isFinite(requested)
+        ? Math.min(ultra.MAX_REVIEWERS, Math.max(1, Math.floor(requested)))
+        : 3;
+      const model =
+        typeof commandOptions.model === 'string' && commandOptions.model.trim().length > 0
+          ? commandOptions.model.trim()
+          : DEFAULT_ROLE_MODEL;
+
+      write(
+        `Reviewing ${store.state.runId} with ${String(reviewers)} reviewer(s): ` +
+          `${ultra.REVIEW_LENSES.slice(0, reviewers).map((lens) => lens.title).join(', ')}\n`,
+      );
+      try {
+        const { result, reportPath } = await reviewUltraRun({
+          cwd,
+          env: process.env,
+          store,
+          ...(options.alranCommand ? { alranCommand: options.alranCommand } : {}),
+          ...(options.reviewPorts ? { ports: options.reviewPorts } : {}),
+          reviewers,
+          budgetUsd,
+          model,
+          onProgress: (message) => write(`  ${message}…\n`),
+        });
+        write(`${ultra.formatReviewSummary(result)}\n`);
+        write(`\nReview: ${reportPath}\n`);
+      } catch (error) {
+        write(`${error instanceof Error ? error.message : String(error)}\n`);
+        exit(1);
+      }
+    });
+
+  root
+    .command('diff')
+    .description('Show what the run produced: the diff against HEAD and the command for the full patch')
+    .argument('[run-id]', 'run to inspect')
+    .action((id?: string) => {
+      const store = openRun(id);
+      const runBranch = ultra.runBranchFor(store.state.runId);
+      write(
+        `${renderUltraRunDiff({
+          cwd,
+          runId: store.state.runId,
+          packets: store.state.packets,
+          runBranchExists: ultraRefExists(cwd, runBranch),
+        })}\n`,
+      );
+    });
+
+  root
     .command('board')
     .description('Render the run board: round, cost and every packet at a glance')
     .option('--width <columns>', 'board width in columns (40-200)', '100')
@@ -1416,6 +1522,12 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
     .action(async (id: string, commandOptions: Record<string, string | boolean | undefined>) => {
       const store = ultra.RunStore.open(stateDir, id);
 
+      // A run that has a verdict must not be relabelled as `running`: the
+      // report and the board are written from that verdict. The TUI applies the
+      // same rule, so the two surfaces cannot disagree about a run.
+      const refusal = ultra.resumeRefusal(store.state);
+      if (refusal) throw new Error(refusal);
+
       // Spec 6: a budget pause is resumed by raising the cap. Without this the
       // run would immediately pause again at the old cap.
       if (commandOptions.budget !== undefined) {
@@ -1440,12 +1552,10 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         );
       }
       write(`Resuming ${id}. Pending packets: ${resumable.length > 0 ? resumable.join(', ') : 'none'}\n`);
-      if (resumable.length === 0) {
-        store.transition('running');
-        write('Nothing left to execute; every packet already reached a terminal state.\n');
-        return;
-      }
       const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+      // Even when every packet is already done, the pass still integrates: a
+      // run that was killed between the packets and the merge has finished its
+      // work and would otherwise never be merged at all.
       await executeRun(store, plan, {});
     });
 

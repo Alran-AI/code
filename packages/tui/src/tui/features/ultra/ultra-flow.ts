@@ -12,11 +12,11 @@
  * and controls them; the CLI starts them.
  */
 
-import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as ultra from '@alran/ultra';
 import type { Component } from '../../rendering/component.js';
+import { renderUltraRunDiff, ultraRefExists } from '../../../cli/ultra-diff.js';
 import { UltraBoard, type UltraBoardActions, type UltraBoardSnapshot } from './ultra-board.js';
 import { UltraWizard, type UltraStartRequest } from './ultra-wizard.js';
 import { UltraLogPanel } from './ultra-log-panel.js';
@@ -45,6 +45,11 @@ export interface UltraFlowOptions {
    * cannot start anything.
    */
   readonly start?: (input: UltraStartRequest) => Promise<{ readonly runId: string; readonly detail: string }>;
+  /**
+   * Reviews what a run produced. Injected because the review needs the runtime
+   * adapters; without it `/ultra review` says so rather than pretending.
+   */
+  readonly review?: (input: { readonly store: ultra.RunStore; readonly runId: string }) => Promise<string>;
 }
 
 /**
@@ -60,23 +65,6 @@ function fileSignature(file: string): string {
   }
 }
 
-/** Runs git in the workspace and returns its trimmed stdout, or '' on failure. */
-function git(cwd: string, args: readonly string[]): string {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf8', timeout: 10_000 });
-  if (result.status !== 0) return '';
-  return (result.stdout ?? '').trim();
-}
-
-/** Whether a ref resolves in this repository. */
-function gitRef(cwd: string, ref: string): boolean {
-  const result = spawnSync('git', ['rev-parse', '--verify', '--quiet', ref], {
-    cwd,
-    encoding: 'utf8',
-    timeout: 10_000,
-  });
-  return result.status === 0;
-}
-
 /** How often the open board repaints itself. */
 const DEFAULT_REFRESH_MS = 1000;
 
@@ -87,6 +75,8 @@ const ULTRA_SUBCOMMANDS: ReadonlySet<string> = new Set([
   'status',
   'report',
   'runs',
+  'diff',
+  'review',
   'pause',
   'kill',
   'resume',
@@ -209,9 +199,15 @@ export class UltraFlow {
         case 'runs':
           this.showRuns();
           return;
+        case 'diff':
+          this.options.appendNotice(this.diffOf(this.open(rest[0])));
+          return;
+        case 'review':
+          await this.review(rest[0]);
+          return;
         default:
           this.options.appendNotice(
-            `Unknown /ultra subcommand "${sub}". Use board, status, report, runs, pause, kill or resume.`,
+            `Unknown /ultra subcommand "${sub}". Use board, status, report, runs, diff, review, pause, kill or resume.`,
             'warning',
           );
       }
@@ -335,21 +331,10 @@ export class UltraFlow {
   }
 
   private showRuns(): void {
-    const ids = this.runIds();
-    if (ids.length === 0) {
-      this.options.appendNotice(`No Ultra runs in ${STATE_DIR}.`);
-      return;
-    }
-    const lines = ids.map((id) => {
-      try {
-        const store = ultra.RunStore.open(this.stateDir, id);
-        const done = store.state.packets.filter((packet) => packet.status === 'done').length;
-        return `${id}  ${store.state.status}  ${done}/${store.state.packets.length} packets`;
-      } catch {
-        return `${id}  (unreadable state)`;
-      }
-    });
-    this.options.appendNotice(lines.join('\n'));
+    // The same listing the CLI's `alran ultra runs` prints: one vocabulary for
+    // "which run was that?", whichever surface the reader is on.
+    const listing = ultra.listUltraRuns(this.stateDir);
+    this.options.appendNotice(ultra.renderRunList(listing));
   }
 
   private showStatus(runId?: string): void {
@@ -426,16 +411,12 @@ export class UltraFlow {
   /**
    * Why this run must not be resumed, or `undefined` when it can be.
    *
-   * Resuming a finished run would merge it a second time, and resuming a
-   * running one would start a second execute pass over the same worktrees.
+   * The rule lives in the core, because the CLI applies the same one: the two
+   * surfaces read the same state directory, and a rule that differs between
+   * them is a rule one of them gets wrong.
    */
   private resumeRefusal(store: ultra.RunStore): string | undefined {
-    const status = store.state.status;
-    if (status === 'paused' || status === 'killed') return undefined;
-    if (status === 'running') {
-      return `Run ${store.state.runId} is already running; pause it first.`;
-    }
-    return `Run ${store.state.runId} is ${status}; only a paused or killed run can be resumed.`;
+    return ultra.resumeRefusal(store.state);
   }
 
   /**
@@ -504,11 +485,48 @@ export class UltraFlow {
     );
   }
 
+  /** `/ultra review [run-id]`: the review fleet over what the run produced. */
+  private async review(runId?: string): Promise<void> {
+    const store = this.open(runId);
+    if (!this.options.review) {
+      this.options.appendNotice(
+        'This host cannot review a run; use `alran ultra review <run-id>` in the CLI.',
+        'warning',
+      );
+      return;
+    }
+    try {
+      const message = await this.options.review({ store, runId: store.state.runId });
+      this.options.appendNotice(message);
+    } catch (error) {
+      this.options.appendNotice(
+        `Could not review the run: ${error instanceof Error ? error.message : String(error)}`,
+        'error',
+      );
+    }
+  }
+
   private async resume(runId?: string): Promise<void> {
     const store = this.open(runId);
     if (!this.options.resume) {
       this.options.appendNotice(
         'This host cannot resume a run; use `alran ultra resume <run-id>` in the CLI.',
+        'warning',
+      );
+      return;
+    }
+    // The same rule the CLI applies: a run with a verdict is not continued,
+    // and a run that is still running is not continued either.
+    const refused = this.resumeRefusal(store);
+    if (refused) {
+      this.options.appendNotice(refused, 'warning');
+      return;
+    }
+    // A run that never got a plan has nothing to execute. Saying so is more
+    // useful than the parse error the host port would raise.
+    if (!existsSync(store.paths.plan)) {
+      this.options.appendNotice(
+        `Run ${store.state.runId} has no plan yet, so there is nothing to execute: it stopped before the plan was written.`,
         'warning',
       );
       return;
@@ -557,6 +575,9 @@ export class UltraFlow {
         }
         const refused = this.resumeRefusal(store);
         if (refused) return refused;
+        if (!existsSync(store.paths.plan)) {
+          return `Run ${store.state.runId} has no plan yet, so there is nothing to execute: it stopped before the plan was written.`;
+        }
         return this.options.resume({ store, runId: store.state.runId });
       },
       workers: (delta) => {
@@ -622,24 +643,13 @@ export class UltraFlow {
    * full patch is one command away, and the notice says which.
    */
   private diffOf(store: ultra.RunStore): string {
-    const done = store.state.packets.filter((packet) => packet.status === 'done');
-    if (done.length === 0) return 'No packet has finished yet, so there is nothing to diff.';
-
     const runBranch = ultra.runBranchFor(store.state.runId);
-    const refs = gitRef(this.options.workspaceDir, runBranch)
-      ? [{ ref: runBranch, label: `branch ${runBranch}` }]
-      : done.map((packet) => ({
-          ref: ultra.packetBranchFor(store.state.runId, packet.id),
-          label: packet.id,
-        }));
-
-    const sections: string[] = [];
-    for (const { ref, label } of refs) {
-      const stat = git(this.options.workspaceDir, ['diff', '--stat', `HEAD..${ref}`]);
-      sections.push(`--- ${label} ---`, stat || '(no changes against HEAD)');
-    }
-    sections.push('', `Full patch: git diff HEAD..${refs[0]!.ref}`);
-    return sections.join('\n');
+    return renderUltraRunDiff({
+      cwd: this.options.workspaceDir,
+      runId: store.state.runId,
+      packets: store.state.packets,
+      runBranchExists: ultraRefExists(this.options.workspaceDir, runBranch),
+    });
   }
 
   private logOf(store: ultra.RunStore): string {

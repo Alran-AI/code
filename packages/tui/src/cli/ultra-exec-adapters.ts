@@ -327,6 +327,47 @@ export function createUltraExecAdapters(context: UltraExecAdapterContext): Ultra
         .map((line) => line.trim())
         .filter((line) => line.length > 0);
     },
+    async commit({ dir, message }) {
+      // Everything the worker changed is already staged by the diff port; stage
+      // again so a file written after the diff cannot slip past the commit.
+      git(dir, ['add', '-A'], context.env);
+      const staged = git(dir, ['diff', '--cached', '--name-only'], context.env).trim();
+      if (staged.length === 0) {
+        // A packet that changed nothing has nothing to commit. An empty commit
+        // would only make the merge history lie.
+        return { commit: '' };
+      }
+      try {
+        // `--no-verify` skips the user's hooks: the packet's gate commands are
+        // the authority for this branch, and the human's hooks run again when
+        // they merge the finished run.
+        git(dir, ['commit', '--no-verify', '-m', message], context.env);
+      } catch (error) {
+        // A repository without a configured identity cannot commit. Ultra
+        // commits on the user's behalf on a throwaway branch, so it falls back
+        // to its own identity rather than failing the packet over a missing
+        // `user.email`. The human's own commits keep their own identity.
+        try {
+          git(
+            dir,
+            [
+              '-c',
+              'user.name=Alran Ultra',
+              '-c',
+              'user.email=ultra@alran.invalid',
+              'commit',
+              '--no-verify',
+              '-m',
+              message,
+            ],
+            context.env,
+          );
+        } catch {
+          throw error;
+        }
+      }
+      return { commit: git(dir, ['rev-parse', 'HEAD'], context.env).trim() };
+    },
   };
 
   const worker: ultra.ExecutePorts['worker'] = {

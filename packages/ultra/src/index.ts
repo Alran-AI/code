@@ -133,6 +133,48 @@ export {
 } from './execute.js';
 
 export {
+  firstLineOf,
+  renderProgressEvent,
+  type UltraProgressEvent,
+  type UltraProgressKind,
+} from './progress.js';
+
+export {
+  listUltraRuns,
+  renderRunList,
+  type UltraRunListing,
+  type UltraRunSummary,
+  type UltraUnreadableRun,
+} from './runs.js';
+
+export { resumeRefusal } from './resume.js';
+
+export {
+  buildReviewReport,
+  findingKey,
+  formatReviewSummary,
+  mergeFindings,
+  parseReviewerReply,
+  parseVerifierReply,
+  MAX_REVIEWERS,
+  REVIEW_LENSES,
+  runReview,
+  type ConfirmedFinding,
+  type RejectedFinding,
+  type ReviewConfig,
+  type ReviewFinding,
+  type ReviewInput,
+  type ReviewLens,
+  type ReviewLensOutcome,
+  type ReviewPorts,
+  type ReviewResult,
+  type ReviewSeverity,
+  type ReviewTarget,
+  type ReviewerOutcome,
+  type ReviewVerdict,
+} from './review.js';
+
+export {
   runPlanPhase,
   ULTRA_PLAN_SCHEMA,
   type CriticVerdict,

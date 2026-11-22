@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { runExecute, type ExecutePorts, type ExecuteRunResult } from '../../src/execute.js';
 import { createFileEvidenceWriter } from '../../src/evidence.js';
 import { Ledger } from '../../src/ledger.js';
+import type { UltraProgressEvent } from '../../src/progress.js';
 import { RunStore } from '../../src/run-state.js';
 import type {
   AcceptanceCommand,
@@ -53,6 +54,8 @@ interface Harness {
   readonly diffs: string[];
   readonly verdicts: string[];
   readonly order: string[];
+  /** The packets whose work was committed on their branch. */
+  readonly commits: string[];
   /** The recipe each verifier call received, in order. */
   readonly verifierRecipes: (UltraPlan['recipe'] | undefined)[];
 }
@@ -76,6 +79,8 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
   const verdicts: string[] = [];
   const verifierRecipes: (UltraPlan['recipe'] | undefined)[] = [];
   const order: string[] = [];
+  /** The packets whose work was committed on their branch. */
+  const commits: string[] = [];
   const attempts = new Map<string, number>();
 
   const attemptOf = (id: string): number => {
@@ -108,6 +113,10 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
       changedFiles: async (input) => {
         const attempt = Math.max(0, (attempts.get(input.packetId) ?? 1) - 1);
         return options.changedFiles?.(input.packetId, attempt) ?? [`src/${input.packetId}/x.ts`];
+      },
+      commit: async (input) => {
+        commits.push(input.packetId);
+        return { commit: `commit-${input.packetId}` };
       },
     },
     worker: {
@@ -147,7 +156,7 @@ function harness(store: RunStore, options: HarnessOptions = {}): Harness {
     ledger: Ledger.open(store.paths.ledger),
     evidence: ultraEvidence(store),
   };
-  return { ports, log, created, resets, gates, diffs, verdicts, verifierRecipes, order };
+  return { ports, log, created, resets, gates, diffs, verdicts, verifierRecipes, order, commits };
 }
 
 function storeFor(packets: readonly PlanPacket[]): RunStore {
@@ -701,5 +710,162 @@ describe('recipe enforcement', () => {
     });
     expect(statusOf(store, 'p1')).toBe('blocked');
     expect(result.packets.find((entry) => entry.id === 'p1')?.reason).toMatch(/read-only/iu);
+  });
+});
+
+describe('the packet’s work is committed before the packet is done', () => {
+  it('commits the work on the packet’s branch once the verifier passes', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store);
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    // A diff read from the index is not a commit, and integrate merges
+    // branches. Without this the run branch stayed empty while the run
+    // reported success.
+    expect(h.commits).toEqual(['p1']);
+    expect(statusOf(store, 'p1')).toBe('done');
+  });
+
+  it('does not commit a packet whose verifier rejected the change', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store, { verdict: () => ({ pass: false, reasons: ['not good enough'] }) });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: h.ports, config });
+
+    expect(h.commits).toEqual([]);
+    expect(statusOf(store, 'p1')).toBe('blocked');
+  });
+
+  it('blocks the packet when the work cannot be committed', async () => {
+    const store = storeFor([packet({ id: 'p1', max_repairs: 0 })]);
+    const h = harness(store);
+    const ports: ExecutePorts = {
+      ...h.ports,
+      worktree: {
+        ...h.ports.worktree,
+        commit: async () => {
+          throw new Error('index.lock: could not write');
+        },
+      },
+    };
+    const result = await runExecute({ plan: plan([packet({ id: 'p1' })]), ports, config });
+
+    // A packet whose work was never committed cannot be `done`: the branch it
+    // would merge from has nothing on it.
+    expect(statusOf(store, 'p1')).toBe('blocked');
+    expect(result.packets.find((entry) => entry.id === 'p1')?.reason).toMatch(/commit/iu);
+  });
+});
+
+describe('live progress', () => {
+  /** Collects the events a run reports, so the narration can be asserted. */
+  function collecting(store: RunStore, options: HarnessOptions = {}): {
+    readonly ports: ExecutePorts;
+    readonly kinds: () => readonly string[];
+    readonly events: readonly UltraProgressEvent[];
+  } {
+    const h = harness(store, options);
+    const events: UltraProgressEvent[] = [];
+    const ports: ExecutePorts = {
+      ...h.ports,
+      progress: (event) => {
+        events.push(event);
+      },
+    };
+    return { ports, kinds: () => events.map((event) => event.kind), events };
+  }
+
+  it('narrates a passing packet from attempt to done', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collecting(store);
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: c.ports, config });
+
+    expect(c.kinds()).toEqual([
+      'attempt',
+      'worker_done',
+      'gate_ok',
+      'verifier_pass',
+      'packet_done',
+    ]);
+  });
+
+  it('narrates a repair and the failure that caused it', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collecting(store, {
+      gate: (_id, attempt) =>
+        attempt === 0
+          ? { ok: false, commands: [{ cmd: 'test p1', exitCode: 1, output: 'red' }] }
+          : { ok: true, commands: [{ cmd: 'test p1', exitCode: 0, output: 'green' }] },
+    });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: c.ports, config });
+
+    expect(c.kinds()).toEqual([
+      'attempt',
+      'worker_done',
+      'gate_fail',
+      'repair',
+      'attempt',
+      'worker_done',
+      'gate_ok',
+      'verifier_pass',
+      'packet_done',
+    ]);
+    const repair = c.events.find((event) => event.kind === 'repair');
+    expect(repair?.detail).toMatch(/gate/iu);
+  });
+
+  it('narrates a blocked packet and the reason it gives up', async () => {
+    const store = storeFor([packet({ id: 'p1', max_repairs: 0 })]);
+    const c = collecting(store, {
+      gate: () => ({ ok: false, commands: [{ cmd: 'test p1', exitCode: 1, output: 'red' }] }),
+    });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: c.ports, config });
+
+    const blocked = c.events.find((event) => event.kind === 'packet_blocked');
+    expect(blocked).toBeDefined();
+    expect(blocked?.detail).toMatch(/gate/iu);
+    // A blocked packet never claims to be done.
+    expect(c.kinds()).not.toContain('packet_done');
+  });
+
+  it('narrates a skipped packet when its dependency is blocked', async () => {
+    const store = storeFor([packet({ id: 'p1' }), packet({ id: 'p2', depends_on: ['p1'] })]);
+    const c = collecting(store, {
+      gate: () => ({ ok: false, commands: [{ cmd: 'test p1', exitCode: 1, output: 'red' }] }),
+    });
+    await runExecute({
+      plan: plan([packet({ id: 'p1' }), packet({ id: 'p2', depends_on: ['p1'] })]),
+      ports: c.ports,
+      config,
+    });
+
+    const skipped = c.events.find((event) => event.kind === 'packet_skipped');
+    expect(skipped?.packetId).toBe('p2');
+  });
+
+  it('never repeats what the worker claims about its own work', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const c = collecting(store, {
+      worker: () => ({ ok: true, summary: 'I fixed everything, all 12 tests pass' }),
+    });
+    await runExecute({ plan: plan([packet({ id: 'p1' })]), ports: c.ports, config });
+
+    // The worker's own summary is evidence of nothing (ULT-01), so it must not
+    // appear in the narration either.
+    for (const event of c.events) {
+      expect(event.detail ?? '').not.toMatch(/I fixed everything/iu);
+    }
+  });
+
+  it('keeps the run alive when the reporter throws', async () => {
+    const store = storeFor([packet({ id: 'p1' })]);
+    const h = harness(store);
+    const ports: ExecutePorts = {
+      ...h.ports,
+      progress: () => {
+        throw new Error('the terminal went away');
+      },
+    };
+    const result = await runExecute({ plan: plan([packet({ id: 'p1' })]), ports, config });
+    expect(result.packets.find((entry) => entry.id === 'p1')?.status).toBe('done');
   });
 });

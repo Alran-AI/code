@@ -25,6 +25,7 @@ import {
   ULTRA_DENY_PATHS,
 } from './scope-guard.js';
 import { describeSpecTestViolation, isSpecTestPath, specTestDenyPaths } from './spec-tests.js';
+import type { UltraProgressEvent } from './progress.js';
 import { buildWorkerPrompt, buildWorkerSystemPrompt } from './worker-prompt.js';
 import type {
   ExecuteRunResult,
@@ -56,6 +57,20 @@ export interface ExecutePorts {
       readonly baseRef: string;
     }): Promise<void>;
     remove(input: { readonly packetId: string; readonly dir: string }): Promise<void>;
+    /**
+     * Commits the worker's staged work on the packet's branch.
+     *
+     * Without this the run branch stays empty. A packet is only "done" when its
+     * work exists as a commit on its own branch: the diff is computed against
+     * the index, and an index is not something a later `git merge` can carry.
+     * A run that merged branches that had never been committed reported
+     * `succeeded` and handed back a branch with nothing on it.
+     */
+    commit(input: {
+      readonly packetId: string;
+      readonly dir: string;
+      readonly message: string;
+    }): Promise<{ readonly commit: string }>;
     /** Unified diff of the worktree against its base commit. */
     diff(input: {
       readonly packetId: string;
@@ -112,6 +127,15 @@ export interface ExecutePorts {
   readonly evidence: {
     write(input: { readonly packetId: string; readonly name: string; readonly content: string }): void;
   };
+  /**
+   * Optional narration of what the scheduler observes (spec §7).
+   *
+   * A run that takes half an hour must not look frozen, so every decision point
+   * reports itself. The events say what the *harness* saw — a gate ran, a
+   * verifier rejected — and never repeat the worker's claim about its own work.
+   * Absent port means no narration, which is what the pure unit tests want.
+   */
+  readonly progress?: (event: UltraProgressEvent) => void;
 }
 
 export interface ExecuteConfig {
@@ -233,6 +257,21 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
     ports.store.setPacketStatus(id, status, reason, repairs);
   };
 
+  /**
+   * Reports one observed event to whoever is watching the run.
+   *
+   * A reporter that throws must not take the run down with it: narration is for
+   * humans, and a run that dies because a progress line failed to print has
+   * lost real work.
+   */
+  const progress = (event: UltraProgressEvent): void => {
+    try {
+      ports.progress?.(event);
+    } catch {
+      // Deliberately swallowed; see above.
+    }
+  };
+
   const outcomeFor = (packet: PlanPacket, status: PacketStatus, repairs: number, reason?: string, dir?: string, branch?: string): PacketExecutionOutcome => ({
     id: packet.id,
     title: packet.title,
@@ -248,6 +287,7 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
     setStatus(packet.id, 'blocked', reason, repairs);
     outcomes.set(packet.id, outcomeFor(packet, 'blocked', repairs, reason, dir, branch));
     record({ kind: 'packet', packetId: packet.id, status: 'blocked', note: reason, role: 'scheduler' });
+    progress({ kind: 'packet_blocked', packetId: packet.id, title: packet.title, detail: reason, repairs });
   };
 
   /** One packet end-to-end with the repair loop. Returns after setting a terminal status. */
@@ -273,11 +313,32 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         // keeps its current status and a resume after raising the cap redoes it.
         const reason = 'budget paused the run at 100 %';
         record({ kind: 'step', role: 'scheduler', packetId: packet.id, status: 'budget_paused', note: reason });
+        progress({ kind: 'budget_paused', packetId: packet.id, title: packet.title, detail: reason });
         pausedByBudget = true;
         return;
       }
 
       setStatus(packet.id, 'running', failure ? describeFailure(failure) : undefined);
+      if (failure) {
+        // The previous attempt failed and this one is the repair. The kind is
+        // the harness's own verdict (gate, verifier, scope), not the worker's
+        // story about it.
+        progress({
+          kind: 'repair',
+          packetId: packet.id,
+          title: packet.title,
+          detail: `${failure.kind}: ${failure.output}`,
+          attempt: repairs,
+          repairs,
+        });
+      }
+      progress({
+        kind: 'attempt',
+        packetId: packet.id,
+        title: packet.title,
+        attempt: repairs + 1,
+        repairs,
+      });
 
       const prompt = buildWorkerPrompt({ packet, worktreeDir: dir, attempt: repairs, ...(failure ? { failure } : {}) });
       record({ kind: 'step', role: 'worker', packetId: packet.id, status: 'start', model: config.workerModel, ...(failure ? { note: failure.kind } : {}) });
@@ -307,6 +368,10 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         ...(typeof worker.costUsd === 'number' ? { costUsd: worker.costUsd } : {}),
         ...(typeof worker.tokensUsed === 'number' ? { tokensUsed: worker.tokensUsed } : {}),
       });
+      // The worker finished. What it says about its own work is not repeated
+      // here: the gate and the verifier decide, and this line only says the
+      // attempt is over.
+      progress({ kind: 'worker_done', packetId: packet.id, title: packet.title, attempt: repairs + 1 });
 
       // ULT-06: a 429 is not a repair. Lower parallelism, back off, retry the
       // same attempt, and never count it against the repair budget.
@@ -315,6 +380,12 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         rateLimitRetries += 1;
         effectiveWorkers = Math.max(1, effectiveWorkers - 1);
         record({ kind: 'step', role: 'scheduler', packetId: packet.id, status: 'rate_limited', note: `workers=${effectiveWorkers} retry=${rateLimitRetries}/${maxRateLimitRetries} backoff=${rateBackoff}ms` });
+        progress({
+          kind: 'rate_limited',
+          packetId: packet.id,
+          title: packet.title,
+          detail: `workers=${String(effectiveWorkers)} retry=${String(rateLimitRetries)}/${String(maxRateLimitRetries)} backoff=${String(rateBackoff)}ms`,
+        });
         if (rateLimitRetries >= maxRateLimitRetries) {
           // A permanently throttled upstream is a real failure, not an infinite
           // wait: spend a repair, or block when the repair budget is spent.
@@ -443,6 +514,14 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
           note: `${command.cmd} (exit ${String(command.exitCode)})`,
         });
       }
+      progress({
+        kind: gate.ok ? 'gate_ok' : 'gate_fail',
+        packetId: packet.id,
+        title: packet.title,
+        detail: gate.ok
+          ? `${String(gate.commands.length)} command(s)`
+          : gateOutput(gate),
+      });
 
       if (!gate.ok) {
         const output = gateOutput(gate);
@@ -504,6 +583,12 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
 
       if (!verdict.pass) {
         const output = verdict.reasons.join('\n');
+        progress({
+          kind: 'verifier_fail',
+          packetId: packet.id,
+          title: packet.title,
+          detail: output,
+        });
         writeEvidence(
           packet.id,
           'verdict.json',
@@ -520,6 +605,32 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
 
       // Tiny worker that crashed with no diff but a green gate: the verifier
       // still saw the diff and passed, so honour the gate as the decider.
+      progress({ kind: 'verifier_pass', packetId: packet.id, title: packet.title });
+
+      // The work exists as a commit before the packet is called done. The
+      // diff above was read from the index; integrate merges branches, and a
+      // branch only carries commits. A packet whose work was never committed
+      // would merge to nothing and the run would hand back an empty branch
+      // while claiming to have succeeded.
+      let commit: string;
+      try {
+        ({ commit } = await ports.worktree.commit({
+          packetId: packet.id,
+          dir,
+          message: `ultra(${packet.id}): ${packet.title}`,
+        }));
+      } catch (error) {
+        const output = `could not commit the work on the packet's branch: ${errorMessage(error)}`;
+        record({ kind: 'step', role: 'scheduler', packetId: packet.id, status: 'commit_error', note: output });
+        if (repairs >= maxRepairs) {
+          block(packet, output, repairs, dir, branch);
+          return;
+        }
+        repairs += 1;
+        failure = { kind: 'gate', output };
+        continue;
+      }
+
       writeEvidence(
         packet.id,
         'verdict.json',
@@ -528,6 +639,7 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
       setStatus(packet.id, 'done', undefined, repairs);
       outcomes.set(packet.id, outcomeFor(packet, 'done', repairs, undefined, dir, branch));
       record({ kind: 'packet', packetId: packet.id, status: 'done', note: worker.summary, role: 'scheduler' });
+      progress({ kind: 'packet_done', packetId: packet.id, title: packet.title, repairs });
       return;
     }
   };
@@ -587,6 +699,7 @@ export async function runExecute(input: ExecuteInput): Promise<ExecuteRunResult>
         setStatus(packet.id, 'skipped', reason);
         outcomes.set(packet.id, outcomeFor(packet, 'skipped', 0, reason));
         record({ kind: 'packet', packetId: packet.id, status: 'skipped', note: reason, role: 'scheduler' });
+        progress({ kind: 'packet_skipped', packetId: packet.id, title: packet.title, detail: reason });
       }
       break;
     }
