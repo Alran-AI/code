@@ -84,6 +84,7 @@ export async function reviewUltraRun(options: UltraReviewRunOptions): Promise<Ul
     changedFiles: content.files,
     diff: content.diff,
     truncated: content.truncated,
+    runStatus: state.status,
   };
 
   const reviewers = Math.min(

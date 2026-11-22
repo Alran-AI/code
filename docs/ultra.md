@@ -189,7 +189,9 @@ Implemented and tested:
   dropped with the reason. The report (`review.md`, `review.json` in the run
   directory) lists the confirmed findings with their evidence *and* the
   rejected ones, because a report that only shows what survived hides how much
-  the fleet argued with itself.
+  the fleet argued with itself. A review of a run that is still going says so,
+  in the report and on the console: it covers the change as it is now, not the
+  finished run.
 
 Starting a run:
 

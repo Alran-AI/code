@@ -305,6 +305,19 @@ describe('buildReviewReport', () => {
     expect(report).toContain('The diff was cut short');
   });
 
+  it('records the state the run was in when the review started', async () => {
+    const result = await runReview({
+      target: { ...target, runStatus: 'running' },
+      ports: fleet({ perLens: () => [], verdict: () => ({ confirmed: false, reason: 'x' }) }),
+      config,
+    });
+
+    const report = buildReviewReport(result, { ...target, runStatus: 'running' });
+    // A review of a run that is still going covers the change as it is now.
+    // A report that did not say so would read like a verdict on a finished run.
+    expect(report).toContain('Run status at review: running');
+  });
+
   it('summarises the review for the terminal', async () => {
     const result = await runReview({
       target,

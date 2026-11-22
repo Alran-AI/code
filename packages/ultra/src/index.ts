@@ -87,6 +87,7 @@ export {
   classifyRunner,
   processAlive,
   claimRunner,
+  isTerminalRunStatus,
   readRunner,
   writeRunner,
   type UltraRunnerClassification,

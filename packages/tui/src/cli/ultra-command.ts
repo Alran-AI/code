@@ -1650,6 +1650,14 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
           onProgress: (message) => write(`  ${message}…\n`),
         });
         write(`${ultra.formatReviewSummary(result)}\n`);
+        // A review of a run that is still going covers the change as it is now.
+        // Saying so keeps the report from reading like a verdict on a finished
+        // run.
+        if (!ultra.isTerminalRunStatus(store.state.status)) {
+          write(
+            `\nThe run is ${store.state.status}: this review covers the change as it is now, not the finished run.\n`,
+          );
+        }
         write(`\nReview: ${reportPath}\n`);
       } catch (error) {
         write(`${error instanceof Error ? error.message : String(error)}\n`);

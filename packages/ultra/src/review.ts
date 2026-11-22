@@ -25,6 +25,7 @@
  */
 
 import { BudgetTracker } from './budget.js';
+import type { RunStatus } from './types.js';
 
 /** How bad a finding is. `critical` breaks the software; `minor` is a nit. */
 export type ReviewSeverity = 'critical' | 'major' | 'minor';
@@ -110,6 +111,14 @@ export interface ReviewTarget {
   readonly diff: string;
   /** Whether the diff was cut short. */
   readonly truncated: boolean;
+  /**
+   * The run's status when the review started.
+   *
+   * A review of a run that is still going covers the change as it is now, not
+   * as it will be. Without this the report would read like a review of a
+   * finished run's change, which is a claim the review cannot make.
+   */
+  readonly runStatus?: RunStatus;
 }
 
 /** What one reviewer came back with. */
@@ -481,6 +490,12 @@ export function buildReviewReport(result: ReviewResult, target: ReviewTarget): s
     lines.push(`Branch: \`${target.branch}\`${target.baseRef ? ` (against \`${target.baseRef}\`)` : ''}`);
   }
   lines.push(`Files changed: ${String(target.changedFiles.length)}`);
+  // The state the run was in when the review started. A review of a run that
+  // is still going covers the change as it is now — saying so is the
+  // difference between a review and a guess.
+  if (target.runStatus) {
+    lines.push(`Run status at review: ${target.runStatus}`);
+  }
   lines.push(`Cost: $${result.costUsd.toFixed(2)} (estimated from tokens)`);
   lines.push('');
 

@@ -75,6 +75,16 @@ const TERMINAL_RUN_STATUS: ReadonlySet<RunStatus> = new Set([
   'stalled',
 ]);
 
+/**
+ * Whether this run has reached its final state.
+ *
+ * A run that is still going can change; anything that describes its change —
+ * a review, a diff, a report — describes it as it is now.
+ */
+export function isTerminalRunStatus(status: RunStatus): boolean {
+  return TERMINAL_RUN_STATUS.has(status);
+}
+
 /** Reads a runner record, or `undefined` when the run was not started in the background. */
 export function readRunner(paths: RunPaths): UltraRunnerRecord | undefined {
   if (!existsSync(paths.runner)) return undefined;

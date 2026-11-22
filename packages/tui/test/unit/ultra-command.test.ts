@@ -1481,6 +1481,34 @@ describe('ultra leaves the user’s branches alone (ULT-08)', () => {
     expect(report).toContain('the line really does read the value');
   });
 
+  it('says so when the run is still going, so the review is not read as a verdict', async () => {
+    const { repo } = repoWithRemote();
+    const adapters = realAdapters(repo, { writeInWorktree: true });
+
+    const first = harness(repo, adapters);
+    await first.program.parseAsync(['ultra', 'a big task'], { from: 'user' });
+    const runId = runDirs(repo)[0]!;
+
+    // The run is back in flight: the review covers the change as it is now,
+    // not as it will be when the run finishes.
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(repo, '.alran', 'ultra'), runId);
+    store.transition('running');
+
+    const review = harness(repo, {
+      ...adapters,
+      reviewPorts: {
+        reviewer: { review: async () => ({ findings: [], costUsd: 0.01 }) },
+        verifier: { verify: async () => ({ confirmed: false, reason: 'nothing to confirm' }) },
+      },
+    });
+    await review.program.parseAsync(['ultra', 'review', runId], { from: 'user' });
+
+    expect(review.output()).toMatch(/covers the change as it is now/iu);
+    const report = readFileSync(path.join(repo, '.alran', 'ultra', runId, 'review.md'), 'utf8');
+    expect(report).toContain('Run status at review: running');
+  });
+
   it('reviews a run end to end, through the runtime adapters', async () => {
     const { repo } = repoWithRemote();
     const adapters = realAdapters(repo, { writeInWorktree: true, review: true });
