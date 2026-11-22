@@ -20,7 +20,7 @@ import { truncateToWidth } from '../../rendering/text.js';
 import { Input } from '../../widgets/input.js';
 import { tuiChalk as chalk, tuiColors as colors } from '../../theme/runtime.js';
 import { questionnaireFrameContentWidth, renderQuestionnaireFrame } from '../interaction/decision-frame.js';
-import type { UltraRunMode } from '@alran/ultra';
+import type { UltraGates, UltraRunMode } from '@alran/ultra';
 
 /** What the wizard decided. The flow turns this into a detached run. */
 export interface UltraStartRequest {
@@ -35,6 +35,14 @@ export interface UltraWizardOptions {
   readonly onStart: (request: UltraStartRequest) => void;
   readonly onCancel: () => void;
   readonly requestRender: () => void;
+  /**
+   * The project-wide gates this run will be checked against.
+   *
+   * Detection is a guess about a repository, and the wizard is the last moment
+   * before the money is spent, so the guess is shown here. A reader who
+   * recognises a wrong one can cancel and use the CLI, which can replace it.
+   */
+  readonly gates?: UltraGates;
 }
 
 type StepId = 'task' | 'mode' | 'budget' | 'workers' | 'recipe' | 'confirm';
@@ -269,6 +277,26 @@ export class UltraWizard implements Component {
     );
   }
 
+  /**
+   * The gates the run will be checked against, or nothing when there are none.
+   *
+   * A run whose gate is wrong fails at the merge, after the workers have
+   * spent the money. Showing the guess here is the last moment it can be
+   * noticed for free.
+   */
+  private gateLines(contentWidth: number): string[] {
+    const gates = this.options.gates;
+    if (!gates) return [];
+    const commands = [...gates.test, ...gates.lint, ...gates.build];
+    if (commands.length === 0) {
+      return [chalk.hex(colors.muted)('Gates:  none detected — the run will not claim a green build.')];
+    }
+    return [
+      'Gates:',
+      ...commands.map((command) => `  ${truncateToWidth(command, contentWidth - 2, '')}`),
+    ];
+  }
+
   private body(contentWidth: number): string[] {
     switch (this.currentStep) {
       case 'confirm':
@@ -278,6 +306,7 @@ export class UltraWizard implements Component {
           `Budget:  ${this.budgetUsd === null ? 'no cap' : `$${String(this.budgetUsd)}`}`,
           `Workers: ${String(this.workers)}`,
           `Recipe:  ${this.recipe}`,
+          ...this.gateLines(contentWidth),
           '',
           chalk.hex(colors.muted)('Nothing is merged into main; the branch is yours to review.'),
         ];

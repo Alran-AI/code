@@ -240,34 +240,16 @@ export function parseScopeVerdict(text: string): { readonly decided: boolean; re
 }
 
 /** Reads the well-known project files so gate detection matches the CI Fixer. */
+/**
+ * The project files a repository's gates are detected from.
+ *
+ * The reading lives in the core so every surface detects the same gates: the
+ * CLI's plan, its confirmation, and the TUI's start wizard. A gate that one
+ * surface detects and another does not is a gate that only half the product
+ * knows about.
+ */
 export function readGateSources(root: string): UltraGateSources {
-  const read = (file: string): string | undefined => {
-    const full = path.join(root, file);
-    if (!existsSync(full)) return undefined;
-    try {
-      return readFileSync(full, 'utf8');
-    } catch {
-      return undefined;
-    }
-  };
-
-  const packageJsonText = read('package.json');
-  let packageJson: UltraGateSources['packageJson'];
-  if (packageJsonText) {
-    try {
-      packageJson = JSON.parse(packageJsonText) as UltraGateSources['packageJson'];
-    } catch {
-      packageJson = undefined;
-    }
-  }
-
-  return {
-    ...(packageJson ? { packageJson } : {}),
-    ...(read('pyproject.toml') ? { pyproject: read('pyproject.toml') } : {}),
-    ...(read('Cargo.toml') ? { cargo: read('Cargo.toml') } : {}),
-    ...(read('go.mod') ? { goMod: read('go.mod') } : {}),
-    ...(read('Makefile') ? { makefile: read('Makefile') } : {}),
-  };
+  return ultra.readGateSources(root);
 }
 
 

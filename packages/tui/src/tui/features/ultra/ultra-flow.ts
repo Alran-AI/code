@@ -273,6 +273,10 @@ export class UltraFlow {
 
   private showWizard(): void {
     const wizard = new UltraWizard({
+      // The gates the run will be checked against, detected from the
+      // repository's own files. No model is involved, so this costs nothing
+      // and can be shown before the run starts.
+      gates: ultra.detectUltraGates(ultra.readGateSources(this.options.workspaceDir)),
       onStart: (request) => {
         this.close();
         void this.startRunFromWizard(request);

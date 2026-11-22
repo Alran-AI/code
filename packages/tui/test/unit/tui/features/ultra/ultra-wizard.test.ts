@@ -20,7 +20,7 @@ interface Harness {
   render(width?: number): string;
 }
 
-function harness(): Harness {
+function harness(gates?: { test: string[]; lint: string[]; build: string[] }): Harness {
   const started: UltraStartRequest[] = [];
   const cancelled = vi.fn();
   const renders = vi.fn();
@@ -28,6 +28,7 @@ function harness(): Harness {
     onStart: (request) => started.push(request),
     onCancel: cancelled,
     requestRender: renders,
+    ...(gates ? { gates } : {}),
   });
   return {
     wizard,
@@ -122,6 +123,28 @@ describe('UltraWizard', () => {
     expect(text).toMatch(/Budget:\s+\$1/iu);
     // The wizard must be honest that the run outlives the TUI.
     expect(text).toMatch(/close this TUI/iu);
+  });
+
+  it('shows the gates the run will be checked against', () => {
+    const h = harness({ test: ['pnpm test'], lint: [], build: ['pnpm build'] });
+    h.type('a task worth a summary');
+    h.press('\r'); // task
+    h.press('\r', '\r', '\r'); // mode, budget, workers -> recipe
+    h.press('\r'); // recipe -> confirm
+    const text = h.render();
+    // Detection is a guess about a repository, and this is the last moment
+    // before the money is spent.
+    expect(text).toContain('pnpm test');
+    expect(text).toContain('pnpm build');
+  });
+
+  it('says so when no gate was detected', () => {
+    const h = harness({ test: [], lint: [], build: [] });
+    h.type('a task worth a summary');
+    h.press('\r'); // task
+    h.press('\r', '\r', '\r'); // mode, budget, workers -> recipe
+    h.press('\r'); // recipe -> confirm
+    expect(h.render()).toMatch(/none detected/iu);
   });
 
   it('refuses to start without a task', () => {

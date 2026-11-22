@@ -107,6 +107,7 @@ export {
 export {
   applyGateOverrides,
   detectUltraGates,
+  readGateSources,
   type UltraGateSources,
 } from './gates.js';
 

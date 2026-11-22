@@ -34,7 +34,9 @@ Implemented and tested:
   which gate the project uses can be corrected without planning it again. A
   plan edited on disk is validated again before it runs, so an edit cannot
   bypass the rules the planner passed (two parallel packets with overlapping
-  scopes stay refused).
+  scopes stay refused). The TUI's start wizard shows the detected gates too —
+  the same detection, read from the same files — so both surfaces show the
+  guess before the money is spent.
 - **Budget-aware planning** — the plan is sized to `--budget` before any worker
   starts. Criteria are kept by priority (must → should → could), a
   `repair_reserve` fraction is held back, and a `must` that does not fit is

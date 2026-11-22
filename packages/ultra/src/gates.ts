@@ -9,6 +9,8 @@
  */
 
 import { detectProjectCommands } from '@alran/ci-fix';
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import type { UltraGates } from './types.js';
 
 export interface UltraGateSources {
@@ -30,7 +32,7 @@ export function detectUltraGates(sources: UltraGateSources): UltraGates {
 }
 
 /**
- * The gates with the reader's overrides applied.
+ * The project-wide gates with the reader's overrides applied.
  *
  * An override *replaces* the detected group rather than adding to it: a
  * reader who says "the test gate is `pnpm test:unit`" means that command and
@@ -45,5 +47,48 @@ export function applyGateOverrides(
     test: overrides.test ?? base.test,
     lint: overrides.lint ?? base.lint,
     build: overrides.build ?? base.build,
+  };
+}
+
+/**
+ * Reads the well-known project files a repository's gates are detected from.
+ *
+ * It lives in the core so every surface detects the same gates: the CLI's
+ * plan, the confirmation, and the TUI's start wizard. A file that cannot be
+ * read is skipped rather than guessed at, and a `package.json` that is not
+ * JSON is treated as no package.json at all.
+ */
+export function readGateSources(root: string): UltraGateSources {
+  const read = (file: string): string | undefined => {
+    const full = path.join(root, file);
+    if (!existsSync(full)) return undefined;
+    try {
+      return readFileSync(full, 'utf8');
+    } catch {
+      return undefined;
+    }
+  };
+
+  const packageJsonText = read('package.json');
+  let packageJson: UltraGateSources['packageJson'];
+  if (packageJsonText) {
+    try {
+      packageJson = JSON.parse(packageJsonText) as UltraGateSources['packageJson'];
+    } catch {
+      packageJson = undefined;
+    }
+  }
+
+  const pyproject = read('pyproject.toml');
+  const cargo = read('Cargo.toml');
+  const goMod = read('go.mod');
+  const makefile = read('Makefile');
+
+  return {
+    ...(packageJson ? { packageJson } : {}),
+    ...(pyproject ? { pyproject } : {}),
+    ...(cargo ? { cargo } : {}),
+    ...(goMod ? { goMod } : {}),
+    ...(makefile ? { makefile } : {}),
   };
 }
