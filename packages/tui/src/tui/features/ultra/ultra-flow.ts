@@ -375,6 +375,14 @@ export class UltraFlow {
     }
     const resumable = store.resumablePacketIds();
     if (resumable.length > 0) lines.push(`Resumable: ${resumable.join(', ')}`);
+    // What to do next, so the status is the end of the answer and not the
+    // beginning of another question.
+    const step = ultra.nextStepFor(state);
+    if (step.kind === 'resume') {
+      lines.push(`Next: resume it with /ultra resume ${state.runId}`);
+    } else if (step.kind === 'merge') {
+      lines.push(`Next: review the branch, then merge it with \`git merge ${step.branch}\``);
+    }
     this.options.appendNotice(lines.join('\n'));
   }
 

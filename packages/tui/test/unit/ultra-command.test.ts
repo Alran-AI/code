@@ -1831,3 +1831,50 @@ describe('the project-wide gates', () => {
     expect(resume.exitCodes).toContain(1);
   });
 });
+
+describe('the status says what to do next', () => {
+  it('names the resume for a run that stopped with work left', async () => {
+    const dir = gitRepo();
+    const planning = harness(dir, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    store.transition('paused');
+
+    const cli = harness(dir);
+    await cli.program.parseAsync(['ultra', 'status', runId], { from: 'user' });
+
+    // A status that names the state and stops leaves the reader guessing.
+    expect(cli.output()).toContain(`alran ultra resume ${runId}`);
+  });
+
+  it('names the merge for a run that finished', async () => {
+    const dir = gitRepo();
+    const planning = harness(dir, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+    const { RunStore } = await import('@alran/ultra');
+    const store = RunStore.open(path.join(dir, '.alran', 'ultra'), runId);
+    // Only INTEGRATE may write `succeeded`, and the state machine enforces it.
+    store.transition('integrating');
+    store.transition('succeeded');
+
+    const cli = harness(dir);
+    await cli.program.parseAsync(['ultra', 'status', runId], { from: 'user' });
+
+    expect(cli.output()).toContain(`git merge ultra/${runId}`);
+  });
+
+  it('shows the gates the merge will be checked against', async () => {
+    const dir = gitRepo();
+    const planning = harness(dir, { planPorts: fakePorts });
+    await planning.program.parseAsync(['ultra', 'plan', 'a task'], { from: 'user' });
+    const runId = runDirs(dir)[0]!;
+
+    const cli = harness(dir);
+    await cli.program.parseAsync(['ultra', 'status', runId], { from: 'user' });
+
+    expect(cli.output()).toMatch(/Gates:/u);
+  });
+});

@@ -385,6 +385,18 @@ function claimDriver(
   );
 }
 
+/** The plan's project-wide gates, or `undefined` when there is no plan yet. */
+function planGatesOf(store: ultra.RunStore): ultra.UltraGates | undefined {
+  if (!existsSync(store.paths.plan)) return undefined;
+  try {
+    const plan = JSON.parse(readFileSync(store.paths.plan, 'utf8')) as ultra.UltraPlan;
+    return plan.gates;
+  } catch {
+    // A malformed plan file must not hide the rest of the status.
+    return undefined;
+  }
+}
+
 /**
  * Collects a repeatable option into a list.
  *
@@ -1475,6 +1487,13 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
       }),
     );
     write(`\nReport: ${store.paths.report}\n`);
+    if (loopResult.runStatus === 'paused' || loopResult.runStatus === 'killed') {
+      // A run that stopped on purpose is waiting to be continued, and the
+      // command that continues it is named here rather than left to be guessed.
+      write(
+        `Resume it with \`alran ultra resume ${store.state.runId}\`; the criteria that are already met are not checked again.\n`,
+      );
+    }
     if (loopResult.runStatus !== 'succeeded') exit(1);
   };
 
@@ -1549,8 +1568,27 @@ export function registerUltraCommand(program: Command, options: UltraCommandOpti
         const reason = packet.reason ? `  ${packet.reason}` : '';
         write(`  ${packet.id}  ${packet.status.padEnd(10)} ${packet.title}${reason}\n`);
       }
+      // The commands the merge will be checked against. Detection is a guess
+      // about a repository, so the reader is better off seeing it.
+      const gates = planGatesOf(store);
+      if (gates) {
+        const commands = [...gates.test, ...gates.lint, ...gates.build];
+        write(
+          commands.length > 0
+            ? `Gates: ${commands.join(' · ')}\n`
+            : 'Gates: none detected\n',
+        );
+      }
       const remaining = store.resumablePacketIds();
       if (remaining.length > 0) write(`Resumable: ${remaining.join(', ')}\n`);
+      // What to do next, so the status is the end of the answer and not the
+      // beginning of another question.
+      const step = ultra.nextStepFor(state);
+      if (step.kind === 'resume') {
+        write(`Next: resume it with \`alran ultra resume ${state.runId}\`\n`);
+      } else if (step.kind === 'merge') {
+        write(`Next: review the branch, then merge it with \`git merge ${step.branch}\`\n`);
+      }
     });
 
   root

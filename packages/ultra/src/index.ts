@@ -151,6 +151,8 @@ export {
 
 export { resumeRefusal } from './resume.js';
 
+export { nextStepFor, type UltraNextStep } from './next-step.js';
+
 export {
   clearControl,
   decideControl,

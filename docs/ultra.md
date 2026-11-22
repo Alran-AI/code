@@ -18,6 +18,12 @@ Implemented and tested:
   repository's real project files and calls headless `alran exec` for each role;
   the planner's reply is parsed strictly, so a malformed plan is rejected rather
   than guessed at.
+- **The status says what to do next.** `alran ultra status` and `/ultra status`
+  do not stop at the state: a run that still has work names the command that
+  continues it (`alran ultra resume <run-id>`), and a run that finished names
+  the merge (`git merge ultra/<run-id>`). A status that says `succeeded` and
+  stops leaves the reader guessing what to do about the one run they waited
+  for. The rule is in the core, so the two surfaces cannot disagree.
 - **The project-wide gates are shown and can be changed** — the commands the
   merge will be checked against are detected from the repository (`package.json`,
   `pyproject`, `Cargo.toml`, `Makefile` …), shown in the confirmation and in

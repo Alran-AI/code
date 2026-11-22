@@ -384,6 +384,7 @@
       "packages/ultra/test/unit/scope-guard.test.ts",
       "packages/ultra/test/unit/execute.test.ts",
       "packages/ultra/test/unit/gates.test.ts",
+      "packages/ultra/test/unit/next-step.test.ts",
       "packages/ultra/test/unit/worker-prompt.test.ts",
       "packages/ultra/test/unit/plan-budget.test.ts",
       "packages/ultra/test/unit/loop.test.ts",
