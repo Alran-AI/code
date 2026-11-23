@@ -63,7 +63,6 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
-      "better-sqlite3",
       "esbuild",
       "node-pty"
     ],
@@ -82,6 +81,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "12"
+    "better-sqlite3": "13"
   }
 }
