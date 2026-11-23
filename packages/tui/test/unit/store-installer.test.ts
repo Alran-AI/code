@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { StoreError, type StoreEntry } from '../../src/store/contract.js';
+import { removeTree } from '../../src/store/fs-util.js';
 import { parseStoreIndex } from '../../src/store/index-format.js';
 import { StoreInstaller } from '../../src/store/installer.js';
 import { createStoreTransport } from '../../src/store/transport.js';
@@ -281,5 +282,12 @@ describe('StoreInstaller', () => {
     writeFileSync(path.join(data, 'store', 'installed.json'), '{ broken');
     expect((await installer().ledger()).skills).toEqual({});
     expect(readdirSync(path.join(data, 'store')).some((name) => name.startsWith('installed.json.corrupt-'))).toBe(true);
+  });
+
+  it('treats a path that cannot exist as already removed', () => {
+    // A file sits where the directory of the path would have to be, so the path cannot exist.
+    const blocker = path.join(root, 'blocker');
+    writeFileSync(blocker, 'blocker');
+    expect(() => removeTree(path.join(blocker, 'child'))).not.toThrow();
   });
 });
