@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed
+
+- **A failed Store install says why it failed.** On Node 22 the cleanup that follows a failed
+  install reported its own error instead of the reason the install failed, so the Store ended in a
+  raw filesystem error. The Store answers the same on every supported Node version now.
+
 ## 1.2.0 — 2026-11-19
 
 Package `alran` (`npm install -g alran`), binary `alran`.

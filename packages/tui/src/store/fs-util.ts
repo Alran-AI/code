@@ -19,6 +19,13 @@ export function isMissing(error: unknown): boolean {
   );
 }
 
+/** A path whose parent is not a directory cannot exist, so there is nothing there to remove. */
+export function isNotDirectory(error: unknown): boolean {
+  return (
+    typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOTDIR'
+  );
+}
+
 export async function readTextIfExists(file: string): Promise<string | undefined> {
   try {
     return await readFile(file, 'utf8');
@@ -85,8 +92,19 @@ export function renameDirectory(from: string, to: string): void {
   retryWindowsFileSystemOperation(() => renameSync(from, to));
 }
 
+/**
+ * Removes a tree when it is there.
+ *
+ * A path that cannot exist — because its parent is not a directory — is already gone. Node 24
+ * ignores that case, Node 22 reports it as ENOTDIR; the store answers the same on both, because a
+ * failed install must report why it failed and not why the cleanup after it failed.
+ */
 export function removeTree(target: string): void {
-  retryWindowsFileSystemOperation(() => rmSync(target, { recursive: true, force: true }));
+  try {
+    retryWindowsFileSystemOperation(() => rmSync(target, { recursive: true, force: true }));
+  } catch (error) {
+    if (!isNotDirectory(error)) throw error;
+  }
 }
 
 export async function pathExists(target: string): Promise<boolean> {
