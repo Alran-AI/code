@@ -68,7 +68,7 @@ function jsonBytes(value) {
  */
 function keptFiles(root) {
   try {
-    const listed = execFileSync("git", ["-C", root, "ls-files", "--cached", "--others", "--exclude-standard"], {
+    const listed = execFileSync("git", ["-C", root, "ls-files", "--cached"], {
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,
       stdio: ["ignore", "pipe", "ignore"],
