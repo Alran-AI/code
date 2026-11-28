@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -138,6 +139,15 @@ describe('store builder', () => {
       'references/notes.md',
       'scripts/run.py',
     ]);
+  });
+
+  it('does not publish non-ignored files that are not tracked by Git', () => {
+    execFileSync('git', ['init', '--quiet'], { cwd: source });
+    execFileSync('git', ['add', '--all'], { cwd: source });
+    write(path.join(source, 'skills', 'one', 'alpha', 'local-notes.md'), 'developer-only content');
+
+    const archive = parsePluginArchive(archiveOf(build().files, 'skills', 'alpha'));
+    expect(archive.entries.map((entry) => entry.path)).not.toContain('local-notes.md');
   });
 
   it('is deterministic', () => {
