@@ -130,7 +130,7 @@ export interface RunRgOptions {
    */
   maxStdoutBytes?: number;
   /** Keep only complete stdout lines matching this regex before byte accounting. */
-  stdoutLineRegex?: RegExp;
+  stdoutLineMatcher?: (path: string) => boolean;
   /** Stop the child after collecting this many matching stdout lines. */
   maxStdoutLines?: number;
   /** Delimiter used to count complete stdout records without buffering unbounded output. */
@@ -155,7 +155,7 @@ export function runRg(args: string[], cwd: string, opts: RunRgOptions = {}): Pro
     timeoutMs,
     killGraceMs,
     maxStdoutBytes,
-    stdoutLineRegex,
+    stdoutLineMatcher,
     maxStdoutLines,
     stdoutRecordSeparator,
     maxStdoutRecords,
@@ -250,13 +250,13 @@ export function runRg(args: string[], cwd: string, opts: RunRgOptions = {}): Pro
         }
         return;
       }
-      if (!stdoutLineRegex) {
+      if (!stdoutLineMatcher) {
         appendStdout(text);
         return;
       }
       const complete = `${stdoutRemainder}${text}`.split('\n');
       stdoutRemainder = complete.pop() ?? '';
-      const matched = complete.filter((line) => stdoutLineRegex.test(normalizePathLine(line)));
+      const matched = complete.filter((line) => stdoutLineMatcher(normalizePathLine(line)));
       const remainingLines =
         maxStdoutLines === undefined ? matched.length : maxStdoutLines - stdoutLines;
       const selected = matched.slice(0, Math.max(0, remainingLines));
@@ -305,8 +305,8 @@ export function runRg(args: string[], cwd: string, opts: RunRgOptions = {}): Pro
       if (!stdoutTruncated) handleStdoutText(stdoutDecoder.end());
       if (!stdoutTruncated && stdoutRecordSeparator && stdoutRecordRemainder.length > 0) {
         appendStdout(stdoutRecordRemainder, false);
-      } else if (!stdoutTruncated && stdoutLineRegex && stdoutRemainder.length > 0) {
-        if (stdoutLineRegex.test(normalizePathLine(stdoutRemainder))) {
+      } else if (!stdoutTruncated && stdoutLineMatcher && stdoutRemainder.length > 0) {
+        if (stdoutLineMatcher(normalizePathLine(stdoutRemainder))) {
           appendStdout(stdoutRemainder, false);
         }
       }

@@ -24,7 +24,7 @@ import {
   defaultScanExcludeArgs,
   filterGlobPaths,
   findGlobMagicIndex,
-  globToPathRegex,
+  globToPathMatcher,
   isBroadFileScan,
   isNarrowSearchRoot,
   resolveGlobStaticSearchRoot,
@@ -214,7 +214,7 @@ export class LocalGlobTool implements ToolImpl<
       searchRoot,
       {
         ...this.rgOptions,
-        stdoutLineRegex: globToPathRegex(effectivePattern),
+        stdoutLineMatcher: globToPathMatcher(effectivePattern),
         maxStdoutLines: offset + limit + 1,
         ...(signal ? { signal } : {}),
       },

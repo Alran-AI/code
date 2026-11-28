@@ -1,6 +1,6 @@
 import type { RuntimeTool, ToolDefinition, ToolResult } from '@alran/agent-core/tools';
 import { Type, type TSchema } from '@sinclair/typebox';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 import { LocalAlranToolDef } from './builtin-defs.js';
 import { LOCAL_ALRAN_COMMAND_SCHEMAS } from './local-alran.js';
