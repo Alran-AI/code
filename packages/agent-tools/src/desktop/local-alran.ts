@@ -1,7 +1,7 @@
 import type { AgentMessage } from '@earendil-works/pi-agent-core';
 import { bindTool, type ToolImpl, type ToolResult } from '@alran/agent-core/tools';
 import { createDefaultTokenEstimator } from '@alran/context-manager';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 import { normalizeAlranCommand } from '../shared/alran-operation-classifier.js';
 import { LocalAlranToolDef, type LocalAlranToolInput } from './builtin-defs.js';

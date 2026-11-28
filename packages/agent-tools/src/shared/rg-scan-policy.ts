@@ -9,7 +9,7 @@
 import { realpath } from 'node:fs/promises';
 import { isAbsolute, relative, resolve } from 'node:path';
 
-import { braceExpand, makeRe, minimatch } from 'minimatch';
+import { braceExpand, minimatch } from 'minimatch';
 
 export const DEFAULT_SCAN_DIRECTORY_NAMES = [
   '.worktrees',
@@ -210,15 +210,17 @@ export function defaultScanExcludeArgs(
 }
 
 export function filterGlobPaths(paths: readonly string[], pattern: string): string[] {
-  const regex = globToPathRegex(pattern);
-  return paths.filter((path) => regex.test(path.replaceAll('\\', '/')));
+  const matchesPath = globToPathMatcher(pattern);
+  return paths.filter((path) => matchesPath(path.replaceAll('\\', '/')));
 }
 
-export function globToPathRegex(pattern: string): RegExp {
+/**
+ * Compile a path glob into a predicate using minimatch's supported API.
+ * Minimatch 11 no longer exposes the legacy makeRe() helper.
+ */
+export function globToPathMatcher(pattern: string): (path: string) => boolean {
   assertValidGlobPattern(pattern);
   const normalized = pattern.replaceAll('\\', '/');
   const matchPattern = normalized.includes('/') ? normalized : `**/${normalized}`;
-  const regex = makeRe(matchPattern, { dot: true });
-  if (!regex) throw new Error(`invalid glob pattern: ${pattern}`);
-  return regex;
+  return (path) => minimatch(path.replaceAll('\\', '/'), matchPattern, { dot: true });
 }

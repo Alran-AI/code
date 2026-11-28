@@ -41,7 +41,6 @@ overrides:
   '@vitest/mocker@>=2.1.0-beta.7 <4.1.12': '>=4.1.12'
   '@vitest/mocker@>=4.1.11 <4.1.12': '>=4.1.12'
   ip-address@<=10.7.3: '>=10.7.4'
-  zod@<4.6.6: '>=4.6.6'
   body-parser@>=2.0.0 <2.4.0: '>=2.4.0'
   undici@>=8.0.0 <8.12.2: '>=8.12.2'
   fast-uri@>=3.0.0 <3.1.9: '>=3.1.9'
@@ -61,6 +60,7 @@ overrides:
   hono@>=4.1.4 <=4.13.15: '>=4.13.16'
   hono@>=3.12.0 <=4.13.15: '>=4.13.16'
   hono@>=4.5.1 <=4.13.15: '>=4.13.16'
+  zod@<4.6.6: 4.6.7
 
 importers:
 
@@ -146,7 +146,7 @@ importers:
         specifier: ^0.34.0
         version: 0.34.52
       zod:
-        specifier: '>=4.6.6'
+        specifier: 4.6.7
         version: 4.6.7
     devDependencies:
       '@alran/config':
@@ -294,7 +294,7 @@ importers:
         specifier: ^0.34.0
         version: 0.34.52
       zod:
-        specifier: '>=4.6.6'
+        specifier: 4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
@@ -510,7 +510,7 @@ importers:
         specifier: ^1.6.2
         version: 1.8.1
       zod:
-        specifier: '>=4.6.6'
+        specifier: 4.6.7
         version: 4.6.7
     devDependencies:
       '@types/js-yaml':
@@ -681,7 +681,7 @@ importers:
         specifier: 6.0.0
         version: 6.0.0
       zod:
-        specifier: '>=4.6.6'
+        specifier: 4.6.7
         version: 4.6.7
     optionalDependencies:
       '@larksuiteoapi/node-sdk':
@@ -1158,7 +1158,7 @@ importers:
         specifier: '>=1.4.3'
         version: 1.4.4
       zod:
-        specifier: '>=4.6.6'
+        specifier: 4.6.7
         version: 4.6.7
     devDependencies:
       '@types/node':
@@ -3962,7 +3962,7 @@ packages:
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
-      zod: '>=4.6.6'
+      zod: 4.6.7
     peerDependenciesMeta:
       ws:
         optional: true
@@ -4870,7 +4870,7 @@ packages:
   zod-to-json-schema@3.25.2:
     resolution: {integrity: sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA==}
     peerDependencies:
-      zod: '>=4.6.6'
+      zod: 4.6.7
 
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
