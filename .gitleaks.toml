@@ -62,6 +62,13 @@ regexTarget = "match"
 regexes = ['''^[A-Za-z_$][A-Za-z0-9_$]*\.generateKey = [A-Za-z_$][A-Za-z0-9_$]*\.pbe\.generatePkcs12Key;?$''']
 
 [[rules.allowlists]]
+description = "Secret-looking fixture in the historical ledger redaction regression test"
+condition = "AND"
+paths = ['''(^|/)packages/ultra/test/unit/ledger\.test\.ts$''']
+regexTarget = "line"
+regexes = ['''^\s*note: 'failed with ALRAN_API_KEY=[A-Za-z0-9_-]{20}',\s*$''']
+
+[[rules.allowlists]]
 description = "Exact synthetic privacy regression marker, including historical commits"
 condition = "AND"
 paths = ['''(^|/)packages/local-runtime/test/unit/error-reporting-privacy\.test\.ts$''']
