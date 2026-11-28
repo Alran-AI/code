@@ -47,7 +47,7 @@ jobs:
           ref: 8ad1e09f7653d7e97b83b4f5b4d347ca2fa129c7
           path: benchmark
           persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: 9.12.0
           package_json_file: candidate/package.json
